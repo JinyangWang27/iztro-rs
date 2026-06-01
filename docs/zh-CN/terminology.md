@@ -1,0 +1,42 @@
+# 术语表
+
+本术语表用于保持工程术语和紫微斗数术语在中英文文档中的一致性。
+
+| Internal key | English | 中文 | 说明 |
+|---|---|---|---|
+| `heavenly_stem` | Heavenly Stem | 天干 | 十天干之一。 |
+| `earthly_branch` | Earthly Branch | 地支 | 十二地支之一。 |
+| `palace` | Palace | 宫位 | 星盘中的生活领域。 |
+| `life_palace` | Life Palace | 命宫 | 自我、命格、核心身份。 |
+| `body_palace` | Body Palace | 身宫 | 行动路径、后天体现、身体化方向。 |
+| `career_palace` | Career Palace | 官禄宫 | 职业、职位、事业角色。 |
+| `wealth_palace` | Wealth Palace | 财帛宫 | 钱财、资源流、收入方式。 |
+| `spouse_palace` | Spouse Palace | 夫妻宫 | 婚姻、亲密关系、伴侣互动。 |
+| `migration_palace` | Migration Palace | 迁移宫 | 外部环境、移动、平台、远方。 |
+| `property_palace` | Property Palace | 田宅宫 | 房产、家庭基底、资产承载。 |
+| `health_palace` | Health Palace | 疾厄宫 | 健康、身体、风险点。 |
+| `spirit_palace` | Spirit Palace | 福德宫 | 内在状态、享受方式、精神底色。 |
+| `star` | Star | 星曜 | 包括主星、辅星、煞星、杂曜等。 |
+| `major_star` | Major Star | 主星 | 十四主星。 |
+| `minor_star` | Minor Star | 辅星 | 辅助性或次级星曜。 |
+| `adjective_star` | Adjective Star | 杂曜 | 杂曜和其他象义标记。 |
+| `brightness` | Brightness | 庙旺利陷 | 星曜在宫位中的状态和强弱。 |
+| `mutagen` | Mutagen | 四化 | 禄、权、科、忌。 |
+| `mutagen_lu` | Lu | 化禄 | 资源、缘分、顺流、收益。 |
+| `mutagen_quan` | Quan | 化权 | 权责、压力、控制、推动。 |
+| `mutagen_ke` | Ke | 化科 | 名声、秩序、修饰、缓冲。 |
+| `mutagen_ji` | Ji | 化忌 | 执着、阻滞、债务、压力点。 |
+| `triad` | Triad | 三方 | 三合结构中的相关宫位。 |
+| `opposite_palace` | Opposite Palace | 对宫 | 与目标宫相对的宫位。 |
+| `surrounded_palaces` | Surrounding Palaces | 三方四正 | 本宫、对宫与三方相关宫位。 |
+| `decadal` | Decadal Period | 大限 | 十年运限。 |
+| `yearly` | Yearly Period | 流年 | 年度激活。 |
+| `feature` | Feature | 特征 | 从星盘中提取的结构化语义属性。 |
+| `claim` | Claim | 判断 | 规则输出，包含领域、主题、强度和证据。 |
+| `evidence` | Evidence | 证据 | 支撑判断的星盘事实。 |
+| `counter_evidence` | Counter-evidence | 反证 | 削弱或限定判断的星盘事实。 |
+| `method_profile` | Method Profile | 方法配置 | 策略和规则集的组合。 |
+
+## 翻译政策
+
+中文术语应保留标准紫微斗数术语。英文术语应优先保证软件用户可理解，不必机械直译。
