@@ -1,0 +1,12 @@
+[package]
+name = "iztro-cli"
+description = "Minimal command-line entry point for iztro-rs."
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+anyhow.workspace = true
