@@ -73,7 +73,11 @@ This roadmap is intentionally conservative. The project should first establish s
 - CLI.
 - Python bindings.
 - WebAssembly bindings.
+- TUI frontend, deferred until core models and report structures stabilize.
+- GUI frontend, deferred until core models and report structures stabilize.
 - Optional LLM-assisted narrative polishing.
+
+Application frontends are intentionally deferred. Core crates should remain UI-agnostic, deterministic, and serializable so future CLI, TUI, GUI, WASM, and Python frontends can consume chart, feature, claim, evidence, and report structures without parsing narrative text.
 
 ## Release policy
 
