@@ -1,0 +1,80 @@
+# Roadmap
+
+This roadmap is intentionally conservative. The project should first establish stable architecture and compatibility tests before expanding interpretation depth.
+
+## Phase 0: Documentation and architecture
+
+- Project specification.
+- Bilingual README.
+- Architecture document.
+- Compatibility policy.
+- Rule engine design.
+- Terminology glossary.
+- ADRs for key decisions.
+
+## Phase 1: Rust workspace scaffolding
+
+- Create Rust workspace.
+- Add core crates:
+  - `iztro-core`;
+  - `iztro-features`;
+  - `iztro-rules`;
+  - `iztro-reading`;
+  - `iztro-cli`.
+- Add basic CI for formatting, clippy, and tests.
+- Add serialization and snapshot-test infrastructure.
+
+## Phase 2: Core chart models
+
+- Define heavenly stems, earthly branches, palaces, stars, mutagens, scopes, gender, and calendar options.
+- Define chart, palace, star placement, decadal, and horoscope models.
+- Ensure models are strongly typed and serializable.
+
+## Phase 3: Chart generation compatibility
+
+- Implement minimal `by_solar` and `by_lunar` entry points.
+- Port or reimplement chart-generation logic in small deterministic modules.
+- Add golden tests against selected `iztro` outputs.
+- Document known differences.
+
+## Phase 4: Feature extraction
+
+- Extract palace features.
+- Extract star features.
+- Extract mutagen flows.
+- Extract palace relations, triads, and oppositions.
+- Add strength-score placeholders.
+- Add temporal activation interfaces.
+
+## Phase 5: Rule engine skeleton
+
+- Define rule schema.
+- Load rules from TOML.
+- Match rules against extracted features.
+- Emit structured claims with evidence and source metadata.
+- Add deterministic unit tests for rule matching.
+
+## Phase 6: Basic deterministic reading
+
+- Add a small seed rule set.
+- Generate domain-level claims for personality, career, wealth, and relationship.
+- Render deterministic reports from structured claims.
+- Keep narrative simple and evidence-based.
+
+## Phase 7: Multi-method expansion
+
+- Add method profiles.
+- Support multiple chart-generation or feature-extraction strategies.
+- Add optional rule sets for different schools or interpretation styles.
+- Keep profile combinations explicit and testable.
+
+## Phase 8: Bindings and applications
+
+- CLI.
+- Python bindings.
+- WebAssembly bindings.
+- Optional LLM-assisted narrative polishing.
+
+## Release policy
+
+Before `0.1.0`, APIs may change freely. After `0.1.0`, breaking changes should be documented in `CHANGELOG.md` and, where appropriate, ADRs.
