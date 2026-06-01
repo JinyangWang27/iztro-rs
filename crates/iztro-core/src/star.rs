@@ -6,10 +6,32 @@ use serde::{Deserialize, Serialize};
 pub enum StarName {
     /// Zi Wei star.
     ZiWei,
-    /// Tian Fu star.
-    TianFu,
+    /// Tian Ji star.
+    TianJi,
+    /// Tai Yang star.
+    TaiYang,
     /// Wu Qu star.
     WuQu,
+    /// Tian Tong star.
+    TianTong,
+    /// Lian Zhen star.
+    LianZhen,
+    /// Tian Fu star.
+    TianFu,
+    /// Tai Yin star.
+    TaiYin,
+    /// Tan Lang star.
+    TanLang,
+    /// Ju Men star.
+    JuMen,
+    /// Tian Xiang star.
+    TianXiang,
+    /// Tian Liang star.
+    TianLiang,
+    /// Qi Sha star.
+    QiSha,
+    /// Po Jun star.
+    PoJun,
 }
 
 /// Broad star category used by feature extractors.

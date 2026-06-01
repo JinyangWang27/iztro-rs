@@ -1,5 +1,6 @@
 use crate::{
     calendar::BirthContext,
+    error::ChartError,
     ganzhi::{EarthlyBranch, HeavenlyStem},
     mutagen::{Mutagen, Scope},
     palace::PalaceName,
@@ -7,6 +8,9 @@ use crate::{
     star::{Brightness, StarCategory, StarName},
 };
 use serde::{Deserialize, Serialize};
+
+/// Number of palaces required for a complete chart.
+pub const PALACE_COUNT: usize = 12;
 
 /// A complete chart placeholder composed of deterministic chart facts.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
@@ -17,17 +21,24 @@ pub struct Chart {
 }
 
 impl Chart {
-    /// Creates a chart from typed chart facts.
-    pub fn new(
+    /// Creates a chart from typed chart facts after checking core invariants.
+    pub fn try_new(
         birth_context: BirthContext,
         method_profile: MethodProfile,
         palaces: Vec<Palace>,
-    ) -> Self {
-        Self {
+    ) -> Result<Self, ChartError> {
+        if palaces.len() != PALACE_COUNT {
+            return Err(ChartError::InvalidPalaceCount {
+                expected: PALACE_COUNT,
+                actual: palaces.len(),
+            });
+        }
+
+        Ok(Self {
             birth_context,
             method_profile,
             palaces,
-        }
+        })
     }
 
     /// Returns the birth context used by this chart.

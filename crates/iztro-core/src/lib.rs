@@ -10,10 +10,10 @@ pub mod profile;
 pub mod star;
 
 pub use calendar::{BirthContext, CalendarDate, CalendarKind, Gender};
-pub use chart::{Chart, Palace, StarPlacement};
+pub use chart::{Chart, PALACE_COUNT, Palace, StarPlacement};
 pub use error::ChartError;
-pub use ganzhi::{EarthlyBranch, HeavenlyStem};
+pub use ganzhi::{EARTHLY_BRANCHES, EarthlyBranch, HEAVENLY_STEMS, HeavenlyStem};
 pub use mutagen::{Mutagen, Scope};
-pub use palace::PalaceName;
-pub use profile::MethodProfile;
+pub use palace::{PALACE_NAMES, PalaceName};
+pub use profile::{ChartAlgorithmKind, MethodProfile};
 pub use star::{Brightness, StarCategory, StarName};

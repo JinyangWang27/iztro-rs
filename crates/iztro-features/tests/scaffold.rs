@@ -1,6 +1,6 @@
 use iztro_core::{
-    BirthContext, CalendarDate, Chart, EarthlyBranch, Gender, HeavenlyStem, MethodProfile, Palace,
-    PalaceName,
+    BirthContext, CalendarDate, Chart, EarthlyBranch, Gender, HeavenlyStem, MethodProfile,
+    PALACE_NAMES, Palace, PalaceName,
 };
 use iztro_features::{
     ChartFeatures, Domain, FeatureExtractionError, FeatureExtractor, PalaceFeature, PalaceRelation,
@@ -29,20 +29,28 @@ impl FeatureExtractor for DummyExtractor {
 
 #[test]
 fn dummy_extractor_can_emit_chart_features() {
-    let chart = Chart::new(
+    let chart = Chart::try_new(
         BirthContext::new(
             CalendarDate::solar(1990, 5, 17),
             EarthlyBranch::Chen,
             Gender::Female,
         ),
         MethodProfile::placeholder("feature_test_profile"),
-        vec![Palace::new(
-            PalaceName::Life,
-            EarthlyBranch::Zi,
-            HeavenlyStem::Jia,
-            Vec::new(),
-        )],
-    );
+        PALACE_NAMES
+            .iter()
+            .copied()
+            .enumerate()
+            .map(|(index, palace)| {
+                Palace::new(
+                    palace,
+                    EarthlyBranch::from_index(index),
+                    HeavenlyStem::from_index(index),
+                    Vec::new(),
+                )
+            })
+            .collect(),
+    )
+    .expect("twelve-palace scaffold chart should be valid");
 
     let features = DummyExtractor
         .extract(&chart)
