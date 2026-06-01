@@ -73,7 +73,11 @@
 - CLI。
 - Python bindings。
 - WebAssembly bindings。
+- TUI 前端，推迟到核心模型和报告结构稳定后再设计。
+- GUI 前端，推迟到核心模型和报告结构稳定后再设计。
 - 可选 LLM 叙事润色。
+
+应用前端会被刻意推迟。核心 crates 应保持 UI 无关、确定性、可序列化，使未来 CLI、TUI、GUI、WASM 和 Python 前端可以直接消费星盘、特征、判断、证据和报告结构，而不需要解析自然语言文本。
 
 ## 发布策略
 
