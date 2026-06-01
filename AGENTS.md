@@ -96,6 +96,19 @@ A claim should preserve:
 
 Exploratory rule data may start as draft data, but accepted rules should eventually have rule-matching tests.
 
+## Frontend expectations
+
+TUI and GUI frontends are deferred until the core models, feature structures, claims, evidence, and report structures stabilize.
+
+Agents may consider future frontends at the boundary-design level only:
+
+- keep core crates UI-agnostic;
+- keep outputs deterministic and serializable;
+- expose structured data that frontends can render without parsing prose;
+- avoid terminal colors, layout assumptions, GUI widgets, or interaction logic in core crates.
+
+Do not choose TUI/GUI frameworks or design screens during early core scaffolding unless a task explicitly asks for application frontend work.
+
 ## Multilingual expectations
 
 English documentation is canonical for engineering specifications. Chinese documentation is canonical for Zi Wei Dou Shu terminology.
@@ -114,7 +127,8 @@ Do not:
 - introduce multi-school support as scattered `if` or `match` logic across unrelated modules;
 - silently diverge from documented compatibility behavior;
 - add large rule sets without source metadata;
-- add generated code or broad scaffolding without clear module boundaries.
+- add generated code or broad scaffolding without clear module boundaries;
+- add TUI/GUI framework dependencies or presentation-layer assumptions to core crates.
 
 ## Preferred workflow
 
@@ -138,3 +152,4 @@ Before opening or updating a PR, verify:
 - [ ] English and Chinese docs are updated where applicable.
 - [ ] Compatibility implications are documented.
 - [ ] No narrative interpretation bypasses structured claims.
+- [ ] Core crates remain UI-agnostic unless the PR is explicitly about application frontends.
