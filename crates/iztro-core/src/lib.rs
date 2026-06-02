@@ -6,6 +6,7 @@ pub mod chart;
 pub mod error;
 pub mod ganzhi;
 pub mod life_body;
+pub mod major_stars;
 pub mod mutagen;
 pub mod natal;
 pub mod palace;
@@ -20,6 +21,7 @@ pub use ganzhi::{EARTHLY_BRANCHES, EarthlyBranch, HEAVENLY_STEMS, HeavenlyStem};
 pub use life_body::{
     LifeBodyPalaceIndices, LunarBirthContext, LunarMonth, calculate_life_body_palace_indices,
 };
+pub use major_stars::{MajorStarPlacementInput, MajorStarPlacer, NoopMajorStarPlacer};
 pub use mutagen::{Mutagen, Scope};
 pub use natal::{NatalChartInput, build_minimal_natal_chart};
 pub use palace::{PALACE_NAMES, PalaceName};
