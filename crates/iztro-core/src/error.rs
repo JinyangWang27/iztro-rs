@@ -18,6 +18,12 @@ pub enum ChartError {
         /// Unsupported lunar month value.
         value: u8,
     },
+    /// Lunar day input must be in the supported range.
+    #[error("invalid lunar day: expected 1..=30, got {value}")]
+    InvalidLunarDay {
+        /// Unsupported lunar day value.
+        value: u8,
+    },
     /// A stem-branch pair must belong to the sexagenary cycle (matching parity).
     #[error("invalid sexagenary stem-branch pair: {stem:?}-{branch:?}")]
     InvalidStemBranchPair {

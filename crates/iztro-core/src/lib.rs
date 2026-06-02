@@ -23,7 +23,8 @@ pub use chart::{Chart, PALACE_COUNT, Palace, StarPlacement};
 pub use error::ChartError;
 pub use ganzhi::{EARTHLY_BRANCHES, EarthlyBranch, HEAVENLY_STEMS, HeavenlyStem};
 pub use life_body::{
-    LifeBodyPalaceIndices, LunarBirthContext, LunarMonth, calculate_life_body_palace_indices,
+    LifeBodyPalaceIndices, LunarBirthContext, LunarDay, LunarMonth,
+    calculate_life_body_palace_indices,
 };
 pub use major_stars::{MajorStarPlacementInput, MajorStarPlacer, NoopMajorStarPlacer};
 pub use mutagen::{Mutagen, Scope};
