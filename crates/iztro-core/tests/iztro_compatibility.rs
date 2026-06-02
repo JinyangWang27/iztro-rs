@@ -1,7 +1,6 @@
 use iztro_core::{
-    BirthContext, CalendarDate, EarthlyBranch, Gender, LunarBirthContext, LunarMonth,
-    MethodProfile, NatalChartInput, PalaceName, build_minimal_natal_chart,
-    calculate_life_body_palace_indices,
+    BirthContext, CalendarDate, EarthlyBranch, Gender, LunarMonth, MethodProfile, NatalChartInput,
+    PalaceName, build_minimal_natal_chart,
 };
 use serde_json::Value;
 
@@ -31,12 +30,16 @@ fn minimal_natal_chart_matches_supported_iztro_fixture_fields() {
         lunar_month,
     ))
     .expect("minimal natal chart should build for fixture input");
-    let indices = calculate_life_body_palace_indices(LunarBirthContext::new(
-        lunar_month,
-        birth_context.birth_time(),
-    ))
-    .expect("fixture input should calculate life and body branches");
-
+    let life_palace = chart
+        .palaces()
+        .iter()
+        .find(|palace| palace.name() == PalaceName::Life)
+        .expect("chart should contain a Life Palace");
+    assert_eq!(
+        expected["body_palace_branch"].as_str(),
+        chart.body_palace_branch().map(branch_key)
+    );
+    assert!(chart.is_body_palace_branch(EarthlyBranch::You));
     assert_eq!(
         fixture["metadata"]["target_version"]
             .as_str()
@@ -52,11 +55,11 @@ fn minimal_natal_chart_matches_supported_iztro_fixture_fields() {
     assert_eq!(expected["gender"].as_str(), Some("female"));
     assert_eq!(
         expected["life_palace_branch"].as_str(),
-        Some(branch_key(indices.life_palace_branch()))
+        Some(branch_key(life_palace.branch()))
     );
     assert_eq!(
-        expected["body_palace_branch"].as_str(),
-        Some(branch_key(indices.body_palace_branch()))
+        chart.body_palace().map(|palace| palace.branch()),
+        chart.body_palace_branch()
     );
 
     let palace_fields = expected["palaces"]

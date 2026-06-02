@@ -53,6 +53,9 @@ fn empty_chart_builder_creates_canonical_empty_twelve_palace_chart() {
         assert_eq!(palace.stem(), HEAVENLY_STEMS[index % HEAVENLY_STEMS.len()]);
         assert!(palace.stars().is_empty());
     }
+    assert_eq!(chart.body_palace_branch(), None);
+    assert_eq!(chart.body_palace(), None);
+    assert!(!chart.is_body_palace_branch(EarthlyBranch::You));
 }
 
 #[test]
@@ -71,6 +74,9 @@ fn empty_chart_builder_output_round_trips_through_json() {
     let decoded: Chart = serde_json::from_str(&encoded).expect("empty chart should deserialize");
 
     assert_eq!(decoded, chart);
+    assert_eq!(decoded.body_palace_branch(), None);
+    assert_eq!(decoded.body_palace(), None);
+    assert!(!decoded.is_body_palace_branch(EarthlyBranch::You));
 }
 
 #[test]
@@ -174,6 +180,7 @@ fn chart_try_new_accepts_exactly_twelve_palaces() {
         ),
         MethodProfile::placeholder("valid_chart"),
         twelve_palaces(),
+        None,
     )
     .expect("twelve palaces should satisfy the core invariant");
 
@@ -190,6 +197,7 @@ fn chart_try_new_rejects_non_twelve_palace_counts() {
         ),
         MethodProfile::placeholder("invalid_chart"),
         Vec::new(),
+        None,
     )
     .expect_err("empty palace list should fail");
 
