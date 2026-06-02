@@ -66,7 +66,7 @@ impl Chart {
 
     /// Returns whether the given branch is the Body Palace branch.
     pub fn is_body_palace_branch(&self, branch: EarthlyBranch) -> bool {
-        matches!(self.body_palace_branch, Some(body_branch) if body_branch == branch)
+        self.body_palace_branch == Some(branch)
     }
 
     /// Returns the palace containing the Body Palace, if known.
