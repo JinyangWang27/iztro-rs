@@ -1,7 +1,6 @@
 use iztro_core::{
-    BirthContext, CalendarDate, EarthlyBranch, Gender, LunarBirthContext, LunarMonth,
-    MethodProfile, NatalChartInput, PalaceName, build_minimal_natal_chart,
-    calculate_life_body_palace_indices,
+    BirthContext, CalendarDate, EarthlyBranch, Gender, LunarMonth, MethodProfile, NatalChartInput,
+    PalaceName, build_minimal_natal_chart,
 };
 use serde_json::Value;
 
@@ -20,23 +19,45 @@ fn minimal_natal_chart_matches_supported_iztro_fixture_fields() {
             .expect("fixture should include lunar_month") as u8,
     )
     .expect("fixture lunar month should be valid");
-    let birth_context = BirthContext::new(
-        CalendarDate::solar(1990, 5, 17),
-        EarthlyBranch::Chen,
-        Gender::Female,
+    let solar_date = parse_solar_date(
+        input["solar_date"]
+            .as_str()
+            .expect("fixture should include solar_date"),
     );
+    let birth_branch = parse_branch_key(
+        input["birth_time"]
+            .as_str()
+            .expect("fixture should include birth_time"),
+    );
+    let gender = parse_gender_key(
+        input["gender"]
+            .as_str()
+            .expect("fixture should include gender"),
+    );
+    let birth_context = BirthContext::new(solar_date, birth_branch, gender);
     let chart = build_minimal_natal_chart(NatalChartInput::new(
         birth_context.clone(),
         MethodProfile::placeholder("iztro_compatibility_fixture"),
         lunar_month,
     ))
     .expect("minimal natal chart should build for fixture input");
-    let indices = calculate_life_body_palace_indices(LunarBirthContext::new(
-        lunar_month,
-        birth_context.birth_time(),
-    ))
-    .expect("fixture input should calculate life and body branches");
+    let life_palace = chart
+        .palaces()
+        .iter()
+        .find(|palace| palace.name() == PalaceName::Life)
+        .expect("chart should contain a Life Palace");
+    let expected_body_branch = parse_branch_key(
+        expected["body_palace_branch"]
+            .as_str()
+            .expect("fixture should include body_palace_branch"),
+    );
 
+    assert_eq!(chart.body_palace_branch(), Some(expected_body_branch));
+    assert_eq!(
+        chart.body_palace().map(|palace| palace.branch()),
+        Some(expected_body_branch)
+    );
+    assert!(chart.is_body_palace_branch(expected_body_branch));
     assert_eq!(
         fixture["metadata"]["target_version"]
             .as_str()
@@ -52,11 +73,7 @@ fn minimal_natal_chart_matches_supported_iztro_fixture_fields() {
     assert_eq!(expected["gender"].as_str(), Some("female"));
     assert_eq!(
         expected["life_palace_branch"].as_str(),
-        Some(branch_key(indices.life_palace_branch()))
-    );
-    assert_eq!(
-        expected["body_palace_branch"].as_str(),
-        Some(branch_key(indices.body_palace_branch()))
+        Some(branch_key(life_palace.branch()))
     );
 
     let palace_fields = expected["palaces"]
@@ -93,6 +110,53 @@ fn branch_key(branch: EarthlyBranch) -> &'static str {
         EarthlyBranch::You => "you",
         EarthlyBranch::Xu => "xu",
         EarthlyBranch::Hai => "hai",
+    }
+}
+
+fn parse_solar_date(value: &str) -> CalendarDate {
+    let mut parts = value.split('-');
+    let year = parts
+        .next()
+        .and_then(|part| part.parse::<i32>().ok())
+        .unwrap_or_else(|| panic!("unsupported solar_date in fixture: {value}"));
+    let month = parts
+        .next()
+        .and_then(|part| part.parse::<u8>().ok())
+        .unwrap_or_else(|| panic!("unsupported solar_date in fixture: {value}"));
+    let day = parts
+        .next()
+        .and_then(|part| part.parse::<u8>().ok())
+        .unwrap_or_else(|| panic!("unsupported solar_date in fixture: {value}"));
+    if parts.next().is_some() {
+        panic!("unsupported solar_date in fixture: {value}");
+    }
+
+    CalendarDate::solar(year, month, day)
+}
+
+fn parse_branch_key(value: &str) -> EarthlyBranch {
+    match value {
+        "zi" => EarthlyBranch::Zi,
+        "chou" => EarthlyBranch::Chou,
+        "yin" => EarthlyBranch::Yin,
+        "mao" => EarthlyBranch::Mao,
+        "chen" => EarthlyBranch::Chen,
+        "si" => EarthlyBranch::Si,
+        "wu" => EarthlyBranch::Wu,
+        "wei" => EarthlyBranch::Wei,
+        "shen" => EarthlyBranch::Shen,
+        "you" => EarthlyBranch::You,
+        "xu" => EarthlyBranch::Xu,
+        "hai" => EarthlyBranch::Hai,
+        other => panic!("unsupported branch key in fixture: {other}"),
+    }
+}
+
+fn parse_gender_key(value: &str) -> Gender {
+    match value {
+        "male" => Gender::Male,
+        "female" => Gender::Female,
+        other => panic!("unsupported gender key in fixture: {other}"),
     }
 }
 

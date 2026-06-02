@@ -18,6 +18,7 @@ pub struct Chart {
     birth_context: BirthContext,
     method_profile: MethodProfile,
     palaces: Vec<Palace>,
+    body_palace_branch: Option<EarthlyBranch>,
 }
 
 impl Chart {
@@ -26,6 +27,7 @@ impl Chart {
         birth_context: BirthContext,
         method_profile: MethodProfile,
         palaces: Vec<Palace>,
+        body_palace_branch: Option<EarthlyBranch>,
     ) -> Result<Self, ChartError> {
         if palaces.len() != PALACE_COUNT {
             return Err(ChartError::InvalidPalaceCount {
@@ -38,6 +40,7 @@ impl Chart {
             birth_context,
             method_profile,
             palaces,
+            body_palace_branch,
         })
     }
 
@@ -54,6 +57,25 @@ impl Chart {
     /// Returns the palaces in this chart.
     pub fn palaces(&self) -> &[Palace] {
         &self.palaces
+    }
+
+    /// Returns the branch containing the Body Palace, if known.
+    pub const fn body_palace_branch(&self) -> Option<EarthlyBranch> {
+        self.body_palace_branch
+    }
+
+    /// Returns whether the given branch is the Body Palace branch.
+    pub fn is_body_palace_branch(&self, branch: EarthlyBranch) -> bool {
+        self.body_palace_branch == Some(branch)
+    }
+
+    /// Returns the palace containing the Body Palace, if known.
+    pub fn body_palace(&self) -> Option<&Palace> {
+        let body_branch = self.body_palace_branch?;
+
+        self.palaces
+            .iter()
+            .find(|palace| palace.branch() == body_branch)
     }
 }
 

@@ -85,6 +85,7 @@ pub fn build_minimal_natal_chart(input: NatalChartInput) -> Result<Chart, ChartE
         input.birth_context().clone(),
         input.method_profile().clone(),
         palaces,
+        Some(indices.body_palace_branch()),
     )
 }
 

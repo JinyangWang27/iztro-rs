@@ -32,5 +32,5 @@ pub fn build_empty_chart(
         })
         .collect();
 
-    Chart::try_new(birth_context, method_profile, palaces)
+    Chart::try_new(birth_context, method_profile, palaces, None)
 }
