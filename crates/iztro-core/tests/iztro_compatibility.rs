@@ -1,6 +1,6 @@
 use iztro_core::{
-    BirthContext, CalendarDate, EarthlyBranch, Gender, LunarMonth, MethodProfile, NatalChartInput,
-    PalaceName, build_minimal_natal_chart,
+    BirthContext, CalendarDate, EarthlyBranch, FiveElementBureau, Gender, HeavenlyStem, LunarMonth,
+    MethodProfile, NatalChartInput, PalaceName, build_minimal_natal_chart,
 };
 use serde_json::Value;
 
@@ -34,11 +34,17 @@ fn minimal_natal_chart_matches_supported_iztro_fixture_fields() {
             .as_str()
             .expect("fixture should include gender"),
     );
+    let birth_year_stem = parse_stem_key(
+        input["birth_year_stem"]
+            .as_str()
+            .expect("fixture should include birth_year_stem"),
+    );
     let birth_context = BirthContext::new(solar_date, birth_branch, gender);
     let chart = build_minimal_natal_chart(NatalChartInput::new(
         birth_context.clone(),
         MethodProfile::placeholder("iztro_compatibility_fixture"),
         lunar_month,
+        birth_year_stem,
     ))
     .expect("minimal natal chart should build for fixture input");
     let life_palace = chart
@@ -76,6 +82,15 @@ fn minimal_natal_chart_matches_supported_iztro_fixture_fields() {
         Some(branch_key(life_palace.branch()))
     );
 
+    // The five-element bureau is compared against iztro's fiveElementsClass
+    // (火六局 -> fire6) only when the fixture records it.
+    if let Some(expected_bureau) = expected.get("five_element_bureau").and_then(Value::as_str) {
+        assert_eq!(
+            chart.five_element_bureau().map(bureau_key),
+            Some(expected_bureau)
+        );
+    }
+
     let palace_fields = expected["palaces"]
         .as_array()
         .expect("fixture should include supported palace fields");
@@ -93,6 +108,11 @@ fn minimal_natal_chart_matches_supported_iztro_fixture_fields() {
             expected_palace["name"].as_str(),
             Some(palace_name_key(palace.name()))
         );
+
+        // Palace stems are compared only when the fixture records them.
+        if let Some(expected_stem) = expected_palace.get("stem").and_then(Value::as_str) {
+            assert_eq!(stem_key(palace.stem()), expected_stem);
+        }
     }
 }
 
@@ -110,6 +130,31 @@ fn branch_key(branch: EarthlyBranch) -> &'static str {
         EarthlyBranch::You => "you",
         EarthlyBranch::Xu => "xu",
         EarthlyBranch::Hai => "hai",
+    }
+}
+
+fn stem_key(stem: HeavenlyStem) -> &'static str {
+    match stem {
+        HeavenlyStem::Jia => "jia",
+        HeavenlyStem::Yi => "yi",
+        HeavenlyStem::Bing => "bing",
+        HeavenlyStem::Ding => "ding",
+        HeavenlyStem::Wu => "wu",
+        HeavenlyStem::Ji => "ji",
+        HeavenlyStem::Geng => "geng",
+        HeavenlyStem::Xin => "xin",
+        HeavenlyStem::Ren => "ren",
+        HeavenlyStem::Gui => "gui",
+    }
+}
+
+fn bureau_key(bureau: FiveElementBureau) -> &'static str {
+    match bureau {
+        FiveElementBureau::Water2 => "water2",
+        FiveElementBureau::Wood3 => "wood3",
+        FiveElementBureau::Metal4 => "metal4",
+        FiveElementBureau::Earth5 => "earth5",
+        FiveElementBureau::Fire6 => "fire6",
     }
 }
 
@@ -149,6 +194,22 @@ fn parse_branch_key(value: &str) -> EarthlyBranch {
         "xu" => EarthlyBranch::Xu,
         "hai" => EarthlyBranch::Hai,
         other => panic!("unsupported branch key in fixture: {other}"),
+    }
+}
+
+fn parse_stem_key(value: &str) -> HeavenlyStem {
+    match value {
+        "jia" => HeavenlyStem::Jia,
+        "yi" => HeavenlyStem::Yi,
+        "bing" => HeavenlyStem::Bing,
+        "ding" => HeavenlyStem::Ding,
+        "wu" => HeavenlyStem::Wu,
+        "ji" => HeavenlyStem::Ji,
+        "geng" => HeavenlyStem::Geng,
+        "xin" => HeavenlyStem::Xin,
+        "ren" => HeavenlyStem::Ren,
+        "gui" => HeavenlyStem::Gui,
+        other => panic!("unsupported stem key in fixture: {other}"),
     }
 }
 

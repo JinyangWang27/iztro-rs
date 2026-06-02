@@ -1,7 +1,7 @@
 use iztro_core::{
-    BirthContext, CalendarDate, EarthlyBranch, Gender, LunarMonth, MajorStarPlacementInput,
-    MajorStarPlacer, MethodProfile, NatalChartInput, NoopMajorStarPlacer, PALACE_COUNT,
-    build_minimal_natal_chart,
+    BirthContext, CalendarDate, EarthlyBranch, Gender, HeavenlyStem, LunarMonth,
+    MajorStarPlacementInput, MajorStarPlacer, MethodProfile, NatalChartInput, NoopMajorStarPlacer,
+    PALACE_COUNT, build_minimal_natal_chart,
 };
 
 #[test]
@@ -45,6 +45,7 @@ fn noop_major_star_placer_preserves_chart_metadata() {
         birth_context.clone(),
         method_profile.clone(),
         LunarMonth::new(5).expect("month 5 should be valid"),
+        HeavenlyStem::Geng,
     ))
     .expect("minimal natal chart should build");
     let placer = NoopMajorStarPlacer;
@@ -66,6 +67,7 @@ fn build_fixture_chart() -> iztro_core::Chart {
         ),
         MethodProfile::placeholder("noop_major_star_profile"),
         LunarMonth::new(5).expect("month 5 should be valid"),
+        HeavenlyStem::Geng,
     ))
     .expect("minimal natal chart should build")
 }

@@ -1,4 +1,5 @@
 use crate::{
+    bureau::FiveElementBureau,
     calendar::BirthContext,
     error::ChartError,
     ganzhi::{EarthlyBranch, HeavenlyStem},
@@ -19,6 +20,7 @@ pub struct Chart {
     method_profile: MethodProfile,
     palaces: Vec<Palace>,
     body_palace_branch: Option<EarthlyBranch>,
+    five_element_bureau: Option<FiveElementBureau>,
 }
 
 impl Chart {
@@ -28,6 +30,7 @@ impl Chart {
         method_profile: MethodProfile,
         palaces: Vec<Palace>,
         body_palace_branch: Option<EarthlyBranch>,
+        five_element_bureau: Option<FiveElementBureau>,
     ) -> Result<Self, ChartError> {
         if palaces.len() != PALACE_COUNT {
             return Err(ChartError::InvalidPalaceCount {
@@ -41,6 +44,7 @@ impl Chart {
             method_profile,
             palaces,
             body_palace_branch,
+            five_element_bureau,
         })
     }
 
@@ -76,6 +80,18 @@ impl Chart {
         self.palaces
             .iter()
             .find(|palace| palace.branch() == body_branch)
+    }
+
+    /// Returns the five-element bureau (五行局), if calculated.
+    pub const fn five_element_bureau(&self) -> Option<FiveElementBureau> {
+        self.five_element_bureau
+    }
+
+    /// Returns the Life Palace, identified by [`PalaceName::Life`], if present.
+    pub fn life_palace(&self) -> Option<&Palace> {
+        self.palaces
+            .iter()
+            .find(|palace| palace.name() == PalaceName::Life)
     }
 }
 
