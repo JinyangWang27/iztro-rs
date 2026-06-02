@@ -1,6 +1,7 @@
 //! Core chart facts and strongly typed Zi Wei Dou Shu domain models.
 
 pub mod builder;
+pub mod bureau;
 pub mod calendar;
 pub mod chart;
 pub mod error;
@@ -16,6 +17,7 @@ pub mod sexagenary;
 pub mod star;
 
 pub use builder::build_empty_chart;
+pub use bureau::{FiveElementBureau, five_element_bureau_from_life_palace};
 pub use calendar::{BirthContext, CalendarDate, CalendarKind, Gender};
 pub use chart::{Chart, PALACE_COUNT, Palace, StarPlacement};
 pub use error::ChartError;
