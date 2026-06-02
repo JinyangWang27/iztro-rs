@@ -1,19 +1,18 @@
 use iztro_core::{
-    BirthContext, Brightness, CalendarDate, Chart, ChartAlgorithmKind, ChartError,
-    EARTHLY_BRANCHES, EarthlyBranch, Gender, HEAVENLY_STEMS, HeavenlyStem, MethodProfile, Mutagen,
-    PALACE_NAMES, Palace, PalaceName, Scope, StarCategory, StarName, StarPlacement,
+    BirthContext, CalendarDate, Chart, ChartAlgorithmKind, ChartError, EARTHLY_BRANCHES,
+    EarthlyBranch, Gender, HEAVENLY_STEMS, HeavenlyStem, MethodProfile, PALACE_COUNT, PALACE_NAMES,
+    Palace, PalaceName, StarName, build_empty_chart,
 };
 
 #[test]
 fn chart_scaffold_can_be_constructed_and_serialized() {
-    let chart = Chart::try_new(
+    let chart = build_empty_chart(
         BirthContext::new(
             CalendarDate::solar(1990, 5, 17),
             EarthlyBranch::Chen,
             Gender::Female,
         ),
         MethodProfile::placeholder("quan_shu_placeholder"),
-        twelve_palaces(),
     )
     .expect("twelve-palace scaffold chart should serialize");
 
@@ -24,7 +23,54 @@ fn chart_scaffold_can_be_constructed_and_serialized() {
     let decoded: Chart = serde_json::from_str(&encoded).expect("chart should deserialize");
 
     assert_eq!(decoded.method_profile().id(), "quan_shu_placeholder");
-    assert_eq!(decoded.palaces()[0].stars()[0].name(), StarName::ZiWei);
+    assert!(
+        decoded
+            .palaces()
+            .iter()
+            .all(|palace| palace.stars().is_empty())
+    );
+}
+
+#[test]
+fn empty_chart_builder_creates_canonical_empty_twelve_palace_chart() {
+    let birth_context = BirthContext::new(
+        CalendarDate::solar(1990, 5, 17),
+        EarthlyBranch::Chen,
+        Gender::Female,
+    );
+    let method_profile = MethodProfile::placeholder("empty_chart_profile");
+
+    let chart = build_empty_chart(birth_context.clone(), method_profile.clone())
+        .expect("empty chart builder should create a valid chart");
+
+    assert_eq!(chart.birth_context(), &birth_context);
+    assert_eq!(chart.method_profile(), &method_profile);
+    assert_eq!(chart.palaces().len(), PALACE_COUNT);
+
+    for (index, palace) in chart.palaces().iter().enumerate() {
+        assert_eq!(palace.name(), PALACE_NAMES[index]);
+        assert_eq!(palace.branch(), EARTHLY_BRANCHES[index]);
+        assert_eq!(palace.stem(), HEAVENLY_STEMS[index % HEAVENLY_STEMS.len()]);
+        assert!(palace.stars().is_empty());
+    }
+}
+
+#[test]
+fn empty_chart_builder_output_round_trips_through_json() {
+    let chart = build_empty_chart(
+        BirthContext::new(
+            CalendarDate::solar(1990, 5, 17),
+            EarthlyBranch::Chen,
+            Gender::Female,
+        ),
+        MethodProfile::placeholder("empty_chart_json_profile"),
+    )
+    .expect("empty chart builder should create a valid chart");
+
+    let encoded = serde_json::to_string(&chart).expect("empty chart should serialize");
+    let decoded: Chart = serde_json::from_str(&encoded).expect("empty chart should deserialize");
+
+    assert_eq!(decoded, chart);
 }
 
 #[test]
@@ -166,17 +212,7 @@ fn twelve_palaces() -> Vec<Palace> {
                 palace,
                 EarthlyBranch::from_index(index),
                 HeavenlyStem::from_index(index),
-                if palace == PalaceName::Life {
-                    vec![StarPlacement::new(
-                        StarName::ZiWei,
-                        StarCategory::Major,
-                        Brightness::Temple,
-                        Some(Mutagen::Lu),
-                        Scope::Natal,
-                    )]
-                } else {
-                    Vec::new()
-                },
+                Vec::new(),
             )
         })
         .collect()
