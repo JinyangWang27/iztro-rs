@@ -31,11 +31,12 @@
 
 ## 当前 fixtures
 
-第一个 fixture 为：
+fixtures 为：
 
 - `fixtures/iztro/minimal_natal_1990_05_17_chen_female.json`
+- `fixtures/iztro/major_stars_1990_05_17_chen_female.json`
 
-该 fixture 只比较 `iztro-rs` 当前已实现的字段：
+minimal-natal fixture 只比较 `iztro-rs` 当前已实现的字段：
 
 - 出生时辰；
 - 性别；
@@ -45,6 +46,23 @@
 - 十二宫名称。
 
 它有意不比较星曜、亮度、四化、大限、流年或解读文本。
+
+### 十四主星
+
+`major_stars_1990_05_17_chen_female.json` 比较十四主星的安星，与 iztro 每宫的
+`majorStars` 对照：
+
+- 每宫的主星名称；
+- 每颗主星所在的宫位地支。
+
+安星复现 iztro 2.5.8（`getStartIndex` 与 `getMajorStar`）：紫微由五行局与农历
+日推出，天府为紫微关于寅–申轴的镜像，紫微系与天府系按固定偏移排布。每颗星的
+category 为 `major`，scope 为 `natal`（iztro 的 `origin`）。
+
+农历日通过 `input.lunar_day` 显式提供，因为完整历法转换尚未实现。该 fixture 新
+增比较主星名称与位置；仍**不**比较星曜亮度与星曜四化（iztro 会计算，但本切片中
+`iztro-rs` 的亮度保持 `unknown`、四化为 `none`），也不比较辅星、杂曜、大限、流年
+或解读文本。
 
 ## Golden tests
 
