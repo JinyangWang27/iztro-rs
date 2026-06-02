@@ -43,7 +43,17 @@ This fixture compares only fields currently implemented by `iztro-rs`:
 - life palace branch;
 - body palace branch;
 - palace branches;
-- palace names.
+- palace names;
+- palace heavenly stems;
+- five-element bureau (五行局).
+
+Palace heavenly stems are generated from the birth year stem via the classical
+起五行寅例 and compared against iztro's per-palace `heavenlyStem`. The
+five-element bureau is compared against iztro's `fiveElementsClass` (`火六局`
+maps to the `fire6` bureau).
+
+The birth year stem is currently provided explicitly in the fixture input
+(`birth_year_stem`) because Gregorian-to-ganzhi year conversion is deferred.
 
 It intentionally does not compare stars, brightness, mutagens, decadal scopes,
 yearly scopes, or narrative output.

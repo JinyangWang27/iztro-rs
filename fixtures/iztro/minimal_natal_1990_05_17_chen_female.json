@@ -5,7 +5,7 @@
     "target_version": "2.5.8",
     "generated_at": "2026-06-02T07:22:50Z",
     "supported_fields_only": true,
-    "notes": "This fixture compares only fields currently implemented by iztro-rs: birth time, gender, life/body palace branches, palace branches, and palace names. Stars, brightness, mutagens, scopes, and narrative output are intentionally excluded.",
+    "notes": "This fixture compares only fields currently implemented by iztro-rs: birth time, gender, life/body palace branches, palace branches, palace names, palace heavenly stems, and the five-element bureau. Stars, brightness, mutagens, scopes, and narrative output are intentionally excluded. birth_year_stem is supplied explicitly because Gregorian-to-ganzhi year conversion is deferred; for 1990 the ganzhi year is 庚午, so the year stem is geng.",
     "generation_command": "npm install iztro@2.5.8 --prefix /tmp/iztro-fixture && cd /tmp/iztro-fixture && node --input-type=module -e \"import { astro } from 'iztro'; const a = astro.bySolar('1990-5-17', 4, '女', true, 'zh-CN'); console.log(JSON.stringify(a, null, 2));\""
   },
   "input": {
@@ -15,74 +15,89 @@
     "iztro_time_index": 4,
     "gender": "female",
     "iztro_gender": "女",
+    "birth_year_stem": "geng",
     "fix_leap": true,
     "language": "zh-CN"
   },
   "iztro_output": {
     "solarDate": "1990-5-17",
     "lunarDate": "一九九〇年四月廿三",
+    "chineseDate": "庚午 辛巳 壬午 甲辰",
     "time": "辰时",
     "gender": "女",
+    "fiveElementsClass": "火六局",
     "earthlyBranchOfSoulPalace": "丑",
     "earthlyBranchOfBodyPalace": "酉",
     "palaces": [
       {
         "name": "父母",
+        "heavenlyStem": "戊",
         "earthlyBranch": "寅",
         "isBodyPalace": false
       },
       {
         "name": "福德",
+        "heavenlyStem": "己",
         "earthlyBranch": "卯",
         "isBodyPalace": false
       },
       {
         "name": "田宅",
+        "heavenlyStem": "庚",
         "earthlyBranch": "辰",
         "isBodyPalace": false
       },
       {
         "name": "官禄",
+        "heavenlyStem": "辛",
         "earthlyBranch": "巳",
         "isBodyPalace": false
       },
       {
         "name": "仆役",
+        "heavenlyStem": "壬",
         "earthlyBranch": "午",
         "isBodyPalace": false
       },
       {
         "name": "迁移",
+        "heavenlyStem": "癸",
         "earthlyBranch": "未",
         "isBodyPalace": false
       },
       {
         "name": "疾厄",
+        "heavenlyStem": "甲",
         "earthlyBranch": "申",
         "isBodyPalace": false
       },
       {
         "name": "财帛",
+        "heavenlyStem": "乙",
         "earthlyBranch": "酉",
         "isBodyPalace": true
       },
       {
         "name": "子女",
+        "heavenlyStem": "丙",
         "earthlyBranch": "戌",
         "isBodyPalace": false
       },
       {
         "name": "夫妻",
+        "heavenlyStem": "丁",
         "earthlyBranch": "亥",
         "isBodyPalace": false
       },
       {
         "name": "兄弟",
+        "heavenlyStem": "戊",
         "earthlyBranch": "子",
         "isBodyPalace": false
       },
       {
         "name": "命宫",
+        "heavenlyStem": "己",
         "earthlyBranch": "丑",
         "isBodyPalace": false
       }
@@ -93,54 +108,67 @@
     "gender": "female",
     "life_palace_branch": "chou",
     "body_palace_branch": "you",
+    "five_element_bureau": "fire6",
     "palaces": [
       {
         "branch": "yin",
-        "name": "parents"
+        "name": "parents",
+        "stem": "wu"
       },
       {
         "branch": "mao",
-        "name": "spirit"
+        "name": "spirit",
+        "stem": "ji"
       },
       {
         "branch": "chen",
-        "name": "property"
+        "name": "property",
+        "stem": "geng"
       },
       {
         "branch": "si",
-        "name": "career"
+        "name": "career",
+        "stem": "xin"
       },
       {
         "branch": "wu",
-        "name": "friends"
+        "name": "friends",
+        "stem": "ren"
       },
       {
         "branch": "wei",
-        "name": "migration"
+        "name": "migration",
+        "stem": "gui"
       },
       {
         "branch": "shen",
-        "name": "health"
+        "name": "health",
+        "stem": "jia"
       },
       {
         "branch": "you",
-        "name": "wealth"
+        "name": "wealth",
+        "stem": "yi"
       },
       {
         "branch": "xu",
-        "name": "children"
+        "name": "children",
+        "stem": "bing"
       },
       {
         "branch": "hai",
-        "name": "spouse"
+        "name": "spouse",
+        "stem": "ding"
       },
       {
         "branch": "zi",
-        "name": "siblings"
+        "name": "siblings",
+        "stem": "wu"
       },
       {
         "branch": "chou",
-        "name": "life"
+        "name": "life",
+        "stem": "ji"
       }
     ]
   },
