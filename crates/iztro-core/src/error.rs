@@ -1,3 +1,4 @@
+use crate::ganzhi::{EarthlyBranch, HeavenlyStem};
 use thiserror::Error;
 
 /// Errors produced by core chart construction or validation.
@@ -16,6 +17,14 @@ pub enum ChartError {
     InvalidLunarMonth {
         /// Unsupported lunar month value.
         value: u8,
+    },
+    /// A stem-branch pair must belong to the sexagenary cycle (matching parity).
+    #[error("invalid sexagenary stem-branch pair: {stem:?}-{branch:?}")]
+    InvalidStemBranchPair {
+        /// Heavenly Stem of the rejected pair.
+        stem: HeavenlyStem,
+        /// Earthly Branch of the rejected pair.
+        branch: EarthlyBranch,
     },
     /// Placeholder error used until chart-generation validation exists.
     #[error("chart generation is not implemented")]

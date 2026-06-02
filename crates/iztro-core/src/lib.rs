@@ -12,6 +12,7 @@ pub mod natal;
 pub mod palace;
 pub mod palace_stems;
 pub mod profile;
+pub mod sexagenary;
 pub mod star;
 
 pub use builder::build_empty_chart;
@@ -28,4 +29,5 @@ pub use natal::{NatalChartInput, build_minimal_natal_chart};
 pub use palace::{PALACE_NAMES, PalaceName};
 pub use palace_stems::{palace_stem_for_branch, palace_stems_from_year_stem};
 pub use profile::{ChartAlgorithmKind, MethodProfile};
+pub use sexagenary::{NaYinElement, StemBranch, is_valid_sexagenary_pair, nayin_element};
 pub use star::{Brightness, StarCategory, StarName};
