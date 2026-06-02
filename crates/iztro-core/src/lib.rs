@@ -7,6 +7,7 @@ pub mod error;
 pub mod ganzhi;
 pub mod life_body;
 pub mod mutagen;
+pub mod natal;
 pub mod palace;
 pub mod profile;
 pub mod star;
@@ -20,6 +21,7 @@ pub use life_body::{
     LifeBodyPalaceIndices, LunarBirthContext, LunarMonth, calculate_life_body_palace_indices,
 };
 pub use mutagen::{Mutagen, Scope};
+pub use natal::{NatalChartInput, build_minimal_natal_chart};
 pub use palace::{PALACE_NAMES, PalaceName};
 pub use profile::{ChartAlgorithmKind, MethodProfile};
 pub use star::{Brightness, StarCategory, StarName};
