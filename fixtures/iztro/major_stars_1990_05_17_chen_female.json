@@ -1,0 +1,69 @@
+{
+  "metadata": {
+    "source": "iztro",
+    "target_package": "npm:iztro",
+    "target_version": "2.5.8",
+    "generated_at": "2026-06-02T07:22:50Z",
+    "supported_fields_only": true,
+    "notes": "This fixture compares the fourteen major-star (主星) placements: each star's name and the palace branch it occupies. Category is Major and scope is Natal (iztro 'origin'). Star brightness and star mutagens are intentionally excluded (iztro computes them but iztro-rs leaves brightness Unknown and mutagen None in this slice). Minor stars, adjective stars, decadal scopes, yearly scopes, and narrative output are excluded. lunar_day is supplied explicitly because full calendar conversion is deferred; for 1990-05-17 the lunar date is 一九九〇年四月廿三, so lunar_day is 23. birth_year_stem is supplied explicitly because Gregorian-to-ganzhi year conversion is deferred; for 1990 the ganzhi year is 庚午, so the year stem is geng.",
+    "generation_command": "npm install iztro@2.5.8 --prefix /tmp/iztro-fixture && cd /tmp/iztro-fixture && node --input-type=module -e \"import { astro } from 'iztro'; const a = astro.bySolar('1990-5-17', 4, '女', true, 'zh-CN'); console.log(JSON.stringify(a.palaces.map(p => ({ earthlyBranch: p.earthlyBranch, majorStars: p.majorStars.map(s => s.name) })), null, 2));\""
+  },
+  "input": {
+    "solar_date": "1990-05-17",
+    "lunar_month": 4,
+    "lunar_day": 23,
+    "birth_time": "chen",
+    "iztro_time_index": 4,
+    "gender": "female",
+    "iztro_gender": "女",
+    "birth_year_stem": "geng",
+    "fix_leap": true,
+    "language": "zh-CN"
+  },
+  "iztro_output": {
+    "fiveElementsClass": "火六局",
+    "lunarDate": "一九九〇年四月廿三",
+    "palaces": [
+      { "earthlyBranch": "寅", "majorStars": ["贪狼"] },
+      { "earthlyBranch": "卯", "majorStars": ["天机", "巨门"] },
+      { "earthlyBranch": "辰", "majorStars": ["紫微", "天相"] },
+      { "earthlyBranch": "巳", "majorStars": ["天梁"] },
+      { "earthlyBranch": "午", "majorStars": ["七杀"] },
+      { "earthlyBranch": "未", "majorStars": [] },
+      { "earthlyBranch": "申", "majorStars": ["廉贞"] },
+      { "earthlyBranch": "酉", "majorStars": [] },
+      { "earthlyBranch": "戌", "majorStars": ["破军"] },
+      { "earthlyBranch": "亥", "majorStars": ["天同"] },
+      { "earthlyBranch": "子", "majorStars": ["武曲", "天府"] },
+      { "earthlyBranch": "丑", "majorStars": ["太阳", "太阴"] }
+    ]
+  },
+  "supported_fields": {
+    "birth_time": "chen",
+    "gender": "female",
+    "five_element_bureau": "fire6",
+    "major_stars": [
+      { "branch": "yin", "stars": ["tan_lang"] },
+      { "branch": "mao", "stars": ["tian_ji", "ju_men"] },
+      { "branch": "chen", "stars": ["zi_wei", "tian_xiang"] },
+      { "branch": "si", "stars": ["tian_liang"] },
+      { "branch": "wu", "stars": ["qi_sha"] },
+      { "branch": "wei", "stars": [] },
+      { "branch": "shen", "stars": ["lian_zhen"] },
+      { "branch": "you", "stars": [] },
+      { "branch": "xu", "stars": ["po_jun"] },
+      { "branch": "hai", "stars": ["tian_tong"] },
+      { "branch": "zi", "stars": ["wu_qu", "tian_fu"] },
+      { "branch": "chou", "stars": ["tai_yang", "tai_yin"] }
+    ]
+  },
+  "excluded_fields": [
+    "star_brightness",
+    "star_mutagens",
+    "minor_stars",
+    "adjective_stars",
+    "decadal_scopes",
+    "yearly_scopes",
+    "narrative_output"
+  ]
+}
