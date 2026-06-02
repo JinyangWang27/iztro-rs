@@ -1,0 +1,155 @@
+{
+  "metadata": {
+    "source": "iztro",
+    "target_package": "npm:iztro",
+    "target_version": "2.5.8",
+    "generated_at": "2026-06-02T07:22:50Z",
+    "supported_fields_only": true,
+    "notes": "This fixture compares only fields currently implemented by iztro-rs: birth time, gender, life/body palace branches, palace branches, and palace names. Stars, brightness, mutagens, scopes, and narrative output are intentionally excluded.",
+    "generation_command": "npm install iztro@2.5.8 --prefix /tmp/iztro-fixture && cd /tmp/iztro-fixture && node --input-type=module -e \"import { astro } from 'iztro'; const a = astro.bySolar('1990-5-17', 4, '女', true, 'zh-CN'); console.log(JSON.stringify(a, null, 2));\""
+  },
+  "input": {
+    "solar_date": "1990-05-17",
+    "lunar_month": 4,
+    "birth_time": "chen",
+    "iztro_time_index": 4,
+    "gender": "female",
+    "iztro_gender": "女",
+    "fix_leap": true,
+    "language": "zh-CN"
+  },
+  "iztro_output": {
+    "solarDate": "1990-5-17",
+    "lunarDate": "一九九〇年四月廿三",
+    "time": "辰时",
+    "gender": "女",
+    "earthlyBranchOfSoulPalace": "丑",
+    "earthlyBranchOfBodyPalace": "酉",
+    "palaces": [
+      {
+        "name": "父母",
+        "earthlyBranch": "寅",
+        "isBodyPalace": false
+      },
+      {
+        "name": "福德",
+        "earthlyBranch": "卯",
+        "isBodyPalace": false
+      },
+      {
+        "name": "田宅",
+        "earthlyBranch": "辰",
+        "isBodyPalace": false
+      },
+      {
+        "name": "官禄",
+        "earthlyBranch": "巳",
+        "isBodyPalace": false
+      },
+      {
+        "name": "仆役",
+        "earthlyBranch": "午",
+        "isBodyPalace": false
+      },
+      {
+        "name": "迁移",
+        "earthlyBranch": "未",
+        "isBodyPalace": false
+      },
+      {
+        "name": "疾厄",
+        "earthlyBranch": "申",
+        "isBodyPalace": false
+      },
+      {
+        "name": "财帛",
+        "earthlyBranch": "酉",
+        "isBodyPalace": true
+      },
+      {
+        "name": "子女",
+        "earthlyBranch": "戌",
+        "isBodyPalace": false
+      },
+      {
+        "name": "夫妻",
+        "earthlyBranch": "亥",
+        "isBodyPalace": false
+      },
+      {
+        "name": "兄弟",
+        "earthlyBranch": "子",
+        "isBodyPalace": false
+      },
+      {
+        "name": "命宫",
+        "earthlyBranch": "丑",
+        "isBodyPalace": false
+      }
+    ]
+  },
+  "supported_fields": {
+    "birth_time": "chen",
+    "gender": "female",
+    "life_palace_branch": "chou",
+    "body_palace_branch": "you",
+    "palaces": [
+      {
+        "branch": "yin",
+        "name": "parents"
+      },
+      {
+        "branch": "mao",
+        "name": "spirit"
+      },
+      {
+        "branch": "chen",
+        "name": "property"
+      },
+      {
+        "branch": "si",
+        "name": "career"
+      },
+      {
+        "branch": "wu",
+        "name": "friends"
+      },
+      {
+        "branch": "wei",
+        "name": "migration"
+      },
+      {
+        "branch": "shen",
+        "name": "health"
+      },
+      {
+        "branch": "you",
+        "name": "wealth"
+      },
+      {
+        "branch": "xu",
+        "name": "children"
+      },
+      {
+        "branch": "hai",
+        "name": "spouse"
+      },
+      {
+        "branch": "zi",
+        "name": "siblings"
+      },
+      {
+        "branch": "chou",
+        "name": "life"
+      }
+    ]
+  },
+  "excluded_fields": [
+    "stars",
+    "brightness",
+    "mutagens",
+    "decadal_scopes",
+    "yearly_scopes",
+    "narrative_output"
+  ]
+}

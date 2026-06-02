@@ -23,13 +23,28 @@
 
 ## 兼容目标
 
-在实现 golden tests 前，应固定具体的 `iztro` 兼容目标。候选目标：
+当前兼容目标为：
 
-- `py-iztro` 使用的版本；
-- `iztro` 最新发布版本；
-- 某个具体 Git commit 或 tag。
+- `iztro` npm package version `2.5.8`。
 
-一旦决定，应在本文档中记录。
+后续兼容 fixture 如需更新目标版本，必须同时记录版本变化和预期输出差异。
+
+## 当前 fixtures
+
+第一个 fixture 为：
+
+- `fixtures/iztro/minimal_natal_1990_05_17_chen_female.json`
+
+该 fixture 只比较 `iztro-rs` 当前已实现的字段：
+
+- 出生时辰；
+- 性别；
+- 命宫地支；
+- 身宫地支；
+- 十二宫地支；
+- 十二宫名称。
+
+它有意不比较星曜、亮度、四化、大限、流年或解读文本。
 
 ## Golden tests
 

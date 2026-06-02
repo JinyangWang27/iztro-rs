@@ -23,13 +23,30 @@ Compatibility does not require:
 
 ## Compatibility target
 
-The exact `iztro` compatibility target should be pinned before implementing golden tests. Candidate targets:
+The current compatibility target is:
 
-- the version used by `py-iztro`;
-- the latest released `iztro` version;
-- a specific Git commit or tag.
+- `iztro` npm package version `2.5.8`.
 
-The selected target must be recorded in this document once decided.
+Future compatibility fixtures may update this target only when the version
+change and expected output differences are documented.
+
+## Current fixtures
+
+The first fixture is:
+
+- `fixtures/iztro/minimal_natal_1990_05_17_chen_female.json`
+
+This fixture compares only fields currently implemented by `iztro-rs`:
+
+- birth time;
+- gender;
+- life palace branch;
+- body palace branch;
+- palace branches;
+- palace names.
+
+It intentionally does not compare stars, brightness, mutagens, decadal scopes,
+yearly scopes, or narrative output.
 
 ## Golden tests
 
