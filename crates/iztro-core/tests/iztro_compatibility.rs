@@ -46,11 +46,18 @@ fn minimal_natal_chart_matches_supported_iztro_fixture_fields() {
         .iter()
         .find(|palace| palace.name() == PalaceName::Life)
         .expect("chart should contain a Life Palace");
-    assert_eq!(
-        expected["body_palace_branch"].as_str(),
-        chart.body_palace_branch().map(branch_key)
+    let expected_body_branch = parse_branch_key(
+        expected["body_palace_branch"]
+            .as_str()
+            .expect("fixture should include body_palace_branch"),
     );
-    assert!(chart.is_body_palace_branch(EarthlyBranch::You));
+
+    assert_eq!(chart.body_palace_branch(), Some(expected_body_branch));
+    assert_eq!(
+        chart.body_palace().map(|palace| palace.branch()),
+        Some(expected_body_branch)
+    );
+    assert!(chart.is_body_palace_branch(expected_body_branch));
     assert_eq!(
         fixture["metadata"]["target_version"]
             .as_str()
@@ -67,10 +74,6 @@ fn minimal_natal_chart_matches_supported_iztro_fixture_fields() {
     assert_eq!(
         expected["life_palace_branch"].as_str(),
         Some(branch_key(life_palace.branch()))
-    );
-    assert_eq!(
-        chart.body_palace().map(|palace| palace.branch()),
-        chart.body_palace_branch()
     );
 
     let palace_fields = expected["palaces"]
