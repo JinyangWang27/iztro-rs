@@ -1,6 +1,6 @@
 use iztro_core::{
-    BirthContext, CalendarDate, EarthlyBranch, Gender, LunarMonth, MethodProfile, NatalChartInput,
-    PalaceName, build_minimal_natal_chart,
+    BirthContext, CalendarDate, EarthlyBranch, Gender, HeavenlyStem, LunarMonth, MethodProfile,
+    NatalChartInput, PalaceName, build_minimal_natal_chart,
 };
 use serde_json::Value;
 
@@ -39,6 +39,7 @@ fn minimal_natal_chart_matches_supported_iztro_fixture_fields() {
         birth_context.clone(),
         MethodProfile::placeholder("iztro_compatibility_fixture"),
         lunar_month,
+        HeavenlyStem::Geng,
     ))
     .expect("minimal natal chart should build for fixture input");
     let life_palace = chart

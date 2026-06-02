@@ -181,6 +181,7 @@ fn chart_try_new_accepts_exactly_twelve_palaces() {
         MethodProfile::placeholder("valid_chart"),
         twelve_palaces(),
         None,
+        None,
     )
     .expect("twelve palaces should satisfy the core invariant");
 
@@ -197,6 +198,7 @@ fn chart_try_new_rejects_non_twelve_palace_counts() {
         ),
         MethodProfile::placeholder("invalid_chart"),
         Vec::new(),
+        None,
         None,
     )
     .expect_err("empty palace list should fail");
