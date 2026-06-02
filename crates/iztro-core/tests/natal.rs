@@ -5,11 +5,13 @@ use iztro_core::{
     palace_stem_for_branch,
 };
 
-const FIXTURE_YEAR_STEM: HeavenlyStem = HeavenlyStem::Geng;
+// These are local algorithmic test cases, not the iztro golden fixture; the
+// upstream compatibility test lives in `tests/iztro_compatibility.rs`.
+const LOCAL_TEST_YEAR_STEM: HeavenlyStem = HeavenlyStem::Geng;
 
 #[test]
 fn minimal_natal_chart_assigns_life_palace_to_calculated_branch() {
-    let chart = build_fixture_chart();
+    let chart = build_local_natal_test_chart();
 
     let life_palace = chart
         .palaces()
@@ -22,7 +24,7 @@ fn minimal_natal_chart_assigns_life_palace_to_calculated_branch() {
 
 #[test]
 fn minimal_natal_chart_names_proceed_from_life_palace_branch() {
-    let chart = build_fixture_chart();
+    let chart = build_local_natal_test_chart();
 
     for palace in chart.palaces() {
         let offset =
@@ -45,7 +47,7 @@ fn minimal_natal_chart_preserves_metadata_and_empty_stars() {
         birth_context.clone(),
         method_profile.clone(),
         LunarMonth::new(1).expect("month 1 should be valid"),
-        FIXTURE_YEAR_STEM,
+        LOCAL_TEST_YEAR_STEM,
     ))
     .expect("minimal natal chart should build");
 
@@ -78,14 +80,14 @@ fn empty_chart_has_no_five_element_bureau() {
 
 #[test]
 fn minimal_natal_chart_has_five_element_bureau() {
-    let chart = build_fixture_chart();
+    let chart = build_local_natal_test_chart();
 
     assert_eq!(chart.five_element_bureau(), Some(FiveElementBureau::Fire6));
 }
 
 #[test]
 fn minimal_natal_chart_uses_real_palace_stems_from_year_stem() {
-    let chart = build_fixture_chart();
+    let chart = build_local_natal_test_chart();
 
     let yin_palace = chart
         .palaces()
@@ -95,7 +97,7 @@ fn minimal_natal_chart_uses_real_palace_stems_from_year_stem() {
 
     assert_eq!(
         yin_palace.stem(),
-        palace_stem_for_branch(FIXTURE_YEAR_STEM, EarthlyBranch::Yin)
+        palace_stem_for_branch(LOCAL_TEST_YEAR_STEM, EarthlyBranch::Yin)
     );
     // 起五行寅例 for a Geng year places Wu at Yin, not the placeholder stem.
     assert_eq!(yin_palace.stem(), HeavenlyStem::Wu);
@@ -103,7 +105,7 @@ fn minimal_natal_chart_uses_real_palace_stems_from_year_stem() {
 
 #[test]
 fn minimal_natal_chart_life_palace_pair_drives_bureau() {
-    let chart = build_fixture_chart();
+    let chart = build_local_natal_test_chart();
 
     let life_palace = chart
         .life_palace()
@@ -121,7 +123,7 @@ fn minimal_natal_chart_life_palace_pair_drives_bureau() {
 
 #[test]
 fn minimal_natal_chart_round_trips_through_json() {
-    let chart = build_fixture_chart();
+    let chart = build_local_natal_test_chart();
 
     let encoded = serde_json::to_string(&chart).expect("minimal natal chart should serialize");
     let decoded: Chart =
@@ -132,7 +134,7 @@ fn minimal_natal_chart_round_trips_through_json() {
     assert_eq!(decoded.body_palace_branch(), chart.body_palace_branch());
 }
 
-fn build_fixture_chart() -> Chart {
+fn build_local_natal_test_chart() -> Chart {
     build_minimal_natal_chart(NatalChartInput::new(
         BirthContext::new(
             CalendarDate::solar(1990, 5, 17),
@@ -141,7 +143,7 @@ fn build_fixture_chart() -> Chart {
         ),
         MethodProfile::placeholder("minimal_natal_profile"),
         LunarMonth::new(1).expect("month 1 should be valid"),
-        FIXTURE_YEAR_STEM,
+        LOCAL_TEST_YEAR_STEM,
     ))
     .expect("minimal natal chart should build")
 }
