@@ -2,17 +2,16 @@
 //!
 //! Star positions reproduce `iztro` 2.5.8 (`getStartIndex` and `getMajorStar`
 //! in `src/star/location.ts` and `src/star/majorStar.ts`, MIT licensed). Only
-//! placement and brightness are implemented here: every placed star carries no
-//! mutagen and [`Scope::Natal`]. Mutagens, minor stars, and scopes beyond the
-//! natal chart stay out of scope.
+//! placement, brightness, and supported birth-year mutagens are implemented
+//! here. Minor stars and scopes beyond the natal chart stay out of scope.
 
 use crate::{
     bureau::FiveElementBureau,
     chart::{Chart, Palace, StarPlacement},
     error::ChartError,
-    ganzhi::EarthlyBranch,
+    ganzhi::{EarthlyBranch, HeavenlyStem},
     life_body::LunarDay,
-    mutagen::Scope,
+    mutagen::{Mutagen, Scope},
     star::{Brightness, StarCategory, StarName},
 };
 
@@ -24,14 +23,20 @@ use crate::{
 pub struct MajorStarPlacementInput {
     lunar_day: LunarDay,
     five_element_bureau: FiveElementBureau,
+    birth_year_stem: HeavenlyStem,
 }
 
 impl MajorStarPlacementInput {
-    /// Creates major-star placement input from the lunar day and bureau.
-    pub const fn new(lunar_day: LunarDay, five_element_bureau: FiveElementBureau) -> Self {
+    /// Creates major-star placement input from the lunar day, bureau, and birth year stem.
+    pub const fn new(
+        lunar_day: LunarDay,
+        five_element_bureau: FiveElementBureau,
+        birth_year_stem: HeavenlyStem,
+    ) -> Self {
         Self {
             lunar_day,
             five_element_bureau,
+            birth_year_stem,
         }
     }
 
@@ -43,6 +48,11 @@ impl MajorStarPlacementInput {
     /// Returns the five-element bureau used to position 紫微.
     pub const fn five_element_bureau(self) -> FiveElementBureau {
         self.five_element_bureau
+    }
+
+    /// Returns the birth year Heavenly Stem used for natal mutagens.
+    pub const fn birth_year_stem(self) -> HeavenlyStem {
+        self.birth_year_stem
     }
 }
 
@@ -141,6 +151,81 @@ pub fn major_star_brightness(star: StarName, branch: EarthlyBranch) -> Brightnes
     brightness_by_yin_order[yin_order_index]
 }
 
+/// Returns the birth-year mutagen for a represented major star, if supported.
+///
+/// The table mirrors iztro 2.5.8 Heavenly Stem mutagens in Lu, Quan, Ke, Ji
+/// order, limited to the fourteen major stars currently represented by
+/// [`StarName`]. Mutagens targeting minor stars are intentionally returned as
+/// [`None`] in this core slice.
+pub fn birth_year_major_star_mutagen(year_stem: HeavenlyStem, star: StarName) -> Option<Mutagen> {
+    match year_stem {
+        HeavenlyStem::Jia => match star {
+            StarName::LianZhen => Some(Mutagen::Lu),
+            StarName::PoJun => Some(Mutagen::Quan),
+            StarName::WuQu => Some(Mutagen::Ke),
+            StarName::TaiYang => Some(Mutagen::Ji),
+            _ => None,
+        },
+        HeavenlyStem::Yi => match star {
+            StarName::TianJi => Some(Mutagen::Lu),
+            StarName::TianLiang => Some(Mutagen::Quan),
+            StarName::ZiWei => Some(Mutagen::Ke),
+            StarName::TaiYin => Some(Mutagen::Ji),
+            _ => None,
+        },
+        HeavenlyStem::Bing => match star {
+            StarName::TianTong => Some(Mutagen::Lu),
+            StarName::TianJi => Some(Mutagen::Quan),
+            StarName::LianZhen => Some(Mutagen::Ji),
+            _ => None,
+        },
+        HeavenlyStem::Ding => match star {
+            StarName::TaiYin => Some(Mutagen::Lu),
+            StarName::TianTong => Some(Mutagen::Quan),
+            StarName::TianJi => Some(Mutagen::Ke),
+            StarName::JuMen => Some(Mutagen::Ji),
+            _ => None,
+        },
+        HeavenlyStem::Wu => match star {
+            StarName::TanLang => Some(Mutagen::Lu),
+            StarName::TaiYin => Some(Mutagen::Quan),
+            StarName::TianJi => Some(Mutagen::Ji),
+            _ => None,
+        },
+        HeavenlyStem::Ji => match star {
+            StarName::WuQu => Some(Mutagen::Lu),
+            StarName::TanLang => Some(Mutagen::Quan),
+            StarName::TianLiang => Some(Mutagen::Ke),
+            _ => None,
+        },
+        HeavenlyStem::Geng => match star {
+            StarName::TaiYang => Some(Mutagen::Lu),
+            StarName::WuQu => Some(Mutagen::Quan),
+            StarName::TaiYin => Some(Mutagen::Ke),
+            StarName::TianTong => Some(Mutagen::Ji),
+            _ => None,
+        },
+        HeavenlyStem::Xin => match star {
+            StarName::JuMen => Some(Mutagen::Lu),
+            StarName::TaiYang => Some(Mutagen::Quan),
+            _ => None,
+        },
+        HeavenlyStem::Ren => match star {
+            StarName::TianLiang => Some(Mutagen::Lu),
+            StarName::ZiWei => Some(Mutagen::Quan),
+            StarName::WuQu => Some(Mutagen::Ji),
+            _ => None,
+        },
+        HeavenlyStem::Gui => match star {
+            StarName::PoJun => Some(Mutagen::Lu),
+            StarName::JuMen => Some(Mutagen::Quan),
+            StarName::TaiYin => Some(Mutagen::Ke),
+            StarName::TanLang => Some(Mutagen::Ji),
+            _ => None,
+        },
+    }
+}
+
 /// Returns the branch holding 紫微 (Zi Wei) for a bureau and lunar day.
 ///
 /// Implements iztro's 起紫微星诀: divide the lunar day by the bureau number,
@@ -218,7 +303,7 @@ impl MajorStarPlacer for DeterministicMajorStarPlacer {
                             name,
                             StarCategory::Major,
                             major_star_brightness(name, branch),
-                            None,
+                            birth_year_major_star_mutagen(input.birth_year_stem(), name),
                             Scope::Natal,
                         ));
                     }
