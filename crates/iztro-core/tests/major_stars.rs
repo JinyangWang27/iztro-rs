@@ -320,6 +320,74 @@ fn placed_major_star_mutagens_match_iztro_fixture() {
 }
 
 #[test]
+fn chart_major_star_queries_return_palace_context() {
+    let chart = place_fixture_major_stars();
+
+    let zi_wei = chart
+        .major_star(StarName::ZiWei)
+        .expect("Zi Wei should be placed");
+    assert_eq!(zi_wei.placement().name(), StarName::ZiWei);
+    assert_eq!(zi_wei.palace().branch(), EarthlyBranch::Chen);
+
+    assert_eq!(
+        chart
+            .palace_by_major_star(StarName::WuQu)
+            .expect("Wu Qu should be placed")
+            .branch(),
+        EarthlyBranch::Zi
+    );
+    assert_eq!(chart.major_stars().len(), ALL_MAJOR_STARS.len());
+}
+
+#[test]
+fn chart_major_star_queries_filter_by_palace_and_branch() {
+    let chart = place_fixture_major_stars();
+    let mao_palace_name = chart
+        .palaces()
+        .iter()
+        .find(|palace| palace.branch() == EarthlyBranch::Mao)
+        .expect("Mao palace should exist")
+        .name();
+
+    let by_branch: HashSet<StarName> = chart
+        .major_stars_in_branch(EarthlyBranch::Mao)
+        .iter()
+        .map(|star| star.placement().name())
+        .collect();
+    let by_palace: HashSet<StarName> = chart
+        .major_stars_in_palace(mao_palace_name)
+        .iter()
+        .map(|star| star.placement().name())
+        .collect();
+
+    assert_eq!(
+        by_branch,
+        HashSet::from([StarName::TianJi, StarName::JuMen])
+    );
+    assert_eq!(by_palace, by_branch);
+    assert!(chart.major_stars_in_branch(EarthlyBranch::Wei).is_empty());
+}
+
+#[test]
+fn chart_major_star_queries_work_after_serde_round_trip() {
+    let chart = place_fixture_major_stars();
+    let serialized = serde_json::to_string(&chart).expect("chart should serialize");
+    let round_tripped: Chart = serde_json::from_str(&serialized).expect("chart should deserialize");
+
+    let zi_wei = round_tripped
+        .major_star(StarName::ZiWei)
+        .expect("Zi Wei should remain queryable");
+
+    assert_eq!(zi_wei.palace().branch(), EarthlyBranch::Chen);
+    assert_eq!(
+        round_tripped
+            .major_stars_in_branch(EarthlyBranch::Mao)
+            .len(),
+        2
+    );
+}
+
+#[test]
 fn placer_preserves_palace_count_and_chart_metadata() {
     let chart = build_fixture_chart();
     let birth_context = chart.birth_context().clone();

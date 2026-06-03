@@ -19,7 +19,7 @@ pub mod star;
 pub use builder::build_empty_chart;
 pub use bureau::{FiveElementBureau, five_element_bureau_from_life_palace};
 pub use calendar::{BirthContext, CalendarDate, CalendarKind, Gender};
-pub use chart::{Chart, PALACE_COUNT, Palace, StarPlacement};
+pub use chart::{Chart, MajorStarPlacementRef, PALACE_COUNT, Palace, StarPlacement};
 pub use error::ChartError;
 pub use ganzhi::{EARTHLY_BRANCHES, EarthlyBranch, HEAVENLY_STEMS, HeavenlyStem};
 pub use life_body::{
