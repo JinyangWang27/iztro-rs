@@ -2,9 +2,9 @@
 //!
 //! Star positions reproduce `iztro` 2.5.8 (`getStartIndex` and `getMajorStar`
 //! in `src/star/location.ts` and `src/star/majorStar.ts`, MIT licensed). Only
-//! placement is implemented here: every placed star carries
-//! [`Brightness::Unknown`], no mutagen, and [`Scope::Natal`]. Brightness,
-//! mutagens, minor stars, and scopes beyond the natal chart stay out of scope.
+//! placement and brightness are implemented here: every placed star carries no
+//! mutagen and [`Scope::Natal`]. Mutagens, minor stars, and scopes beyond the
+//! natal chart stay out of scope.
 
 use crate::{
     bureau::FiveElementBureau,
@@ -79,6 +79,67 @@ const TIAN_FU_SERIES: [(StarName, isize); 8] = [
     (StarName::QiSha, 6),
     (StarName::PoJun, 10),
 ];
+
+/// Returns a major star's brightness for a branch.
+///
+/// The table mirrors iztro 2.5.8 `STARS_INFO` brightness values. iztro stores
+/// brightness in palace order from 寅 through 丑, while [`EarthlyBranch::index`]
+/// is ordered from 子 through 亥, so the branch index is converted explicitly.
+pub fn major_star_brightness(star: StarName, branch: EarthlyBranch) -> Brightness {
+    const MIAO: Brightness = Brightness::Temple;
+    const WANG: Brightness = Brightness::Prosperous;
+    const DE: Brightness = Brightness::Advantage;
+    const LI: Brightness = Brightness::Favourable;
+    const PING: Brightness = Brightness::Flat;
+    const BU: Brightness = Brightness::Weak;
+    const XIAN: Brightness = Brightness::Trapped;
+
+    let brightness_by_yin_order = match star {
+        StarName::ZiWei => [
+            WANG, WANG, DE, WANG, MIAO, MIAO, WANG, WANG, DE, WANG, PING, MIAO,
+        ],
+        StarName::TianJi => [
+            DE, WANG, LI, PING, MIAO, XIAN, DE, WANG, LI, PING, MIAO, XIAN,
+        ],
+        StarName::TaiYang => [
+            WANG, MIAO, WANG, WANG, WANG, DE, DE, XIAN, BU, XIAN, XIAN, BU,
+        ],
+        StarName::WuQu => [
+            DE, LI, MIAO, PING, WANG, MIAO, DE, LI, MIAO, PING, WANG, MIAO,
+        ],
+        StarName::TianTong => [
+            LI, PING, PING, MIAO, XIAN, BU, WANG, PING, PING, MIAO, WANG, BU,
+        ],
+        StarName::LianZhen => [
+            MIAO, PING, LI, XIAN, PING, LI, MIAO, PING, LI, XIAN, PING, LI,
+        ],
+        StarName::TianFu => [
+            MIAO, DE, MIAO, DE, WANG, MIAO, DE, WANG, MIAO, DE, MIAO, MIAO,
+        ],
+        StarName::TaiYin => [
+            WANG, XIAN, XIAN, XIAN, BU, BU, LI, BU, WANG, MIAO, MIAO, MIAO,
+        ],
+        StarName::TanLang => [
+            PING, LI, MIAO, XIAN, WANG, MIAO, PING, LI, MIAO, XIAN, WANG, MIAO,
+        ],
+        StarName::JuMen => [
+            MIAO, MIAO, XIAN, WANG, WANG, BU, MIAO, MIAO, XIAN, WANG, WANG, BU,
+        ],
+        StarName::TianXiang => [MIAO, XIAN, DE, DE, MIAO, DE, MIAO, XIAN, DE, DE, MIAO, MIAO],
+        StarName::TianLiang => [
+            MIAO, MIAO, MIAO, XIAN, MIAO, WANG, XIAN, DE, MIAO, XIAN, MIAO, WANG,
+        ],
+        StarName::QiSha => [
+            MIAO, WANG, MIAO, PING, WANG, MIAO, MIAO, MIAO, MIAO, PING, WANG, MIAO,
+        ],
+        StarName::PoJun => [
+            DE, XIAN, WANG, PING, MIAO, WANG, DE, XIAN, WANG, PING, MIAO, WANG,
+        ],
+    };
+    let yin_order_index = (branch.index() + 12 - EarthlyBranch::Yin.index()) % 12;
+
+    brightness_by_yin_order[yin_order_index]
+}
 
 /// Returns the branch holding 紫微 (Zi Wei) for a bureau and lunar day.
 ///
@@ -156,7 +217,7 @@ impl MajorStarPlacer for DeterministicMajorStarPlacer {
                         stars.push(StarPlacement::new(
                             name,
                             StarCategory::Major,
-                            Brightness::Unknown,
+                            major_star_brightness(name, branch),
                             None,
                             Scope::Natal,
                         ));

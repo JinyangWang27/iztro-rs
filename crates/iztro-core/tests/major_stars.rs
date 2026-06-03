@@ -5,7 +5,7 @@ use iztro_core::{
     FiveElementBureau, Gender, HeavenlyStem, LunarDay, LunarMonth, MajorStarPlacementInput,
     MajorStarPlacer, MethodProfile, NatalChartInput, NatalChartWithMajorStarsInput, PALACE_COUNT,
     Scope, StarCategory, StarName, build_minimal_natal_chart, build_natal_chart_with_major_stars,
-    tian_fu_branch, zi_wei_branch,
+    major_star_brightness, tian_fu_branch, zi_wei_branch,
 };
 use serde_json::Value;
 
@@ -59,7 +59,12 @@ const EXPECTED_FIXTURE_STAR_FACTS: &[(EarthlyBranch, StarName, &str, Option<&str
     (EarthlyBranch::Shen, StarName::LianZhen, "temple", None),
     (EarthlyBranch::Xu, StarName::PoJun, "prosperous", None),
     (EarthlyBranch::Hai, StarName::TianTong, "temple", Some("ji")),
-    (EarthlyBranch::Zi, StarName::WuQu, "prosperous", Some("quan")),
+    (
+        EarthlyBranch::Zi,
+        StarName::WuQu,
+        "prosperous",
+        Some("quan"),
+    ),
     (EarthlyBranch::Zi, StarName::TianFu, "temple", None),
     (EarthlyBranch::Chou, StarName::TaiYang, "weak", Some("lu")),
     (EarthlyBranch::Chou, StarName::TaiYin, "temple", Some("ke")),
@@ -136,7 +141,7 @@ fn placer_places_stars_at_expected_branches() {
 }
 
 #[test]
-fn placer_marks_each_major_star_as_natal_unknown_and_unmutated() {
+fn placer_marks_each_major_star_as_major_natal_and_unmutated() {
     let chart = place_fixture_major_stars();
 
     let mut count = 0;
@@ -144,13 +149,60 @@ fn placer_marks_each_major_star_as_natal_unknown_and_unmutated() {
         for star in palace.stars() {
             count += 1;
             assert_eq!(star.category(), StarCategory::Major);
-            assert_eq!(star.brightness(), Brightness::Unknown);
             assert_eq!(star.mutagen(), None);
             assert_eq!(star.scope(), Scope::Natal);
         }
     }
 
     assert_eq!(count, 14);
+}
+
+#[test]
+fn major_star_brightness_distinguishes_advantage_and_favourable() {
+    assert_eq!(
+        major_star_brightness(StarName::TianJi, EarthlyBranch::Yin),
+        Brightness::Advantage
+    );
+    assert_eq!(
+        major_star_brightness(StarName::TianJi, EarthlyBranch::Chen),
+        Brightness::Favourable
+    );
+}
+
+#[test]
+fn placer_sets_known_brightness_for_each_major_star() {
+    let chart = place_fixture_major_stars();
+
+    for palace in chart.palaces() {
+        for star in palace.stars() {
+            assert_ne!(star.brightness(), Brightness::Unknown);
+        }
+    }
+}
+
+#[test]
+fn placed_major_star_brightness_matches_iztro_fixture() {
+    let fixture: Value =
+        serde_json::from_str(MAJOR_STARS_FIXTURE).expect("fixture should be valid JSON");
+    let chart = place_fixture_major_stars();
+    let actual = collect_major_star_facts(&chart);
+
+    for expected_palace in fixture["supported_fields"]["major_stars"]
+        .as_array()
+        .expect("fixture should include supported major-star fields")
+    {
+        let branch = parse_branch_key(expected_palace["branch"].as_str().expect("branch"));
+        for expected_star in expected_palace["stars"].as_array().expect("stars array") {
+            let name = parse_star_key(expected_star["name"].as_str().expect("star name"));
+            let expected_brightness =
+                parse_brightness_key(expected_star["brightness"].as_str().expect("brightness"));
+            let got = actual
+                .get(&(branch, name))
+                .unwrap_or_else(|| panic!("missing {name:?} in {branch:?}"));
+
+            assert_eq!(got.brightness(), expected_brightness);
+        }
+    }
 }
 
 #[test]
@@ -294,6 +346,20 @@ fn collect_major_stars(chart: &Chart) -> Vec<(EarthlyBranch, StarName)> {
     out
 }
 
+fn collect_major_star_facts(
+    chart: &Chart,
+) -> HashMap<(EarthlyBranch, StarName), &iztro_core::StarPlacement> {
+    let mut out = HashMap::new();
+    for palace in chart.palaces() {
+        for star in palace.stars() {
+            if star.category() == StarCategory::Major {
+                out.insert((palace.branch(), star.name()), star);
+            }
+        }
+    }
+    out
+}
+
 fn lunar_day(value: u8) -> LunarDay {
     LunarDay::new(value).expect("lunar day should be valid")
 }
@@ -314,6 +380,40 @@ fn star_key(star: StarName) -> &'static str {
         StarName::TianLiang => "tian_liang",
         StarName::QiSha => "qi_sha",
         StarName::PoJun => "po_jun",
+    }
+}
+
+fn parse_star_key(value: &str) -> StarName {
+    match value {
+        "zi_wei" => StarName::ZiWei,
+        "tian_ji" => StarName::TianJi,
+        "tai_yang" => StarName::TaiYang,
+        "wu_qu" => StarName::WuQu,
+        "tian_tong" => StarName::TianTong,
+        "lian_zhen" => StarName::LianZhen,
+        "tian_fu" => StarName::TianFu,
+        "tai_yin" => StarName::TaiYin,
+        "tan_lang" => StarName::TanLang,
+        "ju_men" => StarName::JuMen,
+        "tian_xiang" => StarName::TianXiang,
+        "tian_liang" => StarName::TianLiang,
+        "qi_sha" => StarName::QiSha,
+        "po_jun" => StarName::PoJun,
+        other => panic!("unsupported star key in fixture: {other}"),
+    }
+}
+
+fn parse_brightness_key(value: &str) -> Brightness {
+    match value {
+        "temple" => Brightness::Temple,
+        "prosperous" => Brightness::Prosperous,
+        "advantage" => Brightness::Advantage,
+        "favourable" => Brightness::Favourable,
+        "flat" => Brightness::Flat,
+        "weak" => Brightness::Weak,
+        "trapped" => Brightness::Trapped,
+        "unknown" => Brightness::Unknown,
+        other => panic!("unsupported brightness key in fixture: {other}"),
     }
 }
 

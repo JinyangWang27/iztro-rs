@@ -27,8 +27,8 @@ pub use life_body::{
     calculate_life_body_palace_indices,
 };
 pub use major_stars::{
-    DeterministicMajorStarPlacer, MajorStarPlacementInput, MajorStarPlacer, tian_fu_branch,
-    zi_wei_branch,
+    DeterministicMajorStarPlacer, MajorStarPlacementInput, MajorStarPlacer, major_star_brightness,
+    tian_fu_branch, zi_wei_branch,
 };
 pub use mutagen::{Mutagen, Scope};
 pub use natal::{

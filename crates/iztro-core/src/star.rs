@@ -60,6 +60,8 @@ pub enum Brightness {
     Prosperous,
     /// Advantageous brightness.
     Advantage,
+    /// Favourable brightness.
+    Favourable,
     /// Flat brightness.
     Flat,
     /// Weak brightness.
