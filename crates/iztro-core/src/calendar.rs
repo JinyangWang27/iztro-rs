@@ -5,10 +5,10 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum CalendarKind {
-    /// Gregorian solar date.
+    /// Gregorian solar date (公历).
     Solar,
-    /// Lunar date placeholder.
-    Lunar,
+    /// Lunar date placeholder (农历).
+    Lunar, // TODO: perhaps rename to Lunisolar?
 }
 
 /// A birth date with a declared calendar system.
