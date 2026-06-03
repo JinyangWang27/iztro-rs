@@ -37,6 +37,12 @@ This roadmap is intentionally conservative. The project should first establish s
 - Add golden tests against selected `iztro` outputs.
 - Document known differences.
 
+Current core slice: `by_lunar` accepts explicit lunar inputs plus explicit
+birth-year stem and branch, builds deterministic natal chart facts, and validates
+minimal chart fields, fourteen major stars, and fourteen supported minor stars
+against selected `iztro` 2.5.8 fixtures. Solar-to-lunar conversion, leap-month
+behavior, rat-hour variants, temporal star scopes, and bindings remain deferred.
+
 ## Phase 4: Feature extraction
 
 - Extract palace features.

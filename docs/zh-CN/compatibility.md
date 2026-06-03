@@ -35,9 +35,9 @@
 iztro 的 `astro.byLunar(...)`，但使用强类型的 `LunarChartRequest` 请求对象，而
 不是 JavaScript 风格的位置参数。
 
-该 facade 只把传入的农历日期记录为星盘输入事实，并委托给现有的主星本命盘 builder；
-它不执行阳历转农历转换。出生年干仍需显式提供，因为公历/农历年份到干支年的推导仍
-未实现。
+该 facade 只把传入的农历日期记录为星盘输入事实，并委托给已支持星曜的本命盘
+builder；它不执行阳历转农历转换。出生年干和年支仍需显式提供，因为公历/农历年份
+到干支年的推导仍未实现。
 
 `by_solar`、闰月处理、早晚子时变体，以及完整历法行为仍延期实现。
 
@@ -47,6 +47,9 @@ fixtures 为：
 
 - `fixtures/iztro/minimal_natal_1990_05_17_chen_female.json`
 - `fixtures/iztro/major_stars_1990_05_17_chen_female.json`
+- `fixtures/iztro/minor_stars_1990_05_17_chen_female.json`
+- `fixtures/iztro/minor_stars_1988_03_14_zi_male.json`
+- `fixtures/iztro/minor_stars_1991_08_09_hai_female.json`
 
 minimal-natal fixture 只比较 `iztro-rs` 当前已实现的字段：
 
@@ -96,6 +99,39 @@ star kind 或 category。
 再使用其派生出的五行局、显式农历日和显式出生年干安十四主星，并附加已支持的事实
 状态。该 fixture 仍**不**比较特征提取、规则引擎输出、叙事输出、历法转换、辅星、
 杂曜、非主星、非主星四化、大限、流年或其他时间范围。
+
+### 十四已支持辅星
+
+三个 `minor_stars_*` fixtures 比较十四颗已支持本命辅星的事实，与 iztro 每宫的
+`minorStars` 对照：
+
+- 每宫的辅星名称；
+- 每颗辅星所在的宫位地支；
+- 与 iztro 兼容的星曜细分类（`soft`、`tough`、`lucun` 或 `tianma`）；
+- iztro 2.5.8 有亮度表时的亮度；
+- 已表示辅星目标的生年四化。
+
+安星复现 iztro 2.5.8 的寅宫索引公式：
+
+- 左辅、右弼由显式农历月份决定；
+- 文昌、文曲和地空、地劫由出生时辰地支决定；
+- 天魁、天钺和禄存、擎羊、陀罗由出生年干决定；
+- 天马和火星、铃星由出生年支决定，其中火星、铃星还使用出生时辰地支。
+
+每颗已支持辅星的派生 `StarCategory` 为 `Minor`，scope 为本命。`StarKind` 保留
+与 iztro 兼容的细分类：`soft`、`tough`、`lucun` 或 `tianma`。iztro 仅为文昌、
+文曲、火星、铃星、擎羊、陀罗提供亮度表；其他已支持辅星使用
+`Brightness::Unknown`。生年四化改为通用的已表示星曜表，并包含 iztro 中落到辅星的
+目标：丙文昌科、戊右弼科、己文曲忌、辛文曲科/文昌忌、壬左辅科。原有仅主星 API
+保留为 wrapper，并且只对已表示主星返回四化。
+
+公开的 `build_natal_chart_with_supported_stars` builder path 会先生成 minimal
+natal chart，再安十四主星，最后安十四颗已支持辅星。`by_lunar` facade 委托给这个
+supported-star builder，并要求显式提供 `birth_year_stem` 和 `birth_year_branch`。
+
+这些 fixtures 仍**不**比较杂曜、flower/helper/adjective 子集、特征提取、规则引擎
+输出、解读或叙事输出、阳历转农历、闰月行为、早晚子时变体、时间范围星曜、CLI
+bindings、Python bindings 或 WebAssembly bindings。
 
 ## Golden tests
 
