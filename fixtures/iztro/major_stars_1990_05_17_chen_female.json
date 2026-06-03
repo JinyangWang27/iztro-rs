@@ -5,7 +5,7 @@
     "target_version": "2.5.8",
     "generated_at": "2026-06-02T07:22:50Z",
     "supported_fields_only": true,
-    "notes": "This fixture compares the fourteen major-star (主星) placements, brightness, and supported birth-year mutagens: each star's name, brightness, mutagen, and palace branch. Category is Major and scope is Natal (iztro 'origin'). Minor stars, adjective stars, decadal scopes, yearly scopes, and narrative output are excluded. lunar_day is supplied explicitly because full calendar conversion is deferred; for 1990-05-17 the lunar date is 一九九〇年四月廿三, so lunar_day is 23. birth_year_stem is supplied explicitly because Gregorian-to-ganzhi year conversion is deferred; for 1990 the ganzhi year is 庚午, so the year stem is geng.",
+    "notes": "This fixture compares the fourteen major-star (主星) placements, brightness, and supported birth-year mutagens: each star's name, brightness, mutagen, and palace branch. Category is Major and scope is Natal (iztro 'origin'). Feature extraction, rule-engine output, narrative output, calendar conversion, minor stars, adjective stars, non-major stars, non-major mutagens, decadal scopes, yearly scopes, and other temporal scopes are excluded. lunar_day is supplied explicitly because full calendar conversion is deferred; for 1990-05-17 the lunar date is 一九九〇年四月廿三, so lunar_day is 23. birth_year_stem is supplied explicitly because Gregorian-to-ganzhi year conversion is deferred; for 1990 the ganzhi year is 庚午, so the year stem is geng.",
     "generation_command": "npm install iztro@2.5.8 --prefix /tmp/iztro-fixture && cd /tmp/iztro-fixture && node --input-type=module -e \"import { astro } from 'iztro'; const a = astro.bySolar('1990-5-17', 4, '女', true, 'zh-CN'); console.log(JSON.stringify(a.palaces.map(p => ({ earthlyBranch: p.earthlyBranch, majorStars: p.majorStars })), null, 2));\""
   },
   "input": {
@@ -82,10 +82,16 @@
     ]
   },
   "excluded_fields": [
+    "feature_extraction",
+    "rule_engine_output",
+    "narrative_output",
+    "calendar_conversion",
     "minor_stars",
     "adjective_stars",
+    "non_major_stars",
+    "non_major_mutagens",
     "decadal_scopes",
     "yearly_scopes",
-    "narrative_output"
+    "other_temporal_scopes"
   ]
 }

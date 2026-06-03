@@ -77,32 +77,52 @@ from a Gregorian date exists, this field can be derived instead of provided.
 ```bash
 npm install iztro@2.5.8 --prefix /tmp/iztro-fixture && \
 cd /tmp/iztro-fixture && \
-node --input-type=module -e "import { astro } from 'iztro'; const a = astro.bySolar('1990-5-17', 4, '女', true, 'zh-CN'); console.log(JSON.stringify(a.palaces.map(p => ({ earthlyBranch: p.earthlyBranch, majorStars: p.majorStars.map(s => s.name) })), null, 2));"
+node --input-type=module -e "import { astro } from 'iztro'; const a = astro.bySolar('1990-5-17', 4, '女', true, 'zh-CN'); console.log(JSON.stringify(a.palaces.map(p => ({ earthlyBranch: p.earthlyBranch, majorStars: p.majorStars })), null, 2));"
 ```
 
-`supported_fields.major_stars` lists, per palace branch, the snake_case
-`StarName` keys (for example `zi_wei`, `tian_ji`, `po_jun`). The compatibility
-test asserts, for every palace, that the set of major-star names placed by
-`iztro-rs` equals iztro's. The test builds through the public
-`build_natal_chart_with_major_stars` path so the fixture covers integration
-from the minimal natal chart builder into deterministic major-star placement.
+`supported_fields.major_stars` lists, per palace branch, normalized star fact
+objects with:
+
+- `name`: the snake_case `StarName` key, for example `zi_wei`, `tian_ji`, or
+  `po_jun`;
+- `brightness`: the normalized `Brightness` key, including separate
+  `advantage` (`得`) and `favourable` (`利`) values;
+- `mutagen`: the normalized birth-year mutagen key (`lu`, `quan`, `ke`, `ji`)
+  or `null` when the represented major star has no birth-year mutagen.
+
+The compatibility test asserts, for every palace, that the major-star names,
+palace branches, brightness values, and supported birth-year mutagens placed by
+`iztro-rs` equal iztro's. The test builds through the public
+`build_natal_chart_with_major_stars` path so the fixture covers integration from
+the minimal natal chart builder into deterministic major-star facts.
 
 ### Explicit lunar day
 
 `input.lunar_day` (23) is supplied explicitly because full calendar conversion
 is deferred. It selects the 紫微 position relative to the five-element bureau.
 
+### Explicit birth year stem
+
+`input.birth_year_stem` (`geng`) is supplied explicitly because full
+Gregorian-to-ganzhi year conversion is deferred. It selects the supported
+built-in birth-year mutagens attached to represented major stars in the natal
+chart.
+
 ### Explicitly excluded fields
 
-- star brightness (iztro computes it; `iztro-rs` leaves it `unknown`)
-- star mutagens (`iztro-rs` leaves them `none`)
+- feature extraction
+- rule-engine output
+- narrative output
+- calendar conversion
 - minor stars
 - adjective stars
+- non-major stars
+- non-major mutagens
 - decadal scopes
 - yearly scopes
-- narrative output
+- other temporal scopes
 
 ## Scope
 
-The fixtures cover **minimal natal compatibility** and **fourteen-major-star
-placement** only.
+The fixtures cover **minimal natal compatibility** and deterministic
+**fourteen-major-star facts** only.

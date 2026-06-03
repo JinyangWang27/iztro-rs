@@ -57,21 +57,26 @@ minimal-natal fixture 只比较 `iztro-rs` 当前已实现的字段：
 
 ### 十四主星
 
-`major_stars_1990_05_17_chen_female.json` 比较十四主星的安星，与 iztro 每宫的
-`majorStars` 对照：
+`major_stars_1990_05_17_chen_female.json` 比较十四主星已表示的事实，与 iztro
+每宫的 `majorStars` 对照：
 
 - 每宫的主星名称；
-- 每颗主星所在的宫位地支。
+- 每颗主星所在的宫位地支；
+- 每颗主星的亮度；
+- 已表示主星的生年四化。
 
 安星复现 iztro 2.5.8（`getStartIndex` 与 `getMajorStar`）：紫微由五行局与农历
 日推出，天府为紫微关于寅–申轴的镜像，紫微系与天府系按固定偏移排布。每颗星的
 category 为 `major`，scope 为 `natal`（iztro 的 `origin`）。
+亮度复现 iztro 2.5.8 `STARS_INFO` 中十四主星的表，保留 `de`（`得`）为
+`advantage`，`li`（`利`）为 `favourable`。生年四化复现 iztro 2.5.8 的天干四化
+表，但仅在目标星属于当前已表示的十四主星时记录。
 
 农历日通过 `input.lunar_day` 显式提供，因为完整历法转换尚未实现。兼容性测试走公开
 的 `build_natal_chart_with_major_stars` builder path：先生成 minimal natal chart，
-再使用其派生出的五行局和显式农历日安十四主星。该 fixture 比较主星名称与位置；
-仍**不**比较星曜亮度与星曜四化（iztro 会计算，但本切片中 `iztro-rs` 的亮度保持
-`unknown`、四化为 `none`），也不比较辅星、杂曜、大限、流年或解读文本。
+再使用其派生出的五行局、显式农历日和显式出生年干安十四主星，并附加已支持的事实
+状态。该 fixture 仍**不**比较特征提取、规则引擎输出、叙事输出、历法转换、辅星、
+杂曜、非主星、非主星四化、大限、流年或其他时间范围。
 
 ## Golden tests
 
