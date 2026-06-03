@@ -31,6 +31,19 @@ impl CalendarDate {
         }
     }
 
+    /// Creates a lunar calendar date placeholder.
+    ///
+    /// This records the provided lunar date as input facts only. It does not
+    /// perform calendar conversion or leap-month normalization.
+    pub const fn lunar(year: i32, month: u8, day: u8) -> Self {
+        Self {
+            kind: CalendarKind::Lunar,
+            year,
+            month,
+            day,
+        }
+    }
+
     /// Returns the declared calendar kind.
     pub const fn kind(&self) -> CalendarKind {
         self.kind

@@ -29,6 +29,18 @@
 
 后续兼容 fixture 如需更新目标版本，必须同时记录版本变化和预期输出差异。
 
+## 公开 facade 兼容性
+
+`by_lunar` 是 `iztro-rs` 的第一个 iztro-compatible facade 入口。它在概念上对应
+iztro 的 `astro.byLunar(...)`，但使用强类型的 `LunarChartRequest` 请求对象，而
+不是 JavaScript 风格的位置参数。
+
+该 facade 只把传入的农历日期记录为星盘输入事实，并委托给现有的主星本命盘 builder；
+它不执行阳历转农历转换。出生年干仍需显式提供，因为公历/农历年份到干支年的推导仍
+未实现。
+
+`by_solar`、闰月处理、早晚子时变体，以及完整历法行为仍延期实现。
+
 ## 当前 fixtures
 
 fixtures 为：

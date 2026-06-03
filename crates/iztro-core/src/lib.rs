@@ -5,6 +5,7 @@ pub mod bureau;
 pub mod calendar;
 pub mod chart;
 pub mod error;
+pub mod facade;
 pub mod ganzhi;
 pub mod life_body;
 pub mod major_stars;
@@ -21,6 +22,7 @@ pub use bureau::{FiveElementBureau, five_element_bureau_from_life_palace};
 pub use calendar::{BirthContext, CalendarDate, CalendarKind, Gender};
 pub use chart::{Chart, MajorStarPlacementRef, PALACE_COUNT, Palace, StarPlacement};
 pub use error::ChartError;
+pub use facade::{LunarChartRequest, by_lunar};
 pub use ganzhi::{EARTHLY_BRANCHES, EarthlyBranch, HEAVENLY_STEMS, HeavenlyStem};
 pub use life_body::{
     LifeBodyPalaceIndices, LunarBirthContext, LunarDay, LunarMonth,
