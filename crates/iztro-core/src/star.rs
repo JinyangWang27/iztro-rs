@@ -146,11 +146,11 @@ pub enum StarCategory {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum StarKind {
-    /// Fourteen major stars.
+    /// Fourteen major stars (14 主星).
     Major,
-    /// Supportive soft stars.
+    /// Supportive soft stars (14辅星 6 吉星).
     Soft,
-    /// Tough stars.
+    /// Tough stars (14辅星 6 凶星).
     Tough,
     /// Lu Cun star (禄存).
     #[serde(rename = "lucun")]
@@ -160,7 +160,7 @@ pub enum StarKind {
     TianMa,
     /// Miscellaneous adjective stars.
     Adjective,
-    /// Flower stars.
+    /// Flower stars (桃花星).
     Flower,
     /// Helper stars.
     Helper,
