@@ -46,6 +46,15 @@ This roadmap is intentionally conservative. The project should first establish s
 - Add strength-score placeholders.
 - Add temporal activation interfaces.
 
+First slice implemented: `BasicFeatureExtractor` (`iztro-features`) converts
+deterministic chart facts into structured palace features, star features, natal
+mutagen flows, and cyclic palace relations. Star features preserve all placed
+star facts; the palace/domain mapping is optional metadata and is currently
+limited to five direct palace-domain mappings (Life, Career, Wealth, Spouse,
+Health), so stars elsewhere carry no domain. This is feature extraction only —
+no rule matching, no claims, no interpretation, and no narrative. Strength
+scoring and temporal activation interfaces remain deferred.
+
 ## Phase 5: Rule engine skeleton
 
 - Define rule schema.
