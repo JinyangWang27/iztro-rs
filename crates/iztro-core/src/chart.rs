@@ -129,7 +129,7 @@ impl Chart {
         self.palaces
             .iter()
             .filter(|palace| palace.name() == name)
-            .flat_map(|palace| major_stars_in(palace))
+            .flat_map(major_stars_in)
             .collect()
     }
 
@@ -138,7 +138,7 @@ impl Chart {
         self.palaces
             .iter()
             .filter(|palace| palace.branch() == branch)
-            .flat_map(|palace| major_stars_in(palace))
+            .flat_map(major_stars_in)
             .collect()
     }
 }
