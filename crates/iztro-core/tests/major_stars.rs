@@ -3,9 +3,10 @@ use std::collections::{HashMap, HashSet};
 use iztro_core::{
     BirthContext, Brightness, CalendarDate, Chart, DeterministicMajorStarPlacer, EarthlyBranch,
     FiveElementBureau, Gender, HeavenlyStem, LunarDay, LunarMonth, MajorStarPlacementInput,
-    MajorStarPlacer, MethodProfile, NatalChartInput, NatalChartWithMajorStarsInput, PALACE_COUNT,
-    Scope, StarCategory, StarName, build_minimal_natal_chart, build_natal_chart_with_major_stars,
-    tian_fu_branch, zi_wei_branch,
+    MajorStarPlacer, MethodProfile, Mutagen, NatalChartInput, NatalChartWithMajorStarsInput,
+    PALACE_COUNT, Scope, StarCategory, StarKind, StarName, birth_year_major_star_mutagen,
+    build_minimal_natal_chart, build_natal_chart_with_major_stars, major_star_brightness,
+    major_star_metadata, major_star_metadata_table, tian_fu_branch, zi_wei_branch,
 };
 use serde_json::Value;
 
@@ -45,6 +46,67 @@ const EXPECTED_PLACEMENT: &[(EarthlyBranch, &[StarName])] = &[
     (EarthlyBranch::Hai, &[StarName::TianTong]),
     (EarthlyBranch::Zi, &[StarName::WuQu, StarName::TianFu]),
     (EarthlyBranch::Chou, &[StarName::TaiYang, StarName::TaiYin]),
+];
+
+/// Expected normalized iztro facts for represented major stars in the fixture.
+const EXPECTED_FIXTURE_STAR_FACTS: &[(EarthlyBranch, StarName, &str, Option<&str>)] = &[
+    (EarthlyBranch::Yin, StarName::TanLang, "flat", None),
+    (EarthlyBranch::Mao, StarName::TianJi, "prosperous", None),
+    (EarthlyBranch::Mao, StarName::JuMen, "temple", None),
+    (EarthlyBranch::Chen, StarName::ZiWei, "advantage", None),
+    (EarthlyBranch::Chen, StarName::TianXiang, "advantage", None),
+    (EarthlyBranch::Si, StarName::TianLiang, "trapped", None),
+    (EarthlyBranch::Wu, StarName::QiSha, "prosperous", None),
+    (EarthlyBranch::Shen, StarName::LianZhen, "temple", None),
+    (EarthlyBranch::Xu, StarName::PoJun, "prosperous", None),
+    (EarthlyBranch::Hai, StarName::TianTong, "temple", Some("ji")),
+    (
+        EarthlyBranch::Zi,
+        StarName::WuQu,
+        "prosperous",
+        Some("quan"),
+    ),
+    (EarthlyBranch::Zi, StarName::TianFu, "temple", None),
+    (EarthlyBranch::Chou, StarName::TaiYang, "weak", Some("lu")),
+    (EarthlyBranch::Chou, StarName::TaiYin, "temple", Some("ke")),
+];
+
+/// Supported birth-year mutagens for the represented fourteen major stars.
+const EXPECTED_MAJOR_STAR_MUTAGENS: &[(HeavenlyStem, StarName, Mutagen)] = &[
+    (HeavenlyStem::Jia, StarName::LianZhen, Mutagen::Lu),
+    (HeavenlyStem::Jia, StarName::PoJun, Mutagen::Quan),
+    (HeavenlyStem::Jia, StarName::WuQu, Mutagen::Ke),
+    (HeavenlyStem::Jia, StarName::TaiYang, Mutagen::Ji),
+    (HeavenlyStem::Yi, StarName::TianJi, Mutagen::Lu),
+    (HeavenlyStem::Yi, StarName::TianLiang, Mutagen::Quan),
+    (HeavenlyStem::Yi, StarName::ZiWei, Mutagen::Ke),
+    (HeavenlyStem::Yi, StarName::TaiYin, Mutagen::Ji),
+    (HeavenlyStem::Bing, StarName::TianTong, Mutagen::Lu),
+    (HeavenlyStem::Bing, StarName::TianJi, Mutagen::Quan),
+    (HeavenlyStem::Bing, StarName::LianZhen, Mutagen::Ji),
+    (HeavenlyStem::Ding, StarName::TaiYin, Mutagen::Lu),
+    (HeavenlyStem::Ding, StarName::TianTong, Mutagen::Quan),
+    (HeavenlyStem::Ding, StarName::TianJi, Mutagen::Ke),
+    (HeavenlyStem::Ding, StarName::JuMen, Mutagen::Ji),
+    (HeavenlyStem::Wu, StarName::TanLang, Mutagen::Lu),
+    (HeavenlyStem::Wu, StarName::TaiYin, Mutagen::Quan),
+    (HeavenlyStem::Wu, StarName::TianJi, Mutagen::Ji),
+    (HeavenlyStem::Ji, StarName::WuQu, Mutagen::Lu),
+    (HeavenlyStem::Ji, StarName::TanLang, Mutagen::Quan),
+    (HeavenlyStem::Ji, StarName::TianLiang, Mutagen::Ke),
+    (HeavenlyStem::Geng, StarName::TaiYang, Mutagen::Lu),
+    (HeavenlyStem::Geng, StarName::WuQu, Mutagen::Quan),
+    (HeavenlyStem::Geng, StarName::TaiYin, Mutagen::Ke),
+    (HeavenlyStem::Geng, StarName::TianTong, Mutagen::Ji),
+    (HeavenlyStem::Xin, StarName::JuMen, Mutagen::Lu),
+    (HeavenlyStem::Xin, StarName::TaiYang, Mutagen::Quan),
+    (HeavenlyStem::Ren, StarName::TianLiang, Mutagen::Lu),
+    (HeavenlyStem::Ren, StarName::ZiWei, Mutagen::Quan),
+    (HeavenlyStem::Ren, StarName::WuQu, Mutagen::Ji),
+    (HeavenlyStem::Gui, StarName::PoJun, Mutagen::Lu),
+    (HeavenlyStem::Gui, StarName::JuMen, Mutagen::Quan),
+    (HeavenlyStem::Gui, StarName::TaiYin, Mutagen::Ke),
+    (HeavenlyStem::Gui, StarName::TanLang, Mutagen::Ji),
 ];
 
 #[test]
@@ -118,21 +180,213 @@ fn placer_places_stars_at_expected_branches() {
 }
 
 #[test]
-fn placer_marks_each_major_star_as_natal_unknown_and_unmutated() {
+fn placer_marks_each_major_star_as_major_and_natal() {
     let chart = place_fixture_major_stars();
 
     let mut count = 0;
     for palace in chart.palaces() {
         for star in palace.stars() {
             count += 1;
+            assert_eq!(star.kind(), StarKind::Major);
             assert_eq!(star.category(), StarCategory::Major);
-            assert_eq!(star.brightness(), Brightness::Unknown);
-            assert_eq!(star.mutagen(), None);
             assert_eq!(star.scope(), Scope::Natal);
         }
     }
 
     assert_eq!(count, 14);
+}
+
+#[test]
+fn major_star_brightness_distinguishes_advantage_and_favourable() {
+    assert_eq!(
+        major_star_brightness(StarName::TianJi, EarthlyBranch::Yin),
+        Brightness::Advantage
+    );
+    assert_eq!(
+        major_star_brightness(StarName::TianJi, EarthlyBranch::Chen),
+        Brightness::Favourable
+    );
+}
+
+#[test]
+fn placer_sets_known_brightness_for_each_major_star() {
+    let chart = place_fixture_major_stars();
+
+    for palace in chart.palaces() {
+        for star in palace.stars() {
+            assert_ne!(star.brightness(), Brightness::Unknown);
+        }
+    }
+}
+
+#[test]
+fn placed_major_star_brightness_matches_iztro_fixture() {
+    let fixture: Value =
+        serde_json::from_str(MAJOR_STARS_FIXTURE).expect("fixture should be valid JSON");
+    let chart = place_fixture_major_stars();
+    let actual = collect_major_star_facts(&chart);
+
+    for expected_palace in fixture["supported_fields"]["major_stars"]
+        .as_array()
+        .expect("fixture should include supported major-star fields")
+    {
+        let branch = parse_branch_key(expected_palace["branch"].as_str().expect("branch"));
+        for expected_star in expected_palace["stars"].as_array().expect("stars array") {
+            let name = parse_star_key(expected_star["name"].as_str().expect("star name"));
+            let expected_brightness =
+                parse_brightness_key(expected_star["brightness"].as_str().expect("brightness"));
+            let got = actual
+                .get(&(branch, name))
+                .unwrap_or_else(|| panic!("missing {name:?} in {branch:?}"));
+
+            assert_eq!(got.brightness(), expected_brightness);
+        }
+    }
+}
+
+#[test]
+fn birth_year_major_star_mutagen_matches_supported_iztro_table() {
+    let expected: HashMap<(HeavenlyStem, StarName), Mutagen> = EXPECTED_MAJOR_STAR_MUTAGENS
+        .iter()
+        .map(|&(stem, star, mutagen)| ((stem, star), mutagen))
+        .collect();
+
+    for stem in [
+        HeavenlyStem::Jia,
+        HeavenlyStem::Yi,
+        HeavenlyStem::Bing,
+        HeavenlyStem::Ding,
+        HeavenlyStem::Wu,
+        HeavenlyStem::Ji,
+        HeavenlyStem::Geng,
+        HeavenlyStem::Xin,
+        HeavenlyStem::Ren,
+        HeavenlyStem::Gui,
+    ] {
+        for star in ALL_MAJOR_STARS {
+            assert_eq!(
+                birth_year_major_star_mutagen(stem, star),
+                expected.get(&(stem, star)).copied(),
+                "unexpected mutagen for {stem:?} {star:?}"
+            );
+        }
+    }
+}
+
+#[test]
+fn major_star_metadata_covers_each_major_star_once() {
+    let metadata = major_star_metadata_table();
+    let names: HashSet<StarName> = metadata.iter().map(|entry| entry.name()).collect();
+    let keys: HashSet<&str> = metadata.iter().map(|entry| entry.key()).collect();
+
+    assert_eq!(metadata.len(), ALL_MAJOR_STARS.len());
+    assert_eq!(names, HashSet::from(ALL_MAJOR_STARS));
+    assert_eq!(keys.len(), metadata.len());
+}
+
+#[test]
+fn major_star_metadata_uses_stable_keys_and_major_category() {
+    for star in ALL_MAJOR_STARS {
+        let metadata = major_star_metadata(star);
+
+        assert_eq!(metadata.name(), star);
+        assert_eq!(metadata.key(), star_key(star));
+        assert_eq!(metadata.kind(), StarKind::Major);
+        assert_eq!(metadata.category(), StarCategory::Major);
+        assert!(!metadata.chinese_name().is_empty());
+    }
+}
+
+#[test]
+fn placed_major_star_mutagens_match_iztro_fixture() {
+    let fixture: Value =
+        serde_json::from_str(MAJOR_STARS_FIXTURE).expect("fixture should be valid JSON");
+    let chart = place_fixture_major_stars();
+    let actual = collect_major_star_facts(&chart);
+
+    for expected_palace in fixture["supported_fields"]["major_stars"]
+        .as_array()
+        .expect("fixture should include supported major-star fields")
+    {
+        let branch = parse_branch_key(expected_palace["branch"].as_str().expect("branch"));
+        for expected_star in expected_palace["stars"].as_array().expect("stars array") {
+            let name = parse_star_key(expected_star["name"].as_str().expect("star name"));
+            let expected_mutagen = parse_optional_mutagen_key(&expected_star["mutagen"]);
+            let got = actual
+                .get(&(branch, name))
+                .unwrap_or_else(|| panic!("missing {name:?} in {branch:?}"));
+
+            assert_eq!(got.mutagen(), expected_mutagen);
+        }
+    }
+}
+
+#[test]
+fn chart_major_star_queries_return_palace_context() {
+    let chart = place_fixture_major_stars();
+
+    let zi_wei = chart
+        .major_star(StarName::ZiWei)
+        .expect("Zi Wei should be placed");
+    assert_eq!(zi_wei.placement().name(), StarName::ZiWei);
+    assert_eq!(zi_wei.palace().branch(), EarthlyBranch::Chen);
+
+    assert_eq!(
+        chart
+            .palace_by_major_star(StarName::WuQu)
+            .expect("Wu Qu should be placed")
+            .branch(),
+        EarthlyBranch::Zi
+    );
+    assert_eq!(chart.major_stars().len(), ALL_MAJOR_STARS.len());
+}
+
+#[test]
+fn chart_major_star_queries_filter_by_palace_and_branch() {
+    let chart = place_fixture_major_stars();
+    let mao_palace_name = chart
+        .palaces()
+        .iter()
+        .find(|palace| palace.branch() == EarthlyBranch::Mao)
+        .expect("Mao palace should exist")
+        .name();
+
+    let by_branch: HashSet<StarName> = chart
+        .major_stars_in_branch(EarthlyBranch::Mao)
+        .iter()
+        .map(|star| star.placement().name())
+        .collect();
+    let by_palace: HashSet<StarName> = chart
+        .major_stars_in_palace(mao_palace_name)
+        .iter()
+        .map(|star| star.placement().name())
+        .collect();
+
+    assert_eq!(
+        by_branch,
+        HashSet::from([StarName::TianJi, StarName::JuMen])
+    );
+    assert_eq!(by_palace, by_branch);
+    assert!(chart.major_stars_in_branch(EarthlyBranch::Wei).is_empty());
+}
+
+#[test]
+fn chart_major_star_queries_work_after_serde_round_trip() {
+    let chart = place_fixture_major_stars();
+    let serialized = serde_json::to_string(&chart).expect("chart should serialize");
+    let round_tripped: Chart = serde_json::from_str(&serialized).expect("chart should deserialize");
+
+    let zi_wei = round_tripped
+        .major_star(StarName::ZiWei)
+        .expect("Zi Wei should remain queryable");
+
+    assert_eq!(zi_wei.palace().branch(), EarthlyBranch::Chen);
+    assert_eq!(
+        round_tripped
+            .major_stars_in_branch(EarthlyBranch::Mao)
+            .len(),
+        2
+    );
 }
 
 #[test]
@@ -146,7 +400,7 @@ fn placer_preserves_palace_count_and_chart_metadata() {
     let placed = DeterministicMajorStarPlacer
         .place_major_stars(
             chart,
-            MajorStarPlacementInput::new(lunar_day(23), bureau.unwrap()),
+            MajorStarPlacementInput::new(lunar_day(23), bureau.unwrap(), HeavenlyStem::Geng),
         )
         .expect("deterministic major star placement should not fail");
 
@@ -206,7 +460,7 @@ fn fourteen_major_stars_match_iztro_fixture() {
             .as_array()
             .expect("stars array")
             .iter()
-            .map(|star| star.as_str().expect("star key"))
+            .map(|star| star["name"].as_str().expect("star name"))
             .collect();
         let got = actual.get(&branch).cloned().unwrap_or_default();
 
@@ -214,11 +468,42 @@ fn fourteen_major_stars_match_iztro_fixture() {
     }
 }
 
+#[test]
+fn major_star_fixture_records_normalized_supported_facts() {
+    let fixture: Value =
+        serde_json::from_str(MAJOR_STARS_FIXTURE).expect("fixture should be valid JSON");
+    let expected: HashSet<(EarthlyBranch, &str, &str, Option<&str>)> = EXPECTED_FIXTURE_STAR_FACTS
+        .iter()
+        .map(|&(branch, star, brightness, mutagen)| (branch, star_key(star), brightness, mutagen))
+        .collect();
+
+    let mut actual = HashSet::new();
+    for expected_palace in fixture["supported_fields"]["major_stars"]
+        .as_array()
+        .expect("fixture should include supported major-star fields")
+    {
+        let branch = parse_branch_key(expected_palace["branch"].as_str().expect("branch"));
+        for star in expected_palace["stars"].as_array().expect("stars array") {
+            let name = star["name"].as_str().expect("star name");
+            let brightness = star["brightness"].as_str().expect("star brightness");
+            let mutagen = star["mutagen"].as_str();
+
+            actual.insert((branch, name, brightness, mutagen));
+        }
+    }
+
+    assert_eq!(actual, expected);
+}
+
 fn place_fixture_major_stars() -> Chart {
     DeterministicMajorStarPlacer
         .place_major_stars(
             build_fixture_chart(),
-            MajorStarPlacementInput::new(lunar_day(23), FiveElementBureau::Fire6),
+            MajorStarPlacementInput::new(
+                lunar_day(23),
+                FiveElementBureau::Fire6,
+                HeavenlyStem::Geng,
+            ),
         )
         .expect("deterministic major star placement should not fail")
 }
@@ -249,6 +534,20 @@ fn collect_major_stars(chart: &Chart) -> Vec<(EarthlyBranch, StarName)> {
     out
 }
 
+fn collect_major_star_facts(
+    chart: &Chart,
+) -> HashMap<(EarthlyBranch, StarName), &iztro_core::StarPlacement> {
+    let mut out = HashMap::new();
+    for palace in chart.palaces() {
+        for star in palace.stars() {
+            if star.category() == StarCategory::Major {
+                out.insert((palace.branch(), star.name()), star);
+            }
+        }
+    }
+    out
+}
+
 fn lunar_day(value: u8) -> LunarDay {
     LunarDay::new(value).expect("lunar day should be valid")
 }
@@ -269,6 +568,51 @@ fn star_key(star: StarName) -> &'static str {
         StarName::TianLiang => "tian_liang",
         StarName::QiSha => "qi_sha",
         StarName::PoJun => "po_jun",
+    }
+}
+
+fn parse_star_key(value: &str) -> StarName {
+    match value {
+        "zi_wei" => StarName::ZiWei,
+        "tian_ji" => StarName::TianJi,
+        "tai_yang" => StarName::TaiYang,
+        "wu_qu" => StarName::WuQu,
+        "tian_tong" => StarName::TianTong,
+        "lian_zhen" => StarName::LianZhen,
+        "tian_fu" => StarName::TianFu,
+        "tai_yin" => StarName::TaiYin,
+        "tan_lang" => StarName::TanLang,
+        "ju_men" => StarName::JuMen,
+        "tian_xiang" => StarName::TianXiang,
+        "tian_liang" => StarName::TianLiang,
+        "qi_sha" => StarName::QiSha,
+        "po_jun" => StarName::PoJun,
+        other => panic!("unsupported star key in fixture: {other}"),
+    }
+}
+
+fn parse_brightness_key(value: &str) -> Brightness {
+    match value {
+        "temple" => Brightness::Temple,
+        "prosperous" => Brightness::Prosperous,
+        "advantage" => Brightness::Advantage,
+        "favourable" => Brightness::Favourable,
+        "flat" => Brightness::Flat,
+        "weak" => Brightness::Weak,
+        "trapped" => Brightness::Trapped,
+        "unknown" => Brightness::Unknown,
+        other => panic!("unsupported brightness key in fixture: {other}"),
+    }
+}
+
+fn parse_optional_mutagen_key(value: &Value) -> Option<Mutagen> {
+    match value.as_str() {
+        Some("lu") => Some(Mutagen::Lu),
+        Some("quan") => Some(Mutagen::Quan),
+        Some("ke") => Some(Mutagen::Ke),
+        Some("ji") => Some(Mutagen::Ji),
+        None => None,
+        Some(other) => panic!("unsupported mutagen key in fixture: {other}"),
     }
 }
 

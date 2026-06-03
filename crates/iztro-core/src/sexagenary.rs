@@ -12,7 +12,7 @@ use crate::{
 };
 use serde::{Deserialize, Serialize};
 
-/// A Heavenly Stem paired with an Earthly Branch.
+/// A Heavenly Stem paired with an Earthly Branch (干支).
 ///
 /// [`StemBranch::new`] performs no validation; use
 /// [`StemBranch::try_new_valid`] or [`is_valid_sexagenary_pair`] when the pair

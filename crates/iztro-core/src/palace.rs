@@ -20,29 +20,29 @@ pub const PALACE_NAMES: [PalaceName; 12] = [
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum PalaceName {
-    /// Life Palace.
+    /// Life Palace (命宫).
     Life,
-    /// Siblings Palace.
+    /// Siblings Palace (兄弟宫).
     Siblings,
-    /// Spouse Palace.
+    /// Spouse Palace (夫妻宫).
     Spouse,
-    /// Children Palace.
+    /// Children Palace (子女宫).
     Children,
-    /// Wealth Palace.
+    /// Wealth Palace (财帛宫).
     Wealth,
-    /// Health Palace.
+    /// Health Palace (疾厄宫).
     Health,
-    /// Migration Palace.
+    /// Migration Palace (迁移宫).
     Migration,
-    /// Friends Palace.
+    /// Friends Palace (仆役宫).
     Friends,
-    /// Career Palace.
+    /// Career Palace (官禄宫).
     Career,
-    /// Property Palace.
+    /// Property Palace (田宅宫).
     Property,
-    /// Spirit Palace.
+    /// Spirit Palace (福德宫).
     Spirit,
-    /// Parents Palace.
+    /// Parents Palace (父母宫).
     Parents,
 }
 

@@ -6,7 +6,7 @@ use crate::{
     mutagen::{Mutagen, Scope},
     palace::PalaceName,
     profile::MethodProfile,
-    star::{Brightness, StarCategory, StarName},
+    star::{Brightness, StarCategory, StarKind, StarName},
 };
 use serde::{Deserialize, Serialize};
 
@@ -93,6 +93,86 @@ impl Chart {
             .iter()
             .find(|palace| palace.name() == PalaceName::Life)
     }
+
+    /// Returns all major-star placements with their palace context.
+    pub fn major_stars(&self) -> Vec<MajorStarPlacementRef<'_>> {
+        self.palaces
+            .iter()
+            .flat_map(|palace| {
+                palace
+                    .stars()
+                    .iter()
+                    .filter(|star| star.category() == StarCategory::Major)
+                    .map(|placement| MajorStarPlacementRef::new(palace, placement))
+            })
+            .collect()
+    }
+
+    /// Returns one major-star placement with palace context.
+    pub fn major_star(&self, name: StarName) -> Option<MajorStarPlacementRef<'_>> {
+        self.palaces.iter().find_map(|palace| {
+            palace
+                .stars()
+                .iter()
+                .find(|star| star.category() == StarCategory::Major && star.name() == name)
+                .map(|placement| MajorStarPlacementRef::new(palace, placement))
+        })
+    }
+
+    /// Returns the palace containing a major star, if present.
+    pub fn palace_by_major_star(&self, name: StarName) -> Option<&Palace> {
+        self.major_star(name).map(|fact| fact.palace())
+    }
+
+    /// Returns major-star placements in a palace name.
+    pub fn major_stars_in_palace(&self, name: PalaceName) -> Vec<MajorStarPlacementRef<'_>> {
+        self.palaces
+            .iter()
+            .filter(|palace| palace.name() == name)
+            .flat_map(major_stars_in)
+            .collect()
+    }
+
+    /// Returns major-star placements in an Earthly Branch.
+    pub fn major_stars_in_branch(&self, branch: EarthlyBranch) -> Vec<MajorStarPlacementRef<'_>> {
+        self.palaces
+            .iter()
+            .filter(|palace| palace.branch() == branch)
+            .flat_map(major_stars_in)
+            .collect()
+    }
+}
+
+fn major_stars_in(palace: &Palace) -> impl Iterator<Item = MajorStarPlacementRef<'_>> {
+    palace
+        .stars()
+        .iter()
+        .filter(|star| star.category() == StarCategory::Major)
+        .map(|placement| MajorStarPlacementRef::new(palace, placement))
+}
+
+/// A borrowed major-star placement together with the palace containing it.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct MajorStarPlacementRef<'a> {
+    palace: &'a Palace,
+    placement: &'a StarPlacement,
+}
+
+impl<'a> MajorStarPlacementRef<'a> {
+    /// Creates a borrowed major-star placement fact with palace context.
+    pub const fn new(palace: &'a Palace, placement: &'a StarPlacement) -> Self {
+        Self { palace, placement }
+    }
+
+    /// Returns the palace containing this major star.
+    pub const fn palace(&self) -> &'a Palace {
+        self.palace
+    }
+
+    /// Returns the star placement.
+    pub const fn placement(&self) -> &'a StarPlacement {
+        self.placement
+    }
 }
 
 /// A palace with its branch, stem, and star placements.
@@ -145,7 +225,7 @@ impl Palace {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct StarPlacement {
     name: StarName,
-    category: StarCategory,
+    kind: StarKind,
     brightness: Brightness,
     mutagen: Option<Mutagen>,
     scope: Scope,
@@ -155,14 +235,14 @@ impl StarPlacement {
     /// Creates a typed star placement fact.
     pub const fn new(
         name: StarName,
-        category: StarCategory,
+        kind: StarKind,
         brightness: Brightness,
         mutagen: Option<Mutagen>,
         scope: Scope,
     ) -> Self {
         Self {
             name,
-            category,
+            kind,
             brightness,
             mutagen,
             scope,
@@ -174,9 +254,14 @@ impl StarPlacement {
         self.name
     }
 
-    /// Returns the star category.
+    /// Returns the iztro-compatible fine star type.
+    pub const fn kind(&self) -> StarKind {
+        self.kind
+    }
+
+    /// Returns the coarse palace grouping.
     pub const fn category(&self) -> StarCategory {
-        self.category
+        self.kind.category()
     }
 
     /// Returns the star brightness.

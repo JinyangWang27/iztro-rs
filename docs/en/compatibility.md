@@ -62,26 +62,41 @@ yearly scopes, or narrative output.
 
 ### Fourteen major stars
 
-The `major_stars_1990_05_17_chen_female.json` fixture compares the placement of
-the fourteen major stars (主星) against iztro's per-palace `majorStars`:
+The `major_stars_1990_05_17_chen_female.json` fixture compares represented
+facts for the fourteen major stars (主星) against iztro's per-palace
+`majorStars`:
 
 - the major-star name in each palace;
-- the palace branch each star occupies.
+- the palace branch each star occupies;
+- each major star's brightness;
+- supported birth-year mutagens for represented major stars.
 
 Placement reproduces iztro 2.5.8 (`getStartIndex` and `getMajorStar`): 紫微 is
 derived from the five-element bureau and the lunar day, 天府 is its reflection
 across the 寅–申 axis, and the 紫微 and 天府 series fan out by fixed offsets.
-Every placed star is category `major`, scope `natal` (iztro `origin`).
+Every placed major star has `StarKind::Major`, derived `StarCategory::Major`,
+and scope `natal` (iztro `origin`).
+Brightness reproduces iztro 2.5.8 `STARS_INFO` for the fourteen represented
+major stars, preserving `de` (`得`) as `advantage` and `li` (`利`) as
+`favourable`. Birth-year mutagens reproduce iztro 2.5.8 Heavenly Stem mutagens
+only where the target star is one of the represented fourteen major stars.
+
+Star classification uses a two-level model. `StarKind` stores the
+iztro-compatible fine type (`major`, `soft`, `tough`, `lucun`, `tianma`,
+`adjective`, `flower`, or `helper`). `StarCategory` is a derived coarse palace
+grouping: `major`, `minor`, or `adjective`. 四化 remains separate factual state
+as `mutagen: Option<Mutagen>` on a placement; it is not encoded as either a
+star kind or a category.
 
 The lunar day is supplied explicitly (`input.lunar_day`) because full calendar
 conversion is deferred. The public
 `build_natal_chart_with_major_stars` builder path is what the compatibility
 test exercises: it first builds the minimal natal chart, then uses the derived
-five-element bureau and explicit lunar day to place the fourteen major stars.
-This fixture compares major-star names and positions; it still does **not**
-compare star brightness or star mutagens (iztro computes them, but `iztro-rs`
-leaves brightness `unknown` and mutagen `none` in this slice), nor minor stars,
-adjective stars, decadal scopes, yearly scopes, or narrative output.
+five-element bureau, explicit lunar day, and explicit birth year stem to place
+the fourteen major stars and attach supported factual star state. This fixture
+still does **not** compare feature extraction, rule-engine output, narrative
+output, calendar conversion, minor stars, adjective stars, non-major stars,
+non-major mutagens, decadal scopes, yearly scopes, or other temporal scopes.
 
 ## Golden tests
 

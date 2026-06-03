@@ -176,8 +176,8 @@ pub fn build_minimal_natal_chart(input: NatalChartInput) -> Result<Chart, ChartE
 /// This public builder preserves the minimal natal chart facts, derives the
 /// five-element bureau through [`build_minimal_natal_chart`], and then places
 /// the natal-scope fourteen major stars using [`DeterministicMajorStarPlacer`].
-/// Brightness, mutagens, minor stars, adjective stars, temporal scopes beyond
-/// natal, and narrative output remain out of scope.
+/// Minor stars, adjective stars, temporal scopes beyond natal, and narrative
+/// output remain out of scope.
 pub fn build_natal_chart_with_major_stars(
     input: NatalChartWithMajorStarsInput,
 ) -> Result<Chart, ChartError> {
@@ -193,7 +193,11 @@ pub fn build_natal_chart_with_major_stars(
 
     DeterministicMajorStarPlacer.place_major_stars(
         chart,
-        MajorStarPlacementInput::new(input.lunar_day(), five_element_bureau),
+        MajorStarPlacementInput::new(
+            input.lunar_day(),
+            five_element_bureau,
+            input.birth_year_stem(),
+        ),
     )
 }
 

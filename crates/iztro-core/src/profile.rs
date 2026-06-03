@@ -4,9 +4,9 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ChartAlgorithmKind {
-    /// Quan Shu chart algorithm family.
+    /// Quan Shu chart algorithm family (全书).
     QuanShu,
-    /// Zhongzhou chart algorithm family.
+    /// Zhongzhou chart algorithm family (中州).
     Zhongzhou,
     /// Placeholder algorithm marker used before chart generation is implemented.
     Placeholder,

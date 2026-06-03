@@ -1,7 +1,7 @@
 use iztro_core::{
     BirthContext, CalendarDate, Chart, ChartAlgorithmKind, ChartError, EARTHLY_BRANCHES,
     EarthlyBranch, Gender, HEAVENLY_STEMS, HeavenlyStem, MethodProfile, PALACE_COUNT, PALACE_NAMES,
-    Palace, PalaceName, StarName, build_empty_chart,
+    Palace, PalaceName, StarCategory, StarKind, StarName, build_empty_chart,
 };
 
 #[test]
@@ -160,6 +160,24 @@ fn fourteen_major_star_names_round_trip_through_json() {
     let decoded: [StarName; 14] =
         serde_json::from_str(&encoded).expect("star names should deserialize");
     assert_eq!(decoded, stars);
+}
+
+#[test]
+fn star_kind_maps_to_coarse_star_category() {
+    assert_eq!(StarKind::Major.category(), StarCategory::Major);
+
+    for kind in [
+        StarKind::Soft,
+        StarKind::Tough,
+        StarKind::LuCun,
+        StarKind::TianMa,
+    ] {
+        assert_eq!(kind.category(), StarCategory::Minor);
+    }
+
+    for kind in [StarKind::Adjective, StarKind::Flower, StarKind::Helper] {
+        assert_eq!(kind.category(), StarCategory::Adjective);
+    }
 }
 
 #[test]

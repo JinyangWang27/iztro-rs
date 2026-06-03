@@ -4,13 +4,13 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Mutagen {
-    /// Lu transformation.
+    /// Lu transformation (化禄).
     Lu,
-    /// Quan transformation.
+    /// Quan transformation (化权).
     Quan,
-    /// Ke transformation.
+    /// Ke transformation (化科).
     Ke,
-    /// Ji transformation.
+    /// Ji transformation (化忌).
     Ji,
 }
 
@@ -18,16 +18,16 @@ pub enum Mutagen {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Scope {
-    /// Natal chart scope.
+    /// Natal chart (本命盘).
     Natal,
-    /// Decadal period scope.
+    /// Decadal period (大限).
     Decadal,
-    /// Yearly period scope.
+    /// Yearly period (流年).
     Yearly,
-    /// Monthly period scope.
+    /// Monthly period (流月).
     Monthly,
-    /// Daily period scope.
+    /// Daily period (流日).
     Daily,
-    /// Hourly period scope.
+    /// Hourly period (流时).
     Hourly,
 }

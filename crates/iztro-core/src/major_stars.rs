@@ -2,18 +2,17 @@
 //!
 //! Star positions reproduce `iztro` 2.5.8 (`getStartIndex` and `getMajorStar`
 //! in `src/star/location.ts` and `src/star/majorStar.ts`, MIT licensed). Only
-//! placement is implemented here: every placed star carries
-//! [`Brightness::Unknown`], no mutagen, and [`Scope::Natal`]. Brightness,
-//! mutagens, minor stars, and scopes beyond the natal chart stay out of scope.
+//! placement, brightness, and supported birth-year mutagens are implemented
+//! here. Minor stars and scopes beyond the natal chart stay out of scope.
 
 use crate::{
     bureau::FiveElementBureau,
     chart::{Chart, Palace, StarPlacement},
     error::ChartError,
-    ganzhi::EarthlyBranch,
+    ganzhi::{EarthlyBranch, HeavenlyStem},
     life_body::LunarDay,
-    mutagen::Scope,
-    star::{Brightness, StarCategory, StarName},
+    mutagen::{Mutagen, Scope},
+    star::{Brightness, StarKind, StarMetadata, StarName},
 };
 
 /// Inputs required to place the fourteen major stars.
@@ -24,14 +23,20 @@ use crate::{
 pub struct MajorStarPlacementInput {
     lunar_day: LunarDay,
     five_element_bureau: FiveElementBureau,
+    birth_year_stem: HeavenlyStem,
 }
 
 impl MajorStarPlacementInput {
-    /// Creates major-star placement input from the lunar day and bureau.
-    pub const fn new(lunar_day: LunarDay, five_element_bureau: FiveElementBureau) -> Self {
+    /// Creates major-star placement input from the lunar day, bureau, and birth year stem.
+    pub const fn new(
+        lunar_day: LunarDay,
+        five_element_bureau: FiveElementBureau,
+        birth_year_stem: HeavenlyStem,
+    ) -> Self {
         Self {
             lunar_day,
             five_element_bureau,
+            birth_year_stem,
         }
     }
 
@@ -43,6 +48,11 @@ impl MajorStarPlacementInput {
     /// Returns the five-element bureau used to position 紫微.
     pub const fn five_element_bureau(self) -> FiveElementBureau {
         self.five_element_bureau
+    }
+
+    /// Returns the birth year Heavenly Stem used for natal mutagens.
+    pub const fn birth_year_stem(self) -> HeavenlyStem {
+        self.birth_year_stem
     }
 }
 
@@ -79,6 +89,185 @@ const TIAN_FU_SERIES: [(StarName, isize); 8] = [
     (StarName::QiSha, 6),
     (StarName::PoJun, 10),
 ];
+
+/// Factual metadata for the fourteen major stars.
+const MAJOR_STAR_METADATA: [StarMetadata; 14] = [
+    StarMetadata::new("zi_wei", "紫微", StarName::ZiWei, StarKind::Major),
+    StarMetadata::new("tian_ji", "天机", StarName::TianJi, StarKind::Major),
+    StarMetadata::new("tai_yang", "太阳", StarName::TaiYang, StarKind::Major),
+    StarMetadata::new("wu_qu", "武曲", StarName::WuQu, StarKind::Major),
+    StarMetadata::new("tian_tong", "天同", StarName::TianTong, StarKind::Major),
+    StarMetadata::new("lian_zhen", "廉贞", StarName::LianZhen, StarKind::Major),
+    StarMetadata::new("tian_fu", "天府", StarName::TianFu, StarKind::Major),
+    StarMetadata::new("tai_yin", "太阴", StarName::TaiYin, StarKind::Major),
+    StarMetadata::new("tan_lang", "贪狼", StarName::TanLang, StarKind::Major),
+    StarMetadata::new("ju_men", "巨门", StarName::JuMen, StarKind::Major),
+    StarMetadata::new("tian_xiang", "天相", StarName::TianXiang, StarKind::Major),
+    StarMetadata::new("tian_liang", "天梁", StarName::TianLiang, StarKind::Major),
+    StarMetadata::new("qi_sha", "七杀", StarName::QiSha, StarKind::Major),
+    StarMetadata::new("po_jun", "破军", StarName::PoJun, StarKind::Major),
+];
+
+/// Returns factual metadata for the fourteen major stars.
+pub const fn major_star_metadata_table() -> &'static [StarMetadata; 14] {
+    &MAJOR_STAR_METADATA
+}
+
+/// Returns factual metadata for one major star.
+pub fn major_star_metadata(star: StarName) -> &'static StarMetadata {
+    &MAJOR_STAR_METADATA[match star {
+        StarName::ZiWei => 0,
+        StarName::TianJi => 1,
+        StarName::TaiYang => 2,
+        StarName::WuQu => 3,
+        StarName::TianTong => 4,
+        StarName::LianZhen => 5,
+        StarName::TianFu => 6,
+        StarName::TaiYin => 7,
+        StarName::TanLang => 8,
+        StarName::JuMen => 9,
+        StarName::TianXiang => 10,
+        StarName::TianLiang => 11,
+        StarName::QiSha => 12,
+        StarName::PoJun => 13,
+    }]
+}
+
+/// Returns a major star's brightness for a branch.
+///
+/// The table mirrors iztro 2.5.8 `STARS_INFO` brightness values. iztro stores
+/// brightness in palace order from 寅 through 丑, while [`EarthlyBranch::index`]
+/// is ordered from 子 through 亥, so the branch index is converted explicitly.
+pub fn major_star_brightness(star: StarName, branch: EarthlyBranch) -> Brightness {
+    const MIAO: Brightness = Brightness::Temple;
+    const WANG: Brightness = Brightness::Prosperous;
+    const DE: Brightness = Brightness::Advantage;
+    const LI: Brightness = Brightness::Favourable;
+    const PING: Brightness = Brightness::Flat;
+    const BU: Brightness = Brightness::Weak;
+    const XIAN: Brightness = Brightness::Trapped;
+
+    let brightness_by_yin_order = match star {
+        StarName::ZiWei => [
+            WANG, WANG, DE, WANG, MIAO, MIAO, WANG, WANG, DE, WANG, PING, MIAO,
+        ],
+        StarName::TianJi => [
+            DE, WANG, LI, PING, MIAO, XIAN, DE, WANG, LI, PING, MIAO, XIAN,
+        ],
+        StarName::TaiYang => [
+            WANG, MIAO, WANG, WANG, WANG, DE, DE, XIAN, BU, XIAN, XIAN, BU,
+        ],
+        StarName::WuQu => [
+            DE, LI, MIAO, PING, WANG, MIAO, DE, LI, MIAO, PING, WANG, MIAO,
+        ],
+        StarName::TianTong => [
+            LI, PING, PING, MIAO, XIAN, BU, WANG, PING, PING, MIAO, WANG, BU,
+        ],
+        StarName::LianZhen => [
+            MIAO, PING, LI, XIAN, PING, LI, MIAO, PING, LI, XIAN, PING, LI,
+        ],
+        StarName::TianFu => [
+            MIAO, DE, MIAO, DE, WANG, MIAO, DE, WANG, MIAO, DE, MIAO, MIAO,
+        ],
+        StarName::TaiYin => [
+            WANG, XIAN, XIAN, XIAN, BU, BU, LI, BU, WANG, MIAO, MIAO, MIAO,
+        ],
+        StarName::TanLang => [
+            PING, LI, MIAO, XIAN, WANG, MIAO, PING, LI, MIAO, XIAN, WANG, MIAO,
+        ],
+        StarName::JuMen => [
+            MIAO, MIAO, XIAN, WANG, WANG, BU, MIAO, MIAO, XIAN, WANG, WANG, BU,
+        ],
+        StarName::TianXiang => [MIAO, XIAN, DE, DE, MIAO, DE, MIAO, XIAN, DE, DE, MIAO, MIAO],
+        StarName::TianLiang => [
+            MIAO, MIAO, MIAO, XIAN, MIAO, WANG, XIAN, DE, MIAO, XIAN, MIAO, WANG,
+        ],
+        StarName::QiSha => [
+            MIAO, WANG, MIAO, PING, WANG, MIAO, MIAO, MIAO, MIAO, PING, WANG, MIAO,
+        ],
+        StarName::PoJun => [
+            DE, XIAN, WANG, PING, MIAO, WANG, DE, XIAN, WANG, PING, MIAO, WANG,
+        ],
+    };
+    let yin_order_index = (branch.index() + 12 - EarthlyBranch::Yin.index()) % 12;
+
+    brightness_by_yin_order[yin_order_index]
+}
+
+/// Returns the birth-year mutagen for a represented major star, if supported.
+///
+/// The table mirrors iztro 2.5.8 Heavenly Stem mutagens in Lu, Quan, Ke, Ji
+/// order, limited to the fourteen major stars currently represented by
+/// [`StarName`]. Mutagens targeting minor stars are intentionally returned as
+/// [`None`] in this core slice.
+pub fn birth_year_major_star_mutagen(year_stem: HeavenlyStem, star: StarName) -> Option<Mutagen> {
+    match year_stem {
+        HeavenlyStem::Jia => match star {
+            StarName::LianZhen => Some(Mutagen::Lu),
+            StarName::PoJun => Some(Mutagen::Quan),
+            StarName::WuQu => Some(Mutagen::Ke),
+            StarName::TaiYang => Some(Mutagen::Ji),
+            _ => None,
+        },
+        HeavenlyStem::Yi => match star {
+            StarName::TianJi => Some(Mutagen::Lu),
+            StarName::TianLiang => Some(Mutagen::Quan),
+            StarName::ZiWei => Some(Mutagen::Ke),
+            StarName::TaiYin => Some(Mutagen::Ji),
+            _ => None,
+        },
+        HeavenlyStem::Bing => match star {
+            StarName::TianTong => Some(Mutagen::Lu),
+            StarName::TianJi => Some(Mutagen::Quan),
+            StarName::LianZhen => Some(Mutagen::Ji),
+            _ => None,
+        },
+        HeavenlyStem::Ding => match star {
+            StarName::TaiYin => Some(Mutagen::Lu),
+            StarName::TianTong => Some(Mutagen::Quan),
+            StarName::TianJi => Some(Mutagen::Ke),
+            StarName::JuMen => Some(Mutagen::Ji),
+            _ => None,
+        },
+        HeavenlyStem::Wu => match star {
+            StarName::TanLang => Some(Mutagen::Lu),
+            StarName::TaiYin => Some(Mutagen::Quan),
+            StarName::TianJi => Some(Mutagen::Ji),
+            _ => None,
+        },
+        HeavenlyStem::Ji => match star {
+            StarName::WuQu => Some(Mutagen::Lu),
+            StarName::TanLang => Some(Mutagen::Quan),
+            StarName::TianLiang => Some(Mutagen::Ke),
+            _ => None,
+        },
+        HeavenlyStem::Geng => match star {
+            StarName::TaiYang => Some(Mutagen::Lu),
+            StarName::WuQu => Some(Mutagen::Quan),
+            StarName::TaiYin => Some(Mutagen::Ke),
+            StarName::TianTong => Some(Mutagen::Ji),
+            _ => None,
+        },
+        HeavenlyStem::Xin => match star {
+            StarName::JuMen => Some(Mutagen::Lu),
+            StarName::TaiYang => Some(Mutagen::Quan),
+            _ => None,
+        },
+        HeavenlyStem::Ren => match star {
+            StarName::TianLiang => Some(Mutagen::Lu),
+            StarName::ZiWei => Some(Mutagen::Quan),
+            StarName::WuQu => Some(Mutagen::Ji),
+            _ => None,
+        },
+        HeavenlyStem::Gui => match star {
+            StarName::PoJun => Some(Mutagen::Lu),
+            StarName::JuMen => Some(Mutagen::Quan),
+            StarName::TaiYin => Some(Mutagen::Ke),
+            StarName::TanLang => Some(Mutagen::Ji),
+            _ => None,
+        },
+    }
+}
 
 /// Returns the branch holding 紫微 (Zi Wei) for a bureau and lunar day.
 ///
@@ -155,9 +344,9 @@ impl MajorStarPlacer for DeterministicMajorStarPlacer {
                     if branch == palace.branch() {
                         stars.push(StarPlacement::new(
                             name,
-                            StarCategory::Major,
-                            Brightness::Unknown,
-                            None,
+                            StarKind::Major,
+                            major_star_brightness(name, branch),
+                            birth_year_major_star_mutagen(input.birth_year_stem(), name),
                             Scope::Natal,
                         ));
                     }
