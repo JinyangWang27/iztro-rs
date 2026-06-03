@@ -30,6 +30,21 @@ The current compatibility target is:
 Future compatibility fixtures may update this target only when the version
 change and expected output differences are documented.
 
+## Public facade compatibility
+
+`by_lunar` is the first iztro-compatible facade entry point in `iztro-rs`. It
+mirrors iztro's `astro.byLunar(...)` conceptually, but uses the typed
+`LunarChartRequest` request object instead of JavaScript-style positional
+arguments.
+
+The facade records the provided lunar date as chart input facts, delegates to
+the existing major-star natal chart builder, and does not perform
+solar-to-lunar conversion. The birth year stem remains explicit because
+Gregorian/lunar year-to-ganzhi derivation is deferred.
+
+`by_solar`, leap-month handling, rat-hour variants, and full calendar behavior
+remain deferred.
+
 ## Current fixtures
 
 The fixtures are:
