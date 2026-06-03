@@ -50,6 +50,52 @@ pub enum StarCategory {
     Adjective,
 }
 
+/// Factual metadata for a represented star.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
+pub struct StarMetadata {
+    key: &'static str,
+    chinese_name: &'static str,
+    name: StarName,
+    category: StarCategory,
+}
+
+impl StarMetadata {
+    /// Creates factual star metadata.
+    pub const fn new(
+        key: &'static str,
+        chinese_name: &'static str,
+        name: StarName,
+        category: StarCategory,
+    ) -> Self {
+        Self {
+            key,
+            chinese_name,
+            name,
+            category,
+        }
+    }
+
+    /// Returns the stable internal key.
+    pub const fn key(&self) -> &'static str {
+        self.key
+    }
+
+    /// Returns the Chinese display name.
+    pub const fn chinese_name(&self) -> &'static str {
+        self.chinese_name
+    }
+
+    /// Returns the typed star identifier.
+    pub const fn name(&self) -> StarName {
+        self.name
+    }
+
+    /// Returns the broad star category.
+    pub const fn category(&self) -> StarCategory {
+        self.category
+    }
+}
+
 /// A star's brightness or strength state.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]

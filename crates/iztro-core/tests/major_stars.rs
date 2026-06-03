@@ -6,7 +6,7 @@ use iztro_core::{
     MajorStarPlacer, MethodProfile, Mutagen, NatalChartInput, NatalChartWithMajorStarsInput,
     PALACE_COUNT, Scope, StarCategory, StarName, birth_year_major_star_mutagen,
     build_minimal_natal_chart, build_natal_chart_with_major_stars, major_star_brightness,
-    tian_fu_branch, zi_wei_branch,
+    major_star_metadata, major_star_metadata_table, tian_fu_branch, zi_wei_branch,
 };
 use serde_json::Value;
 
@@ -269,6 +269,29 @@ fn birth_year_major_star_mutagen_matches_supported_iztro_table() {
                 "unexpected mutagen for {stem:?} {star:?}"
             );
         }
+    }
+}
+
+#[test]
+fn major_star_metadata_covers_each_major_star_once() {
+    let metadata = major_star_metadata_table();
+    let names: HashSet<StarName> = metadata.iter().map(|entry| entry.name()).collect();
+    let keys: HashSet<&str> = metadata.iter().map(|entry| entry.key()).collect();
+
+    assert_eq!(metadata.len(), ALL_MAJOR_STARS.len());
+    assert_eq!(names, HashSet::from(ALL_MAJOR_STARS));
+    assert_eq!(keys.len(), metadata.len());
+}
+
+#[test]
+fn major_star_metadata_uses_stable_keys_and_major_category() {
+    for star in ALL_MAJOR_STARS {
+        let metadata = major_star_metadata(star);
+
+        assert_eq!(metadata.name(), star);
+        assert_eq!(metadata.key(), star_key(star));
+        assert_eq!(metadata.category(), StarCategory::Major);
+        assert!(!metadata.chinese_name().is_empty());
     }
 }
 

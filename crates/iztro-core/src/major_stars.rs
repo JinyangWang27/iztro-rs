@@ -12,7 +12,7 @@ use crate::{
     ganzhi::{EarthlyBranch, HeavenlyStem},
     life_body::LunarDay,
     mutagen::{Mutagen, Scope},
-    star::{Brightness, StarCategory, StarName},
+    star::{Brightness, StarCategory, StarMetadata, StarName},
 };
 
 /// Inputs required to place the fourteen major stars.
@@ -89,6 +89,59 @@ const TIAN_FU_SERIES: [(StarName, isize); 8] = [
     (StarName::QiSha, 6),
     (StarName::PoJun, 10),
 ];
+
+/// Factual metadata for the fourteen major stars.
+const MAJOR_STAR_METADATA: [StarMetadata; 14] = [
+    StarMetadata::new("zi_wei", "紫微", StarName::ZiWei, StarCategory::Major),
+    StarMetadata::new("tian_ji", "天机", StarName::TianJi, StarCategory::Major),
+    StarMetadata::new("tai_yang", "太阳", StarName::TaiYang, StarCategory::Major),
+    StarMetadata::new("wu_qu", "武曲", StarName::WuQu, StarCategory::Major),
+    StarMetadata::new("tian_tong", "天同", StarName::TianTong, StarCategory::Major),
+    StarMetadata::new("lian_zhen", "廉贞", StarName::LianZhen, StarCategory::Major),
+    StarMetadata::new("tian_fu", "天府", StarName::TianFu, StarCategory::Major),
+    StarMetadata::new("tai_yin", "太阴", StarName::TaiYin, StarCategory::Major),
+    StarMetadata::new("tan_lang", "贪狼", StarName::TanLang, StarCategory::Major),
+    StarMetadata::new("ju_men", "巨门", StarName::JuMen, StarCategory::Major),
+    StarMetadata::new(
+        "tian_xiang",
+        "天相",
+        StarName::TianXiang,
+        StarCategory::Major,
+    ),
+    StarMetadata::new(
+        "tian_liang",
+        "天梁",
+        StarName::TianLiang,
+        StarCategory::Major,
+    ),
+    StarMetadata::new("qi_sha", "七杀", StarName::QiSha, StarCategory::Major),
+    StarMetadata::new("po_jun", "破军", StarName::PoJun, StarCategory::Major),
+];
+
+/// Returns factual metadata for the fourteen major stars.
+pub const fn major_star_metadata_table() -> &'static [StarMetadata; 14] {
+    &MAJOR_STAR_METADATA
+}
+
+/// Returns factual metadata for one major star.
+pub fn major_star_metadata(star: StarName) -> &'static StarMetadata {
+    &MAJOR_STAR_METADATA[match star {
+        StarName::ZiWei => 0,
+        StarName::TianJi => 1,
+        StarName::TaiYang => 2,
+        StarName::WuQu => 3,
+        StarName::TianTong => 4,
+        StarName::LianZhen => 5,
+        StarName::TianFu => 6,
+        StarName::TaiYin => 7,
+        StarName::TanLang => 8,
+        StarName::JuMen => 9,
+        StarName::TianXiang => 10,
+        StarName::TianLiang => 11,
+        StarName::QiSha => 12,
+        StarName::PoJun => 13,
+    }]
+}
 
 /// Returns a major star's brightness for a branch.
 ///

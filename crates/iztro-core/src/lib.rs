@@ -28,7 +28,8 @@ pub use life_body::{
 };
 pub use major_stars::{
     DeterministicMajorStarPlacer, MajorStarPlacementInput, MajorStarPlacer,
-    birth_year_major_star_mutagen, major_star_brightness, tian_fu_branch, zi_wei_branch,
+    birth_year_major_star_mutagen, major_star_brightness, major_star_metadata,
+    major_star_metadata_table, tian_fu_branch, zi_wei_branch,
 };
 pub use mutagen::{Mutagen, Scope};
 pub use natal::{
@@ -39,4 +40,4 @@ pub use palace::{PALACE_NAMES, PalaceName};
 pub use palace_stems::{palace_stem_for_branch, palace_stems_from_year_stem};
 pub use profile::{ChartAlgorithmKind, MethodProfile};
 pub use sexagenary::{NaYinElement, StemBranch, is_valid_sexagenary_pair, nayin_element};
-pub use star::{Brightness, StarCategory, StarName};
+pub use star::{Brightness, StarCategory, StarMetadata, StarName};
