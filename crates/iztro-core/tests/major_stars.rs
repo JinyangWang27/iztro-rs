@@ -47,6 +47,24 @@ const EXPECTED_PLACEMENT: &[(EarthlyBranch, &[StarName])] = &[
     (EarthlyBranch::Chou, &[StarName::TaiYang, StarName::TaiYin]),
 ];
 
+/// Expected normalized iztro facts for represented major stars in the fixture.
+const EXPECTED_FIXTURE_STAR_FACTS: &[(EarthlyBranch, StarName, &str, Option<&str>)] = &[
+    (EarthlyBranch::Yin, StarName::TanLang, "flat", None),
+    (EarthlyBranch::Mao, StarName::TianJi, "prosperous", None),
+    (EarthlyBranch::Mao, StarName::JuMen, "temple", None),
+    (EarthlyBranch::Chen, StarName::ZiWei, "advantage", None),
+    (EarthlyBranch::Chen, StarName::TianXiang, "advantage", None),
+    (EarthlyBranch::Si, StarName::TianLiang, "trapped", None),
+    (EarthlyBranch::Wu, StarName::QiSha, "prosperous", None),
+    (EarthlyBranch::Shen, StarName::LianZhen, "temple", None),
+    (EarthlyBranch::Xu, StarName::PoJun, "prosperous", None),
+    (EarthlyBranch::Hai, StarName::TianTong, "temple", Some("ji")),
+    (EarthlyBranch::Zi, StarName::WuQu, "prosperous", Some("quan")),
+    (EarthlyBranch::Zi, StarName::TianFu, "temple", None),
+    (EarthlyBranch::Chou, StarName::TaiYang, "weak", Some("lu")),
+    (EarthlyBranch::Chou, StarName::TaiYin, "temple", Some("ke")),
+];
+
 #[test]
 fn zi_wei_branch_matches_iztro_anchors() {
     // The three worked examples from iztro's 起紫微星诀 docstring.
@@ -206,12 +224,39 @@ fn fourteen_major_stars_match_iztro_fixture() {
             .as_array()
             .expect("stars array")
             .iter()
-            .map(|star| star.as_str().expect("star key"))
+            .map(|star| star["name"].as_str().expect("star name"))
             .collect();
         let got = actual.get(&branch).cloned().unwrap_or_default();
 
         assert_eq!(got, expected_stars, "major-star mismatch in {branch:?}");
     }
+}
+
+#[test]
+fn major_star_fixture_records_normalized_supported_facts() {
+    let fixture: Value =
+        serde_json::from_str(MAJOR_STARS_FIXTURE).expect("fixture should be valid JSON");
+    let expected: HashSet<(EarthlyBranch, &str, &str, Option<&str>)> = EXPECTED_FIXTURE_STAR_FACTS
+        .iter()
+        .map(|&(branch, star, brightness, mutagen)| (branch, star_key(star), brightness, mutagen))
+        .collect();
+
+    let mut actual = HashSet::new();
+    for expected_palace in fixture["supported_fields"]["major_stars"]
+        .as_array()
+        .expect("fixture should include supported major-star fields")
+    {
+        let branch = parse_branch_key(expected_palace["branch"].as_str().expect("branch"));
+        for star in expected_palace["stars"].as_array().expect("stars array") {
+            let name = star["name"].as_str().expect("star name");
+            let brightness = star["brightness"].as_str().expect("star brightness");
+            let mutagen = star["mutagen"].as_str();
+
+            actual.insert((branch, name, brightness, mutagen));
+        }
+    }
+
+    assert_eq!(actual, expected);
 }
 
 fn place_fixture_major_stars() -> Chart {

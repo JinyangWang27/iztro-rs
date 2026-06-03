@@ -5,8 +5,8 @@
     "target_version": "2.5.8",
     "generated_at": "2026-06-02T07:22:50Z",
     "supported_fields_only": true,
-    "notes": "This fixture compares the fourteen major-star (主星) placements: each star's name and the palace branch it occupies. Category is Major and scope is Natal (iztro 'origin'). Star brightness and star mutagens are intentionally excluded (iztro computes them but iztro-rs leaves brightness Unknown and mutagen None in this slice). Minor stars, adjective stars, decadal scopes, yearly scopes, and narrative output are excluded. lunar_day is supplied explicitly because full calendar conversion is deferred; for 1990-05-17 the lunar date is 一九九〇年四月廿三, so lunar_day is 23. birth_year_stem is supplied explicitly because Gregorian-to-ganzhi year conversion is deferred; for 1990 the ganzhi year is 庚午, so the year stem is geng.",
-    "generation_command": "npm install iztro@2.5.8 --prefix /tmp/iztro-fixture && cd /tmp/iztro-fixture && node --input-type=module -e \"import { astro } from 'iztro'; const a = astro.bySolar('1990-5-17', 4, '女', true, 'zh-CN'); console.log(JSON.stringify(a.palaces.map(p => ({ earthlyBranch: p.earthlyBranch, majorStars: p.majorStars.map(s => s.name) })), null, 2));\""
+    "notes": "This fixture compares the fourteen major-star (主星) placements, brightness, and supported birth-year mutagens: each star's name, brightness, mutagen, and palace branch. Category is Major and scope is Natal (iztro 'origin'). Minor stars, adjective stars, decadal scopes, yearly scopes, and narrative output are excluded. lunar_day is supplied explicitly because full calendar conversion is deferred; for 1990-05-17 the lunar date is 一九九〇年四月廿三, so lunar_day is 23. birth_year_stem is supplied explicitly because Gregorian-to-ganzhi year conversion is deferred; for 1990 the ganzhi year is 庚午, so the year stem is geng.",
+    "generation_command": "npm install iztro@2.5.8 --prefix /tmp/iztro-fixture && cd /tmp/iztro-fixture && node --input-type=module -e \"import { astro } from 'iztro'; const a = astro.bySolar('1990-5-17', 4, '女', true, 'zh-CN'); console.log(JSON.stringify(a.palaces.map(p => ({ earthlyBranch: p.earthlyBranch, majorStars: p.majorStars })), null, 2));\""
   },
   "input": {
     "solar_date": "1990-05-17",
@@ -43,23 +43,45 @@
     "gender": "female",
     "five_element_bureau": "fire6",
     "major_stars": [
-      { "branch": "yin", "stars": ["tan_lang"] },
-      { "branch": "mao", "stars": ["tian_ji", "ju_men"] },
-      { "branch": "chen", "stars": ["zi_wei", "tian_xiang"] },
-      { "branch": "si", "stars": ["tian_liang"] },
-      { "branch": "wu", "stars": ["qi_sha"] },
+      { "branch": "yin", "stars": [{ "name": "tan_lang", "brightness": "flat", "mutagen": null }] },
+      {
+        "branch": "mao",
+        "stars": [
+          { "name": "tian_ji", "brightness": "prosperous", "mutagen": null },
+          { "name": "ju_men", "brightness": "temple", "mutagen": null }
+        ]
+      },
+      {
+        "branch": "chen",
+        "stars": [
+          { "name": "zi_wei", "brightness": "advantage", "mutagen": null },
+          { "name": "tian_xiang", "brightness": "advantage", "mutagen": null }
+        ]
+      },
+      { "branch": "si", "stars": [{ "name": "tian_liang", "brightness": "trapped", "mutagen": null }] },
+      { "branch": "wu", "stars": [{ "name": "qi_sha", "brightness": "prosperous", "mutagen": null }] },
       { "branch": "wei", "stars": [] },
-      { "branch": "shen", "stars": ["lian_zhen"] },
+      { "branch": "shen", "stars": [{ "name": "lian_zhen", "brightness": "temple", "mutagen": null }] },
       { "branch": "you", "stars": [] },
-      { "branch": "xu", "stars": ["po_jun"] },
-      { "branch": "hai", "stars": ["tian_tong"] },
-      { "branch": "zi", "stars": ["wu_qu", "tian_fu"] },
-      { "branch": "chou", "stars": ["tai_yang", "tai_yin"] }
+      { "branch": "xu", "stars": [{ "name": "po_jun", "brightness": "prosperous", "mutagen": null }] },
+      { "branch": "hai", "stars": [{ "name": "tian_tong", "brightness": "temple", "mutagen": "ji" }] },
+      {
+        "branch": "zi",
+        "stars": [
+          { "name": "wu_qu", "brightness": "prosperous", "mutagen": "quan" },
+          { "name": "tian_fu", "brightness": "temple", "mutagen": null }
+        ]
+      },
+      {
+        "branch": "chou",
+        "stars": [
+          { "name": "tai_yang", "brightness": "weak", "mutagen": "lu" },
+          { "name": "tai_yin", "brightness": "temple", "mutagen": "ke" }
+        ]
+      }
     ]
   },
   "excluded_fields": [
-    "star_brightness",
-    "star_mutagens",
     "minor_stars",
     "adjective_stars",
     "decadal_scopes",
