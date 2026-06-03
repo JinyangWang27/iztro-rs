@@ -96,27 +96,13 @@ impl Chart {
 
     /// Returns all major-star placements with their palace context.
     pub fn major_stars(&self) -> Vec<MajorStarPlacementRef<'_>> {
-        self.palaces
-            .iter()
-            .flat_map(|palace| {
-                palace
-                    .stars()
-                    .iter()
-                    .filter(|star| star.category() == StarCategory::Major)
-                    .map(|placement| MajorStarPlacementRef::new(palace, placement))
-            })
-            .collect()
+        self.stars_by_category(StarCategory::Major)
     }
 
     /// Returns one major-star placement with palace context.
     pub fn major_star(&self, name: StarName) -> Option<MajorStarPlacementRef<'_>> {
-        self.palaces.iter().find_map(|palace| {
-            palace
-                .stars()
-                .iter()
-                .find(|star| star.category() == StarCategory::Major && star.name() == name)
-                .map(|placement| MajorStarPlacementRef::new(palace, placement))
-        })
+        self.star(name)
+            .filter(|fact| fact.placement().category() == StarCategory::Major)
     }
 
     /// Returns the palace containing a major star, if present.
@@ -126,45 +112,97 @@ impl Chart {
 
     /// Returns major-star placements in a palace name.
     pub fn major_stars_in_palace(&self, name: PalaceName) -> Vec<MajorStarPlacementRef<'_>> {
-        self.palaces
-            .iter()
-            .filter(|palace| palace.name() == name)
-            .flat_map(major_stars_in)
+        self.stars_in_palace(name)
+            .into_iter()
+            .filter(|fact| fact.placement().category() == StarCategory::Major)
             .collect()
     }
 
     /// Returns major-star placements in an Earthly Branch.
     pub fn major_stars_in_branch(&self, branch: EarthlyBranch) -> Vec<MajorStarPlacementRef<'_>> {
+        self.stars_in_branch(branch)
+            .into_iter()
+            .filter(|fact| fact.placement().category() == StarCategory::Major)
+            .collect()
+    }
+
+    /// Returns all star placements with their palace context.
+    pub fn stars(&self) -> Vec<StarPlacementRef<'_>> {
+        self.palaces.iter().flat_map(stars_in).collect()
+    }
+
+    /// Returns one star placement with palace context.
+    pub fn star(&self, name: StarName) -> Option<StarPlacementRef<'_>> {
+        self.palaces.iter().find_map(|palace| {
+            palace
+                .stars()
+                .iter()
+                .find(|star| star.name() == name)
+                .map(|placement| StarPlacementRef::new(palace, placement))
+        })
+    }
+
+    /// Returns the palace containing a star, if present.
+    pub fn palace_containing_star(&self, name: StarName) -> Option<&Palace> {
+        self.star(name).map(|fact| fact.palace())
+    }
+
+    /// Returns star placements in a palace name.
+    pub fn stars_in_palace(&self, name: PalaceName) -> Vec<StarPlacementRef<'_>> {
+        self.palaces
+            .iter()
+            .filter(|palace| palace.name() == name)
+            .flat_map(stars_in)
+            .collect()
+    }
+
+    /// Returns star placements in an Earthly Branch.
+    pub fn stars_in_branch(&self, branch: EarthlyBranch) -> Vec<StarPlacementRef<'_>> {
         self.palaces
             .iter()
             .filter(|palace| palace.branch() == branch)
-            .flat_map(major_stars_in)
+            .flat_map(stars_in)
+            .collect()
+    }
+
+    /// Returns star placements in a coarse category.
+    pub fn stars_by_category(&self, category: StarCategory) -> Vec<StarPlacementRef<'_>> {
+        self.stars()
+            .into_iter()
+            .filter(|fact| fact.placement().category() == category)
+            .collect()
+    }
+
+    /// Returns star placements in an iztro-compatible fine kind.
+    pub fn stars_by_kind(&self, kind: StarKind) -> Vec<StarPlacementRef<'_>> {
+        self.stars()
+            .into_iter()
+            .filter(|fact| fact.placement().kind() == kind)
             .collect()
     }
 }
 
-fn major_stars_in(palace: &Palace) -> impl Iterator<Item = MajorStarPlacementRef<'_>> {
+fn stars_in(palace: &Palace) -> impl Iterator<Item = StarPlacementRef<'_>> {
     palace
         .stars()
         .iter()
-        .filter(|star| star.category() == StarCategory::Major)
-        .map(|placement| MajorStarPlacementRef::new(palace, placement))
+        .map(|placement| StarPlacementRef::new(palace, placement))
 }
 
-/// A borrowed major-star placement together with the palace containing it.
+/// A borrowed star placement together with the palace containing it.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct MajorStarPlacementRef<'a> {
+pub struct StarPlacementRef<'a> {
     palace: &'a Palace,
     placement: &'a StarPlacement,
 }
 
-impl<'a> MajorStarPlacementRef<'a> {
-    /// Creates a borrowed major-star placement fact with palace context.
+impl<'a> StarPlacementRef<'a> {
+    /// Creates a borrowed star placement fact with palace context.
     pub const fn new(palace: &'a Palace, placement: &'a StarPlacement) -> Self {
         Self { palace, placement }
     }
 
-    /// Returns the palace containing this major star.
+    /// Returns the palace containing this star.
     pub const fn palace(&self) -> &'a Palace {
         self.palace
     }
@@ -174,6 +212,9 @@ impl<'a> MajorStarPlacementRef<'a> {
         self.placement
     }
 }
+
+/// A borrowed major-star placement together with the palace containing it.
+pub type MajorStarPlacementRef<'a> = StarPlacementRef<'a>;
 
 /// A palace with its branch, stem, and star placements.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]

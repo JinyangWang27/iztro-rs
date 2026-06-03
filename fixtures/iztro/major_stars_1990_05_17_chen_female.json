@@ -17,6 +17,7 @@
     "gender": "female",
     "iztro_gender": "女",
     "birth_year_stem": "geng",
+    "birth_year_branch": "wu",
     "fix_leap": true,
     "language": "zh-CN"
   },

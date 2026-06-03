@@ -6,15 +6,15 @@ use crate::{
     error::ChartError,
     ganzhi::{EarthlyBranch, HeavenlyStem},
     life_body::{LunarDay, LunarMonth},
-    natal::{NatalChartWithMajorStarsInput, build_natal_chart_with_major_stars},
+    natal::{NatalChartWithSupportedStarsInput, build_natal_chart_with_supported_stars},
     profile::MethodProfile,
 };
 
 /// Typed lunar-date request for the iztro-compatible natal chart facade.
 ///
 /// This mirrors iztro's `byLunar` conceptually while keeping explicit Rust
-/// domain types. The birth year stem remains explicit because year-to-ganzhi
-/// derivation is not implemented yet.
+/// domain types. The birth year stem and branch remain explicit because
+/// year-to-ganzhi derivation is not implemented yet.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LunarChartRequest {
     lunar_year: i32,
@@ -23,11 +23,13 @@ pub struct LunarChartRequest {
     birth_time: EarthlyBranch,
     gender: Gender,
     birth_year_stem: HeavenlyStem,
+    birth_year_branch: EarthlyBranch,
     method_profile: MethodProfile,
 }
 
 impl LunarChartRequest {
     /// Creates a typed lunar chart request.
+    #[allow(clippy::too_many_arguments)]
     pub const fn new(
         lunar_year: i32,
         lunar_month: LunarMonth,
@@ -35,6 +37,7 @@ impl LunarChartRequest {
         birth_time: EarthlyBranch,
         gender: Gender,
         birth_year_stem: HeavenlyStem,
+        birth_year_branch: EarthlyBranch,
         method_profile: MethodProfile,
     ) -> Self {
         Self {
@@ -44,6 +47,7 @@ impl LunarChartRequest {
             birth_time,
             gender,
             birth_year_stem,
+            birth_year_branch,
             method_profile,
         }
     }
@@ -78,13 +82,18 @@ impl LunarChartRequest {
         self.birth_year_stem
     }
 
+    /// Returns the explicit birth year Earthly Branch.
+    pub const fn birth_year_branch(&self) -> EarthlyBranch {
+        self.birth_year_branch
+    }
+
     /// Returns the method profile metadata.
     pub const fn method_profile(&self) -> &MethodProfile {
         &self.method_profile
     }
 }
 
-/// Builds a natal chart with fourteen major stars from explicit lunar inputs.
+/// Builds a natal chart with currently supported natal stars from explicit lunar inputs.
 ///
 /// This facade records the lunar date as chart input facts and delegates to the
 /// existing strongly typed builder. It does not perform solar-to-lunar
@@ -100,11 +109,12 @@ pub fn by_lunar(request: LunarChartRequest) -> Result<Chart, ChartError> {
         request.gender(),
     );
 
-    build_natal_chart_with_major_stars(NatalChartWithMajorStarsInput::new(
+    build_natal_chart_with_supported_stars(NatalChartWithSupportedStarsInput::new(
         birth_context,
         request.method_profile().clone(),
         request.lunar_month(),
         request.lunar_day(),
         request.birth_year_stem(),
+        request.birth_year_branch(),
     ))
 }

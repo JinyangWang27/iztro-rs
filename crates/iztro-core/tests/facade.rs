@@ -3,8 +3,8 @@ use std::collections::{HashMap, HashSet};
 use iztro_core::{
     BirthContext, Brightness, CalendarDate, CalendarKind, Chart, EarthlyBranch, FiveElementBureau,
     Gender, HeavenlyStem, LunarChartRequest, LunarDay, LunarMonth, MethodProfile, Mutagen,
-    NatalChartWithMajorStarsInput, PALACE_COUNT, StarCategory, StarName,
-    build_natal_chart_with_major_stars, by_lunar,
+    NatalChartWithSupportedStarsInput, PALACE_COUNT, StarCategory, StarName,
+    build_natal_chart_with_supported_stars, by_lunar,
 };
 use serde_json::Value;
 
@@ -34,6 +34,8 @@ fn by_lunar_builds_major_star_chart() {
     assert_eq!(chart.birth_context().gender(), Gender::Female);
     assert_eq!(chart.palaces().len(), PALACE_COUNT);
     assert_eq!(chart.major_stars().len(), 14);
+    assert_eq!(chart.stars_by_category(StarCategory::Minor).len(), 14);
+    assert_eq!(chart.stars().len(), 28);
     assert_eq!(chart.five_element_bureau(), Some(FiveElementBureau::Fire6));
 }
 
@@ -41,18 +43,20 @@ fn by_lunar_builds_major_star_chart() {
 fn by_lunar_matches_existing_typed_builder() {
     let request = fixture_request();
     let facade_chart = by_lunar(request.clone()).expect("by_lunar should build fixture chart");
-    let typed_chart = build_natal_chart_with_major_stars(NatalChartWithMajorStarsInput::new(
-        BirthContext::new(
-            CalendarDate::lunar(1990, 4, 23),
-            EarthlyBranch::Chen,
-            Gender::Female,
-        ),
-        request.method_profile().clone(),
-        request.lunar_month(),
-        request.lunar_day(),
-        request.birth_year_stem(),
-    ))
-    .expect("typed builder should build fixture chart");
+    let typed_chart =
+        build_natal_chart_with_supported_stars(NatalChartWithSupportedStarsInput::new(
+            BirthContext::new(
+                CalendarDate::lunar(1990, 4, 23),
+                EarthlyBranch::Chen,
+                Gender::Female,
+            ),
+            request.method_profile().clone(),
+            request.lunar_month(),
+            request.lunar_day(),
+            request.birth_year_stem(),
+            request.birth_year_branch(),
+        ))
+        .expect("typed builder should build fixture chart");
 
     assert_eq!(facade_chart, typed_chart);
 }
@@ -126,6 +130,7 @@ fn lunar_chart_request_accessors_return_inputs() {
         EarthlyBranch::Chen,
         Gender::Female,
         HeavenlyStem::Geng,
+        EarthlyBranch::Wu,
         method_profile.clone(),
     );
 
@@ -135,6 +140,7 @@ fn lunar_chart_request_accessors_return_inputs() {
     assert_eq!(request.birth_time(), EarthlyBranch::Chen);
     assert_eq!(request.gender(), Gender::Female);
     assert_eq!(request.birth_year_stem(), HeavenlyStem::Geng);
+    assert_eq!(request.birth_year_branch(), EarthlyBranch::Wu);
     assert_eq!(request.method_profile(), &method_profile);
 }
 
@@ -146,6 +152,7 @@ fn fixture_request() -> LunarChartRequest {
         EarthlyBranch::Chen,
         Gender::Female,
         HeavenlyStem::Geng,
+        EarthlyBranch::Wu,
         MethodProfile::placeholder("iztro_by_lunar_fixture"),
     )
 }
@@ -169,6 +176,11 @@ fn request_from_fixture(fixture: &Value) -> LunarChartRequest {
         parse_branch_key(input["birth_time"].as_str().expect("birth_time")),
         parse_gender_key(input["gender"].as_str().expect("gender")),
         parse_stem_key(input["birth_year_stem"].as_str().expect("birth_year_stem")),
+        parse_branch_key(
+            input["birth_year_branch"]
+                .as_str()
+                .expect("birth_year_branch"),
+        ),
         MethodProfile::placeholder("iztro_by_lunar_fixture"),
     )
 }

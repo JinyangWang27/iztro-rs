@@ -32,7 +32,103 @@ pub enum StarName {
     QiSha,
     /// Po Jun star (破军).
     PoJun,
+    /// Zuo Fu star (左辅).
+    ZuoFu,
+    /// You Bi star (右弼).
+    YouBi,
+    /// Wen Chang star (文昌).
+    WenChang,
+    /// Wen Qu star (文曲).
+    WenQu,
+    /// Tian Kui star (天魁).
+    TianKui,
+    /// Tian Yue star (天钺).
+    TianYue,
+    /// Lu Cun star (禄存).
+    LuCun,
+    /// Tian Ma star (天马).
+    TianMa,
+    /// Qing Yang star (擎羊).
+    QingYang,
+    /// Tuo Luo star (陀罗).
+    TuoLuo,
+    /// Huo Xing star (火星).
+    HuoXing,
+    /// Ling Xing star (铃星).
+    LingXing,
+    /// Di Kong star (地空).
+    DiKong,
+    /// Di Jie star (地劫).
+    DiJie,
 }
+
+/// Factual metadata for the fourteen major stars.
+const MAJOR_STAR_METADATA: [StarMetadata; 14] = [
+    StarMetadata::new("zi_wei", "紫微", StarName::ZiWei, StarKind::Major),
+    StarMetadata::new("tian_ji", "天机", StarName::TianJi, StarKind::Major),
+    StarMetadata::new("tai_yang", "太阳", StarName::TaiYang, StarKind::Major),
+    StarMetadata::new("wu_qu", "武曲", StarName::WuQu, StarKind::Major),
+    StarMetadata::new("tian_tong", "天同", StarName::TianTong, StarKind::Major),
+    StarMetadata::new("lian_zhen", "廉贞", StarName::LianZhen, StarKind::Major),
+    StarMetadata::new("tian_fu", "天府", StarName::TianFu, StarKind::Major),
+    StarMetadata::new("tai_yin", "太阴", StarName::TaiYin, StarKind::Major),
+    StarMetadata::new("tan_lang", "贪狼", StarName::TanLang, StarKind::Major),
+    StarMetadata::new("ju_men", "巨门", StarName::JuMen, StarKind::Major),
+    StarMetadata::new("tian_xiang", "天相", StarName::TianXiang, StarKind::Major),
+    StarMetadata::new("tian_liang", "天梁", StarName::TianLiang, StarKind::Major),
+    StarMetadata::new("qi_sha", "七杀", StarName::QiSha, StarKind::Major),
+    StarMetadata::new("po_jun", "破军", StarName::PoJun, StarKind::Major),
+];
+
+/// Factual metadata for supported fourteen minor stars.
+const MINOR_STAR_METADATA: [StarMetadata; 14] = [
+    StarMetadata::new("zuo_fu", "左辅", StarName::ZuoFu, StarKind::Soft),
+    StarMetadata::new("you_bi", "右弼", StarName::YouBi, StarKind::Soft),
+    StarMetadata::new("wen_chang", "文昌", StarName::WenChang, StarKind::Soft),
+    StarMetadata::new("wen_qu", "文曲", StarName::WenQu, StarKind::Soft),
+    StarMetadata::new("tian_kui", "天魁", StarName::TianKui, StarKind::Soft),
+    StarMetadata::new("tian_yue", "天钺", StarName::TianYue, StarKind::Soft),
+    StarMetadata::new("lu_cun", "禄存", StarName::LuCun, StarKind::LuCun),
+    StarMetadata::new("tian_ma", "天马", StarName::TianMa, StarKind::TianMa),
+    StarMetadata::new("qing_yang", "擎羊", StarName::QingYang, StarKind::Tough),
+    StarMetadata::new("tuo_luo", "陀罗", StarName::TuoLuo, StarKind::Tough),
+    StarMetadata::new("huo_xing", "火星", StarName::HuoXing, StarKind::Tough),
+    StarMetadata::new("ling_xing", "铃星", StarName::LingXing, StarKind::Tough),
+    StarMetadata::new("di_kong", "地空", StarName::DiKong, StarKind::Tough),
+    StarMetadata::new("di_jie", "地劫", StarName::DiJie, StarKind::Tough),
+];
+
+/// Factual metadata for all currently represented stars.
+const REPRESENTED_STAR_METADATA: [StarMetadata; 28] = [
+    StarMetadata::new("zi_wei", "紫微", StarName::ZiWei, StarKind::Major),
+    StarMetadata::new("tian_ji", "天机", StarName::TianJi, StarKind::Major),
+    StarMetadata::new("tai_yang", "太阳", StarName::TaiYang, StarKind::Major),
+    StarMetadata::new("wu_qu", "武曲", StarName::WuQu, StarKind::Major),
+    StarMetadata::new("tian_tong", "天同", StarName::TianTong, StarKind::Major),
+    StarMetadata::new("lian_zhen", "廉贞", StarName::LianZhen, StarKind::Major),
+    StarMetadata::new("tian_fu", "天府", StarName::TianFu, StarKind::Major),
+    StarMetadata::new("tai_yin", "太阴", StarName::TaiYin, StarKind::Major),
+    StarMetadata::new("tan_lang", "贪狼", StarName::TanLang, StarKind::Major),
+    StarMetadata::new("ju_men", "巨门", StarName::JuMen, StarKind::Major),
+    StarMetadata::new("tian_xiang", "天相", StarName::TianXiang, StarKind::Major),
+    StarMetadata::new("tian_liang", "天梁", StarName::TianLiang, StarKind::Major),
+    StarMetadata::new("qi_sha", "七杀", StarName::QiSha, StarKind::Major),
+    StarMetadata::new("po_jun", "破军", StarName::PoJun, StarKind::Major),
+    StarMetadata::new("zuo_fu", "左辅", StarName::ZuoFu, StarKind::Soft),
+    StarMetadata::new("you_bi", "右弼", StarName::YouBi, StarKind::Soft),
+    StarMetadata::new("wen_chang", "文昌", StarName::WenChang, StarKind::Soft),
+    StarMetadata::new("wen_qu", "文曲", StarName::WenQu, StarKind::Soft),
+    StarMetadata::new("tian_kui", "天魁", StarName::TianKui, StarKind::Soft),
+    StarMetadata::new("tian_yue", "天钺", StarName::TianYue, StarKind::Soft),
+    StarMetadata::new("lu_cun", "禄存", StarName::LuCun, StarKind::LuCun),
+    StarMetadata::new("tian_ma", "天马", StarName::TianMa, StarKind::TianMa),
+    StarMetadata::new("qing_yang", "擎羊", StarName::QingYang, StarKind::Tough),
+    StarMetadata::new("tuo_luo", "陀罗", StarName::TuoLuo, StarKind::Tough),
+    StarMetadata::new("huo_xing", "火星", StarName::HuoXing, StarKind::Tough),
+    StarMetadata::new("ling_xing", "铃星", StarName::LingXing, StarKind::Tough),
+    StarMetadata::new("di_kong", "地空", StarName::DiKong, StarKind::Tough),
+    StarMetadata::new("di_jie", "地劫", StarName::DiJie, StarKind::Tough),
+];
 
 /// Coarse palace grouping for placed stars.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -129,6 +225,97 @@ impl StarMetadata {
     /// Returns the coarse palace grouping.
     pub const fn category(&self) -> StarCategory {
         self.kind.category()
+    }
+}
+
+/// Returns factual metadata for the fourteen major stars.
+pub const fn major_star_metadata_table() -> &'static [StarMetadata; 14] {
+    &MAJOR_STAR_METADATA
+}
+
+/// Returns factual metadata for the supported fourteen minor stars.
+pub const fn minor_star_metadata_table() -> &'static [StarMetadata; 14] {
+    &MINOR_STAR_METADATA
+}
+
+/// Returns factual metadata for all currently represented stars.
+pub const fn represented_star_metadata_table() -> &'static [StarMetadata; 28] {
+    &REPRESENTED_STAR_METADATA
+}
+
+/// Returns factual metadata for one represented major star.
+pub fn major_star_metadata(star: StarName) -> &'static StarMetadata {
+    &MAJOR_STAR_METADATA[match star {
+        StarName::ZiWei => 0,
+        StarName::TianJi => 1,
+        StarName::TaiYang => 2,
+        StarName::WuQu => 3,
+        StarName::TianTong => 4,
+        StarName::LianZhen => 5,
+        StarName::TianFu => 6,
+        StarName::TaiYin => 7,
+        StarName::TanLang => 8,
+        StarName::JuMen => 9,
+        StarName::TianXiang => 10,
+        StarName::TianLiang => 11,
+        StarName::QiSha => 12,
+        StarName::PoJun => 13,
+        _ => panic!("star is not a represented major star"),
+    }]
+}
+
+/// Returns factual metadata for one represented minor star.
+pub fn minor_star_metadata(star: StarName) -> &'static StarMetadata {
+    &MINOR_STAR_METADATA[match star {
+        StarName::ZuoFu => 0,
+        StarName::YouBi => 1,
+        StarName::WenChang => 2,
+        StarName::WenQu => 3,
+        StarName::TianKui => 4,
+        StarName::TianYue => 5,
+        StarName::LuCun => 6,
+        StarName::TianMa => 7,
+        StarName::QingYang => 8,
+        StarName::TuoLuo => 9,
+        StarName::HuoXing => 10,
+        StarName::LingXing => 11,
+        StarName::DiKong => 12,
+        StarName::DiJie => 13,
+        _ => panic!("star is not a represented minor star"),
+    }]
+}
+
+/// Returns factual metadata for one represented star.
+pub fn star_metadata(star: StarName) -> &'static StarMetadata {
+    match star {
+        StarName::ZiWei
+        | StarName::TianJi
+        | StarName::TaiYang
+        | StarName::WuQu
+        | StarName::TianTong
+        | StarName::LianZhen
+        | StarName::TianFu
+        | StarName::TaiYin
+        | StarName::TanLang
+        | StarName::JuMen
+        | StarName::TianXiang
+        | StarName::TianLiang
+        | StarName::QiSha
+        | StarName::PoJun => major_star_metadata(star),
+        StarName::ZuoFu
+        | StarName::YouBi
+        | StarName::WenChang
+        | StarName::WenQu
+        | StarName::TianKui
+        | StarName::TianYue
+        | StarName::LuCun
+        | StarName::TianMa
+        | StarName::QingYang
+        | StarName::TuoLuo
+        | StarName::HuoXing
+        | StarName::LingXing
+        | StarName::DiKong
+        | StarName::DiJie => minor_star_metadata(star),
     }
 }
 
