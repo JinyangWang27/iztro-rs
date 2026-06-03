@@ -4,33 +4,33 @@ use serde::{Deserialize, Serialize};
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum StarName {
-    /// Zi Wei star.
+    /// Zi Wei star (紫微).
     ZiWei,
-    /// Tian Ji star.
+    /// Tian Ji star (天机).
     TianJi,
-    /// Tai Yang star.
+    /// Tai Yang star (太阳).
     TaiYang,
-    /// Wu Qu star.
+    /// Wu Qu star (武曲).
     WuQu,
-    /// Tian Tong star.
+    /// Tian Tong star (天同).
     TianTong,
-    /// Lian Zhen star.
+    /// Lian Zhen star (廉贞).
     LianZhen,
-    /// Tian Fu star.
+    /// Tian Fu star (天府).
     TianFu,
-    /// Tai Yin star.
+    /// Tai Yin star (太阴).
     TaiYin,
-    /// Tan Lang star.
+    /// Tan Lang star (贪狼).
     TanLang,
-    /// Ju Men star.
+    /// Ju Men star (巨门).
     JuMen,
-    /// Tian Xiang star.
+    /// Tian Xiang star (天相).
     TianXiang,
-    /// Tian Liang star.
+    /// Tian Liang star (天梁).
     TianLiang,
-    /// Qi Sha star.
+    /// Qi Sha star (七杀).
     QiSha,
-    /// Po Jun star.
+    /// Po Jun star (破军).
     PoJun,
 }
 
@@ -100,19 +100,19 @@ impl StarMetadata {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Brightness {
-    /// Temple brightness.
+    /// Temple brightness (庙).
     Temple,
-    /// Prosperous brightness.
+    /// Prosperous brightness (旺).
     Prosperous,
-    /// Advantageous brightness.
+    /// Advantageous brightness (得).
     Advantage,
-    /// Favourable brightness.
+    /// Favourable brightness (利).
     Favourable,
-    /// Flat brightness.
+    /// Flat brightness (平).
     Flat,
-    /// Weak brightness.
+    /// Weak brightness (不).
     Weak,
-    /// Trapped brightness.
+    /// Trapped brightness (陷).
     Trapped,
     /// Brightness has not been calculated.
     Unknown,

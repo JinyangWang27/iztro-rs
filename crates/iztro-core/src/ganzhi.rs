@@ -34,25 +34,25 @@ pub const EARTHLY_BRANCHES: [EarthlyBranch; 12] = [
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum HeavenlyStem {
-    /// Jia stem.
+    /// Jia stem (甲).
     Jia,
-    /// Yi stem.
+    /// Yi stem (乙).
     Yi,
-    /// Bing stem.
+    /// Bing stem (丙).
     Bing,
-    /// Ding stem.
+    /// Ding stem (丁).
     Ding,
-    /// Wu stem.
+    /// Wu stem (戊).
     Wu,
-    /// Ji stem.
+    /// Ji stem (己).
     Ji,
-    /// Geng stem.
+    /// Geng stem (庚).
     Geng,
-    /// Xin stem.
+    /// Xin stem (辛).
     Xin,
-    /// Ren stem.
+    /// Ren stem (壬).
     Ren,
-    /// Gui stem.
+    /// Gui stem (癸).
     Gui,
 }
 
@@ -90,29 +90,29 @@ impl HeavenlyStem {
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum EarthlyBranch {
-    /// Zi branch.
+    /// Zi branch (子).
     Zi,
-    /// Chou branch.
+    /// Chou branch (丑).
     Chou,
-    /// Yin branch.
+    /// Yin branch (寅).
     Yin,
-    /// Mao branch.
+    /// Mao branch (卯).
     Mao,
-    /// Chen branch.
+    /// Chen branch (辰).
     Chen,
-    /// Si branch.
+    /// Si branch (巳).
     Si,
-    /// Wu branch.
+    /// Wu branch (午).
     Wu,
-    /// Wei branch.
+    /// Wei branch (未).
     Wei,
-    /// Shen branch.
+    /// Shen branch (申).
     Shen,
-    /// You branch.
+    /// You branch (酉).
     You,
-    /// Xu branch.
+    /// Xu branch (戌).
     Xu,
-    /// Hai branch.
+    /// Hai branch (亥).
     Hai,
 }
 
