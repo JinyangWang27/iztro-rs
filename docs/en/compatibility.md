@@ -74,11 +74,14 @@ across the 寅–申 axis, and the 紫微 and 天府 series fan out by fixed off
 Every placed star is category `major`, scope `natal` (iztro `origin`).
 
 The lunar day is supplied explicitly (`input.lunar_day`) because full calendar
-conversion is deferred. This fixture newly compares major-star names and
-positions; it still does **not** compare star brightness or star mutagens
-(iztro computes them, but `iztro-rs` leaves brightness `unknown` and mutagen
-`none` in this slice), nor minor stars, adjective stars, decadal scopes, yearly
-scopes, or narrative output.
+conversion is deferred. The public
+`build_natal_chart_with_major_stars` builder path is what the compatibility
+test exercises: it first builds the minimal natal chart, then uses the derived
+five-element bureau and explicit lunar day to place the fourteen major stars.
+This fixture compares major-star names and positions; it still does **not**
+compare star brightness or star mutagens (iztro computes them, but `iztro-rs`
+leaves brightness `unknown` and mutagen `none` in this slice), nor minor stars,
+adjective stars, decadal scopes, yearly scopes, or narrative output.
 
 ## Golden tests
 

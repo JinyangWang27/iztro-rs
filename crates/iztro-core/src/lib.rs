@@ -31,7 +31,10 @@ pub use major_stars::{
     zi_wei_branch,
 };
 pub use mutagen::{Mutagen, Scope};
-pub use natal::{NatalChartInput, build_minimal_natal_chart};
+pub use natal::{
+    NatalChartInput, NatalChartWithMajorStarsInput, build_minimal_natal_chart,
+    build_natal_chart_with_major_stars,
+};
 pub use palace::{PALACE_NAMES, PalaceName};
 pub use palace_stems::{palace_stem_for_branch, palace_stems_from_year_stem};
 pub use profile::{ChartAlgorithmKind, MethodProfile};

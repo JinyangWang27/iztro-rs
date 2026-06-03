@@ -7,7 +7,9 @@ use crate::{
     chart::{Chart, PALACE_COUNT, Palace},
     error::ChartError,
     ganzhi::{EarthlyBranch, HeavenlyStem},
+    life_body::LunarDay,
     life_body::{LunarBirthContext, LunarMonth, calculate_life_body_palace_indices},
+    major_stars::{DeterministicMajorStarPlacer, MajorStarPlacementInput, MajorStarPlacer},
     palace::PalaceName,
     palace_stems::palace_stem_for_branch,
     profile::MethodProfile,
@@ -65,6 +67,65 @@ impl NatalChartInput {
     }
 }
 
+/// Inputs required by the natal chart builder with fourteen major stars.
+///
+/// Solar-to-lunar conversion is not implemented here. Callers must provide the
+/// already-known non-leap lunar month and lunar day. Birth year stem derivation
+/// from a Gregorian date is likewise deferred, so the year stem is supplied
+/// explicitly.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct NatalChartWithMajorStarsInput {
+    birth_context: BirthContext,
+    method_profile: MethodProfile,
+    lunar_month: LunarMonth,
+    lunar_day: LunarDay,
+    birth_year_stem: HeavenlyStem,
+}
+
+impl NatalChartWithMajorStarsInput {
+    /// Creates input for the natal chart builder with fourteen major stars.
+    pub const fn new(
+        birth_context: BirthContext,
+        method_profile: MethodProfile,
+        lunar_month: LunarMonth,
+        lunar_day: LunarDay,
+        birth_year_stem: HeavenlyStem,
+    ) -> Self {
+        Self {
+            birth_context,
+            method_profile,
+            lunar_month,
+            lunar_day,
+            birth_year_stem,
+        }
+    }
+
+    /// Returns the typed birth context.
+    pub const fn birth_context(&self) -> &BirthContext {
+        &self.birth_context
+    }
+
+    /// Returns the method profile metadata.
+    pub const fn method_profile(&self) -> &MethodProfile {
+        &self.method_profile
+    }
+
+    /// Returns the validated lunar month.
+    pub const fn lunar_month(&self) -> LunarMonth {
+        self.lunar_month
+    }
+
+    /// Returns the validated lunar day.
+    pub const fn lunar_day(&self) -> LunarDay {
+        self.lunar_day
+    }
+
+    /// Returns the birth year Heavenly Stem used for palace stem assignment.
+    pub const fn birth_year_stem(&self) -> HeavenlyStem {
+        self.birth_year_stem
+    }
+}
+
 /// Builds a minimal natal chart with calculated Life Palace layout.
 ///
 /// The builder calculates the Life and Body palaces, assigns each palace its
@@ -107,6 +168,32 @@ pub fn build_minimal_natal_chart(input: NatalChartInput) -> Result<Chart, ChartE
         palaces,
         Some(indices.body_palace_branch()),
         Some(five_element_bureau),
+    )
+}
+
+/// Builds a natal chart with the fourteen major stars placed.
+///
+/// This public builder preserves the minimal natal chart facts, derives the
+/// five-element bureau through [`build_minimal_natal_chart`], and then places
+/// the natal-scope fourteen major stars using [`DeterministicMajorStarPlacer`].
+/// Brightness, mutagens, minor stars, adjective stars, temporal scopes beyond
+/// natal, and narrative output remain out of scope.
+pub fn build_natal_chart_with_major_stars(
+    input: NatalChartWithMajorStarsInput,
+) -> Result<Chart, ChartError> {
+    let chart = build_minimal_natal_chart(NatalChartInput::new(
+        input.birth_context().clone(),
+        input.method_profile().clone(),
+        input.lunar_month(),
+        input.birth_year_stem(),
+    ))?;
+    let five_element_bureau = chart
+        .five_element_bureau()
+        .expect("minimal natal chart should derive a five-element bureau");
+
+    DeterministicMajorStarPlacer.place_major_stars(
+        chart,
+        MajorStarPlacementInput::new(input.lunar_day(), five_element_bureau),
     )
 }
 

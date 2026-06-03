@@ -43,7 +43,15 @@ minimal-natal fixture 只比较 `iztro-rs` 当前已实现的字段：
 - 命宫地支；
 - 身宫地支；
 - 十二宫地支；
-- 十二宫名称。
+- 十二宫名称；
+- 十二宫天干；
+- 五行局。
+
+十二宫天干由出生年干按起五行寅例生成，并与 iztro 每宫的 `heavenlyStem`
+对照。五行局与 iztro 的 `fiveElementsClass` 对照（`火六局` 映射为 `fire6`）。
+
+出生年干目前通过 fixture input 中的 `birth_year_stem` 显式提供，因为公历到干支年
+推导尚未实现。
 
 它有意不比较星曜、亮度、四化、大限、流年或解读文本。
 
@@ -59,10 +67,11 @@ minimal-natal fixture 只比较 `iztro-rs` 当前已实现的字段：
 日推出，天府为紫微关于寅–申轴的镜像，紫微系与天府系按固定偏移排布。每颗星的
 category 为 `major`，scope 为 `natal`（iztro 的 `origin`）。
 
-农历日通过 `input.lunar_day` 显式提供，因为完整历法转换尚未实现。该 fixture 新
-增比较主星名称与位置；仍**不**比较星曜亮度与星曜四化（iztro 会计算，但本切片中
-`iztro-rs` 的亮度保持 `unknown`、四化为 `none`），也不比较辅星、杂曜、大限、流年
-或解读文本。
+农历日通过 `input.lunar_day` 显式提供，因为完整历法转换尚未实现。兼容性测试走公开
+的 `build_natal_chart_with_major_stars` builder path：先生成 minimal natal chart，
+再使用其派生出的五行局和显式农历日安十四主星。该 fixture 比较主星名称与位置；
+仍**不**比较星曜亮度与星曜四化（iztro 会计算，但本切片中 `iztro-rs` 的亮度保持
+`unknown`、四化为 `none`），也不比较辅星、杂曜、大限、流年或解读文本。
 
 ## Golden tests
 

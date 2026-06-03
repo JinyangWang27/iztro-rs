@@ -83,7 +83,9 @@ node --input-type=module -e "import { astro } from 'iztro'; const a = astro.bySo
 `supported_fields.major_stars` lists, per palace branch, the snake_case
 `StarName` keys (for example `zi_wei`, `tian_ji`, `po_jun`). The compatibility
 test asserts, for every palace, that the set of major-star names placed by
-`iztro-rs` equals iztro's.
+`iztro-rs` equals iztro's. The test builds through the public
+`build_natal_chart_with_major_stars` path so the fixture covers integration
+from the minimal natal chart builder into deterministic major-star placement.
 
 ### Explicit lunar day
 

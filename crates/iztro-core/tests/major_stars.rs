@@ -3,8 +3,9 @@ use std::collections::{HashMap, HashSet};
 use iztro_core::{
     BirthContext, Brightness, CalendarDate, Chart, DeterministicMajorStarPlacer, EarthlyBranch,
     FiveElementBureau, Gender, HeavenlyStem, LunarDay, LunarMonth, MajorStarPlacementInput,
-    MajorStarPlacer, MethodProfile, NatalChartInput, PALACE_COUNT, Scope, StarCategory, StarName,
-    build_minimal_natal_chart, tian_fu_branch, zi_wei_branch,
+    MajorStarPlacer, MethodProfile, NatalChartInput, NatalChartWithMajorStarsInput, PALACE_COUNT,
+    Scope, StarCategory, StarName, build_minimal_natal_chart, build_natal_chart_with_major_stars,
+    tian_fu_branch, zi_wei_branch,
 };
 use serde_json::Value;
 
@@ -166,12 +167,7 @@ fn fourteen_major_stars_match_iztro_fixture() {
     );
 
     let input = &fixture["input"];
-    let day = lunar_day(
-        input["lunar_day"]
-            .as_u64()
-            .expect("fixture should include lunar_day") as u8,
-    );
-    let chart = build_minimal_natal_chart(NatalChartInput::new(
+    let placed = build_natal_chart_with_major_stars(NatalChartWithMajorStarsInput::new(
         BirthContext::new(
             parse_solar_date(input["solar_date"].as_str().expect("solar_date")),
             parse_branch_key(input["birth_time"].as_str().expect("birth_time")),
@@ -180,16 +176,14 @@ fn fourteen_major_stars_match_iztro_fixture() {
         MethodProfile::placeholder("iztro_major_stars_fixture"),
         LunarMonth::new(input["lunar_month"].as_u64().expect("lunar_month") as u8)
             .expect("fixture lunar month should be valid"),
+        lunar_day(
+            input["lunar_day"]
+                .as_u64()
+                .expect("fixture should include lunar_day") as u8,
+        ),
         parse_stem_key(input["birth_year_stem"].as_str().expect("birth_year_stem")),
     ))
-    .expect("minimal natal chart should build for fixture input");
-    let bureau = chart
-        .five_element_bureau()
-        .expect("fixture chart should resolve a five-element bureau");
-
-    let placed = DeterministicMajorStarPlacer
-        .place_major_stars(chart, MajorStarPlacementInput::new(day, bureau))
-        .expect("deterministic major star placement should not fail");
+    .expect("natal chart with major stars should build for fixture input");
 
     let mut actual: HashMap<EarthlyBranch, HashSet<&str>> = HashMap::new();
     for palace in placed.palaces() {
