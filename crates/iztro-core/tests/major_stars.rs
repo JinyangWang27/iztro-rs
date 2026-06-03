@@ -4,7 +4,7 @@ use iztro_core::{
     BirthContext, Brightness, CalendarDate, Chart, DeterministicMajorStarPlacer, EarthlyBranch,
     FiveElementBureau, Gender, HeavenlyStem, LunarDay, LunarMonth, MajorStarPlacementInput,
     MajorStarPlacer, MethodProfile, Mutagen, NatalChartInput, NatalChartWithMajorStarsInput,
-    PALACE_COUNT, Scope, StarCategory, StarName, birth_year_major_star_mutagen,
+    PALACE_COUNT, Scope, StarCategory, StarKind, StarName, birth_year_major_star_mutagen,
     build_minimal_natal_chart, build_natal_chart_with_major_stars, major_star_brightness,
     major_star_metadata, major_star_metadata_table, tian_fu_branch, zi_wei_branch,
 };
@@ -187,6 +187,7 @@ fn placer_marks_each_major_star_as_major_and_natal() {
     for palace in chart.palaces() {
         for star in palace.stars() {
             count += 1;
+            assert_eq!(star.kind(), StarKind::Major);
             assert_eq!(star.category(), StarCategory::Major);
             assert_eq!(star.scope(), Scope::Natal);
         }
@@ -290,6 +291,7 @@ fn major_star_metadata_uses_stable_keys_and_major_category() {
 
         assert_eq!(metadata.name(), star);
         assert_eq!(metadata.key(), star_key(star));
+        assert_eq!(metadata.kind(), StarKind::Major);
         assert_eq!(metadata.category(), StarCategory::Major);
         assert!(!metadata.chinese_name().is_empty());
     }

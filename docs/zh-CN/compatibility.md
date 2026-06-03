@@ -67,10 +67,17 @@ minimal-natal fixture 只比较 `iztro-rs` 当前已实现的字段：
 
 安星复现 iztro 2.5.8（`getStartIndex` 与 `getMajorStar`）：紫微由五行局与农历
 日推出，天府为紫微关于寅–申轴的镜像，紫微系与天府系按固定偏移排布。每颗星的
-category 为 `major`，scope 为 `natal`（iztro 的 `origin`）。
+`StarKind` 为 `Major`，派生出的 `StarCategory` 为 `Major`，scope 为 `natal`
+（iztro 的 `origin`）。
 亮度复现 iztro 2.5.8 `STARS_INFO` 中十四主星的表，保留 `de`（`得`）为
 `advantage`，`li`（`利`）为 `favourable`。生年四化复现 iztro 2.5.8 的天干四化
 表，但仅在目标星属于当前已表示的十四主星时记录。
+
+星曜分类采用两层模型。`StarKind` 存储与 iztro 兼容的细分类（`major`、`soft`、
+`tough`、`lucun`、`tianma`、`adjective`、`flower` 或 `helper`）。
+`StarCategory` 是派生出的粗粒度宫位分组：`major`、`minor` 或 `adjective`。
+四化作为 `mutagen: Option<Mutagen>` 保留在 placement 的独立事实状态中，不编码为
+star kind 或 category。
 
 农历日通过 `input.lunar_day` 显式提供，因为完整历法转换尚未实现。兼容性测试走公开
 的 `build_natal_chart_with_major_stars` builder path：先生成 minimal natal chart，

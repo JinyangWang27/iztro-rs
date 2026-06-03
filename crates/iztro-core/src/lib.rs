@@ -40,4 +40,4 @@ pub use palace::{PALACE_NAMES, PalaceName};
 pub use palace_stems::{palace_stem_for_branch, palace_stems_from_year_stem};
 pub use profile::{ChartAlgorithmKind, MethodProfile};
 pub use sexagenary::{NaYinElement, StemBranch, is_valid_sexagenary_pair, nayin_element};
-pub use star::{Brightness, StarCategory, StarMetadata, StarName};
+pub use star::{Brightness, StarCategory, StarKind, StarMetadata, StarName};

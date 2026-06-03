@@ -74,11 +74,19 @@ facts for the fourteen major stars (主星) against iztro's per-palace
 Placement reproduces iztro 2.5.8 (`getStartIndex` and `getMajorStar`): 紫微 is
 derived from the five-element bureau and the lunar day, 天府 is its reflection
 across the 寅–申 axis, and the 紫微 and 天府 series fan out by fixed offsets.
-Every placed star is category `major`, scope `natal` (iztro `origin`).
+Every placed major star has `StarKind::Major`, derived `StarCategory::Major`,
+and scope `natal` (iztro `origin`).
 Brightness reproduces iztro 2.5.8 `STARS_INFO` for the fourteen represented
 major stars, preserving `de` (`得`) as `advantage` and `li` (`利`) as
 `favourable`. Birth-year mutagens reproduce iztro 2.5.8 Heavenly Stem mutagens
 only where the target star is one of the represented fourteen major stars.
+
+Star classification uses a two-level model. `StarKind` stores the
+iztro-compatible fine type (`major`, `soft`, `tough`, `lucun`, `tianma`,
+`adjective`, `flower`, or `helper`). `StarCategory` is a derived coarse palace
+grouping: `major`, `minor`, or `adjective`. 四化 remains separate factual state
+as `mutagen: Option<Mutagen>` on a placement; it is not encoded as either a
+star kind or a category.
 
 The lunar day is supplied explicitly (`input.lunar_day`) because full calendar
 conversion is deferred. The public

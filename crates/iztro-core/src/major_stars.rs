@@ -12,7 +12,7 @@ use crate::{
     ganzhi::{EarthlyBranch, HeavenlyStem},
     life_body::LunarDay,
     mutagen::{Mutagen, Scope},
-    star::{Brightness, StarCategory, StarMetadata, StarName},
+    star::{Brightness, StarKind, StarMetadata, StarName},
 };
 
 /// Inputs required to place the fourteen major stars.
@@ -92,30 +92,20 @@ const TIAN_FU_SERIES: [(StarName, isize); 8] = [
 
 /// Factual metadata for the fourteen major stars.
 const MAJOR_STAR_METADATA: [StarMetadata; 14] = [
-    StarMetadata::new("zi_wei", "紫微", StarName::ZiWei, StarCategory::Major),
-    StarMetadata::new("tian_ji", "天机", StarName::TianJi, StarCategory::Major),
-    StarMetadata::new("tai_yang", "太阳", StarName::TaiYang, StarCategory::Major),
-    StarMetadata::new("wu_qu", "武曲", StarName::WuQu, StarCategory::Major),
-    StarMetadata::new("tian_tong", "天同", StarName::TianTong, StarCategory::Major),
-    StarMetadata::new("lian_zhen", "廉贞", StarName::LianZhen, StarCategory::Major),
-    StarMetadata::new("tian_fu", "天府", StarName::TianFu, StarCategory::Major),
-    StarMetadata::new("tai_yin", "太阴", StarName::TaiYin, StarCategory::Major),
-    StarMetadata::new("tan_lang", "贪狼", StarName::TanLang, StarCategory::Major),
-    StarMetadata::new("ju_men", "巨门", StarName::JuMen, StarCategory::Major),
-    StarMetadata::new(
-        "tian_xiang",
-        "天相",
-        StarName::TianXiang,
-        StarCategory::Major,
-    ),
-    StarMetadata::new(
-        "tian_liang",
-        "天梁",
-        StarName::TianLiang,
-        StarCategory::Major,
-    ),
-    StarMetadata::new("qi_sha", "七杀", StarName::QiSha, StarCategory::Major),
-    StarMetadata::new("po_jun", "破军", StarName::PoJun, StarCategory::Major),
+    StarMetadata::new("zi_wei", "紫微", StarName::ZiWei, StarKind::Major),
+    StarMetadata::new("tian_ji", "天机", StarName::TianJi, StarKind::Major),
+    StarMetadata::new("tai_yang", "太阳", StarName::TaiYang, StarKind::Major),
+    StarMetadata::new("wu_qu", "武曲", StarName::WuQu, StarKind::Major),
+    StarMetadata::new("tian_tong", "天同", StarName::TianTong, StarKind::Major),
+    StarMetadata::new("lian_zhen", "廉贞", StarName::LianZhen, StarKind::Major),
+    StarMetadata::new("tian_fu", "天府", StarName::TianFu, StarKind::Major),
+    StarMetadata::new("tai_yin", "太阴", StarName::TaiYin, StarKind::Major),
+    StarMetadata::new("tan_lang", "贪狼", StarName::TanLang, StarKind::Major),
+    StarMetadata::new("ju_men", "巨门", StarName::JuMen, StarKind::Major),
+    StarMetadata::new("tian_xiang", "天相", StarName::TianXiang, StarKind::Major),
+    StarMetadata::new("tian_liang", "天梁", StarName::TianLiang, StarKind::Major),
+    StarMetadata::new("qi_sha", "七杀", StarName::QiSha, StarKind::Major),
+    StarMetadata::new("po_jun", "破军", StarName::PoJun, StarKind::Major),
 ];
 
 /// Returns factual metadata for the fourteen major stars.
@@ -354,7 +344,7 @@ impl MajorStarPlacer for DeterministicMajorStarPlacer {
                     if branch == palace.branch() {
                         stars.push(StarPlacement::new(
                             name,
-                            StarCategory::Major,
+                            StarKind::Major,
                             major_star_brightness(name, branch),
                             birth_year_major_star_mutagen(input.birth_year_stem(), name),
                             Scope::Natal,

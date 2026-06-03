@@ -17,6 +17,8 @@
 | `health_palace` | Health Palace | 疾厄宫 | 健康、身体、风险点。 |
 | `spirit_palace` | Spirit Palace | 福德宫 | 内在状态、享受方式、精神底色。 |
 | `star` | Star | 星曜 | 包括主星、辅星、煞星、杂曜等。 |
+| `star_kind` | Star Kind | 星曜细分类 | 与 iztro 兼容的细分类，例如 `major`、`soft`、`tough` 或 `lucun`。 |
+| `star_category` | Star Category | 星曜分组 | 从 `star_kind` 派生出的粗粒度宫位分组：major、minor 或 adjective。 |
 | `major_star` | Major Star | 主星 | 十四主星。 |
 | `minor_star` | Minor Star | 辅星 | 辅助性或次级星曜。 |
 | `adjective_star` | Adjective Star | 杂曜 | 杂曜和其他象义标记。 |

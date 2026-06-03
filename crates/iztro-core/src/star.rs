@@ -34,20 +34,51 @@ pub enum StarName {
     PoJun,
 }
 
-/// Broad star category used by feature extractors.
+/// Coarse palace grouping for placed stars.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum StarCategory {
     /// Fourteen major stars.
     Major,
-    /// Supportive or secondary stars.
+    /// Minor stars, including supportive and tough stars.
     Minor,
-    /// Malefic stars.
-    Malefic,
-    /// Auxiliary stars.
-    Auxiliary,
     /// Miscellaneous symbolic markers.
     Adjective,
+}
+
+/// iztro-compatible fine star type.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum StarKind {
+    /// Fourteen major stars.
+    Major,
+    /// Supportive soft stars.
+    Soft,
+    /// Tough stars.
+    Tough,
+    /// Lu Cun star (禄存).
+    #[serde(rename = "lucun")]
+    LuCun,
+    /// Tian Ma star (天马).
+    #[serde(rename = "tianma")]
+    TianMa,
+    /// Miscellaneous adjective stars.
+    Adjective,
+    /// Flower stars.
+    Flower,
+    /// Helper stars.
+    Helper,
+}
+
+impl StarKind {
+    /// Returns the coarse palace grouping for this fine star type.
+    pub const fn category(self) -> StarCategory {
+        match self {
+            Self::Major => StarCategory::Major,
+            Self::Soft | Self::Tough | Self::LuCun | Self::TianMa => StarCategory::Minor,
+            Self::Adjective | Self::Flower | Self::Helper => StarCategory::Adjective,
+        }
+    }
 }
 
 /// Factual metadata for a represented star.
@@ -56,7 +87,7 @@ pub struct StarMetadata {
     key: &'static str,
     chinese_name: &'static str,
     name: StarName,
-    category: StarCategory,
+    kind: StarKind,
 }
 
 impl StarMetadata {
@@ -65,13 +96,13 @@ impl StarMetadata {
         key: &'static str,
         chinese_name: &'static str,
         name: StarName,
-        category: StarCategory,
+        kind: StarKind,
     ) -> Self {
         Self {
             key,
             chinese_name,
             name,
-            category,
+            kind,
         }
     }
 
@@ -90,9 +121,14 @@ impl StarMetadata {
         self.name
     }
 
-    /// Returns the broad star category.
+    /// Returns the iztro-compatible fine star type.
+    pub const fn kind(&self) -> StarKind {
+        self.kind
+    }
+
+    /// Returns the coarse palace grouping.
     pub const fn category(&self) -> StarCategory {
-        self.category
+        self.kind.category()
     }
 }
 

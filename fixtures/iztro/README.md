@@ -90,6 +90,15 @@ objects with:
 - `mutagen`: the normalized birth-year mutagen key (`lu`, `quan`, `ke`, `ji`)
   or `null` when the represented major star has no birth-year mutagen.
 
+In `iztro-rs`, placed stars use a two-level classification model:
+
+- `StarKind` stores the iztro-compatible fine type (`major`, `soft`, `tough`,
+  `lucun`, `tianma`, `adjective`, `flower`, or `helper`);
+- `StarCategory` is derived from `StarKind` as the coarse palace grouping
+  (`major`, `minor`, or `adjective`);
+- `mutagen: Option<Mutagen>` stores 四化 state separately and is not represented
+  as a star kind or category.
+
 The compatibility test asserts, for every palace, that the major-star names,
 palace branches, brightness values, and supported birth-year mutagens placed by
 `iztro-rs` equal iztro's. The test builds through the public

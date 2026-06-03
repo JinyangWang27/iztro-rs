@@ -6,7 +6,7 @@ use crate::{
     mutagen::{Mutagen, Scope},
     palace::PalaceName,
     profile::MethodProfile,
-    star::{Brightness, StarCategory, StarName},
+    star::{Brightness, StarCategory, StarKind, StarName},
 };
 use serde::{Deserialize, Serialize};
 
@@ -225,7 +225,7 @@ impl Palace {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct StarPlacement {
     name: StarName,
-    category: StarCategory,
+    kind: StarKind,
     brightness: Brightness,
     mutagen: Option<Mutagen>,
     scope: Scope,
@@ -235,14 +235,14 @@ impl StarPlacement {
     /// Creates a typed star placement fact.
     pub const fn new(
         name: StarName,
-        category: StarCategory,
+        kind: StarKind,
         brightness: Brightness,
         mutagen: Option<Mutagen>,
         scope: Scope,
     ) -> Self {
         Self {
             name,
-            category,
+            kind,
             brightness,
             mutagen,
             scope,
@@ -254,9 +254,14 @@ impl StarPlacement {
         self.name
     }
 
-    /// Returns the star category.
+    /// Returns the iztro-compatible fine star type.
+    pub const fn kind(&self) -> StarKind {
+        self.kind
+    }
+
+    /// Returns the coarse palace grouping.
     pub const fn category(&self) -> StarCategory {
-        self.category
+        self.kind.category()
     }
 
     /// Returns the star brightness.

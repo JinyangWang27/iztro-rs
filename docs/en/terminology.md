@@ -17,6 +17,8 @@ This glossary keeps engineering terms and Zi Wei Dou Shu terms aligned across la
 | `health_palace` | Health Palace | 疾厄宫 | Health, body, vulnerabilities. |
 | `spirit_palace` | Spirit Palace | 福德宫 | Inner state, enjoyment, mental baseline. |
 | `star` | Star | 星曜 | Includes major, minor, malefic, auxiliary, and other stars. |
+| `star_kind` | Star Kind | 星曜细分类 | iztro-compatible fine type such as `major`, `soft`, `tough`, or `lucun`. |
+| `star_category` | Star Category | 星曜分组 | Coarse palace grouping derived from `star_kind`: major, minor, or adjective. |
 | `major_star` | Major Star | 主星 | The fourteen major stars. |
 | `minor_star` | Minor Star | 辅星 | Supportive or secondary stars. |
 | `adjective_star` | Adjective Star | 杂曜 | Miscellaneous stars and symbolic markers. |
