@@ -33,6 +33,16 @@ fn extract_fixture_features() -> ChartFeatures {
         .expect("basic feature extraction should succeed")
 }
 
+/// Expected facts for one placed star: (star, palace, optional domain,
+/// brightness, optional mutagen).
+type ExpectedStar = (
+    StarName,
+    PalaceName,
+    Option<Domain>,
+    Brightness,
+    Option<Mutagen>,
+);
+
 fn find_star_feature(features: &ChartFeatures, star: StarName) -> &StarFeature {
     features
         .star_features()
@@ -86,47 +96,113 @@ fn basic_feature_extractor_extracts_supported_palace_domains() {
 fn basic_feature_extractor_extracts_major_star_features() {
     let features = extract_fixture_features();
 
-    // (star, palace, domain, brightness, mutagen) for the major stars sitting in
-    // supported-domain palaces of the fixture chart.
-    let expected: &[(StarName, PalaceName, Domain, Brightness, Option<Mutagen>)] = &[
+    // (star, palace, domain, brightness, mutagen) for every placed major star in
+    // the fixture chart. Stars in supported-domain palaces carry Some(domain);
+    // stars in unsupported-domain palaces carry None but are still recorded.
+    let expected: &[ExpectedStar] = &[
         (
             StarName::TaiYang,
             PalaceName::Life,
-            Domain::Identity,
+            Some(Domain::Identity),
             Brightness::Weak,
             Some(Mutagen::Lu),
         ),
         (
             StarName::TaiYin,
             PalaceName::Life,
-            Domain::Identity,
+            Some(Domain::Identity),
             Brightness::Temple,
             Some(Mutagen::Ke),
         ),
         (
             StarName::TianLiang,
             PalaceName::Career,
-            Domain::Career,
+            Some(Domain::Career),
             Brightness::Trapped,
             None,
         ),
         (
             StarName::TianTong,
             PalaceName::Spouse,
-            Domain::Relationship,
+            Some(Domain::Relationship),
             Brightness::Temple,
             Some(Mutagen::Ji),
         ),
         (
             StarName::LianZhen,
             PalaceName::Health,
-            Domain::Health,
+            Some(Domain::Health),
             Brightness::Temple,
+            None,
+        ),
+        (
+            StarName::WuQu,
+            PalaceName::Siblings,
+            None,
+            Brightness::Prosperous,
+            Some(Mutagen::Quan),
+        ),
+        (
+            StarName::TianFu,
+            PalaceName::Siblings,
+            None,
+            Brightness::Temple,
+            None,
+        ),
+        (
+            StarName::ZiWei,
+            PalaceName::Property,
+            None,
+            Brightness::Advantage,
+            None,
+        ),
+        (
+            StarName::TianXiang,
+            PalaceName::Property,
+            None,
+            Brightness::Advantage,
+            None,
+        ),
+        (
+            StarName::TianJi,
+            PalaceName::Spirit,
+            None,
+            Brightness::Prosperous,
+            None,
+        ),
+        (
+            StarName::JuMen,
+            PalaceName::Spirit,
+            None,
+            Brightness::Temple,
+            None,
+        ),
+        (
+            StarName::TanLang,
+            PalaceName::Parents,
+            None,
+            Brightness::Flat,
+            None,
+        ),
+        (
+            StarName::QiSha,
+            PalaceName::Friends,
+            None,
+            Brightness::Prosperous,
+            None,
+        ),
+        (
+            StarName::PoJun,
+            PalaceName::Children,
+            None,
+            Brightness::Prosperous,
             None,
         ),
     ];
 
-    assert_eq!(features.star_features().len(), expected.len());
+    // All fourteen major stars are represented, regardless of palace domain.
+    assert_eq!(features.star_features().len(), 14);
+    assert_eq!(expected.len(), 14);
 
     for &(star, palace, domain, brightness, mutagen) in expected {
         let feature = find_star_feature(&features, star);
@@ -139,12 +215,24 @@ fn basic_feature_extractor_extracts_major_star_features() {
         assert_eq!(feature.scope(), Scope::Natal, "{star:?} scope");
     }
 
-    // No star feature is emitted for an unsupported-domain palace.
+    // Stars in unsupported-domain palaces are preserved with a None domain.
+    assert_eq!(
+        find_star_feature(&features, StarName::WuQu).domain(),
+        None,
+        "WuQu sits in Siblings, an unsupported-domain palace"
+    );
+    assert_eq!(
+        find_star_feature(&features, StarName::TianFu).domain(),
+        None,
+        "TianFu sits in Siblings, an unsupported-domain palace"
+    );
+
+    // Each star feature's domain is exactly the palace-domain mapping result.
     for feature in features.star_features() {
         assert_eq!(
+            feature.domain(),
             domain_for_palace(feature.palace()),
-            Some(feature.domain()),
-            "{:?} sits in an unsupported-domain palace",
+            "{:?} domain should match its palace mapping",
             feature.star()
         );
     }

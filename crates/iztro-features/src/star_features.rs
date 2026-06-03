@@ -5,8 +5,10 @@ use serde::{Deserialize, Serialize};
 /// Factual feature derived from a star placement.
 ///
 /// This preserves the deterministic placement facts (palace, star, fine star
-/// type, brightness, birth-year mutagen, scope) together with the semantic
-/// [`Domain`] of the palace the star occupies. It performs no interpretation.
+/// type, brightness, birth-year mutagen, scope) for every placed star. The
+/// semantic [`Domain`] of the containing palace is optional metadata: it is
+/// present only when the palace maps to a supported domain and is `None`
+/// otherwise. It performs no interpretation.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct StarFeature {
     palace: PalaceName,
@@ -15,11 +17,11 @@ pub struct StarFeature {
     brightness: Brightness,
     mutagen: Option<Mutagen>,
     scope: Scope,
-    domain: Domain,
+    domain: Option<Domain>,
 }
 
 impl StarFeature {
-    /// Creates a star feature from placement facts and a semantic domain.
+    /// Creates a star feature from placement facts and an optional semantic domain.
     pub const fn new(
         palace: PalaceName,
         star: StarName,
@@ -27,7 +29,7 @@ impl StarFeature {
         brightness: Brightness,
         mutagen: Option<Mutagen>,
         scope: Scope,
-        domain: Domain,
+        domain: Option<Domain>,
     ) -> Self {
         Self {
             palace,
@@ -75,8 +77,8 @@ impl StarFeature {
         self.scope
     }
 
-    /// Returns the semantic domain of the palace this star occupies.
-    pub const fn domain(&self) -> Domain {
+    /// Returns the semantic domain of the palace this star occupies, if supported.
+    pub const fn domain(&self) -> Option<Domain> {
         self.domain
     }
 }

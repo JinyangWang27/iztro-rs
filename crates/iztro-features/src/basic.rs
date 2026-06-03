@@ -11,10 +11,10 @@ use iztro_core::Chart;
 /// Deterministic extractor turning chart facts into structured feature facts.
 ///
 /// This is the first feature-extraction slice. It records placement facts only:
-/// supported palace domains, factual star features for stars in those palaces,
-/// natal mutagen flows for every placed star with a mutagen, and the
-/// deterministic cyclic palace relations. It performs no interpretation, emits
-/// no claims, and produces no narrative.
+/// supported palace domains, a factual star feature for every placed star (with
+/// the palace domain as optional metadata), natal mutagen flows for every placed
+/// star with a mutagen, and the deterministic cyclic palace relations. It
+/// performs no interpretation, emits no claims, and produces no narrative.
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Hash)]
 pub struct BasicFeatureExtractor;
 
@@ -32,19 +32,18 @@ impl FeatureExtractor for BasicFeatureExtractor {
             }
 
             for placement in palace.stars() {
-                // Star features carry a domain, so they exist only for palaces
-                // with a supported domain.
-                if let Some(domain) = domain {
-                    star_features.push(StarFeature::new(
-                        palace.name(),
-                        placement.name(),
-                        placement.kind(),
-                        placement.brightness(),
-                        placement.mutagen(),
-                        placement.scope(),
-                        domain,
-                    ));
-                }
+                // Star features preserve every placed star fact. The palace
+                // domain is optional metadata, so stars in unsupported-domain
+                // palaces are still recorded with a `None` domain.
+                star_features.push(StarFeature::new(
+                    palace.name(),
+                    placement.name(),
+                    placement.kind(),
+                    placement.brightness(),
+                    placement.mutagen(),
+                    placement.scope(),
+                    domain,
+                ));
 
                 // Mutagen flows have no domain, so every placed star with a
                 // mutagen emits one regardless of its palace domain.
