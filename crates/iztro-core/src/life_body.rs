@@ -25,6 +25,30 @@ impl LunarMonth {
     }
 }
 
+/// A validated lunar day of the month (初一 = 1 through 30).
+///
+/// Lunar months span at most thirty days, so the supported range is `1..=30`.
+/// Full calendar conversion is deferred, so callers supply the lunar day
+/// directly.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
+pub struct LunarDay(u8);
+
+impl LunarDay {
+    /// Creates a validated lunar day.
+    pub const fn new(value: u8) -> Result<Self, ChartError> {
+        if value == 0 || value > 30 {
+            return Err(ChartError::InvalidLunarDay { value });
+        }
+
+        Ok(Self(value))
+    }
+
+    /// Returns the one-based lunar day value.
+    pub const fn value(self) -> u8 {
+        self.0
+    }
+}
+
 /// Lunar birth facts needed for life and body palace calculation.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub struct LunarBirthContext {

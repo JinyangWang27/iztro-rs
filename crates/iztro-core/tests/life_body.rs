@@ -1,5 +1,5 @@
 use iztro_core::{
-    ChartError, EarthlyBranch, LifeBodyPalaceIndices, LunarBirthContext, LunarMonth,
+    ChartError, EarthlyBranch, LifeBodyPalaceIndices, LunarBirthContext, LunarDay, LunarMonth,
     calculate_life_body_palace_indices,
 };
 
@@ -65,4 +65,27 @@ fn lunar_month_thirteen_is_rejected() {
     let error = LunarMonth::new(13).expect_err("month 13 should be invalid");
 
     assert_eq!(error, ChartError::InvalidLunarMonth { value: 13 });
+}
+
+#[test]
+fn lunar_day_zero_is_rejected() {
+    let error = LunarDay::new(0).expect_err("day 0 should be invalid");
+
+    assert_eq!(error, ChartError::InvalidLunarDay { value: 0 });
+}
+
+#[test]
+fn lunar_day_thirty_one_is_rejected() {
+    let error = LunarDay::new(31).expect_err("day 31 should be invalid");
+
+    assert_eq!(error, ChartError::InvalidLunarDay { value: 31 });
+}
+
+#[test]
+fn lunar_day_accepts_full_lunar_range() {
+    assert_eq!(LunarDay::new(1).expect("day 1 should be valid").value(), 1);
+    assert_eq!(
+        LunarDay::new(30).expect("day 30 should be valid").value(),
+        30
+    );
 }

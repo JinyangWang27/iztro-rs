@@ -32,11 +32,13 @@ change and expected output differences are documented.
 
 ## Current fixtures
 
-The first fixture is:
+The fixtures are:
 
 - `fixtures/iztro/minimal_natal_1990_05_17_chen_female.json`
+- `fixtures/iztro/major_stars_1990_05_17_chen_female.json`
 
-This fixture compares only fields currently implemented by `iztro-rs`:
+The minimal-natal fixture compares only fields currently implemented by
+`iztro-rs`:
 
 - birth time;
 - gender;
@@ -57,6 +59,26 @@ The birth year stem is currently provided explicitly in the fixture input
 
 It intentionally does not compare stars, brightness, mutagens, decadal scopes,
 yearly scopes, or narrative output.
+
+### Fourteen major stars
+
+The `major_stars_1990_05_17_chen_female.json` fixture compares the placement of
+the fourteen major stars (主星) against iztro's per-palace `majorStars`:
+
+- the major-star name in each palace;
+- the palace branch each star occupies.
+
+Placement reproduces iztro 2.5.8 (`getStartIndex` and `getMajorStar`): 紫微 is
+derived from the five-element bureau and the lunar day, 天府 is its reflection
+across the 寅–申 axis, and the 紫微 and 天府 series fan out by fixed offsets.
+Every placed star is category `major`, scope `natal` (iztro `origin`).
+
+The lunar day is supplied explicitly (`input.lunar_day`) because full calendar
+conversion is deferred. This fixture newly compares major-star names and
+positions; it still does **not** compare star brightness or star mutagens
+(iztro computes them, but `iztro-rs` leaves brightness `unknown` and mutagen
+`none` in this slice), nor minor stars, adjective stars, decadal scopes, yearly
+scopes, or narrative output.
 
 ## Golden tests
 
