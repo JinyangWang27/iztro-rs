@@ -34,9 +34,9 @@ Fixtures compare **only** fields currently implemented by `iztro-rs`:
 - palace heavenly stems;
 - the five-element bureau (五行局);
 - fourteen major-star facts in the major-star fixture;
-- fourteen supported minor-star facts in the minor-star fixtures.
+- fourteen supported minor-star facts in the minor-star fixtures;
 - twelve supported adjective-star facts in the second-subset adjective-star
-  fixtures.
+  fixtures;
 
 `metadata.supported_fields_only` is `true`.
 

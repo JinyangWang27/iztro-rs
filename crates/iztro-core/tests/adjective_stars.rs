@@ -243,6 +243,37 @@ fn second_subset_requires_minor_star_anchors() {
 }
 
 #[test]
+fn san_tai_and_ba_zuo_are_derived_from_placed_minor_star_anchors() {
+    let fixture = fixture_value(ADJECTIVE_STARS_1990_FIXTURE);
+    let chart = supported_chart_from_fixture(&fixture);
+    let day_offset = fixture["input"]["lunar_day"].as_u64().expect("lunar_day") as isize - 1;
+
+    let zuo_fu_branch = chart
+        .palace_containing_star(StarName::ZuoFu)
+        .expect("ZuoFu should be placed before adjective stars")
+        .branch();
+    let you_bi_branch = chart
+        .palace_containing_star(StarName::YouBi)
+        .expect("YouBi should be placed before adjective stars")
+        .branch();
+
+    assert_eq!(
+        chart
+            .palace_containing_star(StarName::SanTai)
+            .expect("SanTai should be placed")
+            .branch(),
+        zuo_fu_branch.offset(day_offset)
+    );
+    assert_eq!(
+        chart
+            .palace_containing_star(StarName::BaZuo)
+            .expect("BaZuo should be placed")
+            .branch(),
+        you_bi_branch.offset(-day_offset)
+    );
+}
+
+#[test]
 fn placer_matches_iztro_adjective_fixtures() {
     for fixture in fixture_values() {
         let chart = supported_chart_from_fixture(&fixture);
