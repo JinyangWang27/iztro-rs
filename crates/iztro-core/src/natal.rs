@@ -1,6 +1,9 @@
 //! Minimal natal chart pipeline for the first algorithmic vertical slice.
 
 use crate::{
+    adjective_stars::{
+        AdjectiveStarPlacementInput, AdjectiveStarPlacer, DeterministicAdjectiveStarPlacer,
+    },
     builder::build_empty_chart,
     bureau::five_element_bureau_from_life_palace,
     calendar::BirthContext,
@@ -271,9 +274,10 @@ pub fn build_natal_chart_with_major_stars(
 /// Builds a natal chart with all currently supported natal stars placed.
 ///
 /// This public builder preserves the minimal natal chart facts, places the
-/// natal-scope fourteen major stars, then places the supported fourteen minor
-/// stars. Adjective stars, temporal scopes beyond natal, feature extraction,
-/// rule-engine output, and narrative output remain out of scope.
+/// natal-scope fourteen major stars, the supported fourteen minor stars, then
+/// the first supported adjective-star subset (红鸾/天喜/天姚/天刑/台辅/封诰).
+/// The remaining adjective stars, temporal scopes beyond natal, feature
+/// extraction, rule-engine output, and narrative output remain out of scope.
 pub fn build_natal_chart_with_supported_stars(
     input: NatalChartWithSupportedStarsInput,
 ) -> Result<Chart, ChartError> {
@@ -295,12 +299,21 @@ pub fn build_natal_chart_with_supported_stars(
         ),
     )?;
 
-    DeterministicMinorStarPlacer.place_minor_stars(
+    let with_minor_stars = DeterministicMinorStarPlacer.place_minor_stars(
         with_major_stars,
         MinorStarPlacementInput::new(
             input.lunar_month(),
             input.birth_context().birth_time(),
             input.birth_year_stem(),
+            input.birth_year_branch(),
+        ),
+    )?;
+
+    DeterministicAdjectiveStarPlacer.place_adjective_stars(
+        with_minor_stars,
+        AdjectiveStarPlacementInput::new(
+            input.lunar_month(),
+            input.birth_context().birth_time(),
             input.birth_year_branch(),
         ),
     )

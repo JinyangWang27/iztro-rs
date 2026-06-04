@@ -1,5 +1,6 @@
 //! Core chart facts and strongly typed Zi Wei Dou Shu domain models.
 
+pub mod adjective_stars;
 pub mod builder;
 pub mod bureau;
 pub mod calendar;
@@ -18,6 +19,10 @@ pub mod profile;
 pub mod sexagenary;
 pub mod star;
 
+pub use adjective_stars::{
+    AdjectiveStarPlacementInput, AdjectiveStarPlacer, DeterministicAdjectiveStarPlacer,
+    adjective_star_metadata, adjective_star_metadata_table, try_adjective_star_metadata,
+};
 pub use builder::build_empty_chart;
 pub use bureau::{FiveElementBureau, five_element_bureau_from_life_palace};
 pub use calendar::{BirthContext, CalendarDate, CalendarKind, Gender};
