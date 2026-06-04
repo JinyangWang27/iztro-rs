@@ -102,6 +102,11 @@ pub fn major_star_metadata(star: StarName) -> &'static StarMetadata {
     crate::star::major_star_metadata(star)
 }
 
+/// Returns factual metadata for one major star, if it is a represented major star.
+pub fn try_major_star_metadata(star: StarName) -> Option<&'static StarMetadata> {
+    crate::star::try_major_star_metadata(star)
+}
+
 /// Returns a major star's brightness for a branch.
 ///
 /// The table mirrors iztro 2.5.8 `STARS_INFO` brightness values. iztro stores

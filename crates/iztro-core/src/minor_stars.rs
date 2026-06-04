@@ -82,6 +82,11 @@ pub fn minor_star_metadata(star: StarName) -> &'static StarMetadata {
     crate::star::minor_star_metadata(star)
 }
 
+/// Returns factual metadata for one minor star, if it is a represented minor star.
+pub fn try_minor_star_metadata(star: StarName) -> Option<&'static StarMetadata> {
+    crate::star::try_minor_star_metadata(star)
+}
+
 /// Returns a minor star's brightness for a branch.
 ///
 /// iztro 2.5.8 only has brightness tables for 文昌, 文曲, 火星, 铃星, 擎羊,

@@ -7,6 +7,7 @@ use iztro_core::{
     StarCategory, StarKind, StarName, birth_year_star_mutagen, build_minimal_natal_chart,
     build_natal_chart_with_supported_stars, minor_star_brightness, minor_star_metadata,
     minor_star_metadata_table, represented_star_metadata_table, star_metadata,
+    try_minor_star_metadata, try_star_metadata,
 };
 use serde_json::Value;
 
@@ -83,6 +84,31 @@ fn minor_star_metadata_uses_iztro_kind_mapping() {
         assert_eq!(star_metadata(star), metadata);
         assert!(!metadata.chinese_name().is_empty());
     }
+}
+
+#[test]
+fn try_minor_star_metadata_is_some_for_minor_and_none_for_major() {
+    for star in ALL_MINOR_STARS {
+        let metadata = try_minor_star_metadata(star).expect("minor star should be represented");
+        assert_eq!(metadata, minor_star_metadata(star));
+    }
+
+    // A major star is not a represented minor star.
+    assert!(try_minor_star_metadata(StarName::ZiWei).is_none());
+}
+
+#[test]
+fn try_star_metadata_is_some_for_represented_major_and_minor_stars() {
+    // Represented minor stars resolve through the unified accessor.
+    for star in ALL_MINOR_STARS {
+        let metadata = try_star_metadata(star).expect("represented minor star");
+        assert_eq!(metadata, star_metadata(star));
+    }
+
+    // A represented major star also resolves.
+    let zi_wei = try_star_metadata(StarName::ZiWei).expect("represented major star");
+    assert_eq!(zi_wei.name(), StarName::ZiWei);
+    assert_eq!(zi_wei, star_metadata(StarName::ZiWei));
 }
 
 #[test]

@@ -28,28 +28,12 @@ pub struct LunarChartRequest {
 }
 
 impl LunarChartRequest {
-    /// Creates a typed lunar chart request.
-    #[allow(clippy::too_many_arguments)]
-    pub const fn new(
-        lunar_year: i32,
-        lunar_month: LunarMonth,
-        lunar_day: LunarDay,
-        birth_time: EarthlyBranch,
-        gender: Gender,
-        birth_year_stem: HeavenlyStem,
-        birth_year_branch: EarthlyBranch,
-        method_profile: MethodProfile,
-    ) -> Self {
-        Self {
-            lunar_year,
-            lunar_month,
-            lunar_day,
-            birth_time,
-            gender,
-            birth_year_stem,
-            birth_year_branch,
-            method_profile,
-        }
+    /// Starts building a typed lunar chart request.
+    ///
+    /// Set each required field on the returned builder, then call
+    /// [`LunarChartRequestBuilder::build`].
+    pub fn builder() -> LunarChartRequestBuilder {
+        LunarChartRequestBuilder::default()
     }
 
     /// Returns the provided lunar year.
@@ -90,6 +74,109 @@ impl LunarChartRequest {
     /// Returns the method profile metadata.
     pub const fn method_profile(&self) -> &MethodProfile {
         &self.method_profile
+    }
+}
+
+/// Builder for [`LunarChartRequest`].
+///
+/// Each field is optional until set; [`build`](LunarChartRequestBuilder::build)
+/// fails with [`ChartError::MissingRequiredInput`] if a required field is
+/// missing, keeping construction explicit and deterministic.
+#[derive(Clone, Debug, Default, Eq, PartialEq)]
+pub struct LunarChartRequestBuilder {
+    lunar_year: Option<i32>,
+    lunar_month: Option<LunarMonth>,
+    lunar_day: Option<LunarDay>,
+    birth_time: Option<EarthlyBranch>,
+    gender: Option<Gender>,
+    birth_year_stem: Option<HeavenlyStem>,
+    birth_year_branch: Option<EarthlyBranch>,
+    method_profile: Option<MethodProfile>,
+}
+
+impl LunarChartRequestBuilder {
+    /// Sets the lunar year.
+    pub fn lunar_year(mut self, value: i32) -> Self {
+        self.lunar_year = Some(value);
+        self
+    }
+
+    /// Sets the validated lunar month.
+    pub fn lunar_month(mut self, value: LunarMonth) -> Self {
+        self.lunar_month = Some(value);
+        self
+    }
+
+    /// Sets the validated lunar day.
+    pub fn lunar_day(mut self, value: LunarDay) -> Self {
+        self.lunar_day = Some(value);
+        self
+    }
+
+    /// Sets the birth time branch.
+    pub fn birth_time(mut self, value: EarthlyBranch) -> Self {
+        self.birth_time = Some(value);
+        self
+    }
+
+    /// Sets the gender marker.
+    pub fn gender(mut self, value: Gender) -> Self {
+        self.gender = Some(value);
+        self
+    }
+
+    /// Sets the explicit birth year Heavenly Stem.
+    pub fn birth_year_stem(mut self, value: HeavenlyStem) -> Self {
+        self.birth_year_stem = Some(value);
+        self
+    }
+
+    /// Sets the explicit birth year Earthly Branch.
+    pub fn birth_year_branch(mut self, value: EarthlyBranch) -> Self {
+        self.birth_year_branch = Some(value);
+        self
+    }
+
+    /// Sets the method profile metadata.
+    pub fn method_profile(mut self, value: MethodProfile) -> Self {
+        self.method_profile = Some(value);
+        self
+    }
+
+    /// Builds the immutable request, requiring every field to be set.
+    pub fn build(self) -> Result<LunarChartRequest, ChartError> {
+        Ok(LunarChartRequest {
+            lunar_year: self.lunar_year.ok_or(ChartError::MissingRequiredInput {
+                field: "lunar_year",
+            })?,
+            lunar_month: self.lunar_month.ok_or(ChartError::MissingRequiredInput {
+                field: "lunar_month",
+            })?,
+            lunar_day: self
+                .lunar_day
+                .ok_or(ChartError::MissingRequiredInput { field: "lunar_day" })?,
+            birth_time: self.birth_time.ok_or(ChartError::MissingRequiredInput {
+                field: "birth_time",
+            })?,
+            gender: self
+                .gender
+                .ok_or(ChartError::MissingRequiredInput { field: "gender" })?,
+            birth_year_stem: self
+                .birth_year_stem
+                .ok_or(ChartError::MissingRequiredInput {
+                    field: "birth_year_stem",
+                })?,
+            birth_year_branch: self
+                .birth_year_branch
+                .ok_or(ChartError::MissingRequiredInput {
+                    field: "birth_year_branch",
+                })?,
+            method_profile: self
+                .method_profile
+                .ok_or(ChartError::MissingRequiredInput {
+                    field: "method_profile",
+                })?,
+        })
     }
 }
 

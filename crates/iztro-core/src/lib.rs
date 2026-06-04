@@ -25,7 +25,7 @@ pub use chart::{
     Chart, MajorStarPlacementRef, PALACE_COUNT, Palace, StarPlacement, StarPlacementRef,
 };
 pub use error::ChartError;
-pub use facade::{LunarChartRequest, by_lunar};
+pub use facade::{LunarChartRequest, LunarChartRequestBuilder, by_lunar};
 pub use ganzhi::{EARTHLY_BRANCHES, EarthlyBranch, HEAVENLY_STEMS, HeavenlyStem};
 pub use life_body::{
     LifeBodyPalaceIndices, LunarBirthContext, LunarDay, LunarMonth,
@@ -33,11 +33,12 @@ pub use life_body::{
 };
 pub use major_stars::{
     DeterministicMajorStarPlacer, MajorStarPlacementInput, MajorStarPlacer, major_star_brightness,
-    major_star_metadata, major_star_metadata_table, tian_fu_branch, zi_wei_branch,
+    major_star_metadata, major_star_metadata_table, tian_fu_branch, try_major_star_metadata,
+    zi_wei_branch,
 };
 pub use minor_stars::{
     DeterministicMinorStarPlacer, MinorStarPlacementInput, MinorStarPlacer, minor_star_brightness,
-    minor_star_metadata, minor_star_metadata_table,
+    minor_star_metadata, minor_star_metadata_table, try_minor_star_metadata,
 };
 pub use mutagen::{Mutagen, Scope, birth_year_major_star_mutagen, birth_year_star_mutagen};
 pub use natal::{
@@ -51,5 +52,5 @@ pub use profile::{ChartAlgorithmKind, MethodProfile};
 pub use sexagenary::{NaYinElement, StemBranch, is_valid_sexagenary_pair, nayin_element};
 pub use star::{
     Brightness, StarCategory, StarKind, StarMetadata, StarName, represented_star_metadata_table,
-    star_metadata,
+    star_metadata, try_star_metadata,
 };

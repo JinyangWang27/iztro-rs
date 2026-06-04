@@ -1,10 +1,10 @@
 use std::collections::{HashMap, HashSet};
 
 use iztro_core::{
-    BirthContext, Brightness, CalendarDate, CalendarKind, Chart, EarthlyBranch, FiveElementBureau,
-    Gender, HeavenlyStem, LunarChartRequest, LunarDay, LunarMonth, MethodProfile, Mutagen,
-    NatalChartWithSupportedStarsInput, PALACE_COUNT, StarCategory, StarName,
-    build_natal_chart_with_supported_stars, by_lunar,
+    BirthContext, Brightness, CalendarDate, CalendarKind, Chart, ChartError, EarthlyBranch,
+    FiveElementBureau, Gender, HeavenlyStem, LunarChartRequest, LunarDay, LunarMonth,
+    MethodProfile, Mutagen, NatalChartWithSupportedStarsInput, PALACE_COUNT, StarCategory,
+    StarName, build_natal_chart_with_supported_stars, by_lunar,
 };
 use serde_json::Value;
 
@@ -121,18 +121,19 @@ fn by_lunar_preserves_method_profile() {
 }
 
 #[test]
-fn lunar_chart_request_accessors_return_inputs() {
+fn lunar_chart_request_builder_builds_and_accessors_return_inputs() {
     let method_profile = MethodProfile::placeholder("accessor_profile");
-    let request = LunarChartRequest::new(
-        1990,
-        LunarMonth::new(4).expect("month 4 should be valid"),
-        LunarDay::new(23).expect("day 23 should be valid"),
-        EarthlyBranch::Chen,
-        Gender::Female,
-        HeavenlyStem::Geng,
-        EarthlyBranch::Wu,
-        method_profile.clone(),
-    );
+    let request = LunarChartRequest::builder()
+        .lunar_year(1990)
+        .lunar_month(LunarMonth::new(4).expect("month 4 should be valid"))
+        .lunar_day(LunarDay::new(23).expect("day 23 should be valid"))
+        .birth_time(EarthlyBranch::Chen)
+        .gender(Gender::Female)
+        .birth_year_stem(HeavenlyStem::Geng)
+        .birth_year_branch(EarthlyBranch::Wu)
+        .method_profile(method_profile.clone())
+        .build()
+        .expect("request should build");
 
     assert_eq!(request.lunar_year(), 1990);
     assert_eq!(request.lunar_month().value(), 4);
@@ -144,17 +145,132 @@ fn lunar_chart_request_accessors_return_inputs() {
     assert_eq!(request.method_profile(), &method_profile);
 }
 
+#[test]
+fn lunar_chart_request_builder_reports_each_missing_field() {
+    // Each builder below omits exactly one required field, so `build` must fail
+    // naming that field. A complete builder is exercised by other tests.
+    assert_eq!(
+        LunarChartRequest::builder()
+            .lunar_month(LunarMonth::new(4).expect("month 4 should be valid"))
+            .lunar_day(LunarDay::new(23).expect("day 23 should be valid"))
+            .birth_time(EarthlyBranch::Chen)
+            .gender(Gender::Female)
+            .birth_year_stem(HeavenlyStem::Geng)
+            .birth_year_branch(EarthlyBranch::Wu)
+            .method_profile(MethodProfile::placeholder("missing_field_profile"))
+            .build(),
+        Err(ChartError::MissingRequiredInput {
+            field: "lunar_year"
+        })
+    );
+    assert_eq!(
+        LunarChartRequest::builder()
+            .lunar_year(1990)
+            .lunar_day(LunarDay::new(23).expect("day 23 should be valid"))
+            .birth_time(EarthlyBranch::Chen)
+            .gender(Gender::Female)
+            .birth_year_stem(HeavenlyStem::Geng)
+            .birth_year_branch(EarthlyBranch::Wu)
+            .method_profile(MethodProfile::placeholder("missing_field_profile"))
+            .build(),
+        Err(ChartError::MissingRequiredInput {
+            field: "lunar_month"
+        })
+    );
+    assert_eq!(
+        LunarChartRequest::builder()
+            .lunar_year(1990)
+            .lunar_month(LunarMonth::new(4).expect("month 4 should be valid"))
+            .birth_time(EarthlyBranch::Chen)
+            .gender(Gender::Female)
+            .birth_year_stem(HeavenlyStem::Geng)
+            .birth_year_branch(EarthlyBranch::Wu)
+            .method_profile(MethodProfile::placeholder("missing_field_profile"))
+            .build(),
+        Err(ChartError::MissingRequiredInput { field: "lunar_day" })
+    );
+    assert_eq!(
+        LunarChartRequest::builder()
+            .lunar_year(1990)
+            .lunar_month(LunarMonth::new(4).expect("month 4 should be valid"))
+            .lunar_day(LunarDay::new(23).expect("day 23 should be valid"))
+            .gender(Gender::Female)
+            .birth_year_stem(HeavenlyStem::Geng)
+            .birth_year_branch(EarthlyBranch::Wu)
+            .method_profile(MethodProfile::placeholder("missing_field_profile"))
+            .build(),
+        Err(ChartError::MissingRequiredInput {
+            field: "birth_time"
+        })
+    );
+    assert_eq!(
+        LunarChartRequest::builder()
+            .lunar_year(1990)
+            .lunar_month(LunarMonth::new(4).expect("month 4 should be valid"))
+            .lunar_day(LunarDay::new(23).expect("day 23 should be valid"))
+            .birth_time(EarthlyBranch::Chen)
+            .birth_year_stem(HeavenlyStem::Geng)
+            .birth_year_branch(EarthlyBranch::Wu)
+            .method_profile(MethodProfile::placeholder("missing_field_profile"))
+            .build(),
+        Err(ChartError::MissingRequiredInput { field: "gender" })
+    );
+    assert_eq!(
+        LunarChartRequest::builder()
+            .lunar_year(1990)
+            .lunar_month(LunarMonth::new(4).expect("month 4 should be valid"))
+            .lunar_day(LunarDay::new(23).expect("day 23 should be valid"))
+            .birth_time(EarthlyBranch::Chen)
+            .gender(Gender::Female)
+            .birth_year_branch(EarthlyBranch::Wu)
+            .method_profile(MethodProfile::placeholder("missing_field_profile"))
+            .build(),
+        Err(ChartError::MissingRequiredInput {
+            field: "birth_year_stem"
+        })
+    );
+    assert_eq!(
+        LunarChartRequest::builder()
+            .lunar_year(1990)
+            .lunar_month(LunarMonth::new(4).expect("month 4 should be valid"))
+            .lunar_day(LunarDay::new(23).expect("day 23 should be valid"))
+            .birth_time(EarthlyBranch::Chen)
+            .gender(Gender::Female)
+            .birth_year_stem(HeavenlyStem::Geng)
+            .method_profile(MethodProfile::placeholder("missing_field_profile"))
+            .build(),
+        Err(ChartError::MissingRequiredInput {
+            field: "birth_year_branch"
+        })
+    );
+    assert_eq!(
+        LunarChartRequest::builder()
+            .lunar_year(1990)
+            .lunar_month(LunarMonth::new(4).expect("month 4 should be valid"))
+            .lunar_day(LunarDay::new(23).expect("day 23 should be valid"))
+            .birth_time(EarthlyBranch::Chen)
+            .gender(Gender::Female)
+            .birth_year_stem(HeavenlyStem::Geng)
+            .birth_year_branch(EarthlyBranch::Wu)
+            .build(),
+        Err(ChartError::MissingRequiredInput {
+            field: "method_profile"
+        })
+    );
+}
+
 fn fixture_request() -> LunarChartRequest {
-    LunarChartRequest::new(
-        1990,
-        LunarMonth::new(4).expect("month 4 should be valid"),
-        LunarDay::new(23).expect("day 23 should be valid"),
-        EarthlyBranch::Chen,
-        Gender::Female,
-        HeavenlyStem::Geng,
-        EarthlyBranch::Wu,
-        MethodProfile::placeholder("iztro_by_lunar_fixture"),
-    )
+    LunarChartRequest::builder()
+        .lunar_year(1990)
+        .lunar_month(LunarMonth::new(4).expect("month 4 should be valid"))
+        .lunar_day(LunarDay::new(23).expect("day 23 should be valid"))
+        .birth_time(EarthlyBranch::Chen)
+        .gender(Gender::Female)
+        .birth_year_stem(HeavenlyStem::Geng)
+        .birth_year_branch(EarthlyBranch::Wu)
+        .method_profile(MethodProfile::placeholder("iztro_by_lunar_fixture"))
+        .build()
+        .expect("fixture request should build")
 }
 
 fn request_from_fixture(fixture: &Value) -> LunarChartRequest {
@@ -167,22 +283,31 @@ fn request_from_fixture(fixture: &Value) -> LunarChartRequest {
         .and_then(|year| year.parse::<i32>().ok())
         .expect("fixture solar_date should include year");
 
-    LunarChartRequest::new(
-        solar_year,
-        LunarMonth::new(input["lunar_month"].as_u64().expect("lunar_month") as u8)
-            .expect("fixture lunar month should be valid"),
-        LunarDay::new(input["lunar_day"].as_u64().expect("lunar_day") as u8)
-            .expect("fixture lunar day should be valid"),
-        parse_branch_key(input["birth_time"].as_str().expect("birth_time")),
-        parse_gender_key(input["gender"].as_str().expect("gender")),
-        parse_stem_key(input["birth_year_stem"].as_str().expect("birth_year_stem")),
-        parse_branch_key(
+    LunarChartRequest::builder()
+        .lunar_year(solar_year)
+        .lunar_month(
+            LunarMonth::new(input["lunar_month"].as_u64().expect("lunar_month") as u8)
+                .expect("fixture lunar month should be valid"),
+        )
+        .lunar_day(
+            LunarDay::new(input["lunar_day"].as_u64().expect("lunar_day") as u8)
+                .expect("fixture lunar day should be valid"),
+        )
+        .birth_time(parse_branch_key(
+            input["birth_time"].as_str().expect("birth_time"),
+        ))
+        .gender(parse_gender_key(input["gender"].as_str().expect("gender")))
+        .birth_year_stem(parse_stem_key(
+            input["birth_year_stem"].as_str().expect("birth_year_stem"),
+        ))
+        .birth_year_branch(parse_branch_key(
             input["birth_year_branch"]
                 .as_str()
                 .expect("birth_year_branch"),
-        ),
-        MethodProfile::placeholder("iztro_by_lunar_fixture"),
-    )
+        ))
+        .method_profile(MethodProfile::placeholder("iztro_by_lunar_fixture"))
+        .build()
+        .expect("fixture request should build")
 }
 
 fn collect_major_star_facts(

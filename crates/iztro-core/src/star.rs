@@ -243,9 +243,9 @@ pub const fn represented_star_metadata_table() -> &'static [StarMetadata; 28] {
     &REPRESENTED_STAR_METADATA
 }
 
-/// Returns factual metadata for one represented major star.
-pub fn major_star_metadata(star: StarName) -> &'static StarMetadata {
-    &MAJOR_STAR_METADATA[match star {
+/// Returns factual metadata for one represented major star, if represented.
+pub fn try_major_star_metadata(star: StarName) -> Option<&'static StarMetadata> {
+    let index = match star {
         StarName::ZiWei => 0,
         StarName::TianJi => 1,
         StarName::TaiYang => 2,
@@ -260,13 +260,15 @@ pub fn major_star_metadata(star: StarName) -> &'static StarMetadata {
         StarName::TianLiang => 11,
         StarName::QiSha => 12,
         StarName::PoJun => 13,
-        _ => panic!("star is not a represented major star"),
-    }]
+        _ => return None,
+    };
+
+    Some(&MAJOR_STAR_METADATA[index])
 }
 
-/// Returns factual metadata for one represented minor star.
-pub fn minor_star_metadata(star: StarName) -> &'static StarMetadata {
-    &MINOR_STAR_METADATA[match star {
+/// Returns factual metadata for one represented minor star, if represented.
+pub fn try_minor_star_metadata(star: StarName) -> Option<&'static StarMetadata> {
+    let index = match star {
         StarName::ZuoFu => 0,
         StarName::YouBi => 1,
         StarName::WenChang => 2,
@@ -281,42 +283,30 @@ pub fn minor_star_metadata(star: StarName) -> &'static StarMetadata {
         StarName::LingXing => 11,
         StarName::DiKong => 12,
         StarName::DiJie => 13,
-        _ => panic!("star is not a represented minor star"),
-    }]
+        _ => return None,
+    };
+
+    Some(&MINOR_STAR_METADATA[index])
+}
+
+/// Returns factual metadata for one represented star, if represented.
+pub fn try_star_metadata(star: StarName) -> Option<&'static StarMetadata> {
+    try_major_star_metadata(star).or_else(|| try_minor_star_metadata(star))
+}
+
+/// Returns factual metadata for one represented major star.
+pub fn major_star_metadata(star: StarName) -> &'static StarMetadata {
+    try_major_star_metadata(star).expect("star is not a represented major star")
+}
+
+/// Returns factual metadata for one represented minor star.
+pub fn minor_star_metadata(star: StarName) -> &'static StarMetadata {
+    try_minor_star_metadata(star).expect("star is not a represented minor star")
 }
 
 /// Returns factual metadata for one represented star.
 pub fn star_metadata(star: StarName) -> &'static StarMetadata {
-    match star {
-        StarName::ZiWei
-        | StarName::TianJi
-        | StarName::TaiYang
-        | StarName::WuQu
-        | StarName::TianTong
-        | StarName::LianZhen
-        | StarName::TianFu
-        | StarName::TaiYin
-        | StarName::TanLang
-        | StarName::JuMen
-        | StarName::TianXiang
-        | StarName::TianLiang
-        | StarName::QiSha
-        | StarName::PoJun => major_star_metadata(star),
-        StarName::ZuoFu
-        | StarName::YouBi
-        | StarName::WenChang
-        | StarName::WenQu
-        | StarName::TianKui
-        | StarName::TianYue
-        | StarName::LuCun
-        | StarName::TianMa
-        | StarName::QingYang
-        | StarName::TuoLuo
-        | StarName::HuoXing
-        | StarName::LingXing
-        | StarName::DiKong
-        | StarName::DiJie => minor_star_metadata(star),
-    }
+    try_star_metadata(star).expect("star is not represented")
 }
 
 /// A star's brightness or strength state.
