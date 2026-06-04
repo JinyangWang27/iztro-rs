@@ -10,6 +10,7 @@ use crate::{
     life_body::LunarDay,
     life_body::{LunarBirthContext, LunarMonth, calculate_life_body_palace_indices},
     major_stars::{DeterministicMajorStarPlacer, MajorStarPlacementInput, MajorStarPlacer},
+    minor_stars::{DeterministicMinorStarPlacer, MinorStarPlacementInput, MinorStarPlacer},
     palace::PalaceName,
     palace_stems::palace_stem_for_branch,
     profile::MethodProfile,
@@ -126,6 +127,72 @@ impl NatalChartWithMajorStarsInput {
     }
 }
 
+/// Inputs required by the natal chart builder with all currently supported stars.
+///
+/// Solar-to-lunar conversion is not implemented here. Callers must provide the
+/// already-known non-leap lunar month and lunar day. Birth year stem and branch
+/// derivation are likewise deferred, so both are supplied explicitly.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct NatalChartWithSupportedStarsInput {
+    birth_context: BirthContext,
+    method_profile: MethodProfile,
+    lunar_month: LunarMonth,
+    lunar_day: LunarDay,
+    birth_year_stem: HeavenlyStem,
+    birth_year_branch: EarthlyBranch,
+}
+
+impl NatalChartWithSupportedStarsInput {
+    /// Creates input for the natal chart builder with supported stars.
+    pub const fn new(
+        birth_context: BirthContext,
+        method_profile: MethodProfile,
+        lunar_month: LunarMonth,
+        lunar_day: LunarDay,
+        birth_year_stem: HeavenlyStem,
+        birth_year_branch: EarthlyBranch,
+    ) -> Self {
+        Self {
+            birth_context,
+            method_profile,
+            lunar_month,
+            lunar_day,
+            birth_year_stem,
+            birth_year_branch,
+        }
+    }
+
+    /// Returns the typed birth context.
+    pub const fn birth_context(&self) -> &BirthContext {
+        &self.birth_context
+    }
+
+    /// Returns the method profile metadata.
+    pub const fn method_profile(&self) -> &MethodProfile {
+        &self.method_profile
+    }
+
+    /// Returns the validated lunar month.
+    pub const fn lunar_month(&self) -> LunarMonth {
+        self.lunar_month
+    }
+
+    /// Returns the validated lunar day.
+    pub const fn lunar_day(&self) -> LunarDay {
+        self.lunar_day
+    }
+
+    /// Returns the birth year Heavenly Stem.
+    pub const fn birth_year_stem(&self) -> HeavenlyStem {
+        self.birth_year_stem
+    }
+
+    /// Returns the birth year Earthly Branch.
+    pub const fn birth_year_branch(&self) -> EarthlyBranch {
+        self.birth_year_branch
+    }
+}
+
 /// Builds a minimal natal chart with calculated Life Palace layout.
 ///
 /// The builder calculates the Life and Body palaces, assigns each palace its
@@ -197,6 +264,44 @@ pub fn build_natal_chart_with_major_stars(
             input.lunar_day(),
             five_element_bureau,
             input.birth_year_stem(),
+        ),
+    )
+}
+
+/// Builds a natal chart with all currently supported natal stars placed.
+///
+/// This public builder preserves the minimal natal chart facts, places the
+/// natal-scope fourteen major stars, then places the supported fourteen minor
+/// stars. Adjective stars, temporal scopes beyond natal, feature extraction,
+/// rule-engine output, and narrative output remain out of scope.
+pub fn build_natal_chart_with_supported_stars(
+    input: NatalChartWithSupportedStarsInput,
+) -> Result<Chart, ChartError> {
+    let chart = build_minimal_natal_chart(NatalChartInput::new(
+        input.birth_context().clone(),
+        input.method_profile().clone(),
+        input.lunar_month(),
+        input.birth_year_stem(),
+    ))?;
+    let five_element_bureau = chart
+        .five_element_bureau()
+        .expect("minimal natal chart should derive a five-element bureau");
+    let with_major_stars = DeterministicMajorStarPlacer.place_major_stars(
+        chart,
+        MajorStarPlacementInput::new(
+            input.lunar_day(),
+            five_element_bureau,
+            input.birth_year_stem(),
+        ),
+    )?;
+
+    DeterministicMinorStarPlacer.place_minor_stars(
+        with_major_stars,
+        MinorStarPlacementInput::new(
+            input.lunar_month(),
+            input.birth_context().birth_time(),
+            input.birth_year_stem(),
+            input.birth_year_branch(),
         ),
     )
 }

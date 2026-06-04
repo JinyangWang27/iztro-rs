@@ -32,6 +32,12 @@ pub enum ChartError {
         /// Earthly Branch of the rejected pair.
         branch: EarthlyBranch,
     },
+    /// A required builder input was not provided before `build`.
+    #[error("missing required input: {field}")]
+    MissingRequiredInput {
+        /// Name of the missing required field.
+        field: &'static str,
+    },
     /// Placeholder error used until chart-generation validation exists.
     #[error("chart generation is not implemented")]
     NotImplemented,

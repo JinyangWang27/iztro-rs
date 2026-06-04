@@ -1,0 +1,343 @@
+{
+  "metadata": {
+    "source": "iztro",
+    "target_package": "npm:iztro",
+    "target_version": "2.5.8",
+    "generated_at": "2026-06-03T00:00:00Z",
+    "supported_fields_only": true,
+    "notes": "This fixture compares natal fourteen-minor-star placements, kind, brightness when iztro 2.5.8 provides a brightness table, and supported birth-year mutagens for represented minor targets. Calendar conversion, leap-month behavior, rat-hour variants, temporal scopes, adjective/helper/flower stars, feature extraction, rule-engine output, and narrative output are excluded.",
+    "generation_command": "npm install iztro@2.5.8 --prefix /tmp/iztro-fixture-minor && cd /tmp/iztro-fixture-minor && node --input-type=module -e \"import { astro } from 'iztro'; const a = astro.byLunar('1991-8-9', 11, '女', false, true, 'zh-CN'); console.log(JSON.stringify(a.palaces.map(p => ({ earthlyBranch: p.earthlyBranch, minorStars: p.minorStars })), null, 2));\""
+  },
+  "input": {
+    "lunar_date": "1991-8-9",
+    "lunar_year": 1991,
+    "lunar_month": 8,
+    "lunar_day": 9,
+    "birth_time": "hai",
+    "iztro_time_index": 11,
+    "gender": "female",
+    "iztro_gender": "女",
+    "birth_year_stem": "xin",
+    "birth_year_branch": "wei",
+    "is_leap_month": false,
+    "fix_leap": true,
+    "language": "zh-CN"
+  },
+  "iztro_output": {
+    "solarDate": "1991-9-16",
+    "lunarDate": "一九九一年八月初九",
+    "fiveElementsClass": "木三局",
+    "palaces": [
+      {
+        "earthlyBranch": "寅",
+        "minorStars": [
+          {
+            "name": "天钺",
+            "type": "soft",
+            "scope": "origin",
+            "brightness": ""
+          }
+        ]
+      },
+      {
+        "earthlyBranch": "卯",
+        "minorStars": [
+          {
+            "name": "右弼",
+            "type": "soft",
+            "scope": "origin",
+            "brightness": "",
+            "mutagen": ""
+          },
+          {
+            "name": "文曲",
+            "type": "soft",
+            "scope": "origin",
+            "brightness": "旺",
+            "mutagen": "科"
+          }
+        ]
+      },
+      {
+        "earthlyBranch": "辰",
+        "minorStars": []
+      },
+      {
+        "earthlyBranch": "巳",
+        "minorStars": [
+          {
+            "name": "天马",
+            "type": "tianma",
+            "scope": "origin",
+            "brightness": ""
+          }
+        ]
+      },
+      {
+        "earthlyBranch": "午",
+        "minorStars": [
+          {
+            "name": "天魁",
+            "type": "soft",
+            "scope": "origin",
+            "brightness": ""
+          }
+        ]
+      },
+      {
+        "earthlyBranch": "未",
+        "minorStars": []
+      },
+      {
+        "earthlyBranch": "申",
+        "minorStars": [
+          {
+            "name": "火星",
+            "type": "tough",
+            "scope": "origin",
+            "brightness": "陷"
+          },
+          {
+            "name": "陀罗",
+            "type": "tough",
+            "scope": "origin",
+            "brightness": "陷"
+          }
+        ]
+      },
+      {
+        "earthlyBranch": "酉",
+        "minorStars": [
+          {
+            "name": "禄存",
+            "type": "lucun",
+            "scope": "origin",
+            "brightness": ""
+          },
+          {
+            "name": "铃星",
+            "type": "tough",
+            "scope": "origin",
+            "brightness": "得"
+          }
+        ]
+      },
+      {
+        "earthlyBranch": "戌",
+        "minorStars": [
+          {
+            "name": "地劫",
+            "type": "tough",
+            "scope": "origin",
+            "brightness": ""
+          },
+          {
+            "name": "擎羊",
+            "type": "tough",
+            "scope": "origin",
+            "brightness": "庙"
+          }
+        ]
+      },
+      {
+        "earthlyBranch": "亥",
+        "minorStars": [
+          {
+            "name": "左辅",
+            "type": "soft",
+            "scope": "origin",
+            "brightness": "",
+            "mutagen": ""
+          },
+          {
+            "name": "文昌",
+            "type": "soft",
+            "scope": "origin",
+            "brightness": "利",
+            "mutagen": "忌"
+          }
+        ]
+      },
+      {
+        "earthlyBranch": "子",
+        "minorStars": [
+          {
+            "name": "地空",
+            "type": "tough",
+            "scope": "origin",
+            "brightness": ""
+          }
+        ]
+      },
+      {
+        "earthlyBranch": "丑",
+        "minorStars": []
+      }
+    ]
+  },
+  "supported_fields": {
+    "birth_time": "hai",
+    "gender": "female",
+    "minor_stars": [
+      {
+        "branch": "yin",
+        "stars": [
+          {
+            "name": "tian_yue",
+            "kind": "soft",
+            "brightness": "unknown",
+            "mutagen": null
+          }
+        ]
+      },
+      {
+        "branch": "mao",
+        "stars": [
+          {
+            "name": "you_bi",
+            "kind": "soft",
+            "brightness": "unknown",
+            "mutagen": null
+          },
+          {
+            "name": "wen_qu",
+            "kind": "soft",
+            "brightness": "prosperous",
+            "mutagen": "ke"
+          }
+        ]
+      },
+      {
+        "branch": "chen",
+        "stars": []
+      },
+      {
+        "branch": "si",
+        "stars": [
+          {
+            "name": "tian_ma",
+            "kind": "tianma",
+            "brightness": "unknown",
+            "mutagen": null
+          }
+        ]
+      },
+      {
+        "branch": "wu",
+        "stars": [
+          {
+            "name": "tian_kui",
+            "kind": "soft",
+            "brightness": "unknown",
+            "mutagen": null
+          }
+        ]
+      },
+      {
+        "branch": "wei",
+        "stars": []
+      },
+      {
+        "branch": "shen",
+        "stars": [
+          {
+            "name": "huo_xing",
+            "kind": "tough",
+            "brightness": "trapped",
+            "mutagen": null
+          },
+          {
+            "name": "tuo_luo",
+            "kind": "tough",
+            "brightness": "trapped",
+            "mutagen": null
+          }
+        ]
+      },
+      {
+        "branch": "you",
+        "stars": [
+          {
+            "name": "lu_cun",
+            "kind": "lucun",
+            "brightness": "unknown",
+            "mutagen": null
+          },
+          {
+            "name": "ling_xing",
+            "kind": "tough",
+            "brightness": "advantage",
+            "mutagen": null
+          }
+        ]
+      },
+      {
+        "branch": "xu",
+        "stars": [
+          {
+            "name": "di_jie",
+            "kind": "tough",
+            "brightness": "unknown",
+            "mutagen": null
+          },
+          {
+            "name": "qing_yang",
+            "kind": "tough",
+            "brightness": "temple",
+            "mutagen": null
+          }
+        ]
+      },
+      {
+        "branch": "hai",
+        "stars": [
+          {
+            "name": "zuo_fu",
+            "kind": "soft",
+            "brightness": "unknown",
+            "mutagen": null
+          },
+          {
+            "name": "wen_chang",
+            "kind": "soft",
+            "brightness": "favourable",
+            "mutagen": "ji"
+          }
+        ]
+      },
+      {
+        "branch": "zi",
+        "stars": [
+          {
+            "name": "di_kong",
+            "kind": "tough",
+            "brightness": "unknown",
+            "mutagen": null
+          }
+        ]
+      },
+      {
+        "branch": "chou",
+        "stars": []
+      }
+    ]
+  },
+  "excluded_fields": [
+    "calendar_conversion",
+    "leap_month_behavior",
+    "rat_hour_variants",
+    "major_stars",
+    "adjective_stars",
+    "flower_stars",
+    "helper_stars",
+    "non_represented_stars",
+    "feature_extraction",
+    "rule_engine_output",
+    "reading_or_narrative_output",
+    "solar_to_lunar_conversion",
+    "temporal_star_scopes",
+    "cli_bindings",
+    "python_bindings",
+    "wasm_bindings"
+  ]
+}

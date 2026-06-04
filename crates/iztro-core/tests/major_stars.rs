@@ -5,8 +5,9 @@ use iztro_core::{
     FiveElementBureau, Gender, HeavenlyStem, LunarDay, LunarMonth, MajorStarPlacementInput,
     MajorStarPlacer, MethodProfile, Mutagen, NatalChartInput, NatalChartWithMajorStarsInput,
     PALACE_COUNT, Scope, StarCategory, StarKind, StarName, birth_year_major_star_mutagen,
-    build_minimal_natal_chart, build_natal_chart_with_major_stars, major_star_brightness,
-    major_star_metadata, major_star_metadata_table, tian_fu_branch, zi_wei_branch,
+    birth_year_star_mutagen, build_minimal_natal_chart, build_natal_chart_with_major_stars,
+    major_star_brightness, major_star_metadata, major_star_metadata_table, tian_fu_branch,
+    try_major_star_metadata, zi_wei_branch,
 };
 use serde_json::Value;
 
@@ -269,6 +270,11 @@ fn birth_year_major_star_mutagen_matches_supported_iztro_table() {
                 expected.get(&(stem, star)).copied(),
                 "unexpected mutagen for {stem:?} {star:?}"
             );
+            assert_eq!(
+                birth_year_star_mutagen(stem, star),
+                birth_year_major_star_mutagen(stem, star),
+                "general mutagen table should preserve major behavior for {stem:?} {star:?}"
+            );
         }
     }
 }
@@ -295,6 +301,17 @@ fn major_star_metadata_uses_stable_keys_and_major_category() {
         assert_eq!(metadata.category(), StarCategory::Major);
         assert!(!metadata.chinese_name().is_empty());
     }
+}
+
+#[test]
+fn try_major_star_metadata_is_some_for_major_and_none_for_minor() {
+    for star in ALL_MAJOR_STARS {
+        let metadata = try_major_star_metadata(star).expect("major star should be represented");
+        assert_eq!(metadata, major_star_metadata(star));
+    }
+
+    // A minor star is not a represented major star.
+    assert!(try_major_star_metadata(StarName::WenChang).is_none());
 }
 
 #[test]
@@ -568,6 +585,7 @@ fn star_key(star: StarName) -> &'static str {
         StarName::TianLiang => "tian_liang",
         StarName::QiSha => "qi_sha",
         StarName::PoJun => "po_jun",
+        other => panic!("unsupported major star key: {other:?}"),
     }
 }
 

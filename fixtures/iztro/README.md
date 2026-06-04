@@ -32,7 +32,9 @@ Fixtures compare **only** fields currently implemented by `iztro-rs`:
 - palace branches;
 - palace names;
 - palace heavenly stems;
-- the five-element bureau (五行局).
+- the five-element bureau (五行局);
+- fourteen major-star facts in the major-star fixture;
+- fourteen supported minor-star facts in the minor-star fixtures.
 
 `metadata.supported_fields_only` is `true`.
 
@@ -41,13 +43,13 @@ Fixtures compare **only** fields currently implemented by `iztro-rs`:
 `iztro-core::by_lunar` is the first iztro-compatible public facade entry point.
 It mirrors iztro's `astro.byLunar(...)` conceptually through a typed
 `LunarChartRequest`, not JavaScript-style positional arguments. It records the
-provided lunar date and delegates to the existing natal chart with major stars
-builder.
+provided lunar date and delegates to the existing natal chart with supported
+stars builder.
 
 The facade does not perform solar-to-lunar conversion, leap-month behavior,
 rat-hour variants, or year-to-ganzhi derivation. The fixture input therefore
-continues to provide `lunar_month`, `lunar_day`, and `birth_year_stem`
-explicitly.
+continues to provide `lunar_month`, `lunar_day`, `birth_year_stem`, and where
+needed `birth_year_branch` explicitly.
 
 ### Palace heavenly stems
 
@@ -71,6 +73,12 @@ has the NaYin element Fire, and Fire maps to the Fire 6 bureau.
 conversion (and full solar/lunar calendar conversion) is deferred. For 1990 the
 ganzhi year is `庚午`, so the year stem is `geng`. Once year-stem derivation
 from a Gregorian date exists, this field can be derived instead of provided.
+
+### Explicit birth year branch
+
+`input.birth_year_branch` is supplied explicitly in supported-star fixtures
+because Gregorian-to-ganzhi year conversion is deferred. Minor-star placement
+uses the year branch for 天马 and 火星/铃星.
 
 ### Explicitly excluded fields
 
@@ -144,7 +152,49 @@ chart.
 - yearly scopes
 - other temporal scopes
 
+## Minor-star fixtures
+
+The minor-star fixtures cover the fourteen supported natal minor stars (辅星):
+
+- `minor_stars_1990_05_17_chen_female.json`
+- `minor_stars_1988_03_14_zi_male.json`
+- `minor_stars_1991_08_09_hai_female.json`
+
+They are generated from `npm:iztro@2.5.8` in `/tmp` and capture compact raw
+`palaces[].minorStars` output alongside normalized
+`supported_fields.minor_stars`.
+
+The normalized star fact objects include:
+
+- `name`: the snake_case `StarName` key, for example `zuo_fu`,
+  `wen_chang`, or `tian_ma`;
+- `kind`: the iztro-compatible fine kind (`soft`, `tough`, `lucun`, or
+  `tianma`);
+- `brightness`: the normalized `Brightness` key; stars without upstream
+  brightness tables use `unknown`;
+- `mutagen`: the normalized birth-year mutagen key or `null`.
+
+The compatibility tests assert placement, kind, brightness, and represented
+minor birth-year mutagens. The implemented minor-star inputs are explicit
+`lunar_month`, `birth_time`, `birth_year_stem`, and `birth_year_branch`. Gender
+and five-element bureau are not used by iztro minor-star placement.
+
+### Explicitly excluded fields
+
+- adjective stars
+- flower/helper/adjective subsets
+- feature extraction
+- rule-engine output
+- reading or narrative output
+- solar-to-lunar conversion
+- leap-month behavior
+- rat-hour variants
+- temporal star scopes
+- CLI bindings
+- Python bindings
+- WebAssembly bindings
+
 ## Scope
 
 The fixtures cover **minimal natal compatibility** and deterministic
-**fourteen-major-star facts** only.
+**fourteen-major-star** plus **fourteen-supported-minor-star facts** only.

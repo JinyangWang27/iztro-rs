@@ -38,8 +38,8 @@ mirrors iztro's `astro.byLunar(...)` conceptually, but uses the typed
 arguments.
 
 The facade records the provided lunar date as chart input facts, delegates to
-the existing major-star natal chart builder, and does not perform
-solar-to-lunar conversion. The birth year stem remains explicit because
+the supported-star natal chart builder, and does not perform solar-to-lunar
+conversion. The birth year stem and branch remain explicit because
 Gregorian/lunar year-to-ganzhi derivation is deferred.
 
 `by_solar`, leap-month handling, rat-hour variants, and full calendar behavior
@@ -51,6 +51,9 @@ The fixtures are:
 
 - `fixtures/iztro/minimal_natal_1990_05_17_chen_female.json`
 - `fixtures/iztro/major_stars_1990_05_17_chen_female.json`
+- `fixtures/iztro/minor_stars_1990_05_17_chen_female.json`
+- `fixtures/iztro/minor_stars_1988_03_14_zi_male.json`
+- `fixtures/iztro/minor_stars_1991_08_09_hai_female.json`
 
 The minimal-natal fixture compares only fields currently implemented by
 `iztro-rs`:
@@ -112,6 +115,46 @@ the fourteen major stars and attach supported factual star state. This fixture
 still does **not** compare feature extraction, rule-engine output, narrative
 output, calendar conversion, minor stars, adjective stars, non-major stars,
 non-major mutagens, decadal scopes, yearly scopes, or other temporal scopes.
+
+### Fourteen supported minor stars
+
+The three `minor_stars_*` fixtures compare represented facts for the fourteen
+supported natal minor stars (辅星) against iztro's per-palace `minorStars`:
+
+- the minor-star name in each palace;
+- the palace branch each star occupies;
+- iztro-compatible star kind (`soft`, `tough`, `lucun`, or `tianma`);
+- brightness when iztro 2.5.8 has a brightness table for that star;
+- supported birth-year mutagens for represented minor targets.
+
+Placement reproduces iztro 2.5.8 Yin-index formulas:
+
+- 左辅/右弼 from the explicit lunar month;
+- 文昌/文曲 and 地空/地劫 from the birth time branch;
+- 天魁/天钺 and 禄存/擎羊/陀罗 from the birth year stem;
+- 天马 and 火星/铃星 from the birth year branch, with 火星/铃星 also using
+  the birth time branch.
+
+Every placed supported minor star has derived `StarCategory::Minor` and natal
+scope. `StarKind` preserves the iztro-compatible fine kind: `soft`, `tough`,
+`lucun`, or `tianma`. iztro has brightness tables for 文昌, 文曲, 火星, 铃星,
+擎羊, and 陀罗; the other supported minor stars use `Brightness::Unknown`.
+Birth-year mutagens now use a general represented-star table and include minor
+targets where iztro has them: 丙文昌科, 戊右弼科, 己文曲忌, 辛文曲科/文昌忌,
+and 壬左辅科. The previous major-only mutagen API remains as a wrapper that
+returns values only for represented major stars.
+
+The public `build_natal_chart_with_supported_stars` builder path first builds
+the minimal natal chart, then places the fourteen major stars, then places the
+fourteen supported minor stars. The `by_lunar` facade delegates to this
+supported-star builder and requires explicit `birth_year_stem` and
+`birth_year_branch`.
+
+These fixtures still do **not** compare adjective stars,
+flower/helper/adjective subsets, feature extraction, rule-engine output,
+reading or narrative output, solar-to-lunar conversion, leap-month behavior,
+rat-hour variants, temporal star scopes, CLI bindings, Python bindings, or
+WebAssembly bindings.
 
 ## Golden tests
 
