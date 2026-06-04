@@ -3,22 +3,23 @@ use std::collections::{HashMap, HashSet};
 use iztro_core::{
     AdjectiveStarPlacementInput, AdjectiveStarPlacer, BirthContext, Brightness, CalendarDate,
     Chart, ChartError, DeterministicAdjectiveStarPlacer, DeterministicMinorStarPlacer,
-    EARTHLY_BRANCHES, EarthlyBranch, Gender, HeavenlyStem, LunarChartRequest, LunarDay,
-    LunarMonth, MethodProfile, MinorStarPlacementInput, MinorStarPlacer,
-    NatalChartWithMajorStarsInput, NatalChartWithSupportedStarsInput, Scope, StarCategory,
-    StarKind, StarName, adjective_star_metadata, adjective_star_metadata_table,
-    build_natal_chart_with_major_stars, build_natal_chart_with_supported_stars, by_lunar,
-    represented_star_metadata_table, star_metadata, try_adjective_star_metadata,
-    try_star_metadata,
+    EARTHLY_BRANCHES, EarthlyBranch, Gender, HeavenlyStem, LunarChartRequest, LunarDay, LunarMonth,
+    MethodProfile, MinorStarPlacementInput, MinorStarPlacer, NatalChartWithMajorStarsInput,
+    NatalChartWithSupportedStarsInput, Scope, StarCategory, StarKind, StarName,
+    adjective_star_metadata, adjective_star_metadata_table, build_natal_chart_with_major_stars,
+    build_natal_chart_with_supported_stars, by_lunar, represented_star_metadata_table,
+    star_metadata, try_adjective_star_metadata, try_star_metadata,
 };
 use serde_json::Value;
 
-const ADJECTIVE_STARS_1990_FIXTURE: &str =
-    include_str!("../../../fixtures/iztro/adjective_stars_second_subset_1990_05_17_chen_female.json");
+const ADJECTIVE_STARS_1990_FIXTURE: &str = include_str!(
+    "../../../fixtures/iztro/adjective_stars_second_subset_1990_05_17_chen_female.json"
+);
 const ADJECTIVE_STARS_1988_FIXTURE: &str =
     include_str!("../../../fixtures/iztro/adjective_stars_second_subset_1988_03_14_zi_male.json");
-const ADJECTIVE_STARS_1991_FIXTURE: &str =
-    include_str!("../../../fixtures/iztro/adjective_stars_second_subset_1991_08_09_hai_female.json");
+const ADJECTIVE_STARS_1991_FIXTURE: &str = include_str!(
+    "../../../fixtures/iztro/adjective_stars_second_subset_1991_08_09_hai_female.json"
+);
 
 /// The supported adjective-star (杂曜) subset.
 const ALL_ADJECTIVE_STARS: [StarName; 12] = [

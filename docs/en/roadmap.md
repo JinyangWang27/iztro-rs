@@ -39,11 +39,11 @@ This roadmap is intentionally conservative. The project should first establish s
 
 Current core slice: `by_lunar` accepts explicit lunar inputs plus explicit
 birth-year stem and branch, builds deterministic natal chart facts, and validates
-minimal chart fields, fourteen major stars, fourteen supported minor stars, and a
-first adjective-star subset (红鸾/天喜/天姚/天刑/台辅/封诰) against selected
-`iztro` 2.5.8 fixtures. The remaining adjective stars, solar-to-lunar conversion,
-leap-month behavior, rat-hour variants, temporal star scopes, and bindings remain
-deferred.
+minimal chart fields, fourteen major stars, fourteen supported minor stars, and
+twelve supported adjective stars (红鸾/天喜/天姚/天刑/台辅/封诰/三台/八座/
+龙池/凤阁/天哭/天虚) against selected `iztro` 2.5.8 fixtures. The remaining
+adjective stars, solar-to-lunar conversion, leap-month behavior, rat-hour
+variants, temporal star scopes, and bindings remain deferred.
 
 ## Phase 4: Feature extraction
 

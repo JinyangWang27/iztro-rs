@@ -1,4 +1,4 @@
-//! Deterministic adjective-star (杂耀) placement for the natal chart.
+//! Deterministic adjective-star (杂曜) placement for the natal chart.
 //!
 //! Reproduces a supported subset of `iztro` 2.5.8 `adjectiveStars`
 //! (`getAdjectiveStar` plus the `getLuanXiIndex`, `getMonthlyStarIndex`, and
