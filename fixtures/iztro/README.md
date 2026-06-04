@@ -194,7 +194,49 @@ and five-element bureau are not used by iztro minor-star placement.
 - Python bindings
 - WebAssembly bindings
 
+## Adjective-star fixtures
+
+The adjective-star fixtures cover the first supported natal adjective-star
+(杂耀) subset:
+
+- `adjective_stars_1990_05_17_chen_female.json`
+- `adjective_stars_1988_03_14_zi_male.json`
+- `adjective_stars_1991_08_09_hai_female.json`
+
+They are generated from `npm:iztro@2.5.8` in `/tmp` and capture compact raw
+`palaces[].adjectiveStars` (filtered to the selected subset) alongside
+normalized `supported_fields.adjective_stars`.
+
+The normalized star fact objects include:
+
+- `name`: the snake_case `StarName` key, for example `hong_luan`,
+  `tian_yao`, or `feng_gao`;
+- `type`: the upstream iztro star type, preserved verbatim (`flower` or
+  `adjective`) and mapped to the Rust `StarKind` by the compatibility test.
+
+The subset is 红鸾, 天喜, 天姚 (flower) and 天刑, 台辅, 封诰 (adjective). The
+compatibility tests assert placement, upstream type, derived
+`StarCategory::Adjective`, `Brightness::Unknown`, and natal scope. The
+implemented adjective-star inputs are explicit `lunar_month`, `birth_time`, and
+`birth_year_branch`.
+
+### Explicitly excluded fields
+
+- remaining adjective stars
+- adjective-star brightness
+- feature extraction
+- rule-engine output
+- reading or narrative output
+- solar-to-lunar conversion
+- leap-month behavior
+- rat-hour variants
+- temporal star scopes
+- CLI bindings
+- Python bindings
+- WebAssembly bindings
+
 ## Scope
 
 The fixtures cover **minimal natal compatibility** and deterministic
-**fourteen-major-star** plus **fourteen-supported-minor-star facts** only.
+**fourteen-major-star**, **fourteen-supported-minor-star**, and **first
+adjective-star-subset facts** only.

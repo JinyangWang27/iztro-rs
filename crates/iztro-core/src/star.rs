@@ -60,6 +60,18 @@ pub enum StarName {
     DiKong,
     /// Di Jie star (地劫).
     DiJie,
+    /// Hong Luan star (红鸾).
+    HongLuan,
+    /// Tian Xi star (天喜).
+    TianXi,
+    /// Tian Yao star (天姚).
+    TianYao,
+    /// Tian Xing star (天刑).
+    TianXing,
+    /// Tai Fu star (台辅).
+    TaiFu,
+    /// Feng Gao star (封诰).
+    FengGao,
 }
 
 /// Factual metadata for the fourteen major stars.
@@ -98,8 +110,21 @@ const MINOR_STAR_METADATA: [StarMetadata; 14] = [
     StarMetadata::new("di_jie", "地劫", StarName::DiJie, StarKind::Tough),
 ];
 
+/// Factual metadata for the first supported adjective-star (杂耀) subset.
+///
+/// 红鸾/天喜/天姚 are peach-blossom (`Flower`) stars; 天刑/台辅/封诰 are plain
+/// miscellaneous (`Adjective`) stars. All derive [`StarCategory::Adjective`].
+const ADJECTIVE_STAR_METADATA: [StarMetadata; 6] = [
+    StarMetadata::new("hong_luan", "红鸾", StarName::HongLuan, StarKind::Flower),
+    StarMetadata::new("tian_xi", "天喜", StarName::TianXi, StarKind::Flower),
+    StarMetadata::new("tian_yao", "天姚", StarName::TianYao, StarKind::Flower),
+    StarMetadata::new("tian_xing", "天刑", StarName::TianXing, StarKind::Adjective),
+    StarMetadata::new("tai_fu", "台辅", StarName::TaiFu, StarKind::Adjective),
+    StarMetadata::new("feng_gao", "封诰", StarName::FengGao, StarKind::Adjective),
+];
+
 /// Factual metadata for all currently represented stars.
-const REPRESENTED_STAR_METADATA: [StarMetadata; 28] = [
+const REPRESENTED_STAR_METADATA: [StarMetadata; 34] = [
     StarMetadata::new("zi_wei", "紫微", StarName::ZiWei, StarKind::Major),
     StarMetadata::new("tian_ji", "天机", StarName::TianJi, StarKind::Major),
     StarMetadata::new("tai_yang", "太阳", StarName::TaiYang, StarKind::Major),
@@ -128,6 +153,12 @@ const REPRESENTED_STAR_METADATA: [StarMetadata; 28] = [
     StarMetadata::new("ling_xing", "铃星", StarName::LingXing, StarKind::Tough),
     StarMetadata::new("di_kong", "地空", StarName::DiKong, StarKind::Tough),
     StarMetadata::new("di_jie", "地劫", StarName::DiJie, StarKind::Tough),
+    StarMetadata::new("hong_luan", "红鸾", StarName::HongLuan, StarKind::Flower),
+    StarMetadata::new("tian_xi", "天喜", StarName::TianXi, StarKind::Flower),
+    StarMetadata::new("tian_yao", "天姚", StarName::TianYao, StarKind::Flower),
+    StarMetadata::new("tian_xing", "天刑", StarName::TianXing, StarKind::Adjective),
+    StarMetadata::new("tai_fu", "台辅", StarName::TaiFu, StarKind::Adjective),
+    StarMetadata::new("feng_gao", "封诰", StarName::FengGao, StarKind::Adjective),
 ];
 
 /// Coarse palace grouping for placed stars.
@@ -238,8 +269,13 @@ pub const fn minor_star_metadata_table() -> &'static [StarMetadata; 14] {
     &MINOR_STAR_METADATA
 }
 
+/// Returns factual metadata for the first supported adjective-star subset.
+pub const fn adjective_star_metadata_table() -> &'static [StarMetadata; 6] {
+    &ADJECTIVE_STAR_METADATA
+}
+
 /// Returns factual metadata for all currently represented stars.
-pub const fn represented_star_metadata_table() -> &'static [StarMetadata; 28] {
+pub const fn represented_star_metadata_table() -> &'static [StarMetadata; 34] {
     &REPRESENTED_STAR_METADATA
 }
 
@@ -289,9 +325,26 @@ pub fn try_minor_star_metadata(star: StarName) -> Option<&'static StarMetadata> 
     Some(&MINOR_STAR_METADATA[index])
 }
 
+/// Returns factual metadata for one supported adjective star, if represented.
+pub fn try_adjective_star_metadata(star: StarName) -> Option<&'static StarMetadata> {
+    let index = match star {
+        StarName::HongLuan => 0,
+        StarName::TianXi => 1,
+        StarName::TianYao => 2,
+        StarName::TianXing => 3,
+        StarName::TaiFu => 4,
+        StarName::FengGao => 5,
+        _ => return None,
+    };
+
+    Some(&ADJECTIVE_STAR_METADATA[index])
+}
+
 /// Returns factual metadata for one represented star, if represented.
 pub fn try_star_metadata(star: StarName) -> Option<&'static StarMetadata> {
-    try_major_star_metadata(star).or_else(|| try_minor_star_metadata(star))
+    try_major_star_metadata(star)
+        .or_else(|| try_minor_star_metadata(star))
+        .or_else(|| try_adjective_star_metadata(star))
 }
 
 /// Returns factual metadata for one represented major star.
@@ -302,6 +355,11 @@ pub fn major_star_metadata(star: StarName) -> &'static StarMetadata {
 /// Returns factual metadata for one represented minor star.
 pub fn minor_star_metadata(star: StarName) -> &'static StarMetadata {
     try_minor_star_metadata(star).expect("star is not a represented minor star")
+}
+
+/// Returns factual metadata for one supported adjective star.
+pub fn adjective_star_metadata(star: StarName) -> &'static StarMetadata {
+    try_adjective_star_metadata(star).expect("star is not a represented adjective star")
 }
 
 /// Returns factual metadata for one represented star.
