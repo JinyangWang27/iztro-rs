@@ -89,8 +89,12 @@ pub fn try_minor_star_metadata(star: StarName) -> Option<&'static StarMetadata> 
 
 /// Returns a minor star's brightness for a branch.
 ///
-/// iztro 2.5.8 only has brightness tables for 文昌, 文曲, 火星, 铃星, 擎羊,
-/// and 陀罗. Other represented minor stars return [`Brightness::Unknown`].
+/// iztro 2.5.8 `STARS_INFO` only has brightness tables for 文昌, 文曲, 火星,
+/// 铃星, 擎羊, and 陀罗; the tables below reproduce those values verbatim. None
+/// of the minor-star tables use 不 ([`Brightness::Weak`]) — upstream reserves 不
+/// for major stars — so it never appears here. The other eight represented
+/// minor stars (左辅, 右弼, 天魁, 天钺, 禄存, 天马, 地空, 地劫) have no upstream
+/// table and return [`Brightness::Unknown`].
 pub fn minor_star_brightness(star: StarName, branch: EarthlyBranch) -> Brightness {
     const MIAO: Brightness = Brightness::Temple;
     const WANG: Brightness = Brightness::Prosperous;

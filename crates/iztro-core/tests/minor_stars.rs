@@ -1,13 +1,13 @@
 use std::collections::{HashMap, HashSet};
 
 use iztro_core::{
-    BirthContext, Brightness, CalendarDate, Chart, DeterministicMinorStarPlacer, EarthlyBranch,
-    Gender, HeavenlyStem, LunarDay, LunarMonth, MethodProfile, MinorStarPlacementInput,
-    MinorStarPlacer, Mutagen, NatalChartInput, NatalChartWithSupportedStarsInput, Scope,
-    StarCategory, StarKind, StarName, birth_year_star_mutagen, build_minimal_natal_chart,
-    build_natal_chart_with_supported_stars, minor_star_brightness, minor_star_metadata,
-    minor_star_metadata_table, represented_star_metadata_table, star_metadata,
-    try_minor_star_metadata, try_star_metadata,
+    BirthContext, Brightness, CalendarDate, Chart, DeterministicMinorStarPlacer, EARTHLY_BRANCHES,
+    EarthlyBranch, Gender, HeavenlyStem, LunarDay, LunarMonth, MethodProfile,
+    MinorStarPlacementInput, MinorStarPlacer, Mutagen, NatalChartInput,
+    NatalChartWithSupportedStarsInput, Scope, StarCategory, StarKind, StarName,
+    birth_year_star_mutagen, build_minimal_natal_chart, build_natal_chart_with_supported_stars,
+    minor_star_brightness, minor_star_metadata, minor_star_metadata_table,
+    represented_star_metadata_table, star_metadata, try_minor_star_metadata, try_star_metadata,
 };
 use serde_json::Value;
 
@@ -140,6 +140,101 @@ fn minor_star_brightness_uses_unknown_when_upstream_has_no_table() {
         minor_star_brightness(StarName::DiKong, EarthlyBranch::Zi),
         Brightness::Unknown
     );
+}
+
+#[test]
+fn minor_star_brightness_matches_iztro_2_5_8_and_never_weak() {
+    use Brightness::{Advantage, Favourable, Flat, Prosperous, Temple, Trapped, Unknown};
+
+    // iztro 2.5.8 `STARS_INFO` minor-star brightness, in palace order from 寅
+    // (Yin). `Unknown` stands for iztro's empty-string entry. Upstream provides
+    // tables only for these six minor stars, and none of them uses 不 (Weak).
+    let expected_from_yin: &[(StarName, [Brightness; 12])] = &[
+        (
+            StarName::WenChang,
+            [
+                Trapped, Favourable, Advantage, Temple, Trapped, Favourable, Advantage, Temple,
+                Trapped, Favourable, Advantage, Temple,
+            ],
+        ),
+        (
+            StarName::WenQu,
+            [
+                Flat, Prosperous, Advantage, Temple, Trapped, Prosperous, Advantage, Temple,
+                Trapped, Prosperous, Advantage, Temple,
+            ],
+        ),
+        (
+            StarName::HuoXing,
+            [
+                Temple, Favourable, Trapped, Advantage, Temple, Favourable, Trapped, Advantage,
+                Temple, Favourable, Trapped, Advantage,
+            ],
+        ),
+        (
+            StarName::LingXing,
+            [
+                Temple, Favourable, Trapped, Advantage, Temple, Favourable, Trapped, Advantage,
+                Temple, Favourable, Trapped, Advantage,
+            ],
+        ),
+        (
+            StarName::QingYang,
+            [
+                Unknown, Trapped, Temple, Unknown, Trapped, Temple, Unknown, Trapped, Temple,
+                Unknown, Trapped, Temple,
+            ],
+        ),
+        (
+            StarName::TuoLuo,
+            [
+                Trapped, Unknown, Temple, Trapped, Unknown, Temple, Trapped, Unknown, Temple,
+                Trapped, Unknown, Temple,
+            ],
+        ),
+    ];
+
+    for (star, expected) in expected_from_yin {
+        for (offset, brightness) in expected.iter().enumerate() {
+            let branch = EarthlyBranch::Yin.offset(offset as isize);
+            assert_eq!(
+                minor_star_brightness(*star, branch),
+                *brightness,
+                "{star:?} brightness at {branch:?} should match iztro 2.5.8"
+            );
+        }
+    }
+
+    // The eight remaining supported minors have no upstream brightness table.
+    for star in [
+        StarName::ZuoFu,
+        StarName::YouBi,
+        StarName::TianKui,
+        StarName::TianYue,
+        StarName::LuCun,
+        StarName::TianMa,
+        StarName::DiKong,
+        StarName::DiJie,
+    ] {
+        for branch in EARTHLY_BRANCHES {
+            assert_eq!(
+                minor_star_brightness(star, branch),
+                Brightness::Unknown,
+                "{star:?} has no iztro table and should be Unknown at {branch:?}"
+            );
+        }
+    }
+
+    // No minor star ever resolves to 不 (Weak); upstream reserves it for majors.
+    for star in ALL_MINOR_STARS {
+        for branch in EARTHLY_BRANCHES {
+            assert_ne!(
+                minor_star_brightness(star, branch),
+                Brightness::Weak,
+                "{star:?} unexpectedly Weak at {branch:?}"
+            );
+        }
+    }
 }
 
 #[test]
