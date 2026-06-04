@@ -50,6 +50,9 @@ fixtures 为：
 - `fixtures/iztro/minor_stars_1990_05_17_chen_female.json`
 - `fixtures/iztro/minor_stars_1988_03_14_zi_male.json`
 - `fixtures/iztro/minor_stars_1991_08_09_hai_female.json`
+- `fixtures/iztro/adjective_stars_1990_05_17_chen_female.json`
+- `fixtures/iztro/adjective_stars_1988_03_14_zi_male.json`
+- `fixtures/iztro/adjective_stars_1991_08_09_hai_female.json`
 
 minimal-natal fixture 只比较 `iztro-rs` 当前已实现的字段：
 
@@ -132,6 +135,34 @@ supported-star builder，并要求显式提供 `birth_year_stem` 和 `birth_year
 这些 fixtures 仍**不**比较杂曜、flower/helper/adjective 子集、特征提取、规则引擎
 输出、解读或叙事输出、阳历转农历、闰月行为、早晚子时变体、时间范围星曜、CLI
 bindings、Python bindings 或 WebAssembly bindings。
+
+### 首个杂曜子集
+
+三个 `adjective_stars_*` fixtures 比较首个已支持的本命杂曜子集，与 iztro 每宫的
+`adjectiveStars` 对照：
+
+- 每宫的杂曜名称；
+- 每颗杂曜所在的宫位地支；
+- iztro 上游星曜 `type`，原样保留（`flower` 或 `adjective`），并映射到 Rust 的
+  `StarKind`。
+
+该子集为红鸾（HongLuan）、天喜（TianXi）、天姚（TianYao）——桃花类 `flower`
+星——以及天刑（TianXing）、台辅（TaiFu）、封诰（FengGao）——普通 `adjective`
+星。安星复现 iztro 2.5.8（`getAdjectiveStar` 配合 `getLuanXiIndex`、
+`getMonthlyStarIndex`、`getTimelyStarIndex`），并从 iztro 的寅宫索引框架转换为
+地支偏移：
+
+- 红鸾、天喜由出生年支决定（天喜与红鸾相对）；
+- 天姚、天刑由农历月份决定；
+- 台辅、封诰由出生时辰地支决定。
+
+每颗已安杂曜派生 `StarCategory::Adjective`（`StarKind::Flower` 与
+`StarKind::Adjective` 都映射到它），亮度为 `Brightness::Unknown` 且无四化，scope
+为本命。`build_natal_chart_with_supported_stars` builder 在主星与辅星之后安放该
+子集，因此 `by_lunar` 现在产出 14 主星 + 14 辅星 + 6 杂曜 = 34 颗本命星。
+
+该组 fixtures 仍**不**比较其余杂曜、杂曜亮度、特征提取、规则引擎输出、叙事输出、
+阳历转农历、闰月行为、早晚子时变体，或时间范围星曜（大限、流年或其他流曜范围）。
 
 ## Golden tests
 

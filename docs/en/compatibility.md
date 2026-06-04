@@ -54,6 +54,9 @@ The fixtures are:
 - `fixtures/iztro/minor_stars_1990_05_17_chen_female.json`
 - `fixtures/iztro/minor_stars_1988_03_14_zi_male.json`
 - `fixtures/iztro/minor_stars_1991_08_09_hai_female.json`
+- `fixtures/iztro/adjective_stars_1990_05_17_chen_female.json`
+- `fixtures/iztro/adjective_stars_1988_03_14_zi_male.json`
+- `fixtures/iztro/adjective_stars_1991_08_09_hai_female.json`
 
 The minimal-natal fixture compares only fields currently implemented by
 `iztro-rs`:
@@ -155,6 +158,39 @@ flower/helper/adjective subsets, feature extraction, rule-engine output,
 reading or narrative output, solar-to-lunar conversion, leap-month behavior,
 rat-hour variants, temporal star scopes, CLI bindings, Python bindings, or
 WebAssembly bindings.
+
+### First adjective-star subset
+
+The three `adjective_stars_*` fixtures compare a first supported subset of
+natal adjective stars (杂耀) against iztro's per-palace `adjectiveStars`:
+
+- the adjective-star name in each palace;
+- the palace branch each star occupies;
+- the upstream iztro star `type`, preserved verbatim (`flower` or `adjective`)
+  and mapped to the Rust `StarKind`.
+
+The subset is 红鸾 (HongLuan), 天喜 (TianXi), and 天姚 (TianYao) —
+peach-blossom `flower` stars — plus 天刑 (TianXing), 台辅 (TaiFu), and 封诰
+(FengGao) — plain `adjective` stars. Placement reproduces iztro 2.5.8
+(`getAdjectiveStar` with `getLuanXiIndex`, `getMonthlyStarIndex`, and
+`getTimelyStarIndex`), translated from iztro's 寅-based palace frame into
+branch offsets:
+
+- 红鸾/天喜 from the birth year branch (天喜 sits opposite 红鸾);
+- 天姚/天刑 from the lunar month;
+- 台辅/封诰 from the birth time branch.
+
+Every placed adjective star derives `StarCategory::Adjective` (both
+`StarKind::Flower` and `StarKind::Adjective` map to it), carries
+`Brightness::Unknown` and no 四化, and has natal scope. The
+`build_natal_chart_with_supported_stars` builder places this subset after the
+major and minor stars, so `by_lunar` now yields 14 major + 14 minor + 6
+adjective = 34 natal stars.
+
+This fixture set still does **not** compare the remaining adjective stars,
+adjective-star brightness, feature extraction, rule-engine output, narrative
+output, solar-to-lunar conversion, leap-month behavior, rat-hour variants, or
+temporal star scopes (大限, yearly, or other flowing scopes).
 
 ## Golden tests
 
