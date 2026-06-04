@@ -313,6 +313,7 @@ pub fn build_natal_chart_with_supported_stars(
         with_minor_stars,
         AdjectiveStarPlacementInput::new(
             input.lunar_month(),
+            input.lunar_day(),
             input.birth_context().birth_time(),
             input.birth_year_branch(),
         ),
