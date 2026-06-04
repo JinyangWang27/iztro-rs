@@ -1,5 +1,8 @@
 # iztro-rs
 
+[![CI](https://github.com/JinyangWang27/iztro-rs/actions/workflows/ci.yml/badge.svg)](https://github.com/JinyangWang27/iztro-rs/actions/workflows/ci.yml)
+[![codecov](https://codecov.io/gh/JinyangWang27/iztro-rs/branch/main/graph/badge.svg)](https://codecov.io/gh/JinyangWang27/iztro-rs)
+
 A Rust implementation for Zi Wei Dou Shu (紫微斗数) chart generation, feature extraction, and eventually rule-based interpretation.
 
 > Status: early design and scaffolding. The project is not yet a complete charting or interpretation engine.
