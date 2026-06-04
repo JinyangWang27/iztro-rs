@@ -72,6 +72,18 @@ pub enum StarName {
     TaiFu,
     /// Feng Gao star (封诰).
     FengGao,
+    /// San Tai star (三台).
+    SanTai,
+    /// Ba Zuo star (八座).
+    BaZuo,
+    /// Long Chi star (龙池).
+    LongChi,
+    /// Feng Ge star (凤阁).
+    FengGe,
+    /// Tian Ku star (天哭).
+    TianKu,
+    /// Tian Xu star (天虚).
+    TianXu,
 }
 
 /// Factual metadata for the fourteen major stars.
@@ -110,21 +122,29 @@ const MINOR_STAR_METADATA: [StarMetadata; 14] = [
     StarMetadata::new("di_jie", "地劫", StarName::DiJie, StarKind::Tough),
 ];
 
-/// Factual metadata for the first supported adjective-star (杂耀) subset.
+/// Factual metadata for the supported adjective-star (杂曜) subset.
 ///
 /// 红鸾/天喜/天姚 are peach-blossom (`Flower`) stars; 天刑/台辅/封诰 are plain
-/// miscellaneous (`Adjective`) stars. All derive [`StarCategory::Adjective`].
-const ADJECTIVE_STAR_METADATA: [StarMetadata; 6] = [
+/// miscellaneous (`Adjective`) stars. The second subset adds 三台/八座/龙池/
+/// 凤阁/天哭/天虚 as plain `Adjective` stars. All derive
+/// [`StarCategory::Adjective`].
+const ADJECTIVE_STAR_METADATA: [StarMetadata; 12] = [
     StarMetadata::new("hong_luan", "红鸾", StarName::HongLuan, StarKind::Flower),
     StarMetadata::new("tian_xi", "天喜", StarName::TianXi, StarKind::Flower),
     StarMetadata::new("tian_yao", "天姚", StarName::TianYao, StarKind::Flower),
     StarMetadata::new("tian_xing", "天刑", StarName::TianXing, StarKind::Adjective),
     StarMetadata::new("tai_fu", "台辅", StarName::TaiFu, StarKind::Adjective),
     StarMetadata::new("feng_gao", "封诰", StarName::FengGao, StarKind::Adjective),
+    StarMetadata::new("san_tai", "三台", StarName::SanTai, StarKind::Adjective),
+    StarMetadata::new("ba_zuo", "八座", StarName::BaZuo, StarKind::Adjective),
+    StarMetadata::new("long_chi", "龙池", StarName::LongChi, StarKind::Adjective),
+    StarMetadata::new("feng_ge", "凤阁", StarName::FengGe, StarKind::Adjective),
+    StarMetadata::new("tian_ku", "天哭", StarName::TianKu, StarKind::Adjective),
+    StarMetadata::new("tian_xu", "天虚", StarName::TianXu, StarKind::Adjective),
 ];
 
 /// Factual metadata for all currently represented stars.
-const REPRESENTED_STAR_METADATA: [StarMetadata; 34] = [
+const REPRESENTED_STAR_METADATA: [StarMetadata; 40] = [
     StarMetadata::new("zi_wei", "紫微", StarName::ZiWei, StarKind::Major),
     StarMetadata::new("tian_ji", "天机", StarName::TianJi, StarKind::Major),
     StarMetadata::new("tai_yang", "太阳", StarName::TaiYang, StarKind::Major),
@@ -159,6 +179,12 @@ const REPRESENTED_STAR_METADATA: [StarMetadata; 34] = [
     StarMetadata::new("tian_xing", "天刑", StarName::TianXing, StarKind::Adjective),
     StarMetadata::new("tai_fu", "台辅", StarName::TaiFu, StarKind::Adjective),
     StarMetadata::new("feng_gao", "封诰", StarName::FengGao, StarKind::Adjective),
+    StarMetadata::new("san_tai", "三台", StarName::SanTai, StarKind::Adjective),
+    StarMetadata::new("ba_zuo", "八座", StarName::BaZuo, StarKind::Adjective),
+    StarMetadata::new("long_chi", "龙池", StarName::LongChi, StarKind::Adjective),
+    StarMetadata::new("feng_ge", "凤阁", StarName::FengGe, StarKind::Adjective),
+    StarMetadata::new("tian_ku", "天哭", StarName::TianKu, StarKind::Adjective),
+    StarMetadata::new("tian_xu", "天虚", StarName::TianXu, StarKind::Adjective),
 ];
 
 /// Coarse palace grouping for placed stars.
@@ -269,13 +295,13 @@ pub const fn minor_star_metadata_table() -> &'static [StarMetadata; 14] {
     &MINOR_STAR_METADATA
 }
 
-/// Returns factual metadata for the first supported adjective-star subset.
-pub const fn adjective_star_metadata_table() -> &'static [StarMetadata; 6] {
+/// Returns factual metadata for the supported adjective-star subset.
+pub const fn adjective_star_metadata_table() -> &'static [StarMetadata; 12] {
     &ADJECTIVE_STAR_METADATA
 }
 
 /// Returns factual metadata for all currently represented stars.
-pub const fn represented_star_metadata_table() -> &'static [StarMetadata; 34] {
+pub const fn represented_star_metadata_table() -> &'static [StarMetadata; 40] {
     &REPRESENTED_STAR_METADATA
 }
 
@@ -334,6 +360,12 @@ pub fn try_adjective_star_metadata(star: StarName) -> Option<&'static StarMetada
         StarName::TianXing => 3,
         StarName::TaiFu => 4,
         StarName::FengGao => 5,
+        StarName::SanTai => 6,
+        StarName::BaZuo => 7,
+        StarName::LongChi => 8,
+        StarName::FengGe => 9,
+        StarName::TianKu => 10,
+        StarName::TianXu => 11,
         _ => return None,
     };
 

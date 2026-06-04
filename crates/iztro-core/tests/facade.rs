@@ -35,8 +35,8 @@ fn by_lunar_builds_major_star_chart() {
     assert_eq!(chart.palaces().len(), PALACE_COUNT);
     assert_eq!(chart.major_stars().len(), 14);
     assert_eq!(chart.stars_by_category(StarCategory::Minor).len(), 14);
-    assert_eq!(chart.stars_by_category(StarCategory::Adjective).len(), 6);
-    assert_eq!(chart.stars().len(), 34);
+    assert_eq!(chart.stars_by_category(StarCategory::Adjective).len(), 12);
+    assert_eq!(chart.stars().len(), 40);
     assert_eq!(chart.five_element_bureau(), Some(FiveElementBureau::Fire6));
 }
 

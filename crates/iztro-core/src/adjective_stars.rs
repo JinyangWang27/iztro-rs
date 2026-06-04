@@ -1,13 +1,17 @@
-//! Deterministic adjective-star (杂耀) placement for the natal chart.
+//! Deterministic adjective-star (杂曜) placement for the natal chart.
 //!
-//! Reproduces a first small subset of `iztro` 2.5.8 `adjectiveStars`
+//! Reproduces a supported subset of `iztro` 2.5.8 `adjectiveStars`
 //! (`getAdjectiveStar` plus the `getLuanXiIndex`, `getMonthlyStarIndex`, and
-//! `getTimelyStarIndex` helpers in `src/star`, MIT licensed). Only the six
-//! month/time/year-branch deterministic stars are implemented here:
+//! `getTimelyStarIndex`, `getDailyStarIndex`, and `getYearlyStarIndex` helpers
+//! in `src/star`, MIT licensed). Only these twelve deterministic stars are
+//! implemented here:
 //!
 //! - 红鸾 (HongLuan) / 天喜 (TianXi): from the birth year branch;
 //! - 天姚 (TianYao) / 天刑 (TianXing): from the lunar month;
-//! - 台辅 (TaiFu) / 封诰 (FengGao): from the birth time branch.
+//! - 台辅 (TaiFu) / 封诰 (FengGao): from the birth time branch;
+//! - 三台 (SanTai) / 八座 (BaZuo): from the placed 左辅/右弼 and lunar day;
+//! - 龙池 (LongChi) / 凤阁 (FengGe): from the birth year branch;
+//! - 天哭 (TianKu) / 天虚 (TianXu): from the birth year branch.
 //!
 //! The remaining adjective stars, brightness for adjective stars, temporal
 //! scopes, leap-month behavior, and rat-hour variants stay out of scope.
@@ -16,7 +20,7 @@ use crate::{
     chart::{Chart, Palace, StarPlacement},
     error::ChartError,
     ganzhi::EarthlyBranch,
-    life_body::LunarMonth,
+    life_body::{LunarDay, LunarMonth},
     mutagen::Scope,
     star::{Brightness, StarMetadata, StarName},
 };
@@ -25,6 +29,7 @@ use crate::{
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub struct AdjectiveStarPlacementInput {
     lunar_month: LunarMonth,
+    lunar_day: LunarDay,
     birth_time: EarthlyBranch,
     birth_year_branch: EarthlyBranch,
 }
@@ -33,11 +38,13 @@ impl AdjectiveStarPlacementInput {
     /// Creates adjective-star placement input from explicit lunar and ganzhi facts.
     pub const fn new(
         lunar_month: LunarMonth,
+        lunar_day: LunarDay,
         birth_time: EarthlyBranch,
         birth_year_branch: EarthlyBranch,
     ) -> Self {
         Self {
             lunar_month,
+            lunar_day,
             birth_time,
             birth_year_branch,
         }
@@ -46,6 +53,11 @@ impl AdjectiveStarPlacementInput {
     /// Returns the validated lunar month.
     pub const fn lunar_month(self) -> LunarMonth {
         self.lunar_month
+    }
+
+    /// Returns the validated lunar day.
+    pub const fn lunar_day(self) -> LunarDay {
+        self.lunar_day
     }
 
     /// Returns the birth time branch.
@@ -72,7 +84,7 @@ pub trait AdjectiveStarPlacer {
 }
 
 /// Returns factual metadata for the supported adjective-star subset.
-pub const fn adjective_star_metadata_table() -> &'static [StarMetadata; 6] {
+pub const fn adjective_star_metadata_table() -> &'static [StarMetadata; 12] {
     crate::star::adjective_star_metadata_table()
 }
 
@@ -96,7 +108,7 @@ impl AdjectiveStarPlacer for DeterministicAdjectiveStarPlacer {
         chart: Chart,
         input: AdjectiveStarPlacementInput,
     ) -> Result<Chart, ChartError> {
-        let placements = adjective_star_placements(input);
+        let placements = adjective_star_placements(&chart, input)?;
 
         let palaces = chart
             .palaces()
@@ -142,11 +154,21 @@ impl AdjectiveStarPlacer for DeterministicAdjectiveStarPlacer {
 /// - 天姚 counts forward from 丑, 天刑 forward from 酉, by the lunar month
 ///   offset (正月 = 0);
 /// - 台辅 counts forward from 午, 封诰 forward from 寅, by the birth time index
-///   (子时 = 0).
-fn adjective_star_placements(input: AdjectiveStarPlacementInput) -> [(EarthlyBranch, StarName); 6] {
+///   (子时 = 0);
+/// - 三台 counts forward from the placed 左辅 by the lunar day offset
+///   (初一 = 0), 八座 counts backward from the placed 右弼 by the same offset;
+/// - 龙池 counts forward from 辰, 凤阁 backward from 戌, 天哭 backward from 午,
+///   and 天虚 forward from 午, all by the birth year branch index.
+fn adjective_star_placements(
+    chart: &Chart,
+    input: AdjectiveStarPlacementInput,
+) -> Result<[(EarthlyBranch, StarName); 12], ChartError> {
     let month_offset = isize::from(input.lunar_month().value()) - 1;
+    let day_offset = isize::from(input.lunar_day().value()) - 1;
     let time_index = input.birth_time().index() as isize;
     let year_branch_index = input.birth_year_branch().index() as isize;
+    let zuo_fu = branch_containing_required_star(chart, StarName::ZuoFu)?;
+    let you_bi = branch_containing_required_star(chart, StarName::YouBi)?;
 
     let hong_luan = EarthlyBranch::Mao.offset(-year_branch_index);
     let tian_xi = hong_luan.offset(6);
@@ -154,13 +176,35 @@ fn adjective_star_placements(input: AdjectiveStarPlacementInput) -> [(EarthlyBra
     let tian_xing = EarthlyBranch::You.offset(month_offset);
     let tai_fu = EarthlyBranch::Wu.offset(time_index);
     let feng_gao = EarthlyBranch::Yin.offset(time_index);
+    let san_tai = zuo_fu.offset(day_offset);
+    let ba_zuo = you_bi.offset(-day_offset);
+    let long_chi = EarthlyBranch::Chen.offset(year_branch_index);
+    let feng_ge = EarthlyBranch::Xu.offset(-year_branch_index);
+    let tian_ku = EarthlyBranch::Wu.offset(-year_branch_index);
+    let tian_xu = EarthlyBranch::Wu.offset(year_branch_index);
 
-    [
+    Ok([
         (hong_luan, StarName::HongLuan),
         (tian_xi, StarName::TianXi),
         (tian_yao, StarName::TianYao),
         (tian_xing, StarName::TianXing),
         (tai_fu, StarName::TaiFu),
         (feng_gao, StarName::FengGao),
-    ]
+        (san_tai, StarName::SanTai),
+        (ba_zuo, StarName::BaZuo),
+        (long_chi, StarName::LongChi),
+        (feng_ge, StarName::FengGe),
+        (tian_ku, StarName::TianKu),
+        (tian_xu, StarName::TianXu),
+    ])
+}
+
+fn branch_containing_required_star(
+    chart: &Chart,
+    star: StarName,
+) -> Result<EarthlyBranch, ChartError> {
+    chart
+        .palace_containing_star(star)
+        .map(Palace::branch)
+        .ok_or(ChartError::RequiredStarMissing { star })
 }

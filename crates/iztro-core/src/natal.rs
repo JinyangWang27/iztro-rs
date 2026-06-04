@@ -275,7 +275,8 @@ pub fn build_natal_chart_with_major_stars(
 ///
 /// This public builder preserves the minimal natal chart facts, places the
 /// natal-scope fourteen major stars, the supported fourteen minor stars, then
-/// the first supported adjective-star subset (红鸾/天喜/天姚/天刑/台辅/封诰).
+/// the supported adjective-star subset (红鸾/天喜/天姚/天刑/台辅/封诰/三台/八座/
+/// 龙池/凤阁/天哭/天虚).
 /// The remaining adjective stars, temporal scopes beyond natal, feature
 /// extraction, rule-engine output, and narrative output remain out of scope.
 pub fn build_natal_chart_with_supported_stars(
@@ -313,6 +314,7 @@ pub fn build_natal_chart_with_supported_stars(
         with_minor_stars,
         AdjectiveStarPlacementInput::new(
             input.lunar_month(),
+            input.lunar_day(),
             input.birth_context().birth_time(),
             input.birth_year_branch(),
         ),

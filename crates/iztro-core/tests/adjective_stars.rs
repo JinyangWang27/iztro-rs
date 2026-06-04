@@ -2,8 +2,9 @@ use std::collections::{HashMap, HashSet};
 
 use iztro_core::{
     AdjectiveStarPlacementInput, AdjectiveStarPlacer, BirthContext, Brightness, CalendarDate,
-    Chart, DeterministicAdjectiveStarPlacer, EARTHLY_BRANCHES, EarthlyBranch, Gender, HeavenlyStem,
-    LunarChartRequest, LunarDay, LunarMonth, MethodProfile, NatalChartWithMajorStarsInput,
+    Chart, ChartError, DeterministicAdjectiveStarPlacer, DeterministicMinorStarPlacer,
+    EARTHLY_BRANCHES, EarthlyBranch, Gender, HeavenlyStem, LunarChartRequest, LunarDay, LunarMonth,
+    MethodProfile, MinorStarPlacementInput, MinorStarPlacer, NatalChartWithMajorStarsInput,
     NatalChartWithSupportedStarsInput, Scope, StarCategory, StarKind, StarName,
     adjective_star_metadata, adjective_star_metadata_table, build_natal_chart_with_major_stars,
     build_natal_chart_with_supported_stars, by_lunar, represented_star_metadata_table,
@@ -11,21 +12,29 @@ use iztro_core::{
 };
 use serde_json::Value;
 
-const ADJECTIVE_STARS_1990_FIXTURE: &str =
-    include_str!("../../../fixtures/iztro/adjective_stars_1990_05_17_chen_female.json");
+const ADJECTIVE_STARS_1990_FIXTURE: &str = include_str!(
+    "../../../fixtures/iztro/adjective_stars_second_subset_1990_05_17_chen_female.json"
+);
 const ADJECTIVE_STARS_1988_FIXTURE: &str =
-    include_str!("../../../fixtures/iztro/adjective_stars_1988_03_14_zi_male.json");
-const ADJECTIVE_STARS_1991_FIXTURE: &str =
-    include_str!("../../../fixtures/iztro/adjective_stars_1991_08_09_hai_female.json");
+    include_str!("../../../fixtures/iztro/adjective_stars_second_subset_1988_03_14_zi_male.json");
+const ADJECTIVE_STARS_1991_FIXTURE: &str = include_str!(
+    "../../../fixtures/iztro/adjective_stars_second_subset_1991_08_09_hai_female.json"
+);
 
-/// The first supported adjective-star (杂耀) subset.
-const ALL_ADJECTIVE_STARS: [StarName; 6] = [
+/// The supported adjective-star (杂曜) subset.
+const ALL_ADJECTIVE_STARS: [StarName; 12] = [
     StarName::HongLuan,
     StarName::TianXi,
     StarName::TianYao,
     StarName::TianXing,
     StarName::TaiFu,
     StarName::FengGao,
+    StarName::SanTai,
+    StarName::BaZuo,
+    StarName::LongChi,
+    StarName::FengGe,
+    StarName::TianKu,
+    StarName::TianXu,
 ];
 
 #[test]
@@ -48,6 +57,12 @@ fn adjective_star_metadata_uses_expected_kind_and_adjective_category() {
         (StarName::TianXing, StarKind::Adjective),
         (StarName::TaiFu, StarKind::Adjective),
         (StarName::FengGao, StarKind::Adjective),
+        (StarName::SanTai, StarKind::Adjective),
+        (StarName::BaZuo, StarKind::Adjective),
+        (StarName::LongChi, StarKind::Adjective),
+        (StarName::FengGe, StarKind::Adjective),
+        (StarName::TianKu, StarKind::Adjective),
+        (StarName::TianXu, StarKind::Adjective),
     ]);
 
     for star in ALL_ADJECTIVE_STARS {
@@ -129,6 +144,12 @@ fn placer_places_each_selected_star_at_expected_branch() {
         (StarName::TianXing, EarthlyBranch::Chou),
         (StarName::TaiFu, EarthlyBranch::Xu),
         (StarName::FengGao, EarthlyBranch::Wu),
+        (StarName::SanTai, EarthlyBranch::Zi),
+        (StarName::BaZuo, EarthlyBranch::Yin),
+        (StarName::LongChi, EarthlyBranch::Xu),
+        (StarName::FengGe, EarthlyBranch::Chen),
+        (StarName::TianKu, EarthlyBranch::Zi),
+        (StarName::TianXu, EarthlyBranch::Zi),
     ]);
 
     for (star, branch) in expected {
@@ -146,34 +167,19 @@ fn placer_places_each_selected_star_at_expected_branch() {
 #[test]
 fn direct_adjective_placer_matches_iztro_branch_formulas() {
     // Exercise the placer in isolation: place adjective stars directly onto a
-    // chart that has only the fourteen major stars (no adjective stars yet).
+    // chart that has major and minor stars, but no adjective stars yet.
     let fixture = fixture_value(ADJECTIVE_STARS_1988_FIXTURE);
     let input = &fixture["input"];
-    let major_chart = build_natal_chart_with_major_stars(NatalChartWithMajorStarsInput::new(
-        BirthContext::new(
-            CalendarDate::lunar(
-                input["lunar_year"].as_i64().expect("lunar_year") as i32,
-                input["lunar_month"].as_u64().expect("lunar_month") as u8,
-                input["lunar_day"].as_u64().expect("lunar_day") as u8,
-            ),
-            parse_branch_key(input["birth_time"].as_str().expect("birth_time")),
-            parse_gender_key(input["gender"].as_str().expect("gender")),
-        ),
-        MethodProfile::placeholder("adjective_direct"),
-        LunarMonth::new(input["lunar_month"].as_u64().expect("lunar_month") as u8)
-            .expect("fixture lunar month should be valid"),
-        LunarDay::new(input["lunar_day"].as_u64().expect("lunar_day") as u8)
-            .expect("fixture lunar day should be valid"),
-        parse_stem_key(input["birth_year_stem"].as_str().expect("birth_year_stem")),
-    ))
-    .expect("major-star chart should build");
+    let minor_chart = minor_chart_from_fixture(&fixture);
 
     let placed = DeterministicAdjectiveStarPlacer
         .place_adjective_stars(
-            major_chart,
+            minor_chart,
             AdjectiveStarPlacementInput::new(
                 LunarMonth::new(input["lunar_month"].as_u64().expect("lunar_month") as u8)
                     .expect("fixture lunar month should be valid"),
+                LunarDay::new(input["lunar_day"].as_u64().expect("lunar_day") as u8)
+                    .expect("fixture lunar day should be valid"),
                 parse_branch_key(input["birth_time"].as_str().expect("birth_time")),
                 parse_branch_key(
                     input["birth_year_branch"]
@@ -185,6 +191,86 @@ fn direct_adjective_placer_matches_iztro_branch_formulas() {
         .expect("adjective stars should place deterministically");
 
     assert_adjective_stars_match_fixture(&placed, &fixture);
+}
+
+#[test]
+fn second_subset_requires_minor_star_anchors() {
+    let fixture = fixture_value(ADJECTIVE_STARS_1990_FIXTURE);
+    let input = &fixture["input"];
+    let major_chart = build_natal_chart_with_major_stars(NatalChartWithMajorStarsInput::new(
+        BirthContext::new(
+            CalendarDate::lunar(
+                input["lunar_year"].as_i64().expect("lunar_year") as i32,
+                input["lunar_month"].as_u64().expect("lunar_month") as u8,
+                input["lunar_day"].as_u64().expect("lunar_day") as u8,
+            ),
+            parse_branch_key(input["birth_time"].as_str().expect("birth_time")),
+            parse_gender_key(input["gender"].as_str().expect("gender")),
+        ),
+        MethodProfile::placeholder("adjective_missing_anchor"),
+        LunarMonth::new(input["lunar_month"].as_u64().expect("lunar_month") as u8)
+            .expect("fixture lunar month should be valid"),
+        LunarDay::new(input["lunar_day"].as_u64().expect("lunar_day") as u8)
+            .expect("fixture lunar day should be valid"),
+        parse_stem_key(input["birth_year_stem"].as_str().expect("birth_year_stem")),
+    ))
+    .expect("major-star chart should build");
+
+    let err = DeterministicAdjectiveStarPlacer
+        .place_adjective_stars(
+            major_chart,
+            AdjectiveStarPlacementInput::new(
+                LunarMonth::new(input["lunar_month"].as_u64().expect("lunar_month") as u8)
+                    .expect("fixture lunar month should be valid"),
+                LunarDay::new(input["lunar_day"].as_u64().expect("lunar_day") as u8)
+                    .expect("fixture lunar day should be valid"),
+                parse_branch_key(input["birth_time"].as_str().expect("birth_time")),
+                parse_branch_key(
+                    input["birth_year_branch"]
+                        .as_str()
+                        .expect("birth_year_branch"),
+                ),
+            ),
+        )
+        .expect_err("major-only chart should be missing ZuoFu");
+
+    assert_eq!(
+        err,
+        ChartError::RequiredStarMissing {
+            star: StarName::ZuoFu
+        }
+    );
+}
+
+#[test]
+fn san_tai_and_ba_zuo_are_derived_from_placed_minor_star_anchors() {
+    let fixture = fixture_value(ADJECTIVE_STARS_1990_FIXTURE);
+    let chart = supported_chart_from_fixture(&fixture);
+    let day_offset = fixture["input"]["lunar_day"].as_u64().expect("lunar_day") as isize - 1;
+
+    let zuo_fu_branch = chart
+        .palace_containing_star(StarName::ZuoFu)
+        .expect("ZuoFu should be placed before adjective stars")
+        .branch();
+    let you_bi_branch = chart
+        .palace_containing_star(StarName::YouBi)
+        .expect("YouBi should be placed before adjective stars")
+        .branch();
+
+    assert_eq!(
+        chart
+            .palace_containing_star(StarName::SanTai)
+            .expect("SanTai should be placed")
+            .branch(),
+        zuo_fu_branch.offset(day_offset)
+    );
+    assert_eq!(
+        chart
+            .palace_containing_star(StarName::BaZuo)
+            .expect("BaZuo should be placed")
+            .branch(),
+        you_bi_branch.offset(-day_offset)
+    );
 }
 
 #[test]
@@ -217,7 +303,7 @@ fn by_lunar_includes_selected_adjective_stars() {
         .collect();
 
     assert_eq!(adjective, HashSet::from(ALL_ADJECTIVE_STARS));
-    assert_eq!(chart.stars().len(), 34);
+    assert_eq!(chart.stars().len(), 40);
 }
 
 #[test]
@@ -236,20 +322,21 @@ fn generic_star_queries_return_adjective_context() {
 
     assert_eq!(
         chart
-            .palace_containing_star(StarName::FengGao)
-            .expect("Feng Gao palace should be queryable")
+            .palace_containing_star(StarName::SanTai)
+            .expect("San Tai palace should be queryable")
             .branch(),
-        EarthlyBranch::Wu
+        EarthlyBranch::Zi
     );
 
-    // Query by branch and palace agree for an adjective star.
+    // Query helpers expose both multi-star branch collisions and named-palace
+    // adjective stars.
     let chou_palace = chart
         .palaces()
         .iter()
         .find(|palace| palace.branch() == EarthlyBranch::Chou)
         .expect("Chou palace should exist");
     let by_branch: HashSet<StarName> = chart
-        .stars_in_branch(EarthlyBranch::Chou)
+        .stars_in_branch(EarthlyBranch::Zi)
         .iter()
         .map(|star| star.placement().name())
         .collect();
@@ -259,12 +346,14 @@ fn generic_star_queries_return_adjective_context() {
         .filter(|star| star.placement().category() == StarCategory::Adjective)
         .map(|star| star.placement().name())
         .collect();
-    assert!(by_branch.contains(&StarName::TianXing));
+    assert!(by_branch.contains(&StarName::SanTai));
+    assert!(by_branch.contains(&StarName::TianKu));
+    assert!(by_branch.contains(&StarName::TianXu));
     assert_eq!(by_palace, HashSet::from([StarName::TianXing]));
 
-    assert_eq!(chart.stars_by_category(StarCategory::Adjective).len(), 6);
+    assert_eq!(chart.stars_by_category(StarCategory::Adjective).len(), 12);
     assert_eq!(chart.stars_by_kind(StarKind::Flower).len(), 3);
-    assert_eq!(chart.stars_by_kind(StarKind::Adjective).len(), 3);
+    assert_eq!(chart.stars_by_kind(StarKind::Adjective).len(), 9);
 }
 
 #[test]
@@ -277,12 +366,51 @@ fn chart_with_adjective_stars_round_trips_through_json() {
     assert_adjective_stars_match_fixture(&decoded, &fixture);
     assert_eq!(
         decoded
-            .star(StarName::HongLuan)
-            .expect("Hong Luan should remain queryable")
+            .star(StarName::LongChi)
+            .expect("Long Chi should remain queryable")
             .placement()
             .kind(),
-        StarKind::Flower
+        StarKind::Adjective
     );
+}
+
+fn minor_chart_from_fixture(fixture: &Value) -> Chart {
+    let input = &fixture["input"];
+    let major_chart = build_natal_chart_with_major_stars(NatalChartWithMajorStarsInput::new(
+        BirthContext::new(
+            CalendarDate::lunar(
+                input["lunar_year"].as_i64().expect("lunar_year") as i32,
+                input["lunar_month"].as_u64().expect("lunar_month") as u8,
+                input["lunar_day"].as_u64().expect("lunar_day") as u8,
+            ),
+            parse_branch_key(input["birth_time"].as_str().expect("birth_time")),
+            parse_gender_key(input["gender"].as_str().expect("gender")),
+        ),
+        MethodProfile::placeholder("adjective_direct"),
+        LunarMonth::new(input["lunar_month"].as_u64().expect("lunar_month") as u8)
+            .expect("fixture lunar month should be valid"),
+        LunarDay::new(input["lunar_day"].as_u64().expect("lunar_day") as u8)
+            .expect("fixture lunar day should be valid"),
+        parse_stem_key(input["birth_year_stem"].as_str().expect("birth_year_stem")),
+    ))
+    .expect("major-star chart should build");
+
+    DeterministicMinorStarPlacer
+        .place_minor_stars(
+            major_chart,
+            MinorStarPlacementInput::new(
+                LunarMonth::new(input["lunar_month"].as_u64().expect("lunar_month") as u8)
+                    .expect("fixture lunar month should be valid"),
+                parse_branch_key(input["birth_time"].as_str().expect("birth_time")),
+                parse_stem_key(input["birth_year_stem"].as_str().expect("birth_year_stem")),
+                parse_branch_key(
+                    input["birth_year_branch"]
+                        .as_str()
+                        .expect("birth_year_branch"),
+                ),
+            ),
+        )
+        .expect("minor-star chart should build")
 }
 
 fn supported_chart_from_fixture(fixture: &Value) -> Chart {
@@ -410,6 +538,12 @@ fn star_key(star: StarName) -> &'static str {
         StarName::TianXing => "tian_xing",
         StarName::TaiFu => "tai_fu",
         StarName::FengGao => "feng_gao",
+        StarName::SanTai => "san_tai",
+        StarName::BaZuo => "ba_zuo",
+        StarName::LongChi => "long_chi",
+        StarName::FengGe => "feng_ge",
+        StarName::TianKu => "tian_ku",
+        StarName::TianXu => "tian_xu",
         other => panic!("unsupported adjective star: {other:?}"),
     }
 }
@@ -422,6 +556,12 @@ fn parse_star_key(value: &str) -> StarName {
         "tian_xing" => StarName::TianXing,
         "tai_fu" => StarName::TaiFu,
         "feng_gao" => StarName::FengGao,
+        "san_tai" => StarName::SanTai,
+        "ba_zuo" => StarName::BaZuo,
+        "long_chi" => StarName::LongChi,
+        "feng_ge" => StarName::FengGe,
+        "tian_ku" => StarName::TianKu,
+        "tian_xu" => StarName::TianXu,
         other => panic!("unsupported adjective star key in fixture: {other}"),
     }
 }

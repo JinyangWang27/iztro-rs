@@ -53,6 +53,9 @@ fixtures 为：
 - `fixtures/iztro/adjective_stars_1990_05_17_chen_female.json`
 - `fixtures/iztro/adjective_stars_1988_03_14_zi_male.json`
 - `fixtures/iztro/adjective_stars_1991_08_09_hai_female.json`
+- `fixtures/iztro/adjective_stars_second_subset_1990_05_17_chen_female.json`
+- `fixtures/iztro/adjective_stars_second_subset_1988_03_14_zi_male.json`
+- `fixtures/iztro/adjective_stars_second_subset_1991_08_09_hai_female.json`
 
 minimal-natal fixture 只比较 `iztro-rs` 当前已实现的字段：
 
@@ -136,10 +139,10 @@ supported-star builder，并要求显式提供 `birth_year_stem` 和 `birth_year
 输出、解读或叙事输出、阳历转农历、闰月行为、早晚子时变体、时间范围星曜、CLI
 bindings、Python bindings 或 WebAssembly bindings。
 
-### 首个杂曜子集
+### 已支持杂曜子集
 
-三个 `adjective_stars_*` fixtures 比较首个已支持的本命杂曜子集，与 iztro 每宫的
-`adjectiveStars` 对照：
+三个 `adjective_stars_second_subset_*` fixtures 比较当前已支持的十二颗本命杂曜子集，
+与 iztro 每宫的 `adjectiveStars` 对照：
 
 - 每宫的杂曜名称；
 - 每颗杂曜所在的宫位地支；
@@ -147,19 +150,24 @@ bindings、Python bindings 或 WebAssembly bindings。
   `StarKind`。
 
 该子集为红鸾（HongLuan）、天喜（TianXi）、天姚（TianYao）——桃花类 `flower`
-星——以及天刑（TianXing）、台辅（TaiFu）、封诰（FengGao）——普通 `adjective`
-星。安星复现 iztro 2.5.8（`getAdjectiveStar` 配合 `getLuanXiIndex`、
-`getMonthlyStarIndex`、`getTimelyStarIndex`），并从 iztro 的寅宫索引框架转换为
+星——以及天刑（TianXing）、台辅（TaiFu）、封诰（FengGao）、三台（SanTai）、
+八座（BaZuo）、龙池（LongChi）、凤阁（FengGe）、天哭（TianKu）、天虚
+（TianXu）——普通 `adjective` 星。安星复现 iztro 2.5.8（`getAdjectiveStar`
+配合 `getLuanXiIndex`、`getMonthlyStarIndex`、`getTimelyStarIndex`、
+`getDailyStarIndex`、`getYearlyStarIndex`），并从 iztro 的寅宫索引框架转换为
 地支偏移：
 
 - 红鸾、天喜由出生年支决定（天喜与红鸾相对）；
 - 天姚、天刑由农历月份决定；
 - 台辅、封诰由出生时辰地支决定。
+- 三台由已安左辅顺数农历日偏移（初一 = 0）；
+- 八座由已安右弼逆数农历日偏移；
+- 龙池、凤阁与天哭、天虚由出生年支偏移决定。
 
 每颗已安杂曜派生 `StarCategory::Adjective`（`StarKind::Flower` 与
 `StarKind::Adjective` 都映射到它），亮度为 `Brightness::Unknown` 且无四化，scope
 为本命。`build_natal_chart_with_supported_stars` builder 在主星与辅星之后安放该
-子集，因此 `by_lunar` 现在产出 14 主星 + 14 辅星 + 6 杂曜 = 34 颗本命星。
+子集，因此 `by_lunar` 现在产出 14 主星 + 14 辅星 + 12 杂曜 = 40 颗本命星。
 
 该组 fixtures 仍**不**比较其余杂曜、杂曜亮度、特征提取、规则引擎输出、叙事输出、
 阳历转农历、闰月行为、早晚子时变体，或时间范围星曜（大限、流年或其他流曜范围）。

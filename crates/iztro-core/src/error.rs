@@ -1,4 +1,5 @@
 use crate::ganzhi::{EarthlyBranch, HeavenlyStem};
+use crate::star::StarName;
 use thiserror::Error;
 
 /// Errors produced by core chart construction or validation.
@@ -37,6 +38,12 @@ pub enum ChartError {
     MissingRequiredInput {
         /// Name of the missing required field.
         field: &'static str,
+    },
+    /// A star placement rule depends on a previously placed star that is absent.
+    #[error("required star is missing: {star:?}")]
+    RequiredStarMissing {
+        /// Star required by the placement rule.
+        star: StarName,
     },
     /// Placeholder error used until chart-generation validation exists.
     #[error("chart generation is not implemented")]
