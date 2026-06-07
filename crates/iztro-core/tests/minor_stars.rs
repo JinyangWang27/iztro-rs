@@ -116,7 +116,7 @@ fn represented_star_metadata_table_includes_major_and_minor_stars() {
     let represented = represented_star_metadata_table();
     let names: HashSet<StarName> = represented.iter().map(|entry| entry.name()).collect();
 
-    assert_eq!(represented.len(), 40);
+    assert_eq!(represented.len(), 46);
     for star in ALL_MINOR_STARS {
         assert!(names.contains(&star), "missing metadata for {star:?}");
     }
@@ -631,6 +631,12 @@ fn star_key(star: StarName) -> &'static str {
         StarName::FengGe => "feng_ge",
         StarName::TianKu => "tian_ku",
         StarName::TianXu => "tian_xu",
+        StarName::EnGuang => "en_guang",
+        StarName::TianGui => "tian_gui",
+        StarName::TianWu => "tian_wu",
+        StarName::TianYueAdj => "tian_yue_adj",
+        StarName::YinSha => "yin_sha",
+        StarName::JieShen => "jie_shen",
     }
 }
 

@@ -13,16 +13,15 @@ use iztro_core::{
 use serde_json::Value;
 
 const ADJECTIVE_STARS_1990_FIXTURE: &str = include_str!(
-    "../../../fixtures/iztro/adjective_stars_second_subset_1990_05_17_chen_female.json"
+    "../../../fixtures/iztro/adjective_stars_third_subset_1990_05_17_chen_female.json"
 );
 const ADJECTIVE_STARS_1988_FIXTURE: &str =
-    include_str!("../../../fixtures/iztro/adjective_stars_second_subset_1988_03_14_zi_male.json");
-const ADJECTIVE_STARS_1991_FIXTURE: &str = include_str!(
-    "../../../fixtures/iztro/adjective_stars_second_subset_1991_08_09_hai_female.json"
-);
+    include_str!("../../../fixtures/iztro/adjective_stars_third_subset_1988_03_14_zi_male.json");
+const ADJECTIVE_STARS_1991_FIXTURE: &str =
+    include_str!("../../../fixtures/iztro/adjective_stars_third_subset_1991_08_09_hai_female.json");
 
 /// The supported adjective-star (杂曜) subset.
-const ALL_ADJECTIVE_STARS: [StarName; 12] = [
+const ALL_ADJECTIVE_STARS: [StarName; 18] = [
     StarName::HongLuan,
     StarName::TianXi,
     StarName::TianYao,
@@ -35,6 +34,12 @@ const ALL_ADJECTIVE_STARS: [StarName; 12] = [
     StarName::FengGe,
     StarName::TianKu,
     StarName::TianXu,
+    StarName::EnGuang,
+    StarName::TianGui,
+    StarName::TianWu,
+    StarName::TianYueAdj,
+    StarName::YinSha,
+    StarName::JieShen,
 ];
 
 #[test]
@@ -63,6 +68,12 @@ fn adjective_star_metadata_uses_expected_kind_and_adjective_category() {
         (StarName::FengGe, StarKind::Adjective),
         (StarName::TianKu, StarKind::Adjective),
         (StarName::TianXu, StarKind::Adjective),
+        (StarName::EnGuang, StarKind::Adjective),
+        (StarName::TianGui, StarKind::Adjective),
+        (StarName::TianWu, StarKind::Adjective),
+        (StarName::TianYueAdj, StarKind::Adjective),
+        (StarName::YinSha, StarKind::Adjective),
+        (StarName::JieShen, StarKind::Helper),
     ]);
 
     for star in ALL_ADJECTIVE_STARS {
@@ -79,10 +90,11 @@ fn adjective_star_metadata_uses_expected_kind_and_adjective_category() {
 
 #[test]
 fn star_kind_flower_and_adjective_map_to_adjective_category() {
-    // Protects the generic query helpers: both fine kinds in this subset must
-    // derive the coarse Adjective grouping.
+    // Protects the generic query helpers: every fine kind in this subset
+    // (incl. 解神's Helper kind) must derive the coarse Adjective grouping.
     assert_eq!(StarKind::Flower.category(), StarCategory::Adjective);
     assert_eq!(StarKind::Adjective.category(), StarCategory::Adjective);
+    assert_eq!(StarKind::Helper.category(), StarCategory::Adjective);
 }
 
 #[test]
@@ -150,6 +162,12 @@ fn placer_places_each_selected_star_at_expected_branch() {
         (StarName::FengGe, EarthlyBranch::Chen),
         (StarName::TianKu, EarthlyBranch::Zi),
         (StarName::TianXu, EarthlyBranch::Zi),
+        (StarName::EnGuang, EarthlyBranch::You),
+        (StarName::TianGui, EarthlyBranch::Hai),
+        (StarName::TianWu, EarthlyBranch::Si),
+        (StarName::TianYueAdj, EarthlyBranch::Wei),
+        (StarName::YinSha, EarthlyBranch::Wu),
+        (StarName::JieShen, EarthlyBranch::Zi),
     ]);
 
     for (star, branch) in expected {
@@ -274,6 +292,39 @@ fn san_tai_and_ba_zuo_are_derived_from_placed_minor_star_anchors() {
 }
 
 #[test]
+fn en_guang_and_tian_gui_are_derived_from_placed_chang_qu_anchors() {
+    // 恩光/天贵 mirror 三台/八座: they count from the placed 文昌/文曲 by the
+    // lunar-day offset minus one (iztro getDailyStarIndex).
+    let fixture = fixture_value(ADJECTIVE_STARS_1990_FIXTURE);
+    let chart = supported_chart_from_fixture(&fixture);
+    let day_offset = fixture["input"]["lunar_day"].as_u64().expect("lunar_day") as isize - 1;
+
+    let wen_chang_branch = chart
+        .palace_containing_star(StarName::WenChang)
+        .expect("WenChang should be placed before adjective stars")
+        .branch();
+    let wen_qu_branch = chart
+        .palace_containing_star(StarName::WenQu)
+        .expect("WenQu should be placed before adjective stars")
+        .branch();
+
+    assert_eq!(
+        chart
+            .palace_containing_star(StarName::EnGuang)
+            .expect("EnGuang should be placed")
+            .branch(),
+        wen_chang_branch.offset(day_offset - 1)
+    );
+    assert_eq!(
+        chart
+            .palace_containing_star(StarName::TianGui)
+            .expect("TianGui should be placed")
+            .branch(),
+        wen_qu_branch.offset(day_offset - 1)
+    );
+}
+
+#[test]
 fn placer_matches_iztro_adjective_fixtures() {
     for fixture in fixture_values() {
         let chart = supported_chart_from_fixture(&fixture);
@@ -303,7 +354,7 @@ fn by_lunar_includes_selected_adjective_stars() {
         .collect();
 
     assert_eq!(adjective, HashSet::from(ALL_ADJECTIVE_STARS));
-    assert_eq!(chart.stars().len(), 40);
+    assert_eq!(chart.stars().len(), 46);
 }
 
 #[test]
@@ -351,9 +402,10 @@ fn generic_star_queries_return_adjective_context() {
     assert!(by_branch.contains(&StarName::TianXu));
     assert_eq!(by_palace, HashSet::from([StarName::TianXing]));
 
-    assert_eq!(chart.stars_by_category(StarCategory::Adjective).len(), 12);
+    assert_eq!(chart.stars_by_category(StarCategory::Adjective).len(), 18);
     assert_eq!(chart.stars_by_kind(StarKind::Flower).len(), 3);
-    assert_eq!(chart.stars_by_kind(StarKind::Adjective).len(), 9);
+    assert_eq!(chart.stars_by_kind(StarKind::Adjective).len(), 14);
+    assert_eq!(chart.stars_by_kind(StarKind::Helper).len(), 1);
 }
 
 #[test]
@@ -544,6 +596,12 @@ fn star_key(star: StarName) -> &'static str {
         StarName::FengGe => "feng_ge",
         StarName::TianKu => "tian_ku",
         StarName::TianXu => "tian_xu",
+        StarName::EnGuang => "en_guang",
+        StarName::TianGui => "tian_gui",
+        StarName::TianWu => "tian_wu",
+        StarName::TianYueAdj => "tian_yue_adj",
+        StarName::YinSha => "yin_sha",
+        StarName::JieShen => "jie_shen",
         other => panic!("unsupported adjective star: {other:?}"),
     }
 }
@@ -562,6 +620,12 @@ fn parse_star_key(value: &str) -> StarName {
         "feng_ge" => StarName::FengGe,
         "tian_ku" => StarName::TianKu,
         "tian_xu" => StarName::TianXu,
+        "en_guang" => StarName::EnGuang,
+        "tian_gui" => StarName::TianGui,
+        "tian_wu" => StarName::TianWu,
+        "tian_yue_adj" => StarName::TianYueAdj,
+        "yin_sha" => StarName::YinSha,
+        "jie_shen" => StarName::JieShen,
         other => panic!("unsupported adjective star key in fixture: {other}"),
     }
 }
