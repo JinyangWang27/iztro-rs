@@ -212,7 +212,7 @@ fn direct_adjective_placer_matches_iztro_branch_formulas() {
 }
 
 #[test]
-fn second_subset_requires_minor_star_anchors() {
+fn adjective_stars_require_minor_star_anchors() {
     let fixture = fixture_value(ADJECTIVE_STARS_1990_FIXTURE);
     let input = &fixture["input"];
     let major_chart = build_natal_chart_with_major_stars(NatalChartWithMajorStarsInput::new(

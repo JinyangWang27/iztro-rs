@@ -87,7 +87,7 @@ pub trait AdjectiveStarPlacer {
 }
 
 /// Returns factual metadata for the supported adjective-star subset.
-pub const fn adjective_star_metadata_table() -> &'static [StarMetadata; 18] {
+pub const fn adjective_star_metadata_table() -> &'static [StarMetadata] {
     crate::star::adjective_star_metadata_table()
 }
 

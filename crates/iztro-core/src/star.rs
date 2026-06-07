@@ -334,12 +334,12 @@ pub const fn minor_star_metadata_table() -> &'static [StarMetadata; 14] {
 }
 
 /// Returns factual metadata for the supported adjective-star subset.
-pub const fn adjective_star_metadata_table() -> &'static [StarMetadata; 18] {
+pub const fn adjective_star_metadata_table() -> &'static [StarMetadata] {
     &ADJECTIVE_STAR_METADATA
 }
 
 /// Returns factual metadata for all currently represented stars.
-pub const fn represented_star_metadata_table() -> &'static [StarMetadata; 46] {
+pub const fn represented_star_metadata_table() -> &'static [StarMetadata] {
     &REPRESENTED_STAR_METADATA
 }
 
