@@ -35,7 +35,7 @@ Fixtures compare **only** fields currently implemented by `iztro-rs`:
 - the five-element bureau (五行局);
 - fourteen major-star facts in the major-star fixture;
 - fourteen supported minor-star facts in the minor-star fixtures;
-- twelve supported adjective-star facts in the second-subset adjective-star
+- eighteen supported adjective-star facts in the third-subset adjective-star
   fixtures;
 
 `metadata.supported_fields_only` is `true`.
@@ -200,11 +200,13 @@ and five-element bureau are not used by iztro minor-star placement.
 
 The adjective-star fixtures cover supported natal adjective-star (杂曜)
 subsets. The older `adjective_stars_*` fixtures record the first six-star
-subset. The current compatibility fixtures use the expanded twelve-star subset:
+subset and the `adjective_stars_second_subset_*` fixtures the twelve-star
+subset. The current compatibility fixtures use the expanded eighteen-star
+subset:
 
-- `adjective_stars_second_subset_1990_05_17_chen_female.json`
-- `adjective_stars_second_subset_1988_03_14_zi_male.json`
-- `adjective_stars_second_subset_1991_08_09_hai_female.json`
+- `adjective_stars_third_subset_1990_05_17_chen_female.json`
+- `adjective_stars_third_subset_1988_03_14_zi_male.json`
+- `adjective_stars_third_subset_1991_08_09_hai_female.json`
 
 They are generated from `npm:iztro@2.5.8` in `/tmp` and capture compact raw
 `palaces[].adjectiveStars` (filtered to the selected subset) alongside
@@ -213,18 +215,21 @@ normalized `supported_fields.adjective_stars`.
 The normalized star fact objects include:
 
 - `name`: the snake_case `StarName` key, for example `hong_luan`,
-  `tian_yao`, or `feng_gao`;
-- `type`: the upstream iztro star type, preserved verbatim (`flower` or
-  `adjective`) and mapped to the Rust `StarKind` by the compatibility test.
+  `tian_yao`, or `feng_gao`. 天月 uses `tian_yue_adj` to disambiguate from the
+  minor star 天钺 (`tian_yue`);
+- `type`: the upstream iztro star type, preserved verbatim (`flower`,
+  `adjective`, or `helper`) and mapped to the Rust `StarKind` by the
+  compatibility test.
 
-The current subset is 红鸾, 天喜, 天姚 (flower) and 天刑, 台辅, 封诰, 三台,
-八座, 龙池, 凤阁, 天哭, 天虚 (adjective). The compatibility tests assert
-placement, upstream type, derived `StarCategory::Adjective`,
-`Brightness::Unknown`, and natal scope. The implemented adjective-star inputs
-are explicit `lunar_month`, `lunar_day`, `birth_time`, and
-`birth_year_branch`. 三台 and 八座 derive from the actual placed 左辅/右弼
-branches plus the lunar-day offset, so these fixtures are exercised after minor
-stars have been placed.
+The current subset is 红鸾, 天喜, 天姚 (flower); 天刑, 台辅, 封诰, 三台, 八座,
+龙池, 凤阁, 天哭, 天虚, 恩光, 天贵, 天巫, 天月, 阴煞 (adjective); and 解神
+(helper). The compatibility tests assert placement, upstream type, derived
+`StarCategory::Adjective`, `Brightness::Unknown`, and natal scope. The
+implemented adjective-star inputs are explicit `lunar_month`, `lunar_day`,
+`birth_time`, and `birth_year_branch`. 三台/八座 derive from the actual placed
+左辅/右弼 branches and 恩光/天贵 from the placed 文昌/文曲 branches plus the
+lunar-day offset, so these fixtures are exercised after minor stars have been
+placed. 天巫, 天月, 阴煞, and 解神 are fixed per-lunar-month branch lookups.
 
 ### Explicitly excluded fields
 
@@ -244,5 +249,5 @@ stars have been placed.
 ## Scope
 
 The fixtures cover **minimal natal compatibility** and deterministic
-**fourteen-major-star**, **fourteen-supported-minor-star**, and **twelve
+**fourteen-major-star**, **fourteen-supported-minor-star**, and **eighteen
 supported-adjective-star facts** only.
