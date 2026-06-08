@@ -58,6 +58,17 @@ non-natal `Scope`, a typed `TemporalContext`, scoped `StarPlacement`s, and
 `MutagenActivation`s. These models carry only temporal facts supplied explicitly
 by the caller, and a layer never duplicates natal placements.
 
+A yearly mutagen overlay builder (`build_yearly_mutagen_layer`) is now available
+as the first model-level temporal activation builder. Given a natal `Chart` and
+an explicit yearly stem-branch / lunar year (`YearlyMutagenLayerInput`), it
+produces a `Scope::Yearly` `TemporalLayer` whose `MutagenActivation`s apply the
+yearly Heavenly Stem to the represented stars actually present in the natal
+chart, reusing the shared Heavenly Stem mutagen table. It derives no calendar
+facts, places no flow stars (流曜), does not mutate natal placements, and does
+not perform full horoscope interpretation. Absent or unsupported target stars
+are skipped rather than invented. 四化 remain `MutagenActivation` facts, not
+independent stars.
+
 Temporal star placement, decadal/yearly derivation, year-to-ganzhi conversion,
 and calendar derivation remain out of scope. These models are not yet validated
 against `iztro` horoscope fixtures.
