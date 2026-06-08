@@ -254,9 +254,7 @@ birth-year-stem, birth-year-branch, Life/Body-palace, and void/empty bases.
 | 空亡 KongWang | adjective | birth-year-stem lookup (void/empty 空亡 family) | remaining natal candidate — default algorithm only; Zhongzhou drops it |
 | 旬空 XunKong | adjective | birth-year stem + branch (旬中空亡, yin-yang parity adjust) | ambiguous / requires further source inspection |
 
-Not in the default algorithm and therefore **deferred temporal-only / non-default**
-(Zhongzhou variant `algorithm: 'zhongzhou'`, not natal candidates for the default
-target): 龙德 LongDe, 截空 JieKong, 劫煞 JieSha (adj), 大耗 DaHao (adj).
+Not in the default algorithm and therefore **deferred non-default / Zhongzhou-only** (Zhongzhou variant `algorithm: 'zhongzhou'`, not natal candidates for the current default target): 龙德 LongDe, 截空 JieKong, 劫煞 JieSha (adj), 大耗 DaHao (adj).
 
 #### Proposed next implementation PR
 

@@ -217,9 +217,7 @@ iztro 2.5.8 `getAdjectiveStar` 在默认（非中州派）算法下输出 **38**
 | 空亡 KongWang | adjective | 出生年干查表（空亡族） | remaining natal candidate——仅默认算法；中州派无 |
 | 旬空 XunKong | adjective | 出生年干 + 年支（旬中空亡，阴阳奇偶修正） | ambiguous / requires further source inspection |
 
-不在默认算法内，因此 **deferred temporal-only / 非默认**（中州派 `algorithm:
-'zhongzhou'` 特有，非默认目标的本命候选）：龙德 LongDe、截空 JieKong、劫煞
-JieSha（杂曜）、大耗 DaHao（杂曜）。
+不在默认算法内，因此 **deferred non-default / 中州派特有**（中州派 `algorithm: 'zhongzhou'` 特有，非当前默认目标的本命候选）：龙德 LongDe、截空 JieKong、劫煞 JieSha（杂曜）、大耗 DaHao（杂曜）。
 
 #### 建议的下一个实现 PR
 
