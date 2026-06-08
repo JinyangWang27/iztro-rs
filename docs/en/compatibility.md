@@ -63,6 +63,9 @@ The fixtures are:
 - `fixtures/iztro/adjective_stars_third_subset_1990_05_17_chen_female.json`
 - `fixtures/iztro/adjective_stars_third_subset_1988_03_14_zi_male.json`
 - `fixtures/iztro/adjective_stars_third_subset_1991_08_09_hai_female.json`
+- `fixtures/iztro/adjective_stars_fourth_subset_1990_05_17_chen_female.json`
+- `fixtures/iztro/adjective_stars_fourth_subset_1988_03_14_zi_male.json`
+- `fixtures/iztro/adjective_stars_fourth_subset_1991_08_09_hai_female.json`
 
 The minimal-natal fixture compares only fields currently implemented by
 `iztro-rs`:
@@ -167,8 +170,8 @@ WebAssembly bindings.
 
 ### Supported adjective-star subset
 
-The three `adjective_stars_third_subset_*` fixtures compare the currently
-supported subset of eighteen natal adjective stars (杂曜) against iztro's
+The three `adjective_stars_fourth_subset_*` fixtures compare the currently
+supported subset of twenty-six natal adjective/helper stars (杂曜) against iztro's
 per-palace `adjectiveStars`:
 
 - the adjective-star name in each palace;
@@ -180,8 +183,10 @@ The subset is 红鸾 (HongLuan), 天喜 (TianXi), and 天姚 (TianYao) —
 peach-blossom `flower` stars; 天刑 (TianXing), 台辅 (TaiFu), 封诰 (FengGao),
 三台 (SanTai), 八座 (BaZuo), 龙池 (LongChi), 凤阁 (FengGe), 天哭 (TianKu),
 天虚 (TianXu), 恩光 (EnGuang), 天贵 (TianGui), 天巫 (TianWu), 天月
-(TianYueAdj), and 阴煞 (YinSha) — plain `adjective` stars; and 解神 (JieShen),
-a `helper` star. Placement reproduces iztro 2.5.8 (`getAdjectiveStar` with
+(TianYueAdj), 阴煞 (YinSha), 华盖 (HuaGai), 孤辰 (GuChen), 寡宿 (GuaSu),
+蜚廉 (FeiLian), 破碎 (PoSui), 天德 (TianDe), and 月德 (YueDe) — plain
+`adjective` stars; and 解神 (JieShen) and 年解 (NianJie), `helper` stars.
+Placement reproduces iztro 2.5.8 (`getAdjectiveStar` with
 `getLuanXiIndex`, `getMonthlyStarIndex`, `getTimelyStarIndex`,
 `getDailyStarIndex`, and `getYearlyStarIndex`), translated from iztro's
 寅-based palace frame into branch offsets:
@@ -196,18 +201,22 @@ a `helper` star. Placement reproduces iztro 2.5.8 (`getAdjectiveStar` with
   day offset minus one (`getDailyStarIndex`);
 - 天巫, 天月, 阴煞, and 解神 from fixed per-lunar-month branch lookups
   (`getMonthlyStarIndex`).
+- 华盖, 孤辰, 寡宿, 蜚廉, 破碎, 天德, 月德, and 年解 from the explicit birth
+  year branch (`getYearlyStarIndex`). 年解 is represented only as the natal
+  `origin` helper emitted by `getAdjectiveStar`; yearly horoscope flow remains
+  deferred.
 
 天月 uses the `tian_yue_adj` key / `StarName::TianYueAdj` to disambiguate from
 the minor star 天钺 (`tian_yue` / `StarName::TianYue`); both romanize to
 "Tian Yue". Every placed adjective star derives `StarCategory::Adjective`
 (`StarKind::Flower`, `StarKind::Adjective`, and `StarKind::Helper` all map to
 it), carries `Brightness::Unknown` and no 四化, and has natal scope. 解神 is the
-first represented `helper`-kind star. The
+first represented `helper`-kind star, and 年解 is the second. The
 `build_natal_chart_with_supported_stars` builder places this subset after major
-and minor stars, so `by_lunar` now yields 14 major + 14 minor + 18 adjective =
-46 natal stars.
+and minor stars, so `by_lunar` now yields 14 major + 14 minor + 26
+adjective/helper = 54 natal stars.
 
-This fixture set still does **not** compare the remaining adjective stars,
+This fixture set still does **not** compare the remaining unsupported adjective stars,
 adjective-star brightness, feature extraction, rule-engine output, narrative
 output, solar-to-lunar conversion, leap-month behavior, rat-hour variants, or
 temporal star scopes (大限, yearly, or other flowing scopes).

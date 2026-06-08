@@ -41,7 +41,7 @@ This roadmap is intentionally conservative. The project should first establish s
 - [ ] Add remaining adjective stars.
 - [ ] Add solar-to-lunar conversion, leap-month behavior, rat-hour variants, temporal star scopes, and bindings.
 
-Current core slice: `by_lunar` accepts explicit lunar inputs plus explicit birth-year stem and branch, builds deterministic natal chart facts, and validates minimal chart fields, fourteen major stars, fourteen supported minor stars, and eighteen supported adjective stars against selected `iztro` 2.5.8 fixtures. The remaining adjective stars, solar-to-lunar conversion, leap-month behavior, rat-hour variants, temporal star scopes, and bindings remain deferred.
+Current core slice: `by_lunar` accepts explicit lunar inputs plus explicit birth-year stem and branch, builds deterministic natal chart facts, and validates minimal chart fields, fourteen major stars, fourteen supported minor stars, and twenty-six supported natal adjective/helper stars against selected `iztro` 2.5.8 fixtures. The remaining unsupported adjective stars, solar-to-lunar conversion, leap-month behavior, rat-hour variants, temporal star scopes, and bindings remain deferred.
 
 ## Phase 4: Feature extraction
 
