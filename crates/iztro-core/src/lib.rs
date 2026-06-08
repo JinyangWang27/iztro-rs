@@ -8,6 +8,7 @@ pub mod chart;
 pub mod error;
 pub mod facade;
 pub mod ganzhi;
+pub mod horoscope;
 pub mod life_body;
 pub mod major_stars;
 pub mod minor_stars;
@@ -32,6 +33,7 @@ pub use chart::{
 pub use error::ChartError;
 pub use facade::{LunarChartRequest, LunarChartRequestBuilder, by_lunar};
 pub use ganzhi::{EARTHLY_BRANCHES, EarthlyBranch, HEAVENLY_STEMS, HeavenlyStem};
+pub use horoscope::{HoroscopeChart, MutagenActivation, TemporalContext, TemporalLayer};
 pub use life_body::{
     LifeBodyPalaceIndices, LunarBirthContext, LunarDay, LunarMonth,
     calculate_life_body_palace_indices,

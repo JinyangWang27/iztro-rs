@@ -1,4 +1,5 @@
 use crate::ganzhi::{EarthlyBranch, HeavenlyStem};
+use crate::mutagen::Scope;
 use crate::star::StarName;
 use thiserror::Error;
 
@@ -44,6 +45,25 @@ pub enum ChartError {
     RequiredStarMissing {
         /// Star required by the placement rule.
         star: StarName,
+    },
+    /// A temporal layer cannot use the natal scope; natal facts live in the chart.
+    #[error("temporal layer cannot use the natal scope")]
+    NatalScopeInTemporalLayer,
+    /// A temporal layer's scope must match its temporal context.
+    #[error("temporal layer scope {layer:?} does not match context scope {context:?}")]
+    TemporalScopeMismatch {
+        /// Scope declared on the layer.
+        layer: Scope,
+        /// Scope implied by the temporal context.
+        context: Scope,
+    },
+    /// A scoped placement in a temporal layer must carry the layer's scope.
+    #[error("temporal placement scope {placement:?} does not match layer scope {layer:?}")]
+    TemporalPlacementScopeMismatch {
+        /// Scope declared on the layer.
+        layer: Scope,
+        /// Scope carried by the rejected placement.
+        placement: Scope,
     },
     /// Placeholder error used until chart-generation validation exists.
     #[error("chart generation is not implemented")]

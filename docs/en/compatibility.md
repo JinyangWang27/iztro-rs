@@ -45,6 +45,18 @@ Gregorian/lunar year-to-ganzhi derivation is deferred.
 `by_solar`, leap-month handling, rat-hour variants, and full calendar behavior
 remain deferred.
 
+## Horoscope layer models
+
+`iztro-core` defines model-only horoscope overlays: `HoroscopeChart` wraps an
+immutable natal `Chart` and holds zero or more `TemporalLayer`s, each with a
+non-natal `Scope`, a typed `TemporalContext`, scoped `StarPlacement`s, and
+`MutagenActivation`s. These models carry only temporal facts supplied explicitly
+by the caller, and a layer never duplicates natal placements.
+
+Temporal star placement, decadal/yearly derivation, year-to-ganzhi conversion,
+and calendar derivation remain out of scope. These models are not yet validated
+against `iztro` horoscope fixtures.
+
 ## Current fixtures
 
 The fixtures are:
