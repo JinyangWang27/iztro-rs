@@ -29,6 +29,10 @@
 
 后续兼容 fixture 如需更新目标版本，必须同时记录版本变化和预期输出差异。
 
+本地检查上游行为时，可使用 `tools/iztro-reference` 下固定版本的 npm reference
+workspace：`npm ci --prefix tools/iztro-reference`。已提交的 fixture JSON 仍是兼容性
+source of truth。
+
 ## 公开 facade 兼容性
 
 `by_lunar` 是 `iztro-rs` 的第一个 iztro-compatible facade 入口。它在概念上对应
