@@ -198,16 +198,16 @@ and five-element bureau are not used by iztro minor-star placement.
 
 ## Adjective-star fixtures
 
-The adjective-star fixtures cover supported natal adjective-star (杂曜)
-subsets. The older `adjective_stars_*` fixtures record the first six-star
-subset, the `adjective_stars_second_subset_*` fixtures the twelve-star
-subset, and the `adjective_stars_third_subset_*` fixtures the eighteen-star
-subset. The current compatibility fixtures use the expanded twenty-six-star
-subset:
+The adjective-star fixtures cover the supported natal adjective-star (杂曜)
+subset. Only the latest twenty-six-star subset is kept in-tree:
 
 - `adjective_stars_fourth_subset_1990_05_17_chen_female.json`
 - `adjective_stars_fourth_subset_1988_03_14_zi_male.json`
 - `adjective_stars_fourth_subset_1991_08_09_hai_female.json`
+
+Earlier, smaller adjective-star subsets (the six-, twelve-, and eighteen-star
+fixtures) are no longer kept in-tree; their history remains available through
+git history.
 
 They are generated from `npm:iztro@2.5.8` in `/tmp` and capture compact raw
 `palaces[].adjectiveStars` (filtered to the selected subset) alongside

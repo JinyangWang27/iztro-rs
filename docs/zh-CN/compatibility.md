@@ -50,18 +50,12 @@ fixtures 为：
 - `fixtures/iztro/minor_stars_1990_05_17_chen_female.json`
 - `fixtures/iztro/minor_stars_1988_03_14_zi_male.json`
 - `fixtures/iztro/minor_stars_1991_08_09_hai_female.json`
-- `fixtures/iztro/adjective_stars_1990_05_17_chen_female.json`
-- `fixtures/iztro/adjective_stars_1988_03_14_zi_male.json`
-- `fixtures/iztro/adjective_stars_1991_08_09_hai_female.json`
-- `fixtures/iztro/adjective_stars_second_subset_1990_05_17_chen_female.json`
-- `fixtures/iztro/adjective_stars_second_subset_1988_03_14_zi_male.json`
-- `fixtures/iztro/adjective_stars_second_subset_1991_08_09_hai_female.json`
-- `fixtures/iztro/adjective_stars_third_subset_1990_05_17_chen_female.json`
-- `fixtures/iztro/adjective_stars_third_subset_1988_03_14_zi_male.json`
-- `fixtures/iztro/adjective_stars_third_subset_1991_08_09_hai_female.json`
 - `fixtures/iztro/adjective_stars_fourth_subset_1990_05_17_chen_female.json`
 - `fixtures/iztro/adjective_stars_fourth_subset_1988_03_14_zi_male.json`
 - `fixtures/iztro/adjective_stars_fourth_subset_1991_08_09_hai_female.json`
+
+仅保留最新/当前的杂曜 fixture 子集在源码树中；更早、更小的杂曜子集可通过 git
+history 获取。
 
 minimal-natal fixture 只比较 `iztro-rs` 当前已实现的字段：
 
