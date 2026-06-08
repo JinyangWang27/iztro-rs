@@ -225,9 +225,11 @@ fn decadal_and_yearly_builders_agree_on_activation_triples() {
         DecadalMutagenLayerInput::new(geng_stem_branch(), START_AGE),
     )
     .expect("decadal mutagen layer should build");
-    let yearly =
-        build_yearly_mutagen_layer(&natal, YearlyMutagenLayerInput::new(geng_stem_branch(), 1990))
-            .expect("yearly mutagen layer should build");
+    let yearly = build_yearly_mutagen_layer(
+        &natal,
+        YearlyMutagenLayerInput::new(geng_stem_branch(), 1990),
+    )
+    .expect("yearly mutagen layer should build");
 
     // For the same Heavenly Stem and natal chart the two builders produce the
     // same (target_star, target_branch, mutagen) triples, differing only in
