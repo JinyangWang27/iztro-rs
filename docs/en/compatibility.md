@@ -54,18 +54,12 @@ The fixtures are:
 - `fixtures/iztro/minor_stars_1990_05_17_chen_female.json`
 - `fixtures/iztro/minor_stars_1988_03_14_zi_male.json`
 - `fixtures/iztro/minor_stars_1991_08_09_hai_female.json`
-- `fixtures/iztro/adjective_stars_1990_05_17_chen_female.json`
-- `fixtures/iztro/adjective_stars_1988_03_14_zi_male.json`
-- `fixtures/iztro/adjective_stars_1991_08_09_hai_female.json`
-- `fixtures/iztro/adjective_stars_second_subset_1990_05_17_chen_female.json`
-- `fixtures/iztro/adjective_stars_second_subset_1988_03_14_zi_male.json`
-- `fixtures/iztro/adjective_stars_second_subset_1991_08_09_hai_female.json`
-- `fixtures/iztro/adjective_stars_third_subset_1990_05_17_chen_female.json`
-- `fixtures/iztro/adjective_stars_third_subset_1988_03_14_zi_male.json`
-- `fixtures/iztro/adjective_stars_third_subset_1991_08_09_hai_female.json`
 - `fixtures/iztro/adjective_stars_fourth_subset_1990_05_17_chen_female.json`
 - `fixtures/iztro/adjective_stars_fourth_subset_1988_03_14_zi_male.json`
 - `fixtures/iztro/adjective_stars_fourth_subset_1991_08_09_hai_female.json`
+
+Only the latest/current adjective-star fixture subset is kept in-tree. Earlier,
+smaller adjective-star subsets are available through git history.
 
 The minimal-natal fixture compares only fields currently implemented by
 `iztro-rs`:
