@@ -1,10 +1,11 @@
 //! Deterministic adjective-star (杂曜) placement for the natal chart.
 //!
-//! Reproduces a supported subset of `iztro` 2.5.8 `adjectiveStars`
-//! (`getAdjectiveStar` plus the `getLuanXiIndex`, `getMonthlyStarIndex`,
-//! `getTimelyStarIndex`, `getDailyStarIndex`, and `getYearlyStarIndex` helpers
-//! in `src/star`, MIT licensed). Only these twenty-six deterministic stars are
-//! implemented here:
+//! Reproduces the full default-algorithm natal 杂曜 set of `iztro` 2.5.8
+//! `adjectiveStars` (`getAdjectiveStar` plus the `getLuanXiIndex`,
+//! `getMonthlyStarIndex`, `getTimelyStarIndex`, `getDailyStarIndex`,
+//! `getHuagaiXianchiIndex`, and `getYearlyStarIndex` helpers in `src/star`,
+//! MIT licensed). All 38 natal-origin stars iztro emits under the default
+//! (non-Zhongzhou) algorithm are placed here, grouped by placement basis:
 //!
 //! - 红鸾 (HongLuan) / 天喜 (TianXi): from the birth year branch;
 //! - 天姚 (TianYao) / 天刑 (TianXing): from the lunar month;
@@ -14,36 +15,43 @@
 //! - 天哭 (TianKu) / 天虚 (TianXu): from the birth year branch;
 //! - 恩光 (EnGuang) / 天贵 (TianGui): from the placed 文昌/文曲 and lunar day;
 //! - 天巫 (TianWu) / 天月 (TianYueAdj) / 阴煞 (YinSha) / 解神 (JieShen): fixed
-//!   per-lunar-month branch lookups.
-//! - 华盖 (HuaGai) / 孤辰 (GuChen) / 寡宿 (GuaSu) / 蜚廉 (FeiLian) /
-//!   破碎 (PoSui) / 天德 (TianDe) / 月德 (YueDe) / 年解 (NianJie): from the
-//!   birth year branch.
+//!   per-lunar-month branch lookups;
+//! - 华盖 (HuaGai) / 咸池 (XianChi) / 孤辰 (GuChen) / 寡宿 (GuaSu) /
+//!   蜚廉 (FeiLian) / 破碎 (PoSui) / 天德 (TianDe) / 月德 (YueDe) /
+//!   年解 (NianJie): from the birth year branch;
+//! - 天空 (TianKong): one branch forward from the birth year branch;
+//! - 天官 (TianGuan) / 天厨 (TianChu) / 天福 (TianFuAdj): from the birth year
+//!   stem;
+//! - 天才 (TianCai) / 天寿 (TianShou): Life/Body-palace anchored, counted by the
+//!   birth year branch;
+//! - 天伤 (TianShang) / 天使 (TianShi): Life-palace anchored (仆役/疾厄 under the
+//!   default algorithm; no阴阳 swap);
+//! - 截路 (JieLu) / 空亡 (KongWang): from the birth year stem;
+//! - 旬空 (XunKong): the 旬中空亡 void branch whose阴阳 polarity matches the birth
+//!   year branch.
 //!
-//! iztro 2.5.8 `getAdjectiveStar` emits 38 natal-origin 杂曜 under the default
-//! (non-Zhongzhou) algorithm; the 26 above are the supported subset. The 12 not
-//! placed here are 咸池 / 天空 (birth-year branch), 天官 / 天厨 / 天福
-//! (birth-year stem), 天才 / 天寿 / 天伤 / 天使 (Life/Body-palace anchored), and
-//! 截路 / 空亡 / 旬空 (void/空亡 family). See docs/en/compatibility.md
-//! "Remaining natal adjective/helper star inventory" for the per-star basis and
-//! status. Brightness for adjective stars, the Zhongzhou-only 杂曜
-//! (龙德/截空/劫煞/大耗), temporal scopes, leap-month behavior, and rat-hour
-//! variants also stay out of scope.
+//! The Zhongzhou-only 杂曜 (龙德/截空/劫煞/大耗) and Zhongzhou algorithm
+//! selection, 神煞 beyond this default slice, adjective-star brightness,
+//! temporal scopes, horoscope placement, leap-month behavior, and rat-hour
+//! variants stay out of scope. 四化 remain `mutagen: Option<Mutagen>` facts on
+//! placements, never independent stars.
 
 use crate::{
     chart::{Chart, Palace, StarPlacement},
     error::ChartError,
-    ganzhi::EarthlyBranch,
+    ganzhi::{EarthlyBranch, HeavenlyStem},
     life_body::{LunarDay, LunarMonth},
     mutagen::Scope,
     star::{Brightness, StarMetadata, StarName},
 };
 
-/// Inputs required to place the supported adjective-star subset.
+/// Inputs required to place the default-algorithm adjective-star set.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub struct AdjectiveStarPlacementInput {
     lunar_month: LunarMonth,
     lunar_day: LunarDay,
     birth_time: EarthlyBranch,
+    birth_year_stem: HeavenlyStem,
     birth_year_branch: EarthlyBranch,
 }
 
@@ -53,12 +61,14 @@ impl AdjectiveStarPlacementInput {
         lunar_month: LunarMonth,
         lunar_day: LunarDay,
         birth_time: EarthlyBranch,
+        birth_year_stem: HeavenlyStem,
         birth_year_branch: EarthlyBranch,
     ) -> Self {
         Self {
             lunar_month,
             lunar_day,
             birth_time,
+            birth_year_stem,
             birth_year_branch,
         }
     }
@@ -76,6 +86,11 @@ impl AdjectiveStarPlacementInput {
     /// Returns the birth time branch.
     pub const fn birth_time(self) -> EarthlyBranch {
         self.birth_time
+    }
+
+    /// Returns the birth year Heavenly Stem used for stem-based stars.
+    pub const fn birth_year_stem(self) -> HeavenlyStem {
+        self.birth_year_stem
     }
 
     /// Returns the birth year Earthly Branch used for branch-based stars.
@@ -177,12 +192,21 @@ impl AdjectiveStarPlacer for DeterministicAdjectiveStarPlacer {
 ///   `(changIndex + dayIndex) % 12 - 1`);
 /// - 天巫, 天月, 阴煞, and 解神 are fixed per-lunar-month branch lookups
 ///   (iztro `getMonthlyStarIndex`), indexed by the zero-based month.
-/// - 华盖, 孤辰, 寡宿, 蜚廉, 破碎, 天德, 月德, and 年解 reproduce the
-///   birth-year-branch-only subset of iztro `getYearlyStarIndex`.
+/// - 华盖, 咸池, 孤辰, 寡宿, 蜚廉, 破碎, 天德, 月德, and 年解 reproduce the
+///   birth-year-branch subset of iztro `getYearlyStarIndex`;
+/// - 天空 sits one branch forward from the birth year branch;
+/// - 天官, 天厨, and 天福 are fixed per-birth-year-stem branch lookups;
+/// - 天才 counts forward from the Life Palace, 天寿 from the Body Palace, each
+///   by the birth year branch index (子 = 0);
+/// - 天伤 sits in the 仆役 palace and 天使 in the 疾厄 palace relative to the
+///   Life Palace (the default-algorithm placement, with no阴阳 swap);
+/// - 截路 and 空亡 are fixed per-birth-year-stem branch lookups;
+/// - 旬空 is the 旬中空亡 void branch matching the birth year branch's阴阳
+///   polarity (see [`xun_kong_branch`]).
 fn adjective_star_placements(
     chart: &Chart,
     input: AdjectiveStarPlacementInput,
-) -> Result<[(EarthlyBranch, StarName); 26], ChartError> {
+) -> Result<[(EarthlyBranch, StarName); 38], ChartError> {
     // iztro `getMonthlyStarIndex` lookup tables, indexed by the zero-based lunar
     // month (正月 = 0). Each entry is the target Earthly Branch.
     const TIAN_WU_BY_MONTH: [EarthlyBranch; 4] = [
@@ -254,9 +278,17 @@ fn adjective_star_placements(
     let month_offset = month_index as isize;
     let day_offset = isize::from(input.lunar_day().value()) - 1;
     let time_index = input.birth_time().index() as isize;
+    let year_stem = input.birth_year_stem();
     let year_branch = input.birth_year_branch();
     let year_branch_index = year_branch.index();
     let year_branch_offset = year_branch_index as isize;
+    let life_branch = chart
+        .life_palace()
+        .map(Palace::branch)
+        .ok_or(ChartError::RequiredLifeBodyPalaceMissing)?;
+    let body_branch = chart
+        .body_palace_branch()
+        .ok_or(ChartError::RequiredLifeBodyPalaceMissing)?;
     let zuo_fu = branch_containing_required_star(chart, StarName::ZuoFu)?;
     let you_bi = branch_containing_required_star(chart, StarName::YouBi)?;
     let wen_chang = branch_containing_required_star(chart, StarName::WenChang)?;
@@ -287,6 +319,24 @@ fn adjective_star_placements(
     let tian_de = EarthlyBranch::You.offset(year_branch_offset);
     let yue_de = EarthlyBranch::Si.offset(year_branch_offset);
     let nian_jie = NIAN_JIE_BY_YEAR_BRANCH[year_branch_index];
+    // Birth-year-branch group continued.
+    let xian_chi = xian_chi_branch(year_branch);
+    let tian_kong = year_branch.offset(1);
+    // Birth-year-stem group.
+    let tian_guan = tian_guan_branch(year_stem);
+    let tian_chu = tian_chu_branch(year_stem);
+    let tian_fu_adj = tian_fu_adj_branch(year_stem);
+    let jie_lu = jie_lu_branch(year_stem);
+    let kong_wang = kong_wang_branch(year_stem);
+    // Life/Body-palace anchored group. 天才/天寿 count forward from the Life /
+    // Body palaces by the birth year branch index; 天伤/天使 occupy the 仆役
+    // (Life + 5) and 疾厄 (Life + 7) palaces under the default algorithm.
+    let tian_cai = life_branch.offset(year_branch_offset);
+    let tian_shou = body_branch.offset(year_branch_offset);
+    let tian_shang = life_branch.offset(5);
+    let tian_shi = life_branch.offset(7);
+    // Void / 空亡 family.
+    let xun_kong = xun_kong_branch(year_stem, year_branch);
 
     Ok([
         (hong_luan, StarName::HongLuan),
@@ -315,6 +365,18 @@ fn adjective_star_placements(
         (tian_de, StarName::TianDe),
         (yue_de, StarName::YueDe),
         (nian_jie, StarName::NianJie),
+        (xian_chi, StarName::XianChi),
+        (tian_kong, StarName::TianKong),
+        (tian_guan, StarName::TianGuan),
+        (tian_chu, StarName::TianChu),
+        (tian_fu_adj, StarName::TianFuAdj),
+        (tian_cai, StarName::TianCai),
+        (tian_shou, StarName::TianShou),
+        (tian_shang, StarName::TianShang),
+        (tian_shi, StarName::TianShi),
+        (jie_lu, StarName::JieLu),
+        (kong_wang, StarName::KongWang),
+        (xun_kong, StarName::XunKong),
     ])
 }
 
@@ -358,6 +420,114 @@ fn po_sui_branch(year_branch: EarthlyBranch) -> EarthlyBranch {
     }
 }
 
+/// 咸池 (iztro `getHuagaiXianchiIndex`): the peach-blossom branch of the birth
+/// year branch's 三合 (triad) family — the opposite member from 华盖.
+fn xian_chi_branch(year_branch: EarthlyBranch) -> EarthlyBranch {
+    match year_branch {
+        EarthlyBranch::Yin | EarthlyBranch::Wu | EarthlyBranch::Xu => EarthlyBranch::Mao,
+        EarthlyBranch::Shen | EarthlyBranch::Zi | EarthlyBranch::Chen => EarthlyBranch::You,
+        EarthlyBranch::Si | EarthlyBranch::You | EarthlyBranch::Chou => EarthlyBranch::Wu,
+        EarthlyBranch::Hai | EarthlyBranch::Mao | EarthlyBranch::Wei => EarthlyBranch::Zi,
+    }
+}
+
+/// 天官 (iztro `getYearlyStarIndex`): a fixed branch per birth year stem.
+fn tian_guan_branch(year_stem: HeavenlyStem) -> EarthlyBranch {
+    match year_stem {
+        HeavenlyStem::Jia => EarthlyBranch::Wei,
+        HeavenlyStem::Yi => EarthlyBranch::Chen,
+        HeavenlyStem::Bing => EarthlyBranch::Si,
+        HeavenlyStem::Ding => EarthlyBranch::Yin,
+        HeavenlyStem::Wu => EarthlyBranch::Mao,
+        HeavenlyStem::Ji => EarthlyBranch::You,
+        HeavenlyStem::Geng => EarthlyBranch::Hai,
+        HeavenlyStem::Xin => EarthlyBranch::You,
+        HeavenlyStem::Ren => EarthlyBranch::Xu,
+        HeavenlyStem::Gui => EarthlyBranch::Wu,
+    }
+}
+
+/// 天厨 (iztro `getYearlyStarIndex`): a fixed branch per birth year stem.
+fn tian_chu_branch(year_stem: HeavenlyStem) -> EarthlyBranch {
+    match year_stem {
+        HeavenlyStem::Jia => EarthlyBranch::Si,
+        HeavenlyStem::Yi => EarthlyBranch::Wu,
+        HeavenlyStem::Bing => EarthlyBranch::Zi,
+        HeavenlyStem::Ding => EarthlyBranch::Si,
+        HeavenlyStem::Wu => EarthlyBranch::Wu,
+        HeavenlyStem::Ji => EarthlyBranch::Shen,
+        HeavenlyStem::Geng => EarthlyBranch::Yin,
+        HeavenlyStem::Xin => EarthlyBranch::Wu,
+        HeavenlyStem::Ren => EarthlyBranch::You,
+        HeavenlyStem::Gui => EarthlyBranch::Hai,
+    }
+}
+
+/// 天福 adjective star (iztro `getYearlyStarIndex` `tianfuIndex`): a fixed
+/// branch per birth year stem. Distinct from the major star 天府.
+fn tian_fu_adj_branch(year_stem: HeavenlyStem) -> EarthlyBranch {
+    match year_stem {
+        HeavenlyStem::Jia => EarthlyBranch::You,
+        HeavenlyStem::Yi => EarthlyBranch::Shen,
+        HeavenlyStem::Bing => EarthlyBranch::Zi,
+        HeavenlyStem::Ding => EarthlyBranch::Hai,
+        HeavenlyStem::Wu => EarthlyBranch::Mao,
+        HeavenlyStem::Ji => EarthlyBranch::Yin,
+        HeavenlyStem::Geng => EarthlyBranch::Wu,
+        HeavenlyStem::Xin => EarthlyBranch::Si,
+        HeavenlyStem::Ren => EarthlyBranch::Wu,
+        HeavenlyStem::Gui => EarthlyBranch::Si,
+    }
+}
+
+/// 截路 (iztro `getYearlyStarIndex`): a fixed branch per 五鼠遁-style stem pair
+/// (stem index mod 5).
+fn jie_lu_branch(year_stem: HeavenlyStem) -> EarthlyBranch {
+    match year_stem {
+        HeavenlyStem::Jia | HeavenlyStem::Ji => EarthlyBranch::Shen,
+        HeavenlyStem::Yi | HeavenlyStem::Geng => EarthlyBranch::Wu,
+        HeavenlyStem::Bing | HeavenlyStem::Xin => EarthlyBranch::Chen,
+        HeavenlyStem::Ding | HeavenlyStem::Ren => EarthlyBranch::Yin,
+        HeavenlyStem::Wu | HeavenlyStem::Gui => EarthlyBranch::Zi,
+    }
+}
+
+/// 空亡 (iztro `getYearlyStarIndex`): the branch one step forward from 截路,
+/// also fixed per stem pair (stem index mod 5).
+fn kong_wang_branch(year_stem: HeavenlyStem) -> EarthlyBranch {
+    match year_stem {
+        HeavenlyStem::Jia | HeavenlyStem::Ji => EarthlyBranch::You,
+        HeavenlyStem::Yi | HeavenlyStem::Geng => EarthlyBranch::Wei,
+        HeavenlyStem::Bing | HeavenlyStem::Xin => EarthlyBranch::Si,
+        HeavenlyStem::Ding | HeavenlyStem::Ren => EarthlyBranch::Mao,
+        HeavenlyStem::Wu | HeavenlyStem::Gui => EarthlyBranch::Chou,
+    }
+}
+
+/// 旬空 (旬中空亡, iztro `getYearlyStarIndex` `xunkongIndex`).
+///
+/// The birth year stem-branch pair sits inside one of the six 甲-旬 (sexagenary
+/// decades); two branches are absent from that decade and form the 旬空 pair.
+/// iztro picks the void branch whose阴阳 polarity matches the birth year branch
+/// (yang year branch → yang void branch, yin → yin).
+///
+/// iztro computes a base palace index `year_branch_palace + 癸 - stem + 1`, then
+/// advances one palace when the base palace parity differs from the year
+/// branch's. Palace indices and branch indices differ by the fixed offset of 寅
+/// (2), so parity is preserved and the rule translates directly to branch
+/// space: `base = year_branch_index + 10 - stem_index (mod 12)`.
+fn xun_kong_branch(year_stem: HeavenlyStem, year_branch: EarthlyBranch) -> EarthlyBranch {
+    let stem = year_stem.index() as isize;
+    let year_branch_index = year_branch.index() as isize;
+    // 癸 is stem index 9, and the iztro formula adds a further +1.
+    let mut index = (year_branch_index + 10 - stem).rem_euclid(12);
+    let year_polarity = year_branch_index.rem_euclid(2);
+    if year_polarity != index.rem_euclid(2) {
+        index = (index + 1).rem_euclid(12);
+    }
+    EarthlyBranch::from_index(index as usize)
+}
+
 fn branch_containing_required_star(
     chart: &Chart,
     star: StarName,
@@ -366,4 +536,137 @@ fn branch_containing_required_star(
         .palace_containing_star(star)
         .map(Palace::branch)
         .ok_or(ChartError::RequiredStarMissing { star })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{
+        jie_lu_branch, kong_wang_branch, tian_chu_branch, tian_fu_adj_branch, tian_guan_branch,
+        xian_chi_branch, xun_kong_branch,
+    };
+    use crate::ganzhi::{EARTHLY_BRANCHES, EarthlyBranch, HEAVENLY_STEMS, HeavenlyStem};
+
+    // Tables transcribed from iztro 2.5.8 `getYearlyStarIndex` /
+    // `getHuagaiXianchiIndex` and cross-checked against `astro.byLunar` output.
+
+    /// 咸池, by birth year branch (子..亥). Same 三合 family as 华盖.
+    #[test]
+    fn xian_chi_matches_iztro_branch_table() {
+        use EarthlyBranch::*;
+        let expected = [You, Wu, Mao, Zi, You, Wu, Mao, Zi, You, Wu, Mao, Zi];
+        for (index, branch) in EARTHLY_BRANCHES.into_iter().enumerate() {
+            assert_eq!(
+                xian_chi_branch(branch),
+                expected[index],
+                "咸池 for {branch:?}"
+            );
+        }
+    }
+
+    /// 天空 sits one branch forward from the birth year branch.
+    #[test]
+    fn tian_kong_is_one_branch_after_year_branch() {
+        for branch in EARTHLY_BRANCHES {
+            assert_eq!(
+                branch.offset(1),
+                EarthlyBranch::from_index(branch.index() + 1)
+            );
+        }
+    }
+
+    /// 天官, by birth year stem (甲..癸).
+    #[test]
+    fn tian_guan_matches_iztro_stem_table() {
+        use EarthlyBranch::*;
+        let expected = [Wei, Chen, Si, Yin, Mao, You, Hai, You, Xu, Wu];
+        for (index, stem) in HEAVENLY_STEMS.into_iter().enumerate() {
+            assert_eq!(tian_guan_branch(stem), expected[index], "天官 for {stem:?}");
+        }
+    }
+
+    /// 天厨, by birth year stem (甲..癸).
+    #[test]
+    fn tian_chu_matches_iztro_stem_table() {
+        use EarthlyBranch::*;
+        let expected = [Si, Wu, Zi, Si, Wu, Shen, Yin, Wu, You, Hai];
+        for (index, stem) in HEAVENLY_STEMS.into_iter().enumerate() {
+            assert_eq!(tian_chu_branch(stem), expected[index], "天厨 for {stem:?}");
+        }
+    }
+
+    /// 天福 adjective star, by birth year stem (甲..癸).
+    #[test]
+    fn tian_fu_adj_matches_iztro_stem_table() {
+        use EarthlyBranch::*;
+        let expected = [You, Shen, Zi, Hai, Mao, Yin, Wu, Si, Wu, Si];
+        for (index, stem) in HEAVENLY_STEMS.into_iter().enumerate() {
+            assert_eq!(
+                tian_fu_adj_branch(stem),
+                expected[index],
+                "天福 for {stem:?}"
+            );
+        }
+    }
+
+    /// 截路 / 空亡, by birth year stem pair (stem index mod 5). 空亡 is one
+    /// branch forward from 截路.
+    #[test]
+    fn jie_lu_and_kong_wang_match_iztro_stem_table() {
+        use EarthlyBranch::*;
+        let jie_lu = [Shen, Wu, Chen, Yin, Zi, Shen, Wu, Chen, Yin, Zi];
+        let kong_wang = [You, Wei, Si, Mao, Chou, You, Wei, Si, Mao, Chou];
+        for (index, stem) in HEAVENLY_STEMS.into_iter().enumerate() {
+            assert_eq!(jie_lu_branch(stem), jie_lu[index], "截路 for {stem:?}");
+            assert_eq!(
+                kong_wang_branch(stem),
+                kong_wang[index],
+                "空亡 for {stem:?}"
+            );
+            assert_eq!(
+                kong_wang_branch(stem),
+                jie_lu_branch(stem).offset(1),
+                "空亡 should follow 截路 for {stem:?}"
+            );
+        }
+    }
+
+    /// 旬空 (旬中空亡) across the full sexagenary cycle: the void branch of the
+    /// year's 甲-旬 whose 阴阳 polarity matches the year branch.
+    #[test]
+    fn xun_kong_matches_iztro_over_full_sexagenary_cycle() {
+        use EarthlyBranch::*;
+        // i = sexagenary position; stem = i % 10, branch = i % 12.
+        let expected = [
+            Xu, Hai, Xu, Hai, Xu, Hai, Xu, Hai, Xu, Hai, // 甲子旬: void 戌亥
+            Shen, You, Shen, You, Shen, You, Shen, You, Shen, You, // 甲戌旬: void 申酉
+            Wu, Wei, Wu, Wei, Wu, Wei, Wu, Wei, Wu, Wei, // 甲申旬: void 午未
+            Chen, Si, Chen, Si, Chen, Si, Chen, Si, Chen, Si, // 甲午旬: void 辰巳
+            Yin, Mao, Yin, Mao, Yin, Mao, Yin, Mao, Yin, Mao, // 甲辰旬: void 寅卯
+            Zi, Chou, Zi, Chou, Zi, Chou, Zi, Chou, Zi, Chou, // 甲寅旬: void 子丑
+        ];
+        for (i, &want) in expected.iter().enumerate() {
+            let stem = HeavenlyStem::from_index(i % 10);
+            let branch = EarthlyBranch::from_index(i % 12);
+            assert_eq!(
+                xun_kong_branch(stem, branch),
+                want,
+                "旬空 for sexagenary position {i} ({stem:?}{branch:?})"
+            );
+        }
+    }
+
+    /// The 旬空 result always shares the birth year branch's 阴阳 polarity.
+    #[test]
+    fn xun_kong_polarity_matches_year_branch() {
+        for i in 0..60usize {
+            let stem = HeavenlyStem::from_index(i % 10);
+            let branch = EarthlyBranch::from_index(i % 12);
+            let void = xun_kong_branch(stem, branch);
+            assert_eq!(
+                void.index() % 2,
+                branch.index() % 2,
+                "旬空 polarity mismatch for {stem:?}{branch:?}"
+            );
+        }
+    }
 }

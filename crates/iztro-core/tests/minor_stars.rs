@@ -649,6 +649,18 @@ fn star_key(star: StarName) -> &'static str {
         StarName::TianDe => "tian_de",
         StarName::YueDe => "yue_de",
         StarName::NianJie => "nian_jie",
+        StarName::XianChi => "xian_chi",
+        StarName::TianKong => "tian_kong",
+        StarName::TianGuan => "tian_guan",
+        StarName::TianChu => "tian_chu",
+        StarName::TianFuAdj => "tian_fu_adj",
+        StarName::TianCai => "tian_cai",
+        StarName::TianShou => "tian_shou",
+        StarName::TianShang => "tian_shang",
+        StarName::TianShi => "tian_shi",
+        StarName::JieLu => "jie_lu",
+        StarName::KongWang => "kong_wang",
+        StarName::XunKong => "xun_kong",
     }
 }
 

@@ -275,9 +275,9 @@ pub fn build_natal_chart_with_major_stars(
 ///
 /// This public builder preserves the minimal natal chart facts, places the
 /// natal-scope fourteen major stars, the supported fourteen minor stars, then
-/// the supported twenty-six adjective/helper-star subset.
-/// The remaining adjective stars, temporal scopes beyond natal, feature
-/// extraction, rule-engine output, and narrative output remain out of scope.
+/// the full default-algorithm 38 natal adjective/helper stars.
+/// Temporal scopes beyond natal, horoscope placement, feature extraction,
+/// rule-engine output, and narrative output remain out of scope.
 pub fn build_natal_chart_with_supported_stars(
     input: NatalChartWithSupportedStarsInput,
 ) -> Result<Chart, ChartError> {
@@ -315,6 +315,7 @@ pub fn build_natal_chart_with_supported_stars(
             input.lunar_month(),
             input.lunar_day(),
             input.birth_context().birth_time(),
+            input.birth_year_stem(),
             input.birth_year_branch(),
         ),
     )

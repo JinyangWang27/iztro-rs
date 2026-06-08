@@ -35,7 +35,7 @@ Fixtures compare **only** fields currently implemented by `iztro-rs`:
 - the five-element bureau (五行局);
 - fourteen major-star facts in the major-star fixture;
 - fourteen supported minor-star facts in the minor-star fixtures;
-- twenty-six supported adjective/helper-star facts in the fourth-subset
+- the full default-algorithm set of 38 natal adjective/helper-star facts in the
   adjective-star fixtures;
 
 `metadata.supported_fields_only` is `true`.
@@ -198,47 +198,49 @@ and five-element bureau are not used by iztro minor-star placement.
 
 ## Adjective-star fixtures
 
-The adjective-star fixtures cover the supported natal adjective-star (杂曜)
-subset. Only the latest twenty-six-star subset is kept in-tree:
+The adjective-star fixtures cover the **full default-algorithm** natal
+adjective-star (杂曜) set — all 38 natal-origin 杂曜 iztro 2.5.8
+`getAdjectiveStar` emits under the default (non-Zhongzhou) algorithm. Only these
+full-default fixtures (38 stars each) are kept in-tree:
 
-- `adjective_stars_fourth_subset_1990_05_17_chen_female.json`
-- `adjective_stars_fourth_subset_1988_03_14_zi_male.json`
-- `adjective_stars_fourth_subset_1991_08_09_hai_female.json`
+- `adjective_stars_full_default_1990_05_17_chen_female.json`
+- `adjective_stars_full_default_1988_03_14_zi_male.json`
+- `adjective_stars_full_default_1991_08_09_hai_female.json`
 
-Earlier, smaller adjective-star subsets (the six-, twelve-, and eighteen-star
-fixtures) are no longer kept in-tree; their history remains available through
-git history.
+Earlier, smaller adjective-star subsets (the six-, twelve-, eighteen-, and
+twenty-six-star fixtures) are no longer kept in-tree; their history remains
+available through git history. Each fixture's `metadata` records the
+`target_version` (`2.5.8`), `algorithm` (`default`), and `adjective_star_count`
+(`38`).
 
-They are generated from `npm:iztro@2.5.8` in `/tmp` and capture compact raw
-`palaces[].adjectiveStars` (filtered to the selected subset) alongside
-normalized `supported_fields.adjective_stars`.
+They are generated from `npm:iztro@2.5.8` via `astro.byLunar(...)` and capture
+compact raw `palaces[].adjectiveStars` alongside normalized
+`supported_fields.adjective_stars`.
 
 The normalized star fact objects include:
 
 - `name`: the snake_case `StarName` key, for example `hong_luan`,
-  `tian_yao`, or `feng_gao`. 天月 uses `tian_yue_adj` to disambiguate from the
+  `tian_yao`, or `feng_gao`. 天福 uses `tian_fu_adj` to disambiguate from the
+  major star 天府 (`tian_fu`); 天月 uses `tian_yue_adj` to disambiguate from the
   minor star 天钺 (`tian_yue`);
 - `type`: the upstream iztro star type, preserved verbatim (`flower`,
   `adjective`, or `helper`) and mapped to the Rust `StarKind` by the
   compatibility test.
 
-The current subset is 红鸾, 天喜, 天姚 (flower); 天刑, 台辅, 封诰, 三台, 八座,
-龙池, 凤阁, 天哭, 天虚, 恩光, 天贵, 天巫, 天月, 阴煞, 华盖, 孤辰, 寡宿,
-蜚廉, 破碎, 天德, 月德 (adjective); and 解神, 年解 (helper). The
-compatibility tests assert placement, upstream type, derived
-`StarCategory::Adjective`, `Brightness::Unknown`, and natal scope. The
-implemented adjective-star inputs are explicit `lunar_month`, `lunar_day`,
-`birth_time`, and `birth_year_branch`. 三台/八座 derive from the actual placed
-左辅/右弼 branches and 恩光/天贵 from the placed 文昌/文曲 branches plus the
-lunar-day offset, so these fixtures are exercised after minor stars have been
-placed. 天巫, 天月, 阴煞, and 解神 are fixed per-lunar-month branch lookups.
-华盖, 孤辰, 寡宿, 蜚廉, 破碎, 天德, 月德, and 年解 are driven only by the
-explicit birth year branch; 年解 is covered only as the natal `origin` helper
-emitted by `getAdjectiveStar`, not as a horoscope/yearly flow.
+The set has four `flower` stars (红鸾, 天喜, 天姚, 咸池), two `helper` stars
+(解神, 年解), and 32 plain `adjective` stars. The compatibility tests assert
+placement, upstream type, derived `StarCategory::Adjective`,
+`Brightness::Unknown`, and natal scope. The implemented adjective-star inputs are
+explicit `lunar_month`, `lunar_day`, `birth_time`, `birth_year_stem`, and
+`birth_year_branch`. 三台/八座 derive from the actual placed 左辅/右弼 branches
+and 恩光/天贵 from the placed 文昌/文曲 branches plus the lunar-day offset, so
+these fixtures are exercised after minor stars have been placed; 天才/天寿/天伤/
+天使 read the Life and Body palaces. 年解 is covered only as the natal `origin`
+helper emitted by `getAdjectiveStar`, not as a horoscope/yearly flow.
 
 ### Explicitly excluded fields
 
-- remaining unsupported adjective stars
+- Zhongzhou-only 杂曜 (龙德/截空/劫煞/大耗) and Zhongzhou algorithm selection
 - adjective-star brightness
 - feature extraction
 - rule-engine output
@@ -254,6 +256,7 @@ emitted by `getAdjectiveStar`, not as a horoscope/yearly flow.
 ## Scope
 
 The fixtures cover **minimal natal compatibility** and deterministic
-**fourteen-major-star**, **fourteen-supported-minor-star**, and **twenty-six
-supported-adjective/helper-star facts** only. This is 54 represented natal
-stars in the current `by_lunar` supported-star slice.
+**fourteen-major-star**, **fourteen-supported-minor-star**, and the
+**full default-algorithm 38 natal-adjective/helper-star facts** only. This is 66
+represented natal stars in the current `by_lunar` supported-star slice (14 major
++ 14 minor + 38 adjective/helper).

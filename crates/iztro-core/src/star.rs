@@ -115,6 +115,33 @@ pub enum StarName {
     YueDe,
     /// Nian Jie star (年解).
     NianJie,
+    /// Xian Chi star (咸池), a peach-blossom 杂曜 from the birth year branch.
+    XianChi,
+    /// Tian Kong star (天空), one branch forward from the birth year branch.
+    TianKong,
+    /// Tian Guan star (天官), placed from the birth year stem.
+    TianGuan,
+    /// Tian Chu star (天厨), placed from the birth year stem.
+    TianChu,
+    /// Tian Fu (天福) adjective star, placed from the birth year stem.
+    ///
+    /// Disambiguated from the major star 天府 ([`StarName::TianFu`]); both
+    /// romanize to "Tian Fu", so this 杂曜 uses the `tian_fu_adj` key.
+    TianFuAdj,
+    /// Tian Cai star (天才), anchored to the Life Palace.
+    TianCai,
+    /// Tian Shou star (天寿), anchored to the Body Palace.
+    TianShou,
+    /// Tian Shang star (天伤), anchored to the Life Palace (default algorithm).
+    TianShang,
+    /// Tian Shi star (天使), anchored to the Life Palace (default algorithm).
+    TianShi,
+    /// Jie Lu star (截路), placed from the birth year stem.
+    JieLu,
+    /// Kong Wang star (空亡), placed from the birth year stem.
+    KongWang,
+    /// Xun Kong star (旬空), the 旬中空亡 void branch matching the year polarity.
+    XunKong,
 }
 
 /// Factual metadata for the fourteen major stars.
@@ -153,15 +180,15 @@ const MINOR_STAR_METADATA: [StarMetadata; 14] = [
     StarMetadata::new("di_jie", "地劫", StarName::DiJie, StarKind::Tough),
 ];
 
-/// Factual metadata for the supported adjective-star (杂曜) subset.
+/// Factual metadata for the full default-algorithm adjective-star (杂曜) set.
 ///
-/// 红鸾/天喜/天姚 are peach-blossom (`Flower`) stars; 天刑/台辅/封诰 are plain
-/// miscellaneous (`Adjective`) stars. The second subset adds 三台/八座/龙池/
-/// 凤阁/天哭/天虚 as plain `Adjective` stars. The third subset adds 恩光/天贵/
-/// 天巫/天月/阴煞 as plain `Adjective` stars and 解神 as a `Helper` star. The
-/// fourth subset adds 华盖/孤辰/寡宿/蜚廉/破碎/天德/月德 as plain `Adjective`
-/// stars and 年解 as a `Helper` star. All derive [`StarCategory::Adjective`].
-const ADJECTIVE_STAR_METADATA: [StarMetadata; 26] = [
+/// This is the complete set of 38 natal-origin 杂曜 emitted by iztro 2.5.8
+/// `getAdjectiveStar` under the default (non-Zhongzhou) algorithm. 红鸾/天喜/
+/// 天姚/咸池 are peach-blossom (`Flower`) stars; 解神/年解 are `Helper` stars;
+/// the remaining 32 are plain miscellaneous (`Adjective`) stars. All derive
+/// [`StarCategory::Adjective`]. The Zhongzhou-only 杂曜 (龙德/截空/劫煞/大耗),
+/// adjective-star brightness, and 神煞 beyond this slice stay out of scope.
+const ADJECTIVE_STAR_METADATA: [StarMetadata; 38] = [
     StarMetadata::new("hong_luan", "红鸾", StarName::HongLuan, StarKind::Flower),
     StarMetadata::new("tian_xi", "天喜", StarName::TianXi, StarKind::Flower),
     StarMetadata::new("tian_yao", "天姚", StarName::TianYao, StarKind::Flower),
@@ -193,10 +220,32 @@ const ADJECTIVE_STAR_METADATA: [StarMetadata; 26] = [
     StarMetadata::new("tian_de", "天德", StarName::TianDe, StarKind::Adjective),
     StarMetadata::new("yue_de", "月德", StarName::YueDe, StarKind::Adjective),
     StarMetadata::new("nian_jie", "年解", StarName::NianJie, StarKind::Helper),
+    StarMetadata::new("xian_chi", "咸池", StarName::XianChi, StarKind::Flower),
+    StarMetadata::new("tian_kong", "天空", StarName::TianKong, StarKind::Adjective),
+    StarMetadata::new("tian_guan", "天官", StarName::TianGuan, StarKind::Adjective),
+    StarMetadata::new("tian_chu", "天厨", StarName::TianChu, StarKind::Adjective),
+    StarMetadata::new(
+        "tian_fu_adj",
+        "天福",
+        StarName::TianFuAdj,
+        StarKind::Adjective,
+    ),
+    StarMetadata::new("tian_cai", "天才", StarName::TianCai, StarKind::Adjective),
+    StarMetadata::new("tian_shou", "天寿", StarName::TianShou, StarKind::Adjective),
+    StarMetadata::new(
+        "tian_shang",
+        "天伤",
+        StarName::TianShang,
+        StarKind::Adjective,
+    ),
+    StarMetadata::new("tian_shi", "天使", StarName::TianShi, StarKind::Adjective),
+    StarMetadata::new("jie_lu", "截路", StarName::JieLu, StarKind::Adjective),
+    StarMetadata::new("kong_wang", "空亡", StarName::KongWang, StarKind::Adjective),
+    StarMetadata::new("xun_kong", "旬空", StarName::XunKong, StarKind::Adjective),
 ];
 
 /// Factual metadata for all currently represented stars.
-const REPRESENTED_STAR_METADATA: [StarMetadata; 54] = [
+const REPRESENTED_STAR_METADATA: [StarMetadata; 66] = [
     StarMetadata::new("zi_wei", "紫微", StarName::ZiWei, StarKind::Major),
     StarMetadata::new("tian_ji", "天机", StarName::TianJi, StarKind::Major),
     StarMetadata::new("tai_yang", "太阳", StarName::TaiYang, StarKind::Major),
@@ -256,6 +305,28 @@ const REPRESENTED_STAR_METADATA: [StarMetadata; 54] = [
     StarMetadata::new("tian_de", "天德", StarName::TianDe, StarKind::Adjective),
     StarMetadata::new("yue_de", "月德", StarName::YueDe, StarKind::Adjective),
     StarMetadata::new("nian_jie", "年解", StarName::NianJie, StarKind::Helper),
+    StarMetadata::new("xian_chi", "咸池", StarName::XianChi, StarKind::Flower),
+    StarMetadata::new("tian_kong", "天空", StarName::TianKong, StarKind::Adjective),
+    StarMetadata::new("tian_guan", "天官", StarName::TianGuan, StarKind::Adjective),
+    StarMetadata::new("tian_chu", "天厨", StarName::TianChu, StarKind::Adjective),
+    StarMetadata::new(
+        "tian_fu_adj",
+        "天福",
+        StarName::TianFuAdj,
+        StarKind::Adjective,
+    ),
+    StarMetadata::new("tian_cai", "天才", StarName::TianCai, StarKind::Adjective),
+    StarMetadata::new("tian_shou", "天寿", StarName::TianShou, StarKind::Adjective),
+    StarMetadata::new(
+        "tian_shang",
+        "天伤",
+        StarName::TianShang,
+        StarKind::Adjective,
+    ),
+    StarMetadata::new("tian_shi", "天使", StarName::TianShi, StarKind::Adjective),
+    StarMetadata::new("jie_lu", "截路", StarName::JieLu, StarKind::Adjective),
+    StarMetadata::new("kong_wang", "空亡", StarName::KongWang, StarKind::Adjective),
+    StarMetadata::new("xun_kong", "旬空", StarName::XunKong, StarKind::Adjective),
 ];
 
 /// Coarse palace grouping for placed stars.
@@ -451,6 +522,18 @@ pub fn try_adjective_star_metadata(star: StarName) -> Option<&'static StarMetada
         StarName::TianDe => 23,
         StarName::YueDe => 24,
         StarName::NianJie => 25,
+        StarName::XianChi => 26,
+        StarName::TianKong => 27,
+        StarName::TianGuan => 28,
+        StarName::TianChu => 29,
+        StarName::TianFuAdj => 30,
+        StarName::TianCai => 31,
+        StarName::TianShou => 32,
+        StarName::TianShang => 33,
+        StarName::TianShi => 34,
+        StarName::JieLu => 35,
+        StarName::KongWang => 36,
+        StarName::XunKong => 37,
         _ => return None,
     };
 

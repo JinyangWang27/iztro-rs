@@ -3,10 +3,12 @@
     "source": "iztro",
     "target_package": "npm:iztro",
     "target_version": "2.5.8",
+    "algorithm": "default",
     "generated_at": "2026-06-08T00:00:00Z",
     "supported_fields_only": true,
-    "notes": "This fixture compares the supported natal adjective-star (杂曜) subset placement and upstream type against iztro. Subset: 红鸾, 天喜, 天姚 (flower); 天刑, 台辅, 封诰, 三台, 八座, 龙池, 凤阁, 天哭, 天虚, 恩光, 天贵, 天巫, 天月, 阴煞, 华盖, 孤辰, 寡宿, 蜚廉, 破碎, 天德, 月德 (adjective); 解神 and 年解 (helper). The fourth subset adds year-branch driven 华盖, 孤辰, 寡宿, 蜚廉, 破碎, 天德, 月德, and 年解 from iztro getYearlyStarIndex. 天月 uses the snake key tian_yue_adj to disambiguate from the minor star 天钺 (tian_yue). The remaining adjective stars, brightness for adjective stars, calendar conversion, leap-month behavior, rat-hour variants, temporal scopes beyond natal origin, feature extraction, rule-engine output, and narrative output are excluded.",
-    "generation_command": "npm install iztro@2.5.8 --prefix /tmp/iztro-fixture-adj4 && cd /tmp/iztro-fixture-adj4 && node /tmp/generate-adj4-fixtures.mjs"
+    "adjective_star_count": 38,
+    "notes": "Full default-algorithm natal adjective/helper star (杂曜) set from iztro@2.5.8 getAdjectiveStar (non-Zhongzhou). 38 natal-origin stars: 红鸾,天喜,天姚,咸池 (flower); 解神,年解 (helper); and 33 adjective stars including the year-stem 天官/天福/天厨, life/body-anchored 天才/天寿/天伤/天使, and void family 截路/空亡/旬空/天空. 天福 uses snake key tian_fu_adj to disambiguate from major 天府 (tian_fu); 天月 uses tian_yue_adj to disambiguate from minor 天钺 (tian_yue). Zhongzhou-only 龙德/截空/劫煞/大耗, adjective-star brightness, calendar conversion, leap-month, rat-hour, temporal scopes beyond natal origin, features, rules, and narrative are excluded.",
+    "generation_command": "npm install iztro@2.5.8 && node genfix.mjs (astro.byLunar('1991-8-9', 11, '女', false, true, 'zh-CN'))"
   },
   "input": {
     "lunar_date": "1991-8-9",
@@ -52,7 +54,17 @@
             "scope": "origin"
           },
           {
+            "name": "天寿",
+            "type": "adjective",
+            "scope": "origin"
+          },
+          {
             "name": "蜚廉",
+            "type": "adjective",
+            "scope": "origin"
+          },
+          {
+            "name": "天伤",
             "type": "adjective",
             "scope": "origin"
           },
@@ -72,6 +84,11 @@
             "scope": "origin"
           },
           {
+            "name": "截路",
+            "type": "adjective",
+            "scope": "origin"
+          },
+          {
             "name": "寡宿",
             "type": "adjective",
             "scope": "origin"
@@ -87,7 +104,27 @@
         "earthlyBranch": "巳",
         "adjectiveStars": [
           {
+            "name": "天才",
+            "type": "adjective",
+            "scope": "origin"
+          },
+          {
             "name": "台辅",
+            "type": "adjective",
+            "scope": "origin"
+          },
+          {
+            "name": "天福",
+            "type": "adjective",
+            "scope": "origin"
+          },
+          {
+            "name": "空亡",
+            "type": "adjective",
+            "scope": "origin"
+          },
+          {
+            "name": "天使",
             "type": "adjective",
             "scope": "origin"
           }
@@ -98,6 +135,11 @@
         "adjectiveStars": [
           {
             "name": "恩光",
+            "type": "adjective",
+            "scope": "origin"
+          },
+          {
+            "name": "天厨",
             "type": "adjective",
             "scope": "origin"
           }
@@ -142,6 +184,11 @@
             "scope": "origin"
           },
           {
+            "name": "天空",
+            "type": "adjective",
+            "scope": "origin"
+          },
+          {
             "name": "孤辰",
             "type": "adjective",
             "scope": "origin"
@@ -150,7 +197,13 @@
       },
       {
         "earthlyBranch": "酉",
-        "adjectiveStars": []
+        "adjectiveStars": [
+          {
+            "name": "天官",
+            "type": "adjective",
+            "scope": "origin"
+          }
+        ]
       },
       {
         "earthlyBranch": "戌",
@@ -176,6 +229,11 @@
             "scope": "origin"
           },
           {
+            "name": "旬空",
+            "type": "adjective",
+            "scope": "origin"
+          },
+          {
             "name": "天哭",
             "type": "adjective",
             "scope": "origin"
@@ -185,6 +243,11 @@
       {
         "earthlyBranch": "子",
         "adjectiveStars": [
+          {
+            "name": "咸池",
+            "type": "flower",
+            "scope": "origin"
+          },
           {
             "name": "月德",
             "type": "adjective",
@@ -244,7 +307,15 @@
             "type": "adjective"
           },
           {
+            "name": "tian_shou",
+            "type": "adjective"
+          },
+          {
             "name": "fei_lian",
+            "type": "adjective"
+          },
+          {
+            "name": "tian_shang",
             "type": "adjective"
           },
           {
@@ -261,6 +332,10 @@
             "type": "adjective"
           },
           {
+            "name": "jie_lu",
+            "type": "adjective"
+          },
+          {
             "name": "gua_su",
             "type": "adjective"
           },
@@ -274,7 +349,23 @@
         "branch": "si",
         "stars": [
           {
+            "name": "tian_cai",
+            "type": "adjective"
+          },
+          {
             "name": "tai_fu",
+            "type": "adjective"
+          },
+          {
+            "name": "tian_fu_adj",
+            "type": "adjective"
+          },
+          {
+            "name": "kong_wang",
+            "type": "adjective"
+          },
+          {
+            "name": "tian_shi",
             "type": "adjective"
           }
         ]
@@ -284,6 +375,10 @@
         "stars": [
           {
             "name": "en_guang",
+            "type": "adjective"
+          },
+          {
+            "name": "tian_chu",
             "type": "adjective"
           }
         ]
@@ -321,6 +416,10 @@
             "type": "flower"
           },
           {
+            "name": "tian_kong",
+            "type": "adjective"
+          },
+          {
             "name": "gu_chen",
             "type": "adjective"
           }
@@ -328,7 +427,12 @@
       },
       {
         "branch": "you",
-        "stars": []
+        "stars": [
+          {
+            "name": "tian_guan",
+            "type": "adjective"
+          }
+        ]
       },
       {
         "branch": "xu",
@@ -351,6 +455,10 @@
             "type": "adjective"
           },
           {
+            "name": "xun_kong",
+            "type": "adjective"
+          },
+          {
             "name": "tian_ku",
             "type": "adjective"
           }
@@ -359,6 +467,10 @@
       {
         "branch": "zi",
         "stars": [
+          {
+            "name": "xian_chi",
+            "type": "flower"
+          },
           {
             "name": "yue_de",
             "type": "adjective"
