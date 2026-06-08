@@ -28,8 +28,15 @@ This roadmap is intentionally conservative. The project should first establish s
 
 - [x] Define heavenly stems, earthly branches, palaces, stars, mutagens, scopes, gender, and calendar options.
 - [x] Define chart, palace, and star placement models.
-- [ ] Define decadal and horoscope models.
+- [x] Define decadal and horoscope models.
 - [x] Ensure implemented models are strongly typed and serializable.
+
+Decadal and horoscope models are defined as overlays: `HoroscopeChart` wraps an
+immutable natal `Chart` and holds zero or more `TemporalLayer`s, each with a
+non-natal `Scope`, a typed `TemporalContext`, scoped `StarPlacement`s, and
+`MutagenActivation`s. These are model-only facts supplied explicitly by the
+caller; temporal star placement and calendar derivation remain deferred to
+Phase 3.
 
 ## Phase 3: Chart generation compatibility
 
