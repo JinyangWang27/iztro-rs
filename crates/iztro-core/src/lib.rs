@@ -19,6 +19,7 @@ pub mod palace_stems;
 pub mod profile;
 pub mod sexagenary;
 pub mod star;
+pub mod yearly_mutagen;
 
 pub use adjective_stars::{
     AdjectiveStarPlacementInput, AdjectiveStarPlacer, DeterministicAdjectiveStarPlacer,
@@ -61,3 +62,4 @@ pub use star::{
     Brightness, StarCategory, StarKind, StarMetadata, StarName, represented_star_metadata_table,
     star_metadata, try_star_metadata,
 };
+pub use yearly_mutagen::{YearlyMutagenLayerInput, build_yearly_mutagen_layer};
