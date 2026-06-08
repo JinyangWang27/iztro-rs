@@ -65,6 +65,14 @@ pub enum ChartError {
         /// Scope carried by the rejected placement.
         placement: Scope,
     },
+    /// A mutagen activation in a temporal layer must carry the layer's scope.
+    #[error("temporal activation scope {activation:?} does not match layer scope {layer:?}")]
+    TemporalActivationScopeMismatch {
+        /// Scope declared on the layer.
+        layer: Scope,
+        /// Source scope carried by the rejected activation.
+        activation: Scope,
+    },
     /// Placeholder error used until chart-generation validation exists.
     #[error("chart generation is not implemented")]
     NotImplemented,

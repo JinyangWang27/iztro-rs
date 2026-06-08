@@ -161,3 +161,79 @@ fn temporal_layer_rejects_natal_scoped_placement() {
         }
     );
 }
+
+#[test]
+fn temporal_layer_rejects_mismatched_activation_scope() {
+    let activation = MutagenActivation::new(
+        Scope::Monthly,
+        StarName::TaiYang,
+        EarthlyBranch::Wu,
+        Mutagen::Lu,
+    );
+
+    let result = TemporalLayer::try_new(
+        Scope::Yearly,
+        yearly_context(),
+        Vec::new(),
+        vec![activation],
+    );
+
+    assert_eq!(
+        result.unwrap_err(),
+        ChartError::TemporalActivationScopeMismatch {
+            layer: Scope::Yearly,
+            activation: Scope::Monthly,
+        }
+    );
+}
+
+/// Serializes a valid yearly layer, applies `mutate`, then asserts the tampered
+/// JSON fails to deserialize because [`TemporalLayer::try_new`] rejects it.
+fn assert_tampered_layer_json_is_rejected(
+    mutate: impl FnOnce(&mut serde_json::Value),
+    expected_fragment: &str,
+) {
+    let mut value =
+        serde_json::to_value(sample_yearly_layer()).expect("yearly layer should serialize");
+    mutate(&mut value);
+
+    let error = serde_json::from_value::<TemporalLayer>(value)
+        .expect_err("tampered temporal layer JSON should be rejected");
+
+    assert!(
+        error.to_string().contains(expected_fragment),
+        "error `{error}` should mention `{expected_fragment}`"
+    );
+}
+
+#[test]
+fn temporal_layer_json_cannot_bypass_natal_scope_rejection() {
+    assert_tampered_layer_json_is_rejected(
+        |value| value["scope"] = serde_json::json!("natal"),
+        "natal scope",
+    );
+}
+
+#[test]
+fn temporal_layer_json_cannot_bypass_scope_context_mismatch() {
+    assert_tampered_layer_json_is_rejected(
+        |value| value["scope"] = serde_json::json!("monthly"),
+        "does not match context scope",
+    );
+}
+
+#[test]
+fn temporal_layer_json_cannot_bypass_placement_scope_mismatch() {
+    assert_tampered_layer_json_is_rejected(
+        |value| value["placements"][0]["scope"] = serde_json::json!("natal"),
+        "does not match layer scope",
+    );
+}
+
+#[test]
+fn temporal_layer_json_cannot_bypass_activation_scope_mismatch() {
+    assert_tampered_layer_json_is_rejected(
+        |value| value["activations"][0]["source_scope"] = serde_json::json!("monthly"),
+        "does not match layer scope",
+    );
+}

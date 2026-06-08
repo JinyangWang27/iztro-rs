@@ -18,7 +18,7 @@ use crate::{
     sexagenary::StemBranch,
     star::StarName,
 };
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 
 /// Typed temporal context distinguishing each non-natal horoscope scope.
 ///
@@ -140,7 +140,11 @@ impl MutagenActivation {
 ///
 /// A layer never restates natal facts: it carries only the star placements and
 /// mutagen activations scoped to one non-natal period.
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+///
+/// [`Deserialize`] is implemented by hand so decoding routes through
+/// [`TemporalLayer::try_new`]; the scope invariants cannot be bypassed through
+/// serialized input.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct TemporalLayer {
     scope: Scope,
     context: TemporalContext,
@@ -152,9 +156,10 @@ impl TemporalLayer {
     /// Creates a temporal overlay layer after checking scope invariants.
     ///
     /// Rejects the natal scope (natal facts belong to the [`Chart`]), rejects a
-    /// `scope` that disagrees with `context`, and rejects any placement whose
-    /// scope is not the layer scope so a layer can never duplicate or restate a
-    /// natal placement.
+    /// `scope` that disagrees with `context`, rejects any placement whose scope
+    /// is not the layer scope, and rejects any activation whose source scope is
+    /// not the layer scope, so a layer can never duplicate or restate a natal
+    /// fact.
     pub fn try_new(
         scope: Scope,
         context: TemporalContext,
@@ -177,6 +182,15 @@ impl TemporalLayer {
             return Err(ChartError::TemporalPlacementScopeMismatch {
                 layer: scope,
                 placement: placement.scope(),
+            });
+        }
+        if let Some(activation) = activations
+            .iter()
+            .find(|activation| activation.source_scope() != scope)
+        {
+            return Err(ChartError::TemporalActivationScopeMismatch {
+                layer: scope,
+                activation: activation.source_scope(),
             });
         }
 
@@ -206,6 +220,28 @@ impl TemporalLayer {
     /// Returns the mutagen activations scoped to this layer.
     pub fn activations(&self) -> &[MutagenActivation] {
         &self.activations
+    }
+}
+
+impl<'de> Deserialize<'de> for TemporalLayer {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        /// Mirror of [`TemporalLayer`]'s fields used only to decode raw input
+        /// before the scope invariants are re-checked.
+        #[derive(Deserialize)]
+        struct TemporalLayerData {
+            scope: Scope,
+            context: TemporalContext,
+            placements: Vec<StarPlacement>,
+            activations: Vec<MutagenActivation>,
+        }
+
+        let data = TemporalLayerData::deserialize(deserializer)?;
+
+        TemporalLayer::try_new(data.scope, data.context, data.placements, data.activations)
+            .map_err(serde::de::Error::custom)
     }
 }
 
