@@ -45,7 +45,7 @@ Phase 3.
 - [x] Port or reimplement the current chart-generation slice in small deterministic modules.
 - [x] Add golden tests against selected `iztro` outputs for the implemented slice.
 - [x] Document known differences for the implemented slice.
-- [ ] Add remaining adjective stars.
+- [ ] Add remaining adjective stars. 12 of iztro 2.5.8's 38 default-algorithm 杂曜 remain; see the compatibility "Remaining natal adjective/helper star inventory" for the per-star placement basis and status. Next subset: the birth-year-branch group (咸池/天空).
 - [ ] Add solar-to-lunar conversion, leap-month behavior, rat-hour variants, temporal star scopes, and bindings.
 
 Current core slice: `by_lunar` accepts explicit lunar inputs plus explicit birth-year stem and branch, builds deterministic natal chart facts, and validates minimal chart fields, fourteen major stars, fourteen supported minor stars, and twenty-six supported natal adjective/helper stars against selected `iztro` 2.5.8 fixtures. The remaining unsupported adjective stars, solar-to-lunar conversion, leap-month behavior, rat-hour variants, temporal star scopes, and bindings remain deferred.

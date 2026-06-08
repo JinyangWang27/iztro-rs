@@ -19,8 +19,15 @@
 //!   破碎 (PoSui) / 天德 (TianDe) / 月德 (YueDe) / 年解 (NianJie): from the
 //!   birth year branch.
 //!
-//! The remaining adjective stars, brightness for adjective stars, temporal
-//! scopes, leap-month behavior, and rat-hour variants stay out of scope.
+//! iztro 2.5.8 `getAdjectiveStar` emits 38 natal-origin 杂曜 under the default
+//! (non-Zhongzhou) algorithm; the 26 above are the supported subset. The 12 not
+//! placed here are 咸池 / 天空 (birth-year branch), 天官 / 天厨 / 天福
+//! (birth-year stem), 天才 / 天寿 / 天伤 / 天使 (Life/Body-palace anchored), and
+//! 截路 / 空亡 / 旬空 (void/空亡 family). See docs/en/compatibility.md
+//! "Remaining natal adjective/helper star inventory" for the per-star basis and
+//! status. Brightness for adjective stars, the Zhongzhou-only 杂曜
+//! (龙德/截空/劫煞/大耗), temporal scopes, leap-month behavior, and rat-hour
+//! variants also stay out of scope.
 
 use crate::{
     chart::{Chart, Palace, StarPlacement},
