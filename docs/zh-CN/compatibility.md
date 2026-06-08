@@ -59,6 +59,9 @@ fixtures 为：
 - `fixtures/iztro/adjective_stars_third_subset_1990_05_17_chen_female.json`
 - `fixtures/iztro/adjective_stars_third_subset_1988_03_14_zi_male.json`
 - `fixtures/iztro/adjective_stars_third_subset_1991_08_09_hai_female.json`
+- `fixtures/iztro/adjective_stars_fourth_subset_1990_05_17_chen_female.json`
+- `fixtures/iztro/adjective_stars_fourth_subset_1988_03_14_zi_male.json`
+- `fixtures/iztro/adjective_stars_fourth_subset_1991_08_09_hai_female.json`
 
 minimal-natal fixture 只比较 `iztro-rs` 当前已实现的字段：
 
@@ -144,7 +147,7 @@ bindings、Python bindings 或 WebAssembly bindings。
 
 ### 已支持杂曜子集
 
-三个 `adjective_stars_third_subset_*` fixtures 比较当前已支持的十八颗本命杂曜子集，
+三个 `adjective_stars_fourth_subset_*` fixtures 比较当前已支持的二十六颗本命杂曜/辅助星子集，
 与 iztro 每宫的 `adjectiveStars` 对照：
 
 - 每宫的杂曜名称；
@@ -156,7 +159,9 @@ bindings、Python bindings 或 WebAssembly bindings。
 星；天刑（TianXing）、台辅（TaiFu）、封诰（FengGao）、三台（SanTai）、八座
 （BaZuo）、龙池（LongChi）、凤阁（FengGe）、天哭（TianKu）、天虚（TianXu）、
 恩光（EnGuang）、天贵（TianGui）、天巫（TianWu）、天月（TianYueAdj）、阴煞
-（YinSha）——普通 `adjective` 星；以及解神（JieShen）——`helper` 星。安星复现
+（YinSha）、华盖（HuaGai）、孤辰（GuChen）、寡宿（GuaSu）、蜚廉（FeiLian）、
+破碎（PoSui）、天德（TianDe）、月德（YueDe）——普通 `adjective` 星；以及解神
+（JieShen）和年解（NianJie）——`helper` 星。安星复现
 iztro 2.5.8（`getAdjectiveStar` 配合 `getLuanXiIndex`、`getMonthlyStarIndex`、
 `getTimelyStarIndex`、`getDailyStarIndex`、`getYearlyStarIndex`），并从 iztro 的
 寅宫索引框架转换为地支偏移：
@@ -169,16 +174,19 @@ iztro 2.5.8（`getAdjectiveStar` 配合 `getLuanXiIndex`、`getMonthlyStarIndex`
 - 龙池、凤阁与天哭、天虚由出生年支偏移决定；
 - 恩光由已安文昌、天贵由已安文曲，各顺数农历日偏移减一（`getDailyStarIndex`）；
 - 天巫、天月、阴煞、解神由农历月份的固定地支查表决定（`getMonthlyStarIndex`）。
+- 华盖、孤辰、寡宿、蜚廉、破碎、天德、月德、年解由显式出生年支决定
+  （`getYearlyStarIndex`）。年解只表示 `getAdjectiveStar` 输出的本命 `origin`
+  `helper`，不实现流年/horoscope 流曜范围。
 
 天月使用 `tian_yue_adj` 键 / `StarName::TianYueAdj`，以与辅星天钺（`tian_yue` /
 `StarName::TianYue`）区分（两者拼音都是 “Tian Yue”）。每颗已安杂曜派生
 `StarCategory::Adjective`（`StarKind::Flower`、`StarKind::Adjective` 与
 `StarKind::Helper` 都映射到它），亮度为 `Brightness::Unknown` 且无四化，scope
-为本命。解神是首个已表示的 `helper` 类星曜。
+为本命。解神是首个已表示的 `helper` 类星曜，年解是第二个。
 `build_natal_chart_with_supported_stars` builder 在主星与辅星之后安放该子集，
-因此 `by_lunar` 现在产出 14 主星 + 14 辅星 + 18 杂曜 = 46 颗本命星。
+因此 `by_lunar` 现在产出 14 主星 + 14 辅星 + 26 杂曜/辅助星 = 54 颗本命星。
 
-该组 fixtures 仍**不**比较其余杂曜、杂曜亮度、特征提取、规则引擎输出、叙事输出、
+该组 fixtures 仍**不**比较其余未支持杂曜、杂曜亮度、特征提取、规则引擎输出、叙事输出、
 阳历转农历、闰月行为、早晚子时变体，或时间范围星曜（大限、流年或其他流曜范围）。
 
 ## Golden tests

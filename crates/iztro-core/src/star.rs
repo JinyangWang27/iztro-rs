@@ -99,6 +99,22 @@ pub enum StarName {
     YinSha,
     /// Jie Shen star (解神).
     JieShen,
+    /// Hua Gai star (华盖).
+    HuaGai,
+    /// Gu Chen star (孤辰).
+    GuChen,
+    /// Gua Su star (寡宿).
+    GuaSu,
+    /// Fei Lian star (蜚廉).
+    FeiLian,
+    /// Po Sui star (破碎).
+    PoSui,
+    /// Tian De star (天德).
+    TianDe,
+    /// Yue De star (月德).
+    YueDe,
+    /// Nian Jie star (年解).
+    NianJie,
 }
 
 /// Factual metadata for the fourteen major stars.
@@ -142,9 +158,10 @@ const MINOR_STAR_METADATA: [StarMetadata; 14] = [
 /// 红鸾/天喜/天姚 are peach-blossom (`Flower`) stars; 天刑/台辅/封诰 are plain
 /// miscellaneous (`Adjective`) stars. The second subset adds 三台/八座/龙池/
 /// 凤阁/天哭/天虚 as plain `Adjective` stars. The third subset adds 恩光/天贵/
-/// 天巫/天月/阴煞 as plain `Adjective` stars and 解神 as a `Helper` star. All
-/// derive [`StarCategory::Adjective`].
-const ADJECTIVE_STAR_METADATA: [StarMetadata; 18] = [
+/// 天巫/天月/阴煞 as plain `Adjective` stars and 解神 as a `Helper` star. The
+/// fourth subset adds 华盖/孤辰/寡宿/蜚廉/破碎/天德/月德 as plain `Adjective`
+/// stars and 年解 as a `Helper` star. All derive [`StarCategory::Adjective`].
+const ADJECTIVE_STAR_METADATA: [StarMetadata; 26] = [
     StarMetadata::new("hong_luan", "红鸾", StarName::HongLuan, StarKind::Flower),
     StarMetadata::new("tian_xi", "天喜", StarName::TianXi, StarKind::Flower),
     StarMetadata::new("tian_yao", "天姚", StarName::TianYao, StarKind::Flower),
@@ -168,10 +185,18 @@ const ADJECTIVE_STAR_METADATA: [StarMetadata; 18] = [
     ),
     StarMetadata::new("yin_sha", "阴煞", StarName::YinSha, StarKind::Adjective),
     StarMetadata::new("jie_shen", "解神", StarName::JieShen, StarKind::Helper),
+    StarMetadata::new("hua_gai", "华盖", StarName::HuaGai, StarKind::Adjective),
+    StarMetadata::new("gu_chen", "孤辰", StarName::GuChen, StarKind::Adjective),
+    StarMetadata::new("gua_su", "寡宿", StarName::GuaSu, StarKind::Adjective),
+    StarMetadata::new("fei_lian", "蜚廉", StarName::FeiLian, StarKind::Adjective),
+    StarMetadata::new("po_sui", "破碎", StarName::PoSui, StarKind::Adjective),
+    StarMetadata::new("tian_de", "天德", StarName::TianDe, StarKind::Adjective),
+    StarMetadata::new("yue_de", "月德", StarName::YueDe, StarKind::Adjective),
+    StarMetadata::new("nian_jie", "年解", StarName::NianJie, StarKind::Helper),
 ];
 
 /// Factual metadata for all currently represented stars.
-const REPRESENTED_STAR_METADATA: [StarMetadata; 46] = [
+const REPRESENTED_STAR_METADATA: [StarMetadata; 54] = [
     StarMetadata::new("zi_wei", "紫微", StarName::ZiWei, StarKind::Major),
     StarMetadata::new("tian_ji", "天机", StarName::TianJi, StarKind::Major),
     StarMetadata::new("tai_yang", "太阳", StarName::TaiYang, StarKind::Major),
@@ -223,6 +248,14 @@ const REPRESENTED_STAR_METADATA: [StarMetadata; 46] = [
     ),
     StarMetadata::new("yin_sha", "阴煞", StarName::YinSha, StarKind::Adjective),
     StarMetadata::new("jie_shen", "解神", StarName::JieShen, StarKind::Helper),
+    StarMetadata::new("hua_gai", "华盖", StarName::HuaGai, StarKind::Adjective),
+    StarMetadata::new("gu_chen", "孤辰", StarName::GuChen, StarKind::Adjective),
+    StarMetadata::new("gua_su", "寡宿", StarName::GuaSu, StarKind::Adjective),
+    StarMetadata::new("fei_lian", "蜚廉", StarName::FeiLian, StarKind::Adjective),
+    StarMetadata::new("po_sui", "破碎", StarName::PoSui, StarKind::Adjective),
+    StarMetadata::new("tian_de", "天德", StarName::TianDe, StarKind::Adjective),
+    StarMetadata::new("yue_de", "月德", StarName::YueDe, StarKind::Adjective),
+    StarMetadata::new("nian_jie", "年解", StarName::NianJie, StarKind::Helper),
 ];
 
 /// Coarse palace grouping for placed stars.
@@ -410,6 +443,14 @@ pub fn try_adjective_star_metadata(star: StarName) -> Option<&'static StarMetada
         StarName::TianYueAdj => 15,
         StarName::YinSha => 16,
         StarName::JieShen => 17,
+        StarName::HuaGai => 18,
+        StarName::GuChen => 19,
+        StarName::GuaSu => 20,
+        StarName::FeiLian => 21,
+        StarName::PoSui => 22,
+        StarName::TianDe => 23,
+        StarName::YueDe => 24,
+        StarName::NianJie => 25,
         _ => return None,
     };
 

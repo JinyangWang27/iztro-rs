@@ -3,7 +3,7 @@
 //! Reproduces a supported subset of `iztro` 2.5.8 `adjectiveStars`
 //! (`getAdjectiveStar` plus the `getLuanXiIndex`, `getMonthlyStarIndex`,
 //! `getTimelyStarIndex`, `getDailyStarIndex`, and `getYearlyStarIndex` helpers
-//! in `src/star`, MIT licensed). Only these eighteen deterministic stars are
+//! in `src/star`, MIT licensed). Only these twenty-six deterministic stars are
 //! implemented here:
 //!
 //! - 红鸾 (HongLuan) / 天喜 (TianXi): from the birth year branch;
@@ -15,6 +15,9 @@
 //! - 恩光 (EnGuang) / 天贵 (TianGui): from the placed 文昌/文曲 and lunar day;
 //! - 天巫 (TianWu) / 天月 (TianYueAdj) / 阴煞 (YinSha) / 解神 (JieShen): fixed
 //!   per-lunar-month branch lookups.
+//! - 华盖 (HuaGai) / 孤辰 (GuChen) / 寡宿 (GuaSu) / 蜚廉 (FeiLian) /
+//!   破碎 (PoSui) / 天德 (TianDe) / 月德 (YueDe) / 年解 (NianJie): from the
+//!   birth year branch.
 //!
 //! The remaining adjective stars, brightness for adjective stars, temporal
 //! scopes, leap-month behavior, and rat-hour variants stay out of scope.
@@ -167,10 +170,12 @@ impl AdjectiveStarPlacer for DeterministicAdjectiveStarPlacer {
 ///   `(changIndex + dayIndex) % 12 - 1`);
 /// - 天巫, 天月, 阴煞, and 解神 are fixed per-lunar-month branch lookups
 ///   (iztro `getMonthlyStarIndex`), indexed by the zero-based month.
+/// - 华盖, 孤辰, 寡宿, 蜚廉, 破碎, 天德, 月德, and 年解 reproduce the
+///   birth-year-branch-only subset of iztro `getYearlyStarIndex`.
 fn adjective_star_placements(
     chart: &Chart,
     input: AdjectiveStarPlacementInput,
-) -> Result<[(EarthlyBranch, StarName); 18], ChartError> {
+) -> Result<[(EarthlyBranch, StarName); 26], ChartError> {
     // iztro `getMonthlyStarIndex` lookup tables, indexed by the zero-based lunar
     // month (正月 = 0). Each entry is the target Earthly Branch.
     const TIAN_WU_BY_MONTH: [EarthlyBranch; 4] = [
@@ -209,18 +214,48 @@ fn adjective_star_placements(
         EarthlyBranch::Chen,
         EarthlyBranch::Wu,
     ];
+    const FEI_LIAN_BY_YEAR_BRANCH: [EarthlyBranch; 12] = [
+        EarthlyBranch::Shen,
+        EarthlyBranch::You,
+        EarthlyBranch::Xu,
+        EarthlyBranch::Si,
+        EarthlyBranch::Wu,
+        EarthlyBranch::Wei,
+        EarthlyBranch::Yin,
+        EarthlyBranch::Mao,
+        EarthlyBranch::Chen,
+        EarthlyBranch::Hai,
+        EarthlyBranch::Zi,
+        EarthlyBranch::Chou,
+    ];
+    const NIAN_JIE_BY_YEAR_BRANCH: [EarthlyBranch; 12] = [
+        EarthlyBranch::Xu,
+        EarthlyBranch::You,
+        EarthlyBranch::Shen,
+        EarthlyBranch::Wei,
+        EarthlyBranch::Wu,
+        EarthlyBranch::Si,
+        EarthlyBranch::Chen,
+        EarthlyBranch::Mao,
+        EarthlyBranch::Yin,
+        EarthlyBranch::Chou,
+        EarthlyBranch::Zi,
+        EarthlyBranch::Hai,
+    ];
 
     let month_index = usize::from(input.lunar_month().value()) - 1;
     let month_offset = month_index as isize;
     let day_offset = isize::from(input.lunar_day().value()) - 1;
     let time_index = input.birth_time().index() as isize;
-    let year_branch_index = input.birth_year_branch().index() as isize;
+    let year_branch = input.birth_year_branch();
+    let year_branch_index = year_branch.index();
+    let year_branch_offset = year_branch_index as isize;
     let zuo_fu = branch_containing_required_star(chart, StarName::ZuoFu)?;
     let you_bi = branch_containing_required_star(chart, StarName::YouBi)?;
     let wen_chang = branch_containing_required_star(chart, StarName::WenChang)?;
     let wen_qu = branch_containing_required_star(chart, StarName::WenQu)?;
 
-    let hong_luan = EarthlyBranch::Mao.offset(-year_branch_index);
+    let hong_luan = EarthlyBranch::Mao.offset(-year_branch_offset);
     let tian_xi = hong_luan.offset(6);
     let tian_yao = EarthlyBranch::Chou.offset(month_offset);
     let tian_xing = EarthlyBranch::You.offset(month_offset);
@@ -228,16 +263,23 @@ fn adjective_star_placements(
     let feng_gao = EarthlyBranch::Yin.offset(time_index);
     let san_tai = zuo_fu.offset(day_offset);
     let ba_zuo = you_bi.offset(-day_offset);
-    let long_chi = EarthlyBranch::Chen.offset(year_branch_index);
-    let feng_ge = EarthlyBranch::Xu.offset(-year_branch_index);
-    let tian_ku = EarthlyBranch::Wu.offset(-year_branch_index);
-    let tian_xu = EarthlyBranch::Wu.offset(year_branch_index);
+    let long_chi = EarthlyBranch::Chen.offset(year_branch_offset);
+    let feng_ge = EarthlyBranch::Xu.offset(-year_branch_offset);
+    let tian_ku = EarthlyBranch::Wu.offset(-year_branch_offset);
+    let tian_xu = EarthlyBranch::Wu.offset(year_branch_offset);
     let en_guang = wen_chang.offset(day_offset - 1);
     let tian_gui = wen_qu.offset(day_offset - 1);
     let tian_wu = TIAN_WU_BY_MONTH[month_index % 4];
     let tian_yue = TIAN_YUE_BY_MONTH[month_index];
     let yin_sha = YIN_SHA_BY_MONTH[month_index % 6];
     let jie_shen = JIE_SHEN_BY_HALF_MONTH[month_index / 2];
+    let hua_gai = hua_gai_branch(year_branch);
+    let (gu_chen, gua_su) = gu_chen_gua_su_branches(year_branch);
+    let fei_lian = FEI_LIAN_BY_YEAR_BRANCH[year_branch_index];
+    let po_sui = po_sui_branch(year_branch);
+    let tian_de = EarthlyBranch::You.offset(year_branch_offset);
+    let yue_de = EarthlyBranch::Si.offset(year_branch_offset);
+    let nian_jie = NIAN_JIE_BY_YEAR_BRANCH[year_branch_index];
 
     Ok([
         (hong_luan, StarName::HongLuan),
@@ -258,7 +300,55 @@ fn adjective_star_placements(
         (tian_yue, StarName::TianYueAdj),
         (yin_sha, StarName::YinSha),
         (jie_shen, StarName::JieShen),
+        (hua_gai, StarName::HuaGai),
+        (gu_chen, StarName::GuChen),
+        (gua_su, StarName::GuaSu),
+        (fei_lian, StarName::FeiLian),
+        (po_sui, StarName::PoSui),
+        (tian_de, StarName::TianDe),
+        (yue_de, StarName::YueDe),
+        (nian_jie, StarName::NianJie),
     ])
+}
+
+fn hua_gai_branch(year_branch: EarthlyBranch) -> EarthlyBranch {
+    match year_branch {
+        EarthlyBranch::Shen | EarthlyBranch::Zi | EarthlyBranch::Chen => EarthlyBranch::Chen,
+        EarthlyBranch::Si | EarthlyBranch::You | EarthlyBranch::Chou => EarthlyBranch::Chou,
+        EarthlyBranch::Yin | EarthlyBranch::Wu | EarthlyBranch::Xu => EarthlyBranch::Xu,
+        EarthlyBranch::Hai | EarthlyBranch::Mao | EarthlyBranch::Wei => EarthlyBranch::Wei,
+    }
+}
+
+fn gu_chen_gua_su_branches(year_branch: EarthlyBranch) -> (EarthlyBranch, EarthlyBranch) {
+    match year_branch {
+        EarthlyBranch::Yin | EarthlyBranch::Mao | EarthlyBranch::Chen => {
+            (EarthlyBranch::Si, EarthlyBranch::Chou)
+        }
+        EarthlyBranch::Si | EarthlyBranch::Wu | EarthlyBranch::Wei => {
+            (EarthlyBranch::Shen, EarthlyBranch::Chen)
+        }
+        EarthlyBranch::Shen | EarthlyBranch::You | EarthlyBranch::Xu => {
+            (EarthlyBranch::Hai, EarthlyBranch::Wei)
+        }
+        EarthlyBranch::Hai | EarthlyBranch::Zi | EarthlyBranch::Chou => {
+            (EarthlyBranch::Yin, EarthlyBranch::Xu)
+        }
+    }
+}
+
+fn po_sui_branch(year_branch: EarthlyBranch) -> EarthlyBranch {
+    match year_branch {
+        EarthlyBranch::Zi | EarthlyBranch::Wu | EarthlyBranch::Mao | EarthlyBranch::You => {
+            EarthlyBranch::Si
+        }
+        EarthlyBranch::Yin | EarthlyBranch::Shen | EarthlyBranch::Si | EarthlyBranch::Hai => {
+            EarthlyBranch::You
+        }
+        EarthlyBranch::Chen | EarthlyBranch::Xu | EarthlyBranch::Chou | EarthlyBranch::Wei => {
+            EarthlyBranch::Chou
+        }
+    }
 }
 
 fn branch_containing_required_star(

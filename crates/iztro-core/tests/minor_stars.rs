@@ -5,9 +5,10 @@ use iztro_core::{
     EarthlyBranch, Gender, HeavenlyStem, LunarDay, LunarMonth, MethodProfile,
     MinorStarPlacementInput, MinorStarPlacer, Mutagen, NatalChartInput,
     NatalChartWithSupportedStarsInput, Scope, StarCategory, StarKind, StarName,
-    birth_year_star_mutagen, build_minimal_natal_chart, build_natal_chart_with_supported_stars,
-    minor_star_brightness, minor_star_metadata, minor_star_metadata_table,
-    represented_star_metadata_table, star_metadata, try_minor_star_metadata, try_star_metadata,
+    adjective_star_metadata_table, birth_year_star_mutagen, build_minimal_natal_chart,
+    build_natal_chart_with_supported_stars, minor_star_brightness, minor_star_metadata,
+    minor_star_metadata_table, represented_star_metadata_table, star_metadata,
+    try_minor_star_metadata, try_star_metadata,
 };
 use serde_json::Value;
 
@@ -116,7 +117,10 @@ fn represented_star_metadata_table_includes_major_and_minor_stars() {
     let represented = represented_star_metadata_table();
     let names: HashSet<StarName> = represented.iter().map(|entry| entry.name()).collect();
 
-    assert_eq!(represented.len(), 46);
+    assert_eq!(
+        represented.len(),
+        14 + ALL_MINOR_STARS.len() + adjective_star_metadata_table().len()
+    );
     for star in ALL_MINOR_STARS {
         assert!(names.contains(&star), "missing metadata for {star:?}");
     }
@@ -637,6 +641,14 @@ fn star_key(star: StarName) -> &'static str {
         StarName::TianYueAdj => "tian_yue_adj",
         StarName::YinSha => "yin_sha",
         StarName::JieShen => "jie_shen",
+        StarName::HuaGai => "hua_gai",
+        StarName::GuChen => "gu_chen",
+        StarName::GuaSu => "gua_su",
+        StarName::FeiLian => "fei_lian",
+        StarName::PoSui => "po_sui",
+        StarName::TianDe => "tian_de",
+        StarName::YueDe => "yue_de",
+        StarName::NianJie => "nian_jie",
     }
 }
 

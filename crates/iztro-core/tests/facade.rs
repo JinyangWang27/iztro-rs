@@ -4,7 +4,7 @@ use iztro_core::{
     BirthContext, Brightness, CalendarDate, CalendarKind, Chart, ChartError, EarthlyBranch,
     FiveElementBureau, Gender, HeavenlyStem, LunarChartRequest, LunarDay, LunarMonth,
     MethodProfile, Mutagen, NatalChartWithSupportedStarsInput, PALACE_COUNT, StarCategory,
-    StarName, build_natal_chart_with_supported_stars, by_lunar,
+    StarName, build_natal_chart_with_supported_stars, by_lunar, represented_star_metadata_table,
 };
 use serde_json::Value;
 
@@ -35,8 +35,8 @@ fn by_lunar_builds_major_star_chart() {
     assert_eq!(chart.palaces().len(), PALACE_COUNT);
     assert_eq!(chart.major_stars().len(), 14);
     assert_eq!(chart.stars_by_category(StarCategory::Minor).len(), 14);
-    assert_eq!(chart.stars_by_category(StarCategory::Adjective).len(), 18);
-    assert_eq!(chart.stars().len(), 46);
+    assert_eq!(chart.stars_by_category(StarCategory::Adjective).len(), 26);
+    assert_eq!(chart.stars().len(), represented_star_metadata_table().len());
     assert_eq!(chart.five_element_bureau(), Some(FiveElementBureau::Fire6));
 }
 
