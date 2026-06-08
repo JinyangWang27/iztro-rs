@@ -7,7 +7,7 @@
     "generated_at": "2026-06-08T00:00:00Z",
     "supported_fields_only": true,
     "adjective_star_count": 38,
-    "notes": "Full default-algorithm natal adjective/helper star (杂曜) set from iztro@2.5.8 getAdjectiveStar (non-Zhongzhou). 38 natal-origin stars: 红鸾,天喜,天姚,咸池 (flower); 解神,年解 (helper); and 33 adjective stars including the year-stem 天官/天福/天厨, life/body-anchored 天才/天寿/天伤/天使, and void family 截路/空亡/旬空/天空. 天福 uses snake key tian_fu_adj to disambiguate from major 天府 (tian_fu); 天月 uses tian_yue_adj to disambiguate from minor 天钺 (tian_yue). Zhongzhou-only 龙德/截空/劫煞/大耗, adjective-star brightness, calendar conversion, leap-month, rat-hour, temporal scopes beyond natal origin, features, rules, and narrative are excluded.",
+    "notes": "Full default-algorithm natal adjective/helper star (杂曜) set from iztro@2.5.8 getAdjectiveStar (non-Zhongzhou). 38 natal-origin stars: 红鸾,天喜,天姚,咸池 (flower); 解神,年解 (helper); and 32 adjective stars including the year-stem 天官/天福/天厨, life/body-anchored 天才/天寿/天伤/天使, and void family 截路/空亡/旬空/天空. 天福 uses snake key tian_fu_adj to disambiguate from major 天府 (tian_fu); 天月 uses tian_yue_adj to disambiguate from minor 天钺 (tian_yue). Zhongzhou-only 龙德/截空/劫煞/大耗, adjective-star brightness, calendar conversion, leap-month, rat-hour, temporal scopes beyond natal origin, features, rules, and narrative are excluded.",
     "generation_command": "npm install iztro@2.5.8 && node genfix.mjs (astro.byLunar('1991-8-9', 11, '女', false, true, 'zh-CN'))"
   },
   "input": {
