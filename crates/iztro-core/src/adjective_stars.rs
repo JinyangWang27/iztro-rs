@@ -1,9 +1,9 @@
 //! Deterministic adjective-star (杂曜) placement for the natal chart.
 //!
 //! Reproduces a supported subset of `iztro` 2.5.8 `adjectiveStars`
-//! (`getAdjectiveStar` plus the `getLuanXiIndex`, `getMonthlyStarIndex`, and
+//! (`getAdjectiveStar` plus the `getLuanXiIndex`, `getMonthlyStarIndex`,
 //! `getTimelyStarIndex`, `getDailyStarIndex`, and `getYearlyStarIndex` helpers
-//! in `src/star`, MIT licensed). Only these twelve deterministic stars are
+//! in `src/star`, MIT licensed). Only these eighteen deterministic stars are
 //! implemented here:
 //!
 //! - 红鸾 (HongLuan) / 天喜 (TianXi): from the birth year branch;
@@ -11,7 +11,10 @@
 //! - 台辅 (TaiFu) / 封诰 (FengGao): from the birth time branch;
 //! - 三台 (SanTai) / 八座 (BaZuo): from the placed 左辅/右弼 and lunar day;
 //! - 龙池 (LongChi) / 凤阁 (FengGe): from the birth year branch;
-//! - 天哭 (TianKu) / 天虚 (TianXu): from the birth year branch.
+//! - 天哭 (TianKu) / 天虚 (TianXu): from the birth year branch;
+//! - 恩光 (EnGuang) / 天贵 (TianGui): from the placed 文昌/文曲 and lunar day;
+//! - 天巫 (TianWu) / 天月 (TianYueAdj) / 阴煞 (YinSha) / 解神 (JieShen): fixed
+//!   per-lunar-month branch lookups.
 //!
 //! The remaining adjective stars, brightness for adjective stars, temporal
 //! scopes, leap-month behavior, and rat-hour variants stay out of scope.
@@ -84,7 +87,7 @@ pub trait AdjectiveStarPlacer {
 }
 
 /// Returns factual metadata for the supported adjective-star subset.
-pub const fn adjective_star_metadata_table() -> &'static [StarMetadata; 12] {
+pub const fn adjective_star_metadata_table() -> &'static [StarMetadata] {
     crate::star::adjective_star_metadata_table()
 }
 
@@ -158,17 +161,64 @@ impl AdjectiveStarPlacer for DeterministicAdjectiveStarPlacer {
 /// - 三台 counts forward from the placed 左辅 by the lunar day offset
 ///   (初一 = 0), 八座 counts backward from the placed 右弼 by the same offset;
 /// - 龙池 counts forward from 辰, 凤阁 backward from 戌, 天哭 backward from 午,
-///   and 天虚 forward from 午, all by the birth year branch index.
+///   and 天虚 forward from 午, all by the birth year branch index;
+/// - 恩光 counts forward from the placed 文昌, 天贵 forward from the placed 文曲,
+///   each by the lunar day offset minus one (iztro `getDailyStarIndex`:
+///   `(changIndex + dayIndex) % 12 - 1`);
+/// - 天巫, 天月, 阴煞, and 解神 are fixed per-lunar-month branch lookups
+///   (iztro `getMonthlyStarIndex`), indexed by the zero-based month.
 fn adjective_star_placements(
     chart: &Chart,
     input: AdjectiveStarPlacementInput,
-) -> Result<[(EarthlyBranch, StarName); 12], ChartError> {
-    let month_offset = isize::from(input.lunar_month().value()) - 1;
+) -> Result<[(EarthlyBranch, StarName); 18], ChartError> {
+    // iztro `getMonthlyStarIndex` lookup tables, indexed by the zero-based lunar
+    // month (正月 = 0). Each entry is the target Earthly Branch.
+    const TIAN_WU_BY_MONTH: [EarthlyBranch; 4] = [
+        EarthlyBranch::Si,
+        EarthlyBranch::Shen,
+        EarthlyBranch::Yin,
+        EarthlyBranch::Hai,
+    ];
+    const TIAN_YUE_BY_MONTH: [EarthlyBranch; 12] = [
+        EarthlyBranch::Xu,
+        EarthlyBranch::Si,
+        EarthlyBranch::Chen,
+        EarthlyBranch::Yin,
+        EarthlyBranch::Wei,
+        EarthlyBranch::Mao,
+        EarthlyBranch::Hai,
+        EarthlyBranch::Wei,
+        EarthlyBranch::Yin,
+        EarthlyBranch::Wu,
+        EarthlyBranch::Xu,
+        EarthlyBranch::Yin,
+    ];
+    const YIN_SHA_BY_MONTH: [EarthlyBranch; 6] = [
+        EarthlyBranch::Yin,
+        EarthlyBranch::Zi,
+        EarthlyBranch::Xu,
+        EarthlyBranch::Shen,
+        EarthlyBranch::Wu,
+        EarthlyBranch::Chen,
+    ];
+    const JIE_SHEN_BY_HALF_MONTH: [EarthlyBranch; 6] = [
+        EarthlyBranch::Shen,
+        EarthlyBranch::Xu,
+        EarthlyBranch::Zi,
+        EarthlyBranch::Yin,
+        EarthlyBranch::Chen,
+        EarthlyBranch::Wu,
+    ];
+
+    let month_index = usize::from(input.lunar_month().value()) - 1;
+    let month_offset = month_index as isize;
     let day_offset = isize::from(input.lunar_day().value()) - 1;
     let time_index = input.birth_time().index() as isize;
     let year_branch_index = input.birth_year_branch().index() as isize;
     let zuo_fu = branch_containing_required_star(chart, StarName::ZuoFu)?;
     let you_bi = branch_containing_required_star(chart, StarName::YouBi)?;
+    let wen_chang = branch_containing_required_star(chart, StarName::WenChang)?;
+    let wen_qu = branch_containing_required_star(chart, StarName::WenQu)?;
 
     let hong_luan = EarthlyBranch::Mao.offset(-year_branch_index);
     let tian_xi = hong_luan.offset(6);
@@ -182,6 +232,12 @@ fn adjective_star_placements(
     let feng_ge = EarthlyBranch::Xu.offset(-year_branch_index);
     let tian_ku = EarthlyBranch::Wu.offset(-year_branch_index);
     let tian_xu = EarthlyBranch::Wu.offset(year_branch_index);
+    let en_guang = wen_chang.offset(day_offset - 1);
+    let tian_gui = wen_qu.offset(day_offset - 1);
+    let tian_wu = TIAN_WU_BY_MONTH[month_index % 4];
+    let tian_yue = TIAN_YUE_BY_MONTH[month_index];
+    let yin_sha = YIN_SHA_BY_MONTH[month_index % 6];
+    let jie_shen = JIE_SHEN_BY_HALF_MONTH[month_index / 2];
 
     Ok([
         (hong_luan, StarName::HongLuan),
@@ -196,6 +252,12 @@ fn adjective_star_placements(
         (feng_ge, StarName::FengGe),
         (tian_ku, StarName::TianKu),
         (tian_xu, StarName::TianXu),
+        (en_guang, StarName::EnGuang),
+        (tian_gui, StarName::TianGui),
+        (tian_wu, StarName::TianWu),
+        (tian_yue, StarName::TianYueAdj),
+        (yin_sha, StarName::YinSha),
+        (jie_shen, StarName::JieShen),
     ])
 }
 
