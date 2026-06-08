@@ -8,6 +8,24 @@ JavaScript implementation.
 - Package: `npm:iztro`
 - Version: `2.5.8`
 
+## Upstream reference workspace
+
+Use the pinned local npm workspace when inspecting or regenerating upstream
+behavior:
+
+```bash
+npm ci --prefix tools/iztro-reference
+npm run check:version --prefix tools/iztro-reference
+npm run dump:by-lunar --prefix tools/iztro-reference
+npm run dump:adjective --prefix tools/iztro-reference
+```
+
+The workspace targets `npm:iztro` version `2.5.8` and keeps
+`tools/iztro-reference/node_modules/` gitignored. The committed fixture JSON
+files remain the compatibility source of truth; these scripts are helper tools
+for inspecting and regenerating upstream behavior. The reference workspace does
+not change Rust chart-generation logic.
+
 ## Generation
 
 Each fixture records its own `metadata.generation_command`. The current command

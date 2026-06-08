@@ -30,6 +30,11 @@ The current compatibility target is:
 Future compatibility fixtures may update this target only when the version
 change and expected output differences are documented.
 
+For local upstream inspection, use the pinned npm reference workspace under
+`tools/iztro-reference`:
+`npm ci --prefix tools/iztro-reference`.
+The committed fixture JSON files remain the compatibility source of truth.
+
 ## Public facade compatibility
 
 `by_lunar` is the first iztro-compatible facade entry point in `iztro-rs`. It
