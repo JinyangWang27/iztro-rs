@@ -227,6 +227,50 @@ adjective-star brightness, feature extraction, rule-engine output, narrative
 output, solar-to-lunar conversion, leap-month behavior, rat-hour variants, or
 temporal star scopes (大限, yearly, or other flowing scopes).
 
+### Remaining natal adjective/helper star inventory
+
+iztro 2.5.8 `getAdjectiveStar` emits **38** natal-origin 杂曜 under the default
+(non-Zhongzhou) algorithm. `iztro-rs` places **26** of them (the supported
+subset above); **12 remain**. Every remaining star is natal-origin
+(`scope: origin`) in iztro and is reachable from inputs `by_lunar` already
+threads — birth-year stem, birth-year branch, and the Life/Body palace indices.
+None require temporal layers, solar-to-lunar conversion, leap-month handling, or
+rat-hour variants. The lunar-month, lunar-day, and birth-time bases are already
+fully covered (no remaining stars), so the remaining work is confined to the
+birth-year-stem, birth-year-branch, Life/Body-palace, and void/empty bases.
+
+| Star | iztro type | Placement basis | Status |
+|------|-----------|-----------------|--------|
+| 咸池 XianChi | flower | birth-year-branch (`getHuagaiXianchiIndex`; 华盖 sibling) | remaining natal candidate |
+| 天空 TianKong | adjective | birth-year-branch (year branch + 1) | remaining natal candidate |
+| 天官 TianGuan | adjective | birth-year-stem lookup | remaining natal candidate |
+| 天厨 TianChu | adjective | birth-year-stem lookup | remaining natal candidate |
+| 天福 TianFu (adj) | adjective | birth-year-stem lookup | remaining natal candidate — needs a disambiguated key; major 天府 already uses `tian_fu` |
+| 天才 TianCai | adjective | Life-palace anchored (命宫 index + year branch) | remaining natal candidate |
+| 天寿 TianShou | adjective | Body-palace anchored (身宫 index + year branch) | remaining natal candidate |
+| 天伤 TianShang | adjective | Life-palace anchored (交友宫 + 命宫 offset) | remaining natal candidate — default algorithm has no gender swap |
+| 天使 TianShi | adjective | Life-palace anchored (疾厄宫 + 命宫 offset) | remaining natal candidate — default algorithm has no gender swap |
+| 截路 JieLu | adjective | birth-year-stem lookup (void/empty 空亡 family) | remaining natal candidate — default algorithm only; Zhongzhou drops it |
+| 空亡 KongWang | adjective | birth-year-stem lookup (void/empty 空亡 family) | remaining natal candidate — default algorithm only; Zhongzhou drops it |
+| 旬空 XunKong | adjective | birth-year stem + branch (旬中空亡, yin-yang parity adjust) | ambiguous / requires further source inspection |
+
+Not in the default algorithm and therefore **deferred non-default / Zhongzhou-only** (Zhongzhou variant `algorithm: 'zhongzhou'`, not natal candidates for the current default target): 龙德 LongDe, 截空 JieKong, 劫煞 JieSha (adj), 大耗 DaHao (adj).
+
+#### Proposed next implementation PR
+
+One cohesive subset: the **birth-year-branch group** — 咸池 (XianChi) and 天空
+(TianKong). Rationale: it is the narrowest remaining group; 咸池 reuses the same
+`getHuagaiXianchiIndex` triad helper that already places the supported 华盖, and
+天空 is a single year-branch `+ 1` offset. Both read the birth-year branch already
+threaded through `build_natal_chart_with_supported_stars`, add no new inputs and
+no key collisions, and 咸池 completes the `flower` family (红鸾/天喜/天姚). Target
+after that subset: 14 major + 14 minor + 28 adjective/helper = 56 natal stars.
+
+Follow-on subsets, in later PRs: the birth-year-stem trio (天官/天厨/天福, with a
+disambiguated 天福 key analogous to `tian_yue_adj`), then the Life/Body-palace
+anchored group (天才/天寿/天伤/天使), then the void/empty 空亡 family
+(截路/空亡/旬空, with 旬空's parity rule resolved first).
+
 ## Golden tests
 
 Golden tests should include:

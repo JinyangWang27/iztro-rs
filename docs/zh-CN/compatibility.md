@@ -193,6 +193,44 @@ iztro 2.5.8（`getAdjectiveStar` 配合 `getLuanXiIndex`、`getMonthlyStarIndex`
 该组 fixtures 仍**不**比较其余未支持杂曜、杂曜亮度、特征提取、规则引擎输出、叙事输出、
 阳历转农历、闰月行为、早晚子时变体，或时间范围星曜（大限、流年或其他流曜范围）。
 
+### 其余本命杂曜/辅助星清单
+
+iztro 2.5.8 `getAdjectiveStar` 在默认（非中州派）算法下输出 **38** 颗本命
+`origin` 杂曜。`iztro-rs` 已安其中 **26** 颗（上文已支持子集），**剩 12 颗**。
+每颗剩余星在 iztro 中都是本命 `origin`（`scope: origin`），且都可由 `by_lunar`
+已传入的输入推出——出生年干、出生年支，以及命宫/身宫索引。它们都不需要时间范围层、
+阳历转农历、闰月或早晚子时变体。农历月、农历日和出生时辰三类落点基准已全部覆盖
+（无剩余星），因此剩余工作仅限于出生年干、出生年支、命/身宫、与空亡四类基准。
+
+| 星曜 | iztro type | 落点基准 | 状态 |
+|------|-----------|---------|------|
+| 咸池 XianChi | flower | 出生年支（`getHuagaiXianchiIndex`；华盖同族） | remaining natal candidate |
+| 天空 TianKong | adjective | 出生年支（年支 + 1） | remaining natal candidate |
+| 天官 TianGuan | adjective | 出生年干查表 | remaining natal candidate |
+| 天厨 TianChu | adjective | 出生年干查表 | remaining natal candidate |
+| 天福 TianFu（杂曜） | adjective | 出生年干查表 | remaining natal candidate——需消歧键；主星天府已占用 `tian_fu` |
+| 天才 TianCai | adjective | 命宫锚定（命宫索引 + 年支） | remaining natal candidate |
+| 天寿 TianShou | adjective | 身宫锚定（身宫索引 + 年支） | remaining natal candidate |
+| 天伤 TianShang | adjective | 命宫锚定（交友宫 + 命宫偏移） | remaining natal candidate——默认算法不做阴阳/性别互换 |
+| 天使 TianShi | adjective | 命宫锚定（疾厄宫 + 命宫偏移） | remaining natal candidate——默认算法不做阴阳/性别互换 |
+| 截路 JieLu | adjective | 出生年干查表（空亡族） | remaining natal candidate——仅默认算法；中州派无 |
+| 空亡 KongWang | adjective | 出生年干查表（空亡族） | remaining natal candidate——仅默认算法；中州派无 |
+| 旬空 XunKong | adjective | 出生年干 + 年支（旬中空亡，阴阳奇偶修正） | ambiguous / requires further source inspection |
+
+不在默认算法内，因此 **deferred non-default / 中州派特有**（中州派 `algorithm: 'zhongzhou'` 特有，非当前默认目标的本命候选）：龙德 LongDe、截空 JieKong、劫煞 JieSha（杂曜）、大耗 DaHao（杂曜）。
+
+#### 建议的下一个实现 PR
+
+一个内聚子集：**出生年支组**——咸池（XianChi）与天空（TianKong）。理由：这是剩余
+中最窄的一组；咸池复用与已支持华盖相同的 `getHuagaiXianchiIndex` 三合查表，天空
+只是年支 `+ 1` 偏移。两者都读取 `build_natal_chart_with_supported_stars` 已传入的
+出生年支，不新增输入、无键冲突，且咸池补全 `flower` 族（红鸾/天喜/天姚）。该子集后
+目标：14 主星 + 14 辅星 + 28 杂曜/辅助星 = 56 颗本命星。
+
+后续子集（后续 PR）：出生年干三星（天官/天厨/天福，天福用类似 `tian_yue_adj` 的
+消歧键），再到命/身宫锚定组（天才/天寿/天伤/天使），最后是空亡族
+（截路/空亡/旬空，先解决旬空的阴阳奇偶规则）。
+
 ## Golden tests
 
 Golden tests 应包括：
