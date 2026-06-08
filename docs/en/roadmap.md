@@ -36,7 +36,12 @@ immutable natal `Chart` and holds zero or more `TemporalLayer`s, each with a
 non-natal `Scope`, a typed `TemporalContext`, scoped `StarPlacement`s, and
 `MutagenActivation`s. These are model-only facts supplied explicitly by the
 caller; temporal star placement and calendar derivation remain deferred to
-Phase 3.
+Phase 3. The first temporal algorithm on top of these models is now available:
+`build_yearly_mutagen_layer` produces a yearly `TemporalLayer` of mutagen
+activations from an explicit yearly stem-branch, reusing the shared Heavenly
+Stem mutagen table over the stars present in the natal chart. It is an overlay
+only — no flow stars, no natal mutation, no calendar derivation — and 四化 stay
+modeled as `MutagenActivation` facts, not independent stars.
 
 ## Phase 3: Chart generation compatibility
 
