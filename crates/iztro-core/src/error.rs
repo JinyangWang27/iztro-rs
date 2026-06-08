@@ -46,6 +46,9 @@ pub enum ChartError {
         /// Star required by the placement rule.
         star: StarName,
     },
+    /// A placement rule depends on the Life or Body Palace, which is absent.
+    #[error("required Life/Body Palace context is missing")]
+    RequiredLifeBodyPalaceMissing,
     /// A temporal layer cannot use the natal scope; natal facts live in the chart.
     #[error("temporal layer cannot use the natal scope")]
     NatalScopeInTemporalLayer,

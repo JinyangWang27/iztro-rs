@@ -66,12 +66,13 @@ The fixtures are:
 - `fixtures/iztro/minor_stars_1990_05_17_chen_female.json`
 - `fixtures/iztro/minor_stars_1988_03_14_zi_male.json`
 - `fixtures/iztro/minor_stars_1991_08_09_hai_female.json`
-- `fixtures/iztro/adjective_stars_fourth_subset_1990_05_17_chen_female.json`
-- `fixtures/iztro/adjective_stars_fourth_subset_1988_03_14_zi_male.json`
-- `fixtures/iztro/adjective_stars_fourth_subset_1991_08_09_hai_female.json`
+- `fixtures/iztro/adjective_stars_full_default_1990_05_17_chen_female.json`
+- `fixtures/iztro/adjective_stars_full_default_1988_03_14_zi_male.json`
+- `fixtures/iztro/adjective_stars_full_default_1991_08_09_hai_female.json`
 
-Only the latest/current adjective-star fixture subset is kept in-tree. Earlier,
-smaller adjective-star subsets are available through git history.
+Only the current full default-algorithm adjective-star fixtures (38 stars each)
+are kept in-tree. Earlier, smaller adjective-star subsets are available through
+git history.
 
 The minimal-natal fixture compares only fields currently implemented by
 `iztro-rs`:
@@ -174,10 +175,10 @@ reading or narrative output, solar-to-lunar conversion, leap-month behavior,
 rat-hour variants, temporal star scopes, CLI bindings, Python bindings, or
 WebAssembly bindings.
 
-### Supported adjective-star subset
+### Default-algorithm natal adjective-star set
 
-The three `adjective_stars_fourth_subset_*` fixtures compare the currently
-supported subset of twenty-six natal adjective/helper stars (杂曜) against iztro's
+The three `adjective_stars_full_default_*` fixtures compare the **complete**
+default-algorithm set of 38 natal adjective/helper stars (杂曜) against iztro's
 per-palace `adjectiveStars`:
 
 - the adjective-star name in each palace;
@@ -185,91 +186,71 @@ per-palace `adjectiveStars`:
 - the upstream iztro star `type`, preserved verbatim (`flower`, `adjective`, or
   `helper`) and mapped to the Rust `StarKind`.
 
-The subset is 红鸾 (HongLuan), 天喜 (TianXi), and 天姚 (TianYao) —
-peach-blossom `flower` stars; 天刑 (TianXing), 台辅 (TaiFu), 封诰 (FengGao),
-三台 (SanTai), 八座 (BaZuo), 龙池 (LongChi), 凤阁 (FengGe), 天哭 (TianKu),
-天虚 (TianXu), 恩光 (EnGuang), 天贵 (TianGui), 天巫 (TianWu), 天月
-(TianYueAdj), 阴煞 (YinSha), 华盖 (HuaGai), 孤辰 (GuChen), 寡宿 (GuaSu),
-蜚廉 (FeiLian), 破碎 (PoSui), 天德 (TianDe), and 月德 (YueDe) — plain
-`adjective` stars; and 解神 (JieShen) and 年解 (NianJie), `helper` stars.
-Placement reproduces iztro 2.5.8 (`getAdjectiveStar` with
-`getLuanXiIndex`, `getMonthlyStarIndex`, `getTimelyStarIndex`,
-`getDailyStarIndex`, and `getYearlyStarIndex`), translated from iztro's
-寅-based palace frame into branch offsets:
+The set has four `flower` stars — 红鸾 (HongLuan), 天喜 (TianXi), 天姚
+(TianYao), and 咸池 (XianChi); two `helper` stars — 解神 (JieShen) and 年解
+(NianJie); and 32 plain `adjective` stars. Placement reproduces iztro 2.5.8
+(`getAdjectiveStar` with `getLuanXiIndex`, `getMonthlyStarIndex`,
+`getTimelyStarIndex`, `getDailyStarIndex`, `getHuagaiXianchiIndex`, and
+`getYearlyStarIndex`), translated from iztro's 寅-based palace frame into branch
+offsets, grouped by placement basis:
 
-- 红鸾/天喜 from the birth year branch (天喜 sits opposite 红鸾);
-- 天姚/天刑 from the lunar month;
-- 台辅/封诰 from the birth time branch;
-- 三台 from the placed 左辅 plus the lunar day offset (初一 = 0);
-- 八座 from the placed 右弼 minus the lunar day offset;
-- 龙池/凤阁 and 天哭/天虚 from birth-year-branch offsets;
-- 恩光 from the placed 文昌 and 天贵 from the placed 文曲, each plus the lunar
-  day offset minus one (`getDailyStarIndex`);
-- 天巫, 天月, 阴煞, and 解神 from fixed per-lunar-month branch lookups
-  (`getMonthlyStarIndex`).
-- 华盖, 孤辰, 寡宿, 蜚廉, 破碎, 天德, 月德, and 年解 from the explicit birth
-  year branch (`getYearlyStarIndex`). 年解 is represented only as the natal
-  `origin` helper emitted by `getAdjectiveStar`; yearly horoscope flow remains
-  deferred.
+- **Birth year branch**: 红鸾/天喜 (天喜 sits opposite 红鸾); 龙池/凤阁 and
+  天哭/天虚; 华盖, 咸池 (`getHuagaiXianchiIndex` 三合 family), 孤辰, 寡宿, 蜚廉,
+  破碎, 天德, 月德, and 年解 (`getYearlyStarIndex`); and 天空 (year branch + 1).
+  年解 is represented only as the natal `origin` helper emitted by
+  `getAdjectiveStar`; yearly horoscope flow remains deferred.
+- **Lunar month**: 天姚/天刑; and 天巫, 天月, 阴煞, and 解神 from fixed per-month
+  branch lookups (`getMonthlyStarIndex`).
+- **Birth time branch**: 台辅/封诰 (`getTimelyStarIndex`).
+- **Placed minor-star anchors + lunar day** (`getDailyStarIndex`): 三台 from the
+  placed 左辅 plus the lunar day offset (初一 = 0); 八座 from the placed 右弼
+  minus it; 恩光 from the placed 文昌 and 天贵 from the placed 文曲, each plus the
+  lunar day offset minus one.
+- **Birth year stem**: 天官, 天厨, 天福 (`tian_fu_adj`), 截路, and 空亡 from fixed
+  per-stem branch lookups.
+- **Life/Body-palace anchored**: 天才 counts forward from the Life Palace and
+  天寿 from the Body Palace by the birth year branch index; 天伤 occupies the
+  仆役 palace (Life + 5) and 天使 the 疾厄 palace (Life + 7). The default
+  algorithm has no 阴阳/gender swap (that swap is Zhongzhou-only).
+- **旬空 (旬中空亡)**: the void branch of the birth year's 甲-旬 (sexagenary
+  decade) whose 阴阳 polarity matches the birth year branch. iztro computes a
+  base palace index then advances one palace on a polarity mismatch; palace and
+  branch indices differ by a fixed even offset (寅 = 2), so the rule translates
+  directly to branch space. A focused table test covers the rule across all 60
+  jiazi.
 
-天月 uses the `tian_yue_adj` key / `StarName::TianYueAdj` to disambiguate from
-the minor star 天钺 (`tian_yue` / `StarName::TianYue`); both romanize to
-"Tian Yue". Every placed adjective star derives `StarCategory::Adjective`
-(`StarKind::Flower`, `StarKind::Adjective`, and `StarKind::Helper` all map to
-it), carries `Brightness::Unknown` and no 四化, and has natal scope. 解神 is the
-first represented `helper`-kind star, and 年解 is the second. The
-`build_natal_chart_with_supported_stars` builder places this subset after major
-and minor stars, so `by_lunar` now yields 14 major + 14 minor + 26
-adjective/helper = 54 natal stars.
+天福 uses the `tian_fu_adj` key / `StarName::TianFuAdj` to disambiguate from the
+major star 天府 (`tian_fu` / `StarName::TianFu`); both romanize to "Tian Fu".
+天月 likewise uses `tian_yue_adj` / `StarName::TianYueAdj` to disambiguate from
+the minor star 天钺 (`tian_yue` / `StarName::TianYue`). Every placed adjective
+star derives `StarCategory::Adjective` (`StarKind::Flower`, `StarKind::Adjective`,
+and `StarKind::Helper` all map to it), carries `Brightness::Unknown` and no
+四化, and has natal scope. The `build_natal_chart_with_supported_stars` builder
+places this set after major and minor stars, so `by_lunar` now yields 14 major +
+14 minor + 38 adjective/helper = **66 natal stars**.
 
-This fixture set still does **not** compare the remaining unsupported adjective stars,
-adjective-star brightness, feature extraction, rule-engine output, narrative
-output, solar-to-lunar conversion, leap-month behavior, rat-hour variants, or
-temporal star scopes (大限, yearly, or other flowing scopes).
+This fixture set still does **not** compare adjective-star brightness, feature
+extraction, rule-engine output, narrative output, solar-to-lunar conversion,
+leap-month behavior, rat-hour variants, or temporal star scopes (大限, yearly, or
+other flowing scopes).
 
-### Remaining natal adjective/helper star inventory
+### Adjective/helper star coverage
 
 iztro 2.5.8 `getAdjectiveStar` emits **38** natal-origin 杂曜 under the default
-(non-Zhongzhou) algorithm. `iztro-rs` places **26** of them (the supported
-subset above); **12 remain**. Every remaining star is natal-origin
-(`scope: origin`) in iztro and is reachable from inputs `by_lunar` already
-threads — birth-year stem, birth-year branch, and the Life/Body palace indices.
-None require temporal layers, solar-to-lunar conversion, leap-month handling, or
-rat-hour variants. The lunar-month, lunar-day, and birth-time bases are already
-fully covered (no remaining stars), so the remaining work is confined to the
-birth-year-stem, birth-year-branch, Life/Body-palace, and void/empty bases.
+(non-Zhongzhou) algorithm. `iztro-rs` now places **all 38** of them, so
+default-algorithm natal adjective/helper star coverage is **complete**. Every
+star is natal-origin (`scope: origin`) and is reached from inputs `by_lunar`
+already threads — lunar month, lunar day, birth time, birth-year stem,
+birth-year branch, and the Life/Body palace branches. None require temporal
+layers, solar-to-lunar conversion, leap-month handling, or rat-hour variants.
 
-| Star | iztro type | Placement basis | Status |
-|------|-----------|-----------------|--------|
-| 咸池 XianChi | flower | birth-year-branch (`getHuagaiXianchiIndex`; 华盖 sibling) | remaining natal candidate |
-| 天空 TianKong | adjective | birth-year-branch (year branch + 1) | remaining natal candidate |
-| 天官 TianGuan | adjective | birth-year-stem lookup | remaining natal candidate |
-| 天厨 TianChu | adjective | birth-year-stem lookup | remaining natal candidate |
-| 天福 TianFu (adj) | adjective | birth-year-stem lookup | remaining natal candidate — needs a disambiguated key; major 天府 already uses `tian_fu` |
-| 天才 TianCai | adjective | Life-palace anchored (命宫 index + year branch) | remaining natal candidate |
-| 天寿 TianShou | adjective | Body-palace anchored (身宫 index + year branch) | remaining natal candidate |
-| 天伤 TianShang | adjective | Life-palace anchored (交友宫 + 命宫 offset) | remaining natal candidate — default algorithm has no gender swap |
-| 天使 TianShi | adjective | Life-palace anchored (疾厄宫 + 命宫 offset) | remaining natal candidate — default algorithm has no gender swap |
-| 截路 JieLu | adjective | birth-year-stem lookup (void/empty 空亡 family) | remaining natal candidate — default algorithm only; Zhongzhou drops it |
-| 空亡 KongWang | adjective | birth-year-stem lookup (void/empty 空亡 family) | remaining natal candidate — default algorithm only; Zhongzhou drops it |
-| 旬空 XunKong | adjective | birth-year stem + branch (旬中空亡, yin-yang parity adjust) | ambiguous / requires further source inspection |
-
-Not in the default algorithm and therefore **deferred non-default / Zhongzhou-only** (Zhongzhou variant `algorithm: 'zhongzhou'`, not natal candidates for the current default target): 龙德 LongDe, 截空 JieKong, 劫煞 JieSha (adj), 大耗 DaHao (adj).
-
-#### Proposed next implementation PR
-
-One cohesive subset: the **birth-year-branch group** — 咸池 (XianChi) and 天空
-(TianKong). Rationale: it is the narrowest remaining group; 咸池 reuses the same
-`getHuagaiXianchiIndex` triad helper that already places the supported 华盖, and
-天空 is a single year-branch `+ 1` offset. Both read the birth-year branch already
-threaded through `build_natal_chart_with_supported_stars`, add no new inputs and
-no key collisions, and 咸池 completes the `flower` family (红鸾/天喜/天姚). Target
-after that subset: 14 major + 14 minor + 28 adjective/helper = 56 natal stars.
-
-Follow-on subsets, in later PRs: the birth-year-stem trio (天官/天厨/天福, with a
-disambiguated 天福 key analogous to `tian_yue_adj`), then the Life/Body-palace
-anchored group (天才/天寿/天伤/天使), then the void/empty 空亡 family
-(截路/空亡/旬空, with 旬空's parity rule resolved first).
+The remaining four 杂曜 are **Zhongzhou-only** (Zhongzhou variant
+`algorithm: 'zhongzhou'`) and stay deferred along with Zhongzhou algorithm
+selection itself: 龙德 LongDe, 截空 JieKong, 劫煞 JieSha (adj), 大耗 DaHao (adj).
+Under Zhongzhou these four replace the default 截路/空亡 pair. 神煞 beyond this
+default `getAdjectiveStar` slice, 流曜, and all temporal/horoscope placement also
+remain deferred. 四化 remain `mutagen: Option<Mutagen>` facts on placements, not
+independent stars.
 
 ## Golden tests
 

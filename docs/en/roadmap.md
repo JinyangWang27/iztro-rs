@@ -45,10 +45,10 @@ Phase 3.
 - [x] Port or reimplement the current chart-generation slice in small deterministic modules.
 - [x] Add golden tests against selected `iztro` outputs for the implemented slice.
 - [x] Document known differences for the implemented slice.
-- [ ] Add remaining adjective stars. 12 of iztro 2.5.8's 38 default-algorithm 杂曜 remain; see the compatibility "Remaining natal adjective/helper star inventory" for the per-star placement basis and status. Next subset: the birth-year-branch group (咸池/天空).
+- [x] Add the default-algorithm natal adjective stars. All 38 of iztro 2.5.8's default-algorithm 杂曜 are placed; see the compatibility "Default-algorithm natal adjective-star set" for the per-star placement basis. The four Zhongzhou-only 杂曜 (龙德/截空/劫煞/大耗) and Zhongzhou algorithm selection remain deferred.
 - [ ] Add solar-to-lunar conversion, leap-month behavior, rat-hour variants, temporal star scopes, and bindings.
 
-Current core slice: `by_lunar` accepts explicit lunar inputs plus explicit birth-year stem and branch, builds deterministic natal chart facts, and validates minimal chart fields, fourteen major stars, fourteen supported minor stars, and twenty-six supported natal adjective/helper stars against selected `iztro` 2.5.8 fixtures. The remaining unsupported adjective stars, solar-to-lunar conversion, leap-month behavior, rat-hour variants, temporal star scopes, and bindings remain deferred.
+Current core slice: `by_lunar` accepts explicit lunar inputs plus explicit birth-year stem and branch, builds deterministic natal chart facts, and validates minimal chart fields, fourteen major stars, fourteen supported minor stars, and the complete default-algorithm set of 38 natal adjective/helper stars against selected `iztro` 2.5.8 fixtures — 14 major + 14 minor + 38 adjective/helper = 66 represented natal stars. The Zhongzhou-only 杂曜 and Zhongzhou algorithm selection, 神煞 beyond the default `getAdjectiveStar` slice, 流曜, solar-to-lunar conversion, leap-month behavior, rat-hour variants, temporal/horoscope star scopes, and bindings remain deferred. 四化 remain `Mutagen` facts on placements, not independent stars.
 
 ## Phase 4: Feature extraction
 

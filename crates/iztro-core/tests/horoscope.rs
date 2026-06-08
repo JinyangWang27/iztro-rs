@@ -5,9 +5,9 @@ use iztro_core::{
     TemporalContext, TemporalLayer, build_natal_chart_with_supported_stars,
 };
 
-/// `by_lunar`/the supported-star builder place 14 major + 14 minor + 26
-/// adjective/helper = 54 natal stars.
-const NATAL_STAR_COUNT: usize = 54;
+/// `by_lunar`/the supported-star builder place 14 major + 14 minor + 38
+/// adjective/helper = 66 natal stars.
+const NATAL_STAR_COUNT: usize = 66;
 
 fn supported_star_natal_chart() -> Chart {
     build_natal_chart_with_supported_stars(NatalChartWithSupportedStarsInput::new(

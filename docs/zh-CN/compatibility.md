@@ -60,12 +60,12 @@ fixtures 为：
 - `fixtures/iztro/minor_stars_1990_05_17_chen_female.json`
 - `fixtures/iztro/minor_stars_1988_03_14_zi_male.json`
 - `fixtures/iztro/minor_stars_1991_08_09_hai_female.json`
-- `fixtures/iztro/adjective_stars_fourth_subset_1990_05_17_chen_female.json`
-- `fixtures/iztro/adjective_stars_fourth_subset_1988_03_14_zi_male.json`
-- `fixtures/iztro/adjective_stars_fourth_subset_1991_08_09_hai_female.json`
+- `fixtures/iztro/adjective_stars_full_default_1990_05_17_chen_female.json`
+- `fixtures/iztro/adjective_stars_full_default_1988_03_14_zi_male.json`
+- `fixtures/iztro/adjective_stars_full_default_1991_08_09_hai_female.json`
 
-仅保留最新/当前的杂曜 fixture 子集在源码树中；更早、更小的杂曜子集可通过 git
-history 获取。
+仅保留当前完整默认算法杂曜 fixtures（每个 38 颗星）在源码树中；更早、更小的杂曜
+子集可通过 git history 获取。
 
 minimal-natal fixture 只比较 `iztro-rs` 当前已实现的字段：
 
@@ -149,87 +149,65 @@ supported-star builder，并要求显式提供 `birth_year_stem` 和 `birth_year
 输出、解读或叙事输出、阳历转农历、闰月行为、早晚子时变体、时间范围星曜、CLI
 bindings、Python bindings 或 WebAssembly bindings。
 
-### 已支持杂曜子集
+### 默认算法本命杂曜全集
 
-三个 `adjective_stars_fourth_subset_*` fixtures 比较当前已支持的二十六颗本命杂曜/辅助星子集，
-与 iztro 每宫的 `adjectiveStars` 对照：
+三个 `adjective_stars_full_default_*` fixtures 比较**完整**的默认算法本命
+38 颗杂曜/辅助星，与 iztro 每宫的 `adjectiveStars` 对照：
 
 - 每宫的杂曜名称；
 - 每颗杂曜所在的宫位地支；
 - iztro 上游星曜 `type`，原样保留（`flower`、`adjective` 或 `helper`），并映射到
   Rust 的 `StarKind`。
 
-该子集为红鸾（HongLuan）、天喜（TianXi）、天姚（TianYao）——桃花类 `flower`
-星；天刑（TianXing）、台辅（TaiFu）、封诰（FengGao）、三台（SanTai）、八座
-（BaZuo）、龙池（LongChi）、凤阁（FengGe）、天哭（TianKu）、天虚（TianXu）、
-恩光（EnGuang）、天贵（TianGui）、天巫（TianWu）、天月（TianYueAdj）、阴煞
-（YinSha）、华盖（HuaGai）、孤辰（GuChen）、寡宿（GuaSu）、蜚廉（FeiLian）、
-破碎（PoSui）、天德（TianDe）、月德（YueDe）——普通 `adjective` 星；以及解神
-（JieShen）和年解（NianJie）——`helper` 星。安星复现
-iztro 2.5.8（`getAdjectiveStar` 配合 `getLuanXiIndex`、`getMonthlyStarIndex`、
-`getTimelyStarIndex`、`getDailyStarIndex`、`getYearlyStarIndex`），并从 iztro 的
-寅宫索引框架转换为地支偏移：
+该全集含四颗 `flower` 星——红鸾（HongLuan）、天喜（TianXi）、天姚（TianYao）、
+咸池（XianChi）；两颗 `helper` 星——解神（JieShen）与年解（NianJie）；以及
+32 颗普通 `adjective` 星。安星复现 iztro 2.5.8（`getAdjectiveStar` 配合
+`getLuanXiIndex`、`getMonthlyStarIndex`、`getTimelyStarIndex`、
+`getDailyStarIndex`、`getHuagaiXianchiIndex`、`getYearlyStarIndex`），并从 iztro
+的寅宫索引框架转换为地支偏移，按落点基准分组：
 
-- 红鸾、天喜由出生年支决定（天喜与红鸾相对）；
-- 天姚、天刑由农历月份决定；
-- 台辅、封诰由出生时辰地支决定；
-- 三台由已安左辅顺数农历日偏移（初一 = 0）；
-- 八座由已安右弼逆数农历日偏移；
-- 龙池、凤阁与天哭、天虚由出生年支偏移决定；
-- 恩光由已安文昌、天贵由已安文曲，各顺数农历日偏移减一（`getDailyStarIndex`）；
-- 天巫、天月、阴煞、解神由农历月份的固定地支查表决定（`getMonthlyStarIndex`）。
-- 华盖、孤辰、寡宿、蜚廉、破碎、天德、月德、年解由显式出生年支决定
-  （`getYearlyStarIndex`）。年解只表示 `getAdjectiveStar` 输出的本命 `origin`
-  `helper`，不实现流年/horoscope 流曜范围。
+- **出生年支**：红鸾、天喜（天喜与红鸾相对）；龙池、凤阁与天哭、天虚；华盖、咸池
+  （`getHuagaiXianchiIndex` 三合同族）、孤辰、寡宿、蜚廉、破碎、天德、月德、年解
+  （`getYearlyStarIndex`）；以及天空（年支 + 1）。年解只表示 `getAdjectiveStar`
+  输出的本命 `origin` `helper`，不实现流年/horoscope 流曜范围。
+- **农历月份**：天姚、天刑；以及天巫、天月、阴煞、解神由固定月份查表决定
+  （`getMonthlyStarIndex`）。
+- **出生时辰地支**：台辅、封诰（`getTimelyStarIndex`）。
+- **已安辅星锚定 + 农历日**（`getDailyStarIndex`）：三台由已安左辅顺数农历日偏移
+  （初一 = 0）；八座由已安右弼逆数；恩光由已安文昌、天贵由已安文曲，各顺数农历日
+  偏移减一。
+- **出生年干**：天官、天厨、天福（`tian_fu_adj`）、截路、空亡由固定年干查表决定。
+- **命/身宫锚定**：天才由命宫、天寿由身宫顺数出生年支序号；天伤居仆役宫（命宫 + 5）、
+  天使居疾厄宫（命宫 + 7）。默认算法不做阴阳/性别互换（互换为中州派特有）。
+- **旬空（旬中空亡）**：出生年所在甲旬的空亡地支中，阴阳属性与出生年支相同的那一颗。
+  iztro 先算基础宫位索引，再在阴阳不一致时进一位；宫位索引与地支索引相差固定偶数
+  （寅 = 2），故规则可直接转换到地支空间。一个聚焦表测试覆盖全部 60 甲子。
 
-天月使用 `tian_yue_adj` 键 / `StarName::TianYueAdj`，以与辅星天钺（`tian_yue` /
-`StarName::TianYue`）区分（两者拼音都是 “Tian Yue”）。每颗已安杂曜派生
-`StarCategory::Adjective`（`StarKind::Flower`、`StarKind::Adjective` 与
-`StarKind::Helper` 都映射到它），亮度为 `Brightness::Unknown` 且无四化，scope
-为本命。解神是首个已表示的 `helper` 类星曜，年解是第二个。
-`build_natal_chart_with_supported_stars` builder 在主星与辅星之后安放该子集，
-因此 `by_lunar` 现在产出 14 主星 + 14 辅星 + 26 杂曜/辅助星 = 54 颗本命星。
+天福使用 `tian_fu_adj` 键 / `StarName::TianFuAdj`，以与主星天府（`tian_fu` /
+`StarName::TianFu`）区分（两者拼音都是 “Tian Fu”）。天月同样使用 `tian_yue_adj` /
+`StarName::TianYueAdj`，以与辅星天钺（`tian_yue` / `StarName::TianYue`）区分。
+每颗已安杂曜派生 `StarCategory::Adjective`（`StarKind::Flower`、
+`StarKind::Adjective` 与 `StarKind::Helper` 都映射到它），亮度为
+`Brightness::Unknown` 且无四化，scope 为本命。
+`build_natal_chart_with_supported_stars` builder 在主星与辅星之后安放该全集，
+因此 `by_lunar` 现在产出 14 主星 + 14 辅星 + 38 杂曜/辅助星 = **66 颗本命星**。
 
-该组 fixtures 仍**不**比较其余未支持杂曜、杂曜亮度、特征提取、规则引擎输出、叙事输出、
-阳历转农历、闰月行为、早晚子时变体，或时间范围星曜（大限、流年或其他流曜范围）。
+该组 fixtures 仍**不**比较杂曜亮度、特征提取、规则引擎输出、叙事输出、阳历转农历、
+闰月行为、早晚子时变体，或时间范围星曜（大限、流年或其他流曜范围）。
 
-### 其余本命杂曜/辅助星清单
+### 杂曜/辅助星覆盖
 
 iztro 2.5.8 `getAdjectiveStar` 在默认（非中州派）算法下输出 **38** 颗本命
-`origin` 杂曜。`iztro-rs` 已安其中 **26** 颗（上文已支持子集），**剩 12 颗**。
-每颗剩余星在 iztro 中都是本命 `origin`（`scope: origin`），且都可由 `by_lunar`
-已传入的输入推出——出生年干、出生年支，以及命宫/身宫索引。它们都不需要时间范围层、
-阳历转农历、闰月或早晚子时变体。农历月、农历日和出生时辰三类落点基准已全部覆盖
-（无剩余星），因此剩余工作仅限于出生年干、出生年支、命/身宫、与空亡四类基准。
+`origin` 杂曜。`iztro-rs` 现已安**全部 38 颗**，因此默认算法本命杂曜/辅助星覆盖
+**已完成**。每颗都是本命 `origin`（`scope: origin`），且都可由 `by_lunar` 已传入的
+输入推出——农历月、农历日、出生时辰、出生年干、出生年支，以及命宫/身宫地支。它们
+都不需要时间范围层、阳历转农历、闰月或早晚子时变体。
 
-| 星曜 | iztro type | 落点基准 | 状态 |
-|------|-----------|---------|------|
-| 咸池 XianChi | flower | 出生年支（`getHuagaiXianchiIndex`；华盖同族） | remaining natal candidate |
-| 天空 TianKong | adjective | 出生年支（年支 + 1） | remaining natal candidate |
-| 天官 TianGuan | adjective | 出生年干查表 | remaining natal candidate |
-| 天厨 TianChu | adjective | 出生年干查表 | remaining natal candidate |
-| 天福 TianFu（杂曜） | adjective | 出生年干查表 | remaining natal candidate——需消歧键；主星天府已占用 `tian_fu` |
-| 天才 TianCai | adjective | 命宫锚定（命宫索引 + 年支） | remaining natal candidate |
-| 天寿 TianShou | adjective | 身宫锚定（身宫索引 + 年支） | remaining natal candidate |
-| 天伤 TianShang | adjective | 命宫锚定（交友宫 + 命宫偏移） | remaining natal candidate——默认算法不做阴阳/性别互换 |
-| 天使 TianShi | adjective | 命宫锚定（疾厄宫 + 命宫偏移） | remaining natal candidate——默认算法不做阴阳/性别互换 |
-| 截路 JieLu | adjective | 出生年干查表（空亡族） | remaining natal candidate——仅默认算法；中州派无 |
-| 空亡 KongWang | adjective | 出生年干查表（空亡族） | remaining natal candidate——仅默认算法；中州派无 |
-| 旬空 XunKong | adjective | 出生年干 + 年支（旬中空亡，阴阳奇偶修正） | ambiguous / requires further source inspection |
-
-不在默认算法内，因此 **deferred non-default / 中州派特有**（中州派 `algorithm: 'zhongzhou'` 特有，非当前默认目标的本命候选）：龙德 LongDe、截空 JieKong、劫煞 JieSha（杂曜）、大耗 DaHao（杂曜）。
-
-#### 建议的下一个实现 PR
-
-一个内聚子集：**出生年支组**——咸池（XianChi）与天空（TianKong）。理由：这是剩余
-中最窄的一组；咸池复用与已支持华盖相同的 `getHuagaiXianchiIndex` 三合查表，天空
-只是年支 `+ 1` 偏移。两者都读取 `build_natal_chart_with_supported_stars` 已传入的
-出生年支，不新增输入、无键冲突，且咸池补全 `flower` 族（红鸾/天喜/天姚）。该子集后
-目标：14 主星 + 14 辅星 + 28 杂曜/辅助星 = 56 颗本命星。
-
-后续子集（后续 PR）：出生年干三星（天官/天厨/天福，天福用类似 `tian_yue_adj` 的
-消歧键），再到命/身宫锚定组（天才/天寿/天伤/天使），最后是空亡族
-（截路/空亡/旬空，先解决旬空的阴阳奇偶规则）。
+其余四颗杂曜为**中州派特有**（中州派变体 `algorithm: 'zhongzhou'`），与中州派算法
+选择本身一并延后：龙德 LongDe、截空 JieKong、劫煞 JieSha（杂曜）、大耗 DaHao
+（杂曜）。在中州派下，这四颗取代默认的截路/空亡两颗。本默认 `getAdjectiveStar`
+切片以外的神煞、流曜，以及所有时间/horoscope 安星同样延后。四化仍作为
+`mutagen: Option<Mutagen>` 事实附于安星，而非独立星曜。
 
 ## Golden tests
 
