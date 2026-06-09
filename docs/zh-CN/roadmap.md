@@ -34,10 +34,12 @@
 大限与运限模型以叠加层形式定义：`HoroscopeChart` 包裹不可变的本命 `Chart`，并持有
 零个或多个 `TemporalLayer`，每个层带有非本命的 `Scope`、强类型的 `TemporalContext`、
 按范围划分的 `StarPlacement` 和 `MutagenActivation`。这些只是调用方显式提供的模型
-事实；时间范围安星与历法推导仍推迟到 Phase 3。这些模型之上的第一个时间算法现已
+事实；时间范围安星与历法推导仍推迟到 Phase 3。这些模型之上的前两个时间算法现已
 提供：`build_yearly_mutagen_layer` 从显式的流年干支生成流年 `TemporalLayer` 四化
-激活，复用共享的天干四化表，作用于本命盘中已存在的星曜。它仅为叠加层——不安放
-流曜、不修改本命、不推导历法——四化仍作为 `MutagenActivation` 事实，而非独立星曜。
+激活，`build_decadal_mutagen_layer` 则从显式的大限干支及起运年龄生成大限版。两者都
+复用共享的天干四化表，作用于本命盘中已存在的星曜。它们仅为叠加层——不安放流曜、
+不修改本命、不推导历法/年龄区间/大限命宫/大限宫位——四化仍作为 `MutagenActivation`
+事实，而非独立星曜。
 
 ## Phase 3：排盘兼容性
 

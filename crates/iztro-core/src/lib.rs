@@ -5,6 +5,7 @@ pub mod builder;
 pub mod bureau;
 pub mod calendar;
 pub mod chart;
+pub mod decadal_mutagen;
 pub mod error;
 pub mod facade;
 pub mod ganzhi;
@@ -31,6 +32,7 @@ pub use calendar::{BirthContext, CalendarDate, CalendarKind, Gender};
 pub use chart::{
     Chart, MajorStarPlacementRef, PALACE_COUNT, Palace, StarPlacement, StarPlacementRef,
 };
+pub use decadal_mutagen::{DecadalMutagenLayerInput, build_decadal_mutagen_layer};
 pub use error::ChartError;
 pub use facade::{LunarChartRequest, LunarChartRequestBuilder, by_lunar};
 pub use ganzhi::{EARTHLY_BRANCHES, EarthlyBranch, HEAVENLY_STEMS, HeavenlyStem};

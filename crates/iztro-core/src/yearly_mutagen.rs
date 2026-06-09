@@ -15,8 +15,8 @@
 use crate::{
     chart::Chart,
     error::ChartError,
-    horoscope::{MutagenActivation, TemporalContext, TemporalLayer},
-    mutagen::{Scope, birth_year_star_mutagen},
+    horoscope::{TemporalContext, TemporalLayer, stem_mutagen_activations},
+    mutagen::Scope,
     sexagenary::StemBranch,
 };
 
@@ -55,12 +55,12 @@ impl YearlyMutagenLayerInput {
 ///
 /// The yearly Heavenly Stem comes from `input`'s stem-branch. For every
 /// represented star placed in `natal`, the shared Heavenly Stem mutagen table
-/// ([`birth_year_star_mutagen`]) decides whether the yearly stem maps that star
-/// to a [`Mutagen`](crate::mutagen::Mutagen); the same 天干四化 table drives
+/// (via [`stem_mutagen_activations`]) decides whether the yearly stem maps that
+/// star to a [`Mutagen`](crate::mutagen::Mutagen); the same 天干四化 table drives
 /// both the birth-year (natal) and yearly (流年) transformations, so it is
 /// reused rather than duplicated. Each mapped, present star yields one
-/// [`Scope::Yearly`] [`MutagenActivation`] targeting the branch of the palace it
-/// occupies.
+/// [`Scope::Yearly`] [`MutagenActivation`](crate::horoscope::MutagenActivation)
+/// targeting the branch of the palace it occupies.
 ///
 /// Stars absent from `natal` (or not in the table, such as adjective stars)
 /// produce no activation: iterating placed stars means an unsupported or missing
@@ -70,18 +70,7 @@ pub fn build_yearly_mutagen_layer(
     natal: &Chart,
     input: YearlyMutagenLayerInput,
 ) -> Result<TemporalLayer, ChartError> {
-    let year_stem = input.stem_branch().stem();
-
-    let activations = natal
-        .stars()
-        .into_iter()
-        .filter_map(|fact| {
-            let star = fact.placement().name();
-            birth_year_star_mutagen(year_stem, star).map(|mutagen| {
-                MutagenActivation::new(Scope::Yearly, star, fact.palace().branch(), mutagen)
-            })
-        })
-        .collect();
+    let activations = stem_mutagen_activations(natal, Scope::Yearly, input.stem_branch().stem());
 
     TemporalLayer::try_new(
         Scope::Yearly,
