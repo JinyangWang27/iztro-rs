@@ -54,13 +54,14 @@ only — no flow stars, no natal mutation, no calendar/age-range/大限命宫/de
 palace derivation — and 四化 stay modeled as `MutagenActivation` facts, not
 independent stars.
 
-Star metadata is intentionally split. The represented metadata table remains
-the 66 placed and fixture-covered natal stars. The known metadata table records
-170 upstream `iztro@2.5.8` runtime star-name entries, including Zhongzhou-only
-杂曜, decorative arrays, and horoscope flow-star names, but those additional
-entries are metadata-only. `xunzhong` / `旬中` is excluded as locale-only, and
-Zhongzhou placement, 神煞 placement, 流曜 placement, horoscope placement,
-brightness expansion, and mutagen-as-star modeling remain deferred.
+Star metadata is intentionally split. The represented metadata table covers 70
+placed and fixture-covered natal stars, including algorithm-gated Zhongzhou-only
+杂曜. The known metadata table records 170 upstream `iztro@2.5.8` runtime
+star-name entries, including decorative arrays and horoscope flow-star names,
+but entries outside the represented table are metadata-only. `xunzhong` / `旬中`
+is excluded as locale-only, and 神煞 placement beyond the supported natal
+`getAdjectiveStar` slice, 流曜 placement, horoscope placement, brightness
+expansion, and mutagen-as-star modeling remain deferred.
 
 ## Phase 3: Chart generation compatibility
 
@@ -69,10 +70,11 @@ brightness expansion, and mutagen-as-star modeling remain deferred.
 - [x] Port or reimplement the current chart-generation slice in small deterministic modules.
 - [x] Add golden tests against selected `iztro` outputs for the implemented slice.
 - [x] Document known differences for the implemented slice.
-- [x] Add the default-algorithm natal adjective stars. All 38 of iztro 2.5.8's default-algorithm 杂曜 are placed; see the compatibility "Default-algorithm natal adjective-star set" for the per-star placement basis. The four Zhongzhou-only 杂曜 (龙德/截空/劫煞/大耗) and Zhongzhou algorithm selection remain deferred.
+- [x] Add the default-algorithm natal adjective stars. All 38 of iztro 2.5.8's default-algorithm 杂曜 are placed; see the compatibility "Default-algorithm natal adjective-star set" for the per-star placement basis.
+- [x] Add Zhongzhou-only natal adjective stars. `ChartAlgorithmKind::Zhongzhou` places 龙德/截空/劫煞/大耗 from upstream iztro 2.5.8 fixtures, omits default 截路/空亡, and preserves the Zhongzhou 天伤/天使 swap.
 - [ ] Add solar-to-lunar conversion, leap-month behavior, rat-hour variants, temporal star scopes, and bindings.
 
-Current core slice: `by_lunar` accepts explicit lunar inputs plus explicit birth-year stem and branch, builds deterministic natal chart facts, and validates minimal chart fields, fourteen major stars, fourteen supported minor stars, and the complete default-algorithm set of 38 natal adjective/helper stars against selected `iztro` 2.5.8 fixtures — 14 major + 14 minor + 38 adjective/helper = 66 represented natal stars. The Zhongzhou-only 杂曜 and Zhongzhou algorithm selection, 神煞 beyond the default `getAdjectiveStar` slice, 流曜, solar-to-lunar conversion, leap-month behavior, rat-hour variants, temporal/horoscope star scopes, and bindings remain deferred. 四化 remain `Mutagen` facts on placements, not independent stars.
+Current core slice: `by_lunar` accepts explicit lunar inputs plus explicit birth-year stem and branch, builds deterministic natal chart facts, and validates minimal chart fields, fourteen major stars, fourteen supported minor stars, the complete default-algorithm set of 38 natal adjective/helper stars, and the Zhongzhou 40-star natal adjective/helper output against selected `iztro` 2.5.8 fixtures. Default/non-Zhongzhou output remains 14 major + 14 minor + 38 adjective/helper = 66 natal stars; Zhongzhou output is 14 major + 14 minor + 40 adjective/helper = 68 natal stars. The represented metadata table has 70 stars because default-only and Zhongzhou-only natal adjective stars are both represented. 神煞 beyond the supported `getAdjectiveStar` slice, 流曜, solar-to-lunar conversion, leap-month behavior, rat-hour variants, temporal/horoscope star scopes, and bindings remain deferred. 四化 remain `Mutagen` facts on placements, not independent stars.
 
 The broader known star-name inventory supports API discovery and future scoped
 work, but it does not change `by_lunar`, placement behavior, fixtures,

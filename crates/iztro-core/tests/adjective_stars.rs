@@ -21,7 +21,7 @@ const ADJECTIVE_STARS_1991_FIXTURE: &str =
     include_str!("../../../fixtures/iztro/adjective_stars_full_default_1991_08_09_hai_female.json");
 
 /// The full default-algorithm natal adjective/helper-star (杂曜) set (38).
-const ALL_ADJECTIVE_STARS: [StarName; 38] = [
+const DEFAULT_ADJECTIVE_STARS: [StarName; 38] = [
     StarName::HongLuan,
     StarName::TianXi,
     StarName::TianYao,
@@ -60,6 +60,52 @@ const ALL_ADJECTIVE_STARS: [StarName; 38] = [
     StarName::JieLu,
     StarName::KongWang,
     StarName::XunKong,
+];
+
+/// All represented natal adjective/helper stars, including Zhongzhou-only stars.
+const ALL_ADJECTIVE_STARS: [StarName; 42] = [
+    StarName::HongLuan,
+    StarName::TianXi,
+    StarName::TianYao,
+    StarName::TianXing,
+    StarName::TaiFu,
+    StarName::FengGao,
+    StarName::SanTai,
+    StarName::BaZuo,
+    StarName::LongChi,
+    StarName::FengGe,
+    StarName::TianKu,
+    StarName::TianXu,
+    StarName::EnGuang,
+    StarName::TianGui,
+    StarName::TianWu,
+    StarName::TianYueAdj,
+    StarName::YinSha,
+    StarName::JieShen,
+    StarName::HuaGai,
+    StarName::GuChen,
+    StarName::GuaSu,
+    StarName::FeiLian,
+    StarName::PoSui,
+    StarName::TianDe,
+    StarName::YueDe,
+    StarName::NianJie,
+    StarName::XianChi,
+    StarName::TianKong,
+    StarName::TianGuan,
+    StarName::TianChu,
+    StarName::TianFuAdj,
+    StarName::TianCai,
+    StarName::TianShou,
+    StarName::TianShang,
+    StarName::TianShi,
+    StarName::JieLu,
+    StarName::KongWang,
+    StarName::XunKong,
+    StarName::LongDeAdj,
+    StarName::JieKong,
+    StarName::JieShaAdj,
+    StarName::DaHaoAdj,
 ];
 
 #[test]
@@ -114,6 +160,10 @@ fn adjective_star_metadata_uses_expected_kind_and_adjective_category() {
         (StarName::JieLu, StarKind::Adjective),
         (StarName::KongWang, StarKind::Adjective),
         (StarName::XunKong, StarKind::Adjective),
+        (StarName::LongDeAdj, StarKind::Adjective),
+        (StarName::JieKong, StarKind::Adjective),
+        (StarName::JieShaAdj, StarKind::Adjective),
+        (StarName::DaHaoAdj, StarKind::Adjective),
     ]);
 
     for star in ALL_ADJECTIVE_STARS {
@@ -180,8 +230,8 @@ fn placer_places_each_selected_adjective_star_exactly_once() {
         .collect();
     let unique: HashSet<StarName> = placed.iter().copied().collect();
 
-    assert_eq!(placed.len(), ALL_ADJECTIVE_STARS.len());
-    assert_eq!(unique, HashSet::from(ALL_ADJECTIVE_STARS));
+    assert_eq!(placed.len(), DEFAULT_ADJECTIVE_STARS.len());
+    assert_eq!(unique, HashSet::from(DEFAULT_ADJECTIVE_STARS));
 }
 
 #[test]
@@ -485,8 +535,8 @@ fn by_lunar_includes_selected_adjective_stars() {
         .map(|fact| fact.placement().name())
         .collect();
 
-    assert_eq!(adjective, HashSet::from(ALL_ADJECTIVE_STARS));
-    assert_eq!(chart.stars().len(), represented_star_metadata_table().len());
+    assert_eq!(adjective, HashSet::from(DEFAULT_ADJECTIVE_STARS));
+    assert_eq!(chart.stars().len(), 66);
 }
 
 #[test]
@@ -536,7 +586,7 @@ fn generic_star_queries_return_adjective_context() {
 
     assert_eq!(
         chart.stars_by_category(StarCategory::Adjective).len(),
-        ALL_ADJECTIVE_STARS.len()
+        DEFAULT_ADJECTIVE_STARS.len()
     );
     assert_eq!(chart.stars_by_kind(StarKind::Flower).len(), 4);
     assert_eq!(chart.stars_by_kind(StarKind::Adjective).len(), 32);
@@ -757,6 +807,10 @@ fn star_key(star: StarName) -> &'static str {
         StarName::JieLu => "jie_lu",
         StarName::KongWang => "kong_wang",
         StarName::XunKong => "xun_kong",
+        StarName::LongDeAdj => "long_de_adj",
+        StarName::JieKong => "jie_kong",
+        StarName::JieShaAdj => "jie_sha_adj",
+        StarName::DaHaoAdj => "da_hao_adj",
         other => panic!("unsupported adjective star: {other:?}"),
     }
 }
@@ -801,6 +855,10 @@ fn parse_star_key(value: &str) -> StarName {
         "jie_lu" => StarName::JieLu,
         "kong_wang" => StarName::KongWang,
         "xun_kong" => StarName::XunKong,
+        "long_de_adj" => StarName::LongDeAdj,
+        "jie_kong" => StarName::JieKong,
+        "jie_sha_adj" => StarName::JieShaAdj,
+        "da_hao_adj" => StarName::DaHaoAdj,
         other => panic!("unsupported adjective star key in fixture: {other}"),
     }
 }

@@ -1,0 +1,519 @@
+{
+  "metadata": {
+    "source": "iztro",
+    "target_package": "npm:iztro",
+    "target_version": "2.5.8",
+    "algorithm": "zhongzhou",
+    "generated_at": "2026-06-09T00:00:00Z",
+    "supported_fields_only": true,
+    "adjective_star_count": 40,
+    "notes": "Zhongzhou natal adjective/helper star (杂曜) set from iztro@2.5.8 getAdjectiveStar with astro.config({ algorithm: 'zhongzhou' }). Zhongzhou replaces default 截路/空亡 with 龙德/截空/劫杀/大耗 and may swap 天伤/天使 according to getTianshiTianshangIndex. Flow stars, temporal scopes, horoscope placement, by_solar, calendar conversion, leap-month behavior, rat-hour variants, features, rules, and narrative are excluded.",
+    "generation_command": "npm ci --prefix tools/iztro-reference && node tools/iztro-reference/scripts/dump-zhongzhou-adjective-fixtures.mjs"
+  },
+  "input": {
+    "lunar_date": "1991-8-9",
+    "lunar_year": 1991,
+    "lunar_month": 8,
+    "lunar_day": 9,
+    "birth_time": "hai",
+    "iztro_time_index": 11,
+    "gender": "female",
+    "iztro_gender": "女",
+    "birth_year_stem": "xin",
+    "birth_year_branch": "wei",
+    "is_leap_month": false,
+    "fix_leap": true,
+    "language": "zh-CN"
+  },
+  "iztro_output": {
+    "solarDate": "1991-9-16",
+    "lunarDate": "一九九一年八月初九",
+    "fiveElementsClass": "木三局",
+    "palaces": [
+      {
+        "earthlyBranch": "寅",
+        "adjectiveStars": [
+          {
+            "name": "天喜",
+            "type": "flower",
+            "scope": "origin"
+          },
+          {
+            "name": "解神",
+            "type": "helper",
+            "scope": "origin"
+          },
+          {
+            "name": "龙德",
+            "type": "adjective",
+            "scope": "origin"
+          }
+        ]
+      },
+      {
+        "earthlyBranch": "卯",
+        "adjectiveStars": [
+          {
+            "name": "凤阁",
+            "type": "adjective",
+            "scope": "origin"
+          },
+          {
+            "name": "天寿",
+            "type": "adjective",
+            "scope": "origin"
+          },
+          {
+            "name": "蜚廉",
+            "type": "adjective",
+            "scope": "origin"
+          },
+          {
+            "name": "天伤",
+            "type": "adjective",
+            "scope": "origin"
+          },
+          {
+            "name": "年解",
+            "type": "helper",
+            "scope": "origin"
+          }
+        ]
+      },
+      {
+        "earthlyBranch": "辰",
+        "adjectiveStars": [
+          {
+            "name": "天德",
+            "type": "adjective",
+            "scope": "origin"
+          },
+          {
+            "name": "寡宿",
+            "type": "adjective",
+            "scope": "origin"
+          },
+          {
+            "name": "天刑",
+            "type": "adjective",
+            "scope": "origin"
+          }
+        ]
+      },
+      {
+        "earthlyBranch": "巳",
+        "adjectiveStars": [
+          {
+            "name": "天才",
+            "type": "adjective",
+            "scope": "origin"
+          },
+          {
+            "name": "台辅",
+            "type": "adjective",
+            "scope": "origin"
+          },
+          {
+            "name": "天福",
+            "type": "adjective",
+            "scope": "origin"
+          },
+          {
+            "name": "截空",
+            "type": "adjective",
+            "scope": "origin"
+          },
+          {
+            "name": "天使",
+            "type": "adjective",
+            "scope": "origin"
+          }
+        ]
+      },
+      {
+        "earthlyBranch": "午",
+        "adjectiveStars": [
+          {
+            "name": "恩光",
+            "type": "adjective",
+            "scope": "origin"
+          },
+          {
+            "name": "天厨",
+            "type": "adjective",
+            "scope": "origin"
+          }
+        ]
+      },
+      {
+        "earthlyBranch": "未",
+        "adjectiveStars": [
+          {
+            "name": "三台",
+            "type": "adjective",
+            "scope": "origin"
+          },
+          {
+            "name": "八座",
+            "type": "adjective",
+            "scope": "origin"
+          },
+          {
+            "name": "华盖",
+            "type": "adjective",
+            "scope": "origin"
+          },
+          {
+            "name": "天月",
+            "type": "adjective",
+            "scope": "origin"
+          }
+        ]
+      },
+      {
+        "earthlyBranch": "申",
+        "adjectiveStars": [
+          {
+            "name": "红鸾",
+            "type": "flower",
+            "scope": "origin"
+          },
+          {
+            "name": "天姚",
+            "type": "flower",
+            "scope": "origin"
+          },
+          {
+            "name": "天空",
+            "type": "adjective",
+            "scope": "origin"
+          },
+          {
+            "name": "劫杀",
+            "type": "adjective",
+            "scope": "origin"
+          },
+          {
+            "name": "孤辰",
+            "type": "adjective",
+            "scope": "origin"
+          }
+        ]
+      },
+      {
+        "earthlyBranch": "酉",
+        "adjectiveStars": [
+          {
+            "name": "天官",
+            "type": "adjective",
+            "scope": "origin"
+          }
+        ]
+      },
+      {
+        "earthlyBranch": "戌",
+        "adjectiveStars": [
+          {
+            "name": "天贵",
+            "type": "adjective",
+            "scope": "origin"
+          }
+        ]
+      },
+      {
+        "earthlyBranch": "亥",
+        "adjectiveStars": [
+          {
+            "name": "龙池",
+            "type": "adjective",
+            "scope": "origin"
+          },
+          {
+            "name": "天巫",
+            "type": "adjective",
+            "scope": "origin"
+          },
+          {
+            "name": "旬空",
+            "type": "adjective",
+            "scope": "origin"
+          },
+          {
+            "name": "天哭",
+            "type": "adjective",
+            "scope": "origin"
+          }
+        ]
+      },
+      {
+        "earthlyBranch": "子",
+        "adjectiveStars": [
+          {
+            "name": "咸池",
+            "type": "flower",
+            "scope": "origin"
+          },
+          {
+            "name": "月德",
+            "type": "adjective",
+            "scope": "origin"
+          },
+          {
+            "name": "大耗",
+            "type": "adjective",
+            "scope": "origin"
+          },
+          {
+            "name": "阴煞",
+            "type": "adjective",
+            "scope": "origin"
+          }
+        ]
+      },
+      {
+        "earthlyBranch": "丑",
+        "adjectiveStars": [
+          {
+            "name": "封诰",
+            "type": "adjective",
+            "scope": "origin"
+          },
+          {
+            "name": "破碎",
+            "type": "adjective",
+            "scope": "origin"
+          },
+          {
+            "name": "天虚",
+            "type": "adjective",
+            "scope": "origin"
+          }
+        ]
+      }
+    ]
+  },
+  "supported_fields": {
+    "adjective_stars": [
+      {
+        "branch": "yin",
+        "stars": [
+          {
+            "name": "tian_xi",
+            "type": "flower"
+          },
+          {
+            "name": "jie_shen",
+            "type": "helper"
+          },
+          {
+            "name": "long_de_adj",
+            "type": "adjective"
+          }
+        ]
+      },
+      {
+        "branch": "mao",
+        "stars": [
+          {
+            "name": "feng_ge",
+            "type": "adjective"
+          },
+          {
+            "name": "tian_shou",
+            "type": "adjective"
+          },
+          {
+            "name": "fei_lian",
+            "type": "adjective"
+          },
+          {
+            "name": "tian_shang",
+            "type": "adjective"
+          },
+          {
+            "name": "nian_jie",
+            "type": "helper"
+          }
+        ]
+      },
+      {
+        "branch": "chen",
+        "stars": [
+          {
+            "name": "tian_de",
+            "type": "adjective"
+          },
+          {
+            "name": "gua_su",
+            "type": "adjective"
+          },
+          {
+            "name": "tian_xing",
+            "type": "adjective"
+          }
+        ]
+      },
+      {
+        "branch": "si",
+        "stars": [
+          {
+            "name": "tian_cai",
+            "type": "adjective"
+          },
+          {
+            "name": "tai_fu",
+            "type": "adjective"
+          },
+          {
+            "name": "tian_fu_adj",
+            "type": "adjective"
+          },
+          {
+            "name": "jie_kong",
+            "type": "adjective"
+          },
+          {
+            "name": "tian_shi",
+            "type": "adjective"
+          }
+        ]
+      },
+      {
+        "branch": "wu",
+        "stars": [
+          {
+            "name": "en_guang",
+            "type": "adjective"
+          },
+          {
+            "name": "tian_chu",
+            "type": "adjective"
+          }
+        ]
+      },
+      {
+        "branch": "wei",
+        "stars": [
+          {
+            "name": "san_tai",
+            "type": "adjective"
+          },
+          {
+            "name": "ba_zuo",
+            "type": "adjective"
+          },
+          {
+            "name": "hua_gai",
+            "type": "adjective"
+          },
+          {
+            "name": "tian_yue_adj",
+            "type": "adjective"
+          }
+        ]
+      },
+      {
+        "branch": "shen",
+        "stars": [
+          {
+            "name": "hong_luan",
+            "type": "flower"
+          },
+          {
+            "name": "tian_yao",
+            "type": "flower"
+          },
+          {
+            "name": "tian_kong",
+            "type": "adjective"
+          },
+          {
+            "name": "jie_sha_adj",
+            "type": "adjective"
+          },
+          {
+            "name": "gu_chen",
+            "type": "adjective"
+          }
+        ]
+      },
+      {
+        "branch": "you",
+        "stars": [
+          {
+            "name": "tian_guan",
+            "type": "adjective"
+          }
+        ]
+      },
+      {
+        "branch": "xu",
+        "stars": [
+          {
+            "name": "tian_gui",
+            "type": "adjective"
+          }
+        ]
+      },
+      {
+        "branch": "hai",
+        "stars": [
+          {
+            "name": "long_chi",
+            "type": "adjective"
+          },
+          {
+            "name": "tian_wu",
+            "type": "adjective"
+          },
+          {
+            "name": "xun_kong",
+            "type": "adjective"
+          },
+          {
+            "name": "tian_ku",
+            "type": "adjective"
+          }
+        ]
+      },
+      {
+        "branch": "zi",
+        "stars": [
+          {
+            "name": "xian_chi",
+            "type": "flower"
+          },
+          {
+            "name": "yue_de",
+            "type": "adjective"
+          },
+          {
+            "name": "da_hao_adj",
+            "type": "adjective"
+          },
+          {
+            "name": "yin_sha",
+            "type": "adjective"
+          }
+        ]
+      },
+      {
+        "branch": "chou",
+        "stars": [
+          {
+            "name": "feng_gao",
+            "type": "adjective"
+          },
+          {
+            "name": "po_sui",
+            "type": "adjective"
+          },
+          {
+            "name": "tian_xu",
+            "type": "adjective"
+          }
+        ]
+      }
+    ]
+  }
+}

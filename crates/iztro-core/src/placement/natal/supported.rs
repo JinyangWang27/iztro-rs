@@ -50,7 +50,7 @@ pub fn build_natal_chart_with_major_stars(
 ///
 /// This public builder preserves the minimal natal chart facts, places the
 /// natal-scope fourteen major stars, the supported fourteen minor stars, then
-/// the full default-algorithm 38 natal adjective/helper stars.
+/// the algorithm-selected natal adjective/helper stars.
 /// Temporal scopes beyond natal, horoscope placement, feature extraction,
 /// rule-engine output, and narrative output remain out of scope.
 pub fn build_natal_chart_with_supported_stars(
