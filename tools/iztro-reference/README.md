@@ -23,6 +23,7 @@ npm ci --prefix tools/iztro-reference
 npm run check:version --prefix tools/iztro-reference
 npm run dump:by-lunar --prefix tools/iztro-reference
 npm run dump:adjective --prefix tools/iztro-reference
+npm run dump:e2e-supported --prefix tools/iztro-reference
 ```
 
 The dump commands use the canonical lunar fixture case:
@@ -37,6 +38,25 @@ The dump commands use the canonical lunar fixture case:
 `dump:by-lunar` prints compact chart JSON with palace branches and upstream
 star arrays. `dump:adjective` prints `palaces[].adjectiveStars` plus the total
 default-algorithm natal adjective/helper-star count.
+
+### Supported by_lunar E2E fixture
+
+```bash
+# inspect
+npm run dump:e2e-supported --prefix tools/iztro-reference
+
+# regenerate fixtures/iztro/e2e_supported_by_lunar.json from repo root
+npm run dump:e2e-supported --prefix tools/iztro-reference -- --write
+```
+
+`dump:e2e-supported` emits one compact supported-field-only fixture with six
+ordinary lunar chart cases under both the default and Zhongzhou algorithms (12
+by_lunar E2E cases). It normalizes only the current Rust-supported facts:
+life/body palace branches, five-element bureau, palace branch/stem/name facts,
+typed natal stars, and the four decorative runtime families. It intentionally
+does not snapshot full facade serialization parity, calendar conversion,
+leap-month behavior, rat-hour variants, horoscope derivation, features, rules,
+or narrative output.
 
 ### Runtime star families
 

@@ -190,11 +190,18 @@ The fixtures are:
 - `fixtures/iztro/runtime_decorative_zhongzhou_1988_03_14_zi_male.json`
 - `fixtures/iztro/runtime_decorative_zhongzhou_1991_08_09_hai_female.json`
 - `fixtures/iztro/flow_stars.json`
+- `fixtures/iztro/e2e_supported_by_lunar.json`
 
 The `runtime_decorative_*` fixtures cover the four decorative families per palace
 (default and Zhongzhou); `flow_stars.json` covers the scoped flow stars for every
 scope across all ten stems and twelve branches. See
 [Runtime star-family placement](#runtime-star-family-placement).
+
+`e2e_supported_by_lunar.json` covers current supported `by_lunar` facade facts
+for six chart cases under both default and Zhongzhou algorithms. It remains
+supported-field-only and intentionally excludes full facade serialization parity,
+calendar conversion, leap-month behavior, rat-hour variants, horoscope
+derivation, rules, and narrative.
 
 Only the current full default-algorithm adjective-star fixtures (38 stars each)
 and Zhongzhou adjective-star fixtures (40 stars each) are kept in-tree. Earlier,
