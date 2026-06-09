@@ -7,6 +7,7 @@
 //! and [`adjective`]; the supporting rules in [`life_body`] and [`palace_stems`].
 
 pub mod adjective;
+pub mod decorative;
 pub mod input;
 pub mod life_body;
 pub mod major;

@@ -45,6 +45,9 @@ pub use placement::natal::adjective::{
     AdjectiveStarPlacementInput, AdjectiveStarPlacer, DeterministicAdjectiveStarPlacer,
     adjective_star_metadata, adjective_star_metadata_table, try_adjective_star_metadata,
 };
+pub use placement::natal::decorative::{
+    DecorativeStarPlacementInput, DecorativeStarPlacer, DeterministicDecorativeStarPlacer,
+};
 pub use placement::natal::input::{
     NatalChartInput, NatalChartWithMajorStarsInput, NatalChartWithSupportedStarsInput,
 };
