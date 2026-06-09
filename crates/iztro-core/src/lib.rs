@@ -23,8 +23,10 @@ pub use error::ChartError;
 pub use model::bureau::{FiveElementBureau, five_element_bureau_from_life_palace};
 pub use model::calendar::{BirthContext, CalendarDate, CalendarKind, Gender};
 pub use model::chart::{
-    Chart, HoroscopeChart, MajorStarPlacementRef, MutagenActivation, PALACE_COUNT, PALACE_NAMES,
-    Palace, PalaceName, StarPlacement, StarPlacementRef, TemporalContext, TemporalLayer,
+    Chart, DecorativeStarFamily, DecorativeStarPlacement, DecorativeStarPlacementRef,
+    HoroscopeChart, MajorStarPlacementRef, MutagenActivation, PALACE_COUNT, PALACE_NAMES, Palace,
+    PalaceName, ScopedStarPlacement, StarPlacement, StarPlacementRef, TemporalContext,
+    TemporalLayer,
 };
 pub use model::ganzhi::{EARTHLY_BRANCHES, EarthlyBranch, HEAVENLY_STEMS, HeavenlyStem};
 pub use model::profile::{ChartAlgorithmKind, MethodProfile};
@@ -42,6 +44,9 @@ pub use model::star::{
 pub use placement::natal::adjective::{
     AdjectiveStarPlacementInput, AdjectiveStarPlacer, DeterministicAdjectiveStarPlacer,
     adjective_star_metadata, adjective_star_metadata_table, try_adjective_star_metadata,
+};
+pub use placement::natal::decorative::{
+    DecorativeStarPlacementInput, DecorativeStarPlacer, DeterministicDecorativeStarPlacer,
 };
 pub use placement::natal::input::{
     NatalChartInput, NatalChartWithMajorStarsInput, NatalChartWithSupportedStarsInput,
@@ -65,6 +70,7 @@ pub use placement::natal::supported::{
     build_natal_chart_with_major_stars, build_natal_chart_with_supported_stars,
 };
 pub use placement::overlay::decadal::{DecadalMutagenLayerInput, build_decadal_mutagen_layer};
+pub use placement::overlay::flow::build_flow_star_layer;
 pub use placement::overlay::yearly::{YearlyMutagenLayerInput, build_yearly_mutagen_layer};
 
 pub use facade::by_lunar::{LunarChartRequest, LunarChartRequestBuilder, by_lunar};

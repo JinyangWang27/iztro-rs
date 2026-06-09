@@ -37,3 +37,20 @@ The dump commands use the canonical lunar fixture case:
 `dump:by-lunar` prints compact chart JSON with palace branches and upstream
 star arrays. `dump:adjective` prints `palaces[].adjectiveStars` plus the total
 default-algorithm natal adjective/helper-star count.
+
+### Runtime star families
+
+```bash
+# inspect (prints all fixtures to stdout)
+npm run dump:runtime-star-families --prefix tools/iztro-reference
+
+# regenerate fixtures under fixtures/iztro/ (run from the repo root so the
+# relative fixtures/iztro/ path resolves)
+node tools/iztro-reference/scripts/dump-runtime-star-families.mjs --write
+```
+
+`dump:runtime-star-families` emits the decorative natal families
+(长生/博士/岁前/将前十二神) per palace for the default and Zhongzhou algorithms,
+and the scoped flow stars (流耀) from `getHoroscopeStar` for every scope across
+all ten stems and twelve branches. With `--write` it regenerates
+`fixtures/iztro/runtime_decorative_*.json` and `fixtures/iztro/flow_stars.json`.

@@ -5,6 +5,9 @@ use crate::model::chart::Chart;
 use crate::placement::natal::adjective::{
     AdjectiveStarPlacementInput, AdjectiveStarPlacer, DeterministicAdjectiveStarPlacer,
 };
+use crate::placement::natal::decorative::{
+    DecorativeStarPlacementInput, DecorativeStarPlacer, DeterministicDecorativeStarPlacer,
+};
 use crate::placement::natal::input::{
     NatalChartInput, NatalChartWithMajorStarsInput, NatalChartWithSupportedStarsInput,
 };
@@ -49,8 +52,10 @@ pub fn build_natal_chart_with_major_stars(
 /// Builds a natal chart with all currently supported natal stars placed.
 ///
 /// This public builder preserves the minimal natal chart facts, places the
-/// natal-scope fourteen major stars, the supported fourteen minor stars, then
-/// the algorithm-selected natal adjective/helper stars.
+/// natal-scope fourteen major stars, the supported fourteen minor stars, the
+/// algorithm-selected natal adjective/helper stars, and the natal decorative
+/// runtime families. Typed stars remain available through [`Chart::stars`],
+/// while decorative runtime entries use the separate decorative fact surface.
 /// Temporal scopes beyond natal, horoscope placement, feature extraction,
 /// rule-engine output, and narrative output remain out of scope.
 pub fn build_natal_chart_with_supported_stars(
@@ -84,7 +89,7 @@ pub fn build_natal_chart_with_supported_stars(
         ),
     )?;
 
-    DeterministicAdjectiveStarPlacer.place_adjective_stars(
+    let with_adjective_stars = DeterministicAdjectiveStarPlacer.place_adjective_stars(
         with_minor_stars,
         AdjectiveStarPlacementInput::new(
             input.lunar_month(),
@@ -93,5 +98,10 @@ pub fn build_natal_chart_with_supported_stars(
             input.birth_year_stem(),
             input.birth_year_branch(),
         ),
+    )?;
+
+    DeterministicDecorativeStarPlacer.place_decorative_stars(
+        with_adjective_stars,
+        DecorativeStarPlacementInput::new(input.birth_year_stem(), input.birth_year_branch()),
     )
 }

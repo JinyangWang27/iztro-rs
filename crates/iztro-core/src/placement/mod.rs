@@ -6,5 +6,6 @@
 //! activation builders (流年, 大限, …) layered on top of the model-only
 //! horoscope overlays in [`crate::model::chart::horoscope`].
 
+pub(crate) mod location;
 pub mod natal;
 pub mod overlay;

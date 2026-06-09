@@ -39,22 +39,31 @@ The committed fixture JSON files remain the compatibility source of truth.
 
 `iztro-core` now keeps two separate star metadata surfaces:
 
-- `represented_star_metadata_table()` remains strict: it covers only the **70**
-  stars currently represented by chart facts, placed by Rust code, and validated
-  by fixtures. Four represented adjective stars are algorithm-gated and appear
-  only under `ChartAlgorithmKind::Zhongzhou`.
-- `known_star_metadata_table()` inventories the broader upstream
-  `iztro@2.5.8` runtime star-name universe: **170** known entries spanning the
-  represented stars, decorative runtime arrays
+- `represented_star_metadata_table().len() == 70` remains strict: it covers only
+  the stars currently represented by chart facts, placed by Rust code, and
+  validated by fixtures. Four represented adjective stars are algorithm-gated
+  and appear only under `ChartAlgorithmKind::Zhongzhou`.
+- `known_star_metadata_table().len() == 170` inventories the broader upstream
+  `iztro@2.5.8` runtime star-name universe spanning the represented stars,
+  decorative runtime arrays
   (`changsheng12`, `boshi12`, `suiqian12`, `jiangqian12`), and horoscope flow
   star names for decadal, yearly, monthly, daily, and hourly scopes.
 
-Known metadata outside the represented table is inventory-only. It does not mean
-`iztro-rs` places those stars, validates them against fixtures, assigns
-brightness, derives temporal palaces, or implements horoscope placement.
-Decorative runtime entries have no upstream `FunctionalStar` type and therefore
-no `StarKind`; horoscope flow entries keep the upstream fine type where iztro
-assigns one.
+`represented_star_metadata_table()` stays **natal-only (70)**. Two further
+runtime surfaces are now placed without changing that table:
+
+- The four decorative families (长生/博士/岁前/将前十二神) are placed as **untyped**
+  `DecorativeStarPlacement`s. They have no upstream `FunctionalStar` type and
+  therefore no `StarKind`, so they are never typed `StarPlacement`s and never
+  appear in `Chart::stars()`.
+- The horoscope flow stars (`Yun*`/`Liu*`/`Yue*`/`Ri*`/`Shi*`) are placed as
+  **typed, branch-tagged** `ScopedStarPlacement`s inside a `TemporalLayer`. They
+  carry a concrete `StarKind` from the known inventory, but because they are
+  temporal they remain outside the natal `represented_star_metadata_table()` —
+  they are *known/typed-but-temporal*.
+
+Known metadata still does not imply brightness tables or full horoscope
+palace-name derivation. See [Runtime star-family placement](#runtime-star-family-placement).
 
 The upstream locale key `xunzhong` / `旬中` is intentionally excluded because no
 built-in upstream `FunctionalStar` construction or `StarType` assignment was
@@ -110,9 +119,54 @@ builders produce the same target-star / target-branch / mutagen triples,
 differing only in `source_scope` and `TemporalContext`. 四化 remain
 `MutagenActivation` facts, not independent stars.
 
-Temporal star placement, decadal/yearly derivation, year-to-ganzhi conversion,
-and calendar derivation remain out of scope. These models are not yet validated
-against `iztro` horoscope fixtures.
+A scoped flow-star builder (`build_flow_star_layer`) places the horoscope flow
+stars (流曜) for one period. Given a `TemporalContext`, it returns a
+`TemporalLayer` of branch-tagged `ScopedStarPlacement`s for that scope. The
+mutagen builders above still place no flow stars; flow-star placement is this
+separate builder. Decadal/yearly derivation, year-to-ganzhi conversion, and
+calendar derivation remain out of scope.
+
+## Runtime star-family placement
+
+Typed stars and decorative runtime entries are **separate fact surfaces**, and
+`Chart::stars()` returns typed `StarPlacement`s only.
+
+**Decorative families.** The four "twelve gods" families
+(长生/博士/岁前/将前十二神) are emitted by upstream as bare names with no
+`StarKind`, so they are modelled as untyped `DecorativeStarPlacement`s
+(`name` + `DecorativeStarFamily` + `Scope`) rather than fake-typed
+`StarPlacement`s. `DecorativeStarPlacement::try_new` validates each entry against
+the known inventory (matching family, no `StarKind`). They live in a separate
+`Palace::decorative_stars()` collection (serde-skipped when empty) and are read
+through `Chart::decorative_stars()` / `Chart::decorative_star()`. The
+supported-star natal builder — and therefore `by_lunar` — places all four
+families: 长生 starts from the five-element bureau branch and 博士 from 禄存, both
+阳男阴女顺行; 岁前 and 将前 advance forward from the year branch / triad anchor.
+岁破 (`SuiPo`) is known as a 岁前 name but is not placed as an additional
+thirteenth entry because upstream emits exactly 12 岁前 entries. Under
+`ChartAlgorithmKind::Zhongzhou`, 岁破 occupies the seventh 岁前 slot in place of
+大耗 (`SuiPo` replaces `DaHaoSuiqian`); otherwise 岁破 is known-but-not-placed.
+Because decorative entries are separate facts, default/non-Zhongzhou
+`Chart::stars()` remains **66** typed natal `StarPlacement`s and Zhongzhou
+`Chart::stars()` remains **68** typed natal `StarPlacement`s.
+
+**Zhongzhou natal adjective stars** (`LongDeAdj`, `JieKong`, `JieShaAdj`,
+`DaHaoAdj`) remain typed `StarPlacement`s placed under
+`ChartAlgorithmKind::Zhongzhou`, and so stay in the represented (natal) table.
+
+**Flow stars.** Flow-star placement is implemented through the normalized
+`FlowStarScope` + `FlowStarBase` identity: `flow_star_name(scope, base)` yields
+the `StarName`, and `build_flow_star_layer` runs one scope-generic algorithm for
+decadal/yearly/monthly/daily/hourly, placing the ten matrix stars
+(魁钺昌曲禄羊陀马鸾喜) from the period stem-branch. Flow 文昌文曲 uses the
+stem-based rule (distinct from the natal time-based one). The yearly scope also
+places 年解 (`NianJieYearly`), which is intentionally kept outside `FlowStarBase`.
+No horoscope palace-name derivation is performed; placement is branch-based.
+
+四化 remain `Mutagen` / `MutagenActivation` facts, never `StarName` variants.
+`by_solar`, calendar/leap-month/rat-hour behavior, the upstream yearly
+decorative arrays (`yearlyDecStar`), and interpretation/rule-engine/narrative
+remain deferred.
 
 ## Current fixtures
 
@@ -129,6 +183,18 @@ The fixtures are:
 - `fixtures/iztro/zhongzhou_adjective_stars_1990_05_17_chen_female.json`
 - `fixtures/iztro/zhongzhou_adjective_stars_1988_03_14_zi_male.json`
 - `fixtures/iztro/zhongzhou_adjective_stars_1991_08_09_hai_female.json`
+- `fixtures/iztro/runtime_decorative_default_1990_05_17_chen_female.json`
+- `fixtures/iztro/runtime_decorative_default_1988_03_14_zi_male.json`
+- `fixtures/iztro/runtime_decorative_default_1991_08_09_hai_female.json`
+- `fixtures/iztro/runtime_decorative_zhongzhou_1990_05_17_chen_female.json`
+- `fixtures/iztro/runtime_decorative_zhongzhou_1988_03_14_zi_male.json`
+- `fixtures/iztro/runtime_decorative_zhongzhou_1991_08_09_hai_female.json`
+- `fixtures/iztro/flow_stars.json`
+
+The `runtime_decorative_*` fixtures cover the four decorative families per palace
+(default and Zhongzhou); `flow_stars.json` covers the scoped flow stars for every
+scope across all ten stems and twelve branches. See
+[Runtime star-family placement](#runtime-star-family-placement).
 
 Only the current full default-algorithm adjective-star fixtures (38 stars each)
 and Zhongzhou adjective-star fixtures (40 stars each) are kept in-tree. Earlier,
@@ -258,7 +324,8 @@ offsets, grouped by placement basis:
   天哭/天虚; 华盖, 咸池 (`getHuagaiXianchiIndex` 三合 family), 孤辰, 寡宿, 蜚廉,
   破碎, 天德, 月德, and 年解 (`getYearlyStarIndex`); and 天空 (year branch + 1).
   年解 is represented only as the natal `origin` helper emitted by
-  `getAdjectiveStar`; yearly horoscope flow remains deferred.
+  `getAdjectiveStar`; yearly flow 年解 is a separate `NianJieYearly` temporal
+  placement.
 - **Lunar month**: 天姚/天刑; and 天巫, 天月, 阴煞, and 解神 from fixed per-month
   branch lookups (`getMonthlyStarIndex`).
 - **Birth time branch**: 台辅/封诰 (`getTimelyStarIndex`).

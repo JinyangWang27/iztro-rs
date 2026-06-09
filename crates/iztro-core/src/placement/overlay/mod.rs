@@ -6,6 +6,7 @@
 //! [`decadal`].
 
 pub mod decadal;
+pub mod flow;
 pub mod yearly;
 
 pub(crate) mod mutagen;

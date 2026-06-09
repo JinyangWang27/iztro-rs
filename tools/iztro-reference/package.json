@@ -8,6 +8,7 @@
     "check:version": "node scripts/check-version.mjs",
     "dump:by-lunar": "node scripts/dump-by-lunar.mjs",
     "dump:adjective": "node scripts/dump-adjective-stars.mjs",
-    "dump:zhongzhou-adjective": "node scripts/dump-zhongzhou-adjective-fixtures.mjs"
+    "dump:zhongzhou-adjective": "node scripts/dump-zhongzhou-adjective-fixtures.mjs",
+    "dump:runtime-star-families": "node scripts/dump-runtime-star-families.mjs"
   }
 }

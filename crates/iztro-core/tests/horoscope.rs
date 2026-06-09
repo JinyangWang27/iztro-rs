@@ -1,8 +1,9 @@
 use iztro_core::{
     BirthContext, Brightness, CalendarDate, Chart, ChartError, EarthlyBranch, Gender, HeavenlyStem,
     HoroscopeChart, LunarDay, LunarMonth, MethodProfile, Mutagen, MutagenActivation,
-    NatalChartWithSupportedStarsInput, Scope, StarKind, StarName, StarPlacement, StemBranch,
-    TemporalContext, TemporalLayer, build_natal_chart_with_supported_stars,
+    NatalChartWithSupportedStarsInput, Scope, ScopedStarPlacement, StarKind, StarName,
+    StarPlacement, StemBranch, TemporalContext, TemporalLayer,
+    build_natal_chart_with_supported_stars,
 };
 
 /// `by_lunar`/the supported-star builder place 14 major + 14 minor + 38
@@ -33,12 +34,15 @@ fn yearly_context() -> TemporalContext {
 }
 
 fn sample_yearly_layer() -> TemporalLayer {
-    let placements = vec![StarPlacement::new(
-        StarName::NianJie,
-        StarKind::Helper,
-        Brightness::Unknown,
-        None,
-        Scope::Yearly,
+    let placements = vec![ScopedStarPlacement::new(
+        EarthlyBranch::Si,
+        StarPlacement::new(
+            StarName::NianJieYearly,
+            StarKind::Helper,
+            Brightness::Unknown,
+            None,
+            Scope::Yearly,
+        ),
     )];
     let activations = vec![MutagenActivation::new(
         Scope::Yearly,
@@ -116,6 +120,27 @@ fn horoscope_chart_round_trips_through_json() {
 }
 
 #[test]
+fn scoped_placement_exposes_branch_and_scope() {
+    let layer = sample_yearly_layer();
+    let scoped = &layer.placements()[0];
+
+    assert_eq!(scoped.branch(), EarthlyBranch::Si);
+    assert_eq!(scoped.scope(), Scope::Yearly);
+    assert_eq!(scoped.placement().name(), StarName::NianJieYearly);
+}
+
+#[test]
+fn temporal_layer_round_trips_branch_tagged_placements() {
+    let layer = sample_yearly_layer();
+
+    let encoded = serde_json::to_string(&layer).expect("layer should serialize");
+    let decoded: TemporalLayer = serde_json::from_str(&encoded).expect("layer should deserialize");
+
+    assert_eq!(decoded, layer);
+    assert_eq!(decoded.placements()[0].branch(), EarthlyBranch::Si);
+}
+
+#[test]
 fn temporal_layer_rejects_natal_scope() {
     let result = TemporalLayer::try_new(Scope::Natal, yearly_context(), Vec::new(), Vec::new());
 
@@ -142,12 +167,15 @@ fn temporal_layer_rejects_scope_context_mismatch() {
 
 #[test]
 fn temporal_layer_rejects_natal_scoped_placement() {
-    let placement = StarPlacement::new(
-        StarName::NianJie,
-        StarKind::Helper,
-        Brightness::Unknown,
-        None,
-        Scope::Natal,
+    let placement = ScopedStarPlacement::new(
+        EarthlyBranch::Si,
+        StarPlacement::new(
+            StarName::NianJieYearly,
+            StarKind::Helper,
+            Brightness::Unknown,
+            None,
+            Scope::Natal,
+        ),
     );
 
     let result =
@@ -225,7 +253,7 @@ fn temporal_layer_json_cannot_bypass_scope_context_mismatch() {
 #[test]
 fn temporal_layer_json_cannot_bypass_placement_scope_mismatch() {
     assert_tampered_layer_json_is_rejected(
-        |value| value["placements"][0]["scope"] = serde_json::json!("natal"),
+        |value| value["placements"][0]["placement"]["scope"] = serde_json::json!("natal"),
         "does not match layer scope",
     );
 }

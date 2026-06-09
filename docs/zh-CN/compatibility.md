@@ -37,18 +37,28 @@ source of truth。
 
 `iztro-core` 现在保留两套相互独立的星曜 metadata surface：
 
-- `represented_star_metadata_table()` 仍保持严格边界：只覆盖当前由星盘事实表示、由
-  Rust 代码安放、并由 fixtures 校验的 **70** 颗星。其中四颗已表示杂曜受算法门控，
+- `represented_star_metadata_table().len() == 70` 仍保持严格边界：只覆盖当前由星盘事实
+  表示、由 Rust 代码安放、并由 fixtures 校验的星。其中四颗已表示杂曜受算法门控，
   只会在 `ChartAlgorithmKind::Zhongzhou` 下出现在星盘输出中。
-- `known_star_metadata_table()` 清点更广的上游 `iztro@2.5.8` runtime 星曜名称宇宙：
-  **170** 个已知条目，包含已表示星曜、装饰性 runtime 数组
+- `known_star_metadata_table().len() == 170` 清点更广的上游 `iztro@2.5.8` runtime 星曜
+  名称宇宙，包含已表示星曜、装饰性 runtime 数组
   （`changsheng12`、`boshi12`、`suiqian12`、`jiangqian12`），以及大限、流年、流月、
   流日、流时的 horoscope 流曜名称。
 
-已表示表之外的 known metadata 仅为清单，不表示 `iztro-rs` 已安放这些星曜、以
-fixtures 校验它们、分配亮度、推导时间宫位，或实现 horoscope 安星。装饰性 runtime
-条目在上游没有 `FunctionalStar` type，因此没有 `StarKind`；horoscope 流曜条目则保留
-iztro 已分配的细分类。
+`represented_star_metadata_table()` 保持**仅本命（70）**。现在还有两类 runtime
+surface 已安放，但不会改变这张表：
+
+- 四组装饰性 runtime 家族（长生/博士/岁前/将前十二神）作为**无类型**
+  `DecorativeStarPlacement` 安放。它们在上游没有 `FunctionalStar` type，因此没有
+  `StarKind`，永远不是有类型的 `StarPlacement`，也永远不会出现在 `Chart::stars()`
+  中。
+- horoscope 流曜（`Yun*`/`Liu*`/`Yue*`/`Ri*`/`Shi*`）作为**有类型、带地支标签**的
+  `ScopedStarPlacement` 安放在 `TemporalLayer` 内。它们带有 known inventory 中的
+  具体 `StarKind`，但因为属于时间层，仍在仅本命的 `represented_star_metadata_table()`
+  之外：它们是已知、有类型、但属时间范围的事实。
+
+Known metadata 仍不表示已支持亮度表或完整 horoscope 宫名推导。见
+[Runtime 星曜家族安放](#runtime-星曜家族安放)。
 
 上游 locale key `xunzhong` / `旬中` 被有意排除，因为在 `iztro@2.5.8` 中没有找到
 内置的 `FunctionalStar` 构造或 `StarType` 分配。四化仍作为 `Mutagen` /
@@ -91,8 +101,46 @@ builder 与流年版一并提供。给定本命 `Chart` 和显式的大限干支
 盘，大限与流年 builder 产出相同的目标星 / 目标地支 / 四化三元组，只在 `source_scope`
 和 `TemporalContext` 上不同。四化仍作为 `MutagenActivation` 事实，而非独立星曜。
 
-时间范围安星、大限/流年推导、年份到干支转换，以及历法推导仍不在范围内。这些模型
-目前尚未以 `iztro` 运限 fixtures 校验。
+scoped flow-star builder（`build_flow_star_layer`）用于安放一个时间范围的 horoscope
+流曜。给定 `TemporalContext`，它会返回该 scope 的 `TemporalLayer`，其中包含带地支
+标签的 `ScopedStarPlacement`。上面的四化 builder 仍不安放流曜；流曜安放由这个独立
+builder 负责。大限/流年推导、年份到干支转换和历法推导仍不在范围内。
+
+## Runtime 星曜家族安放
+
+有类型星曜和装饰性 runtime 条目是**分离的事实 surface**，`Chart::stars()` 只返回
+有类型的 `StarPlacement`。
+
+**装饰性家族。** 四组「十二神」家族（长生/博士/岁前/将前十二神）在上游以无
+`StarKind` 的裸名称输出，因此建模为无类型的 `DecorativeStarPlacement`
+（`name` + `DecorativeStarFamily` + `Scope`），而不是伪装成有类型的
+`StarPlacement`。`DecorativeStarPlacement::try_new` 会按 known inventory 校验每个
+条目（家族匹配，且没有 `StarKind`）。这些事实保存在独立的
+`Palace::decorative_stars()` collection 中（为空时 serde 跳过），并通过
+`Chart::decorative_stars()` / `Chart::decorative_star()` 读取。supported-star 本命
+builder——因此也包括 `by_lunar`——会安放全部四组家族：长生从五行局地支起，博士从
+禄存起，二者均按阳男阴女顺行；岁前和将前分别从出生年支 / 三合锚点顺行。岁破
+（`SuiPo`）是已知的岁前名称，但不会作为第十三个岁前条目额外安放，因为上游 runtime
+placement 只输出 12 个岁前条目；在 `ChartAlgorithmKind::Zhongzhou` 下，岁破占用第
+七个岁前位置并替代大耗（`SuiPo` 替代 `DaHaoSuiqian`），其他算法下岁破 known 但不
+placed。由于装饰性条目是独立事实，默认/非中州派 `Chart::stars()` 仍为 **66** 个有
+类型的本命 `StarPlacement`，中州派 `Chart::stars()` 仍为 **68** 个有类型的本命
+`StarPlacement`。
+
+**中州派本命杂曜**（`LongDeAdj`、`JieKong`、`JieShaAdj`、`DaHaoAdj`）仍是有类型的
+`StarPlacement`，只在 `ChartAlgorithmKind::Zhongzhou` 下安放，因此仍属于 represented
+（本命）表。
+
+**流曜。** 流曜安放通过规范化的 `FlowStarScope` + `FlowStarBase` identity 实现：
+`flow_star_name(scope, base)` 返回具体 `StarName`，`build_flow_star_layer` 使用同一套
+scope-generic 算法为大限、流年、流月、流日、流时安放十颗 matrix 星
+（魁钺昌曲禄羊陀马鸾喜），落点来自该 period 的干支。流文昌/流文曲使用基于天干的
+规则（不同于本命的时辰规则）。流年 scope 还会安放年解（`NianJieYearly`），它有意
+保持在 `FlowStarBase` 之外。目前不做 horoscope 宫名推导；安放是地支层面的。
+
+四化仍是 `Mutagen` / `MutagenActivation` 事实，永远不是 `StarName` variants。
+`by_solar`、历法/闰月/早晚子时行为、上游 yearly decorative arrays
+（`yearlyDecStar`），以及解读/规则引擎/叙事仍然延期。
 
 ## 当前 fixtures
 
@@ -109,6 +157,17 @@ fixtures 为：
 - `fixtures/iztro/zhongzhou_adjective_stars_1990_05_17_chen_female.json`
 - `fixtures/iztro/zhongzhou_adjective_stars_1988_03_14_zi_male.json`
 - `fixtures/iztro/zhongzhou_adjective_stars_1991_08_09_hai_female.json`
+- `fixtures/iztro/runtime_decorative_default_1990_05_17_chen_female.json`
+- `fixtures/iztro/runtime_decorative_default_1988_03_14_zi_male.json`
+- `fixtures/iztro/runtime_decorative_default_1991_08_09_hai_female.json`
+- `fixtures/iztro/runtime_decorative_zhongzhou_1990_05_17_chen_female.json`
+- `fixtures/iztro/runtime_decorative_zhongzhou_1988_03_14_zi_male.json`
+- `fixtures/iztro/runtime_decorative_zhongzhou_1991_08_09_hai_female.json`
+- `fixtures/iztro/flow_stars.json`
+
+`runtime_decorative_*` fixtures 覆盖默认与中州派下每宫的四组装饰性家族；
+`flow_stars.json` 覆盖所有 scope、十天干和十二地支组合下的 scoped flow stars。见
+[Runtime 星曜家族安放](#runtime-星曜家族安放)。
 
 仅保留当前完整默认算法杂曜 fixtures（每个 38 颗星）和中州派杂曜 fixtures（每个
 40 颗星）在源码树中；更早、更小的杂曜子集可通过 git history 获取。
@@ -215,7 +274,7 @@ bindings、Python bindings 或 WebAssembly bindings。
 - **出生年支**：红鸾、天喜（天喜与红鸾相对）；龙池、凤阁与天哭、天虚；华盖、咸池
   （`getHuagaiXianchiIndex` 三合同族）、孤辰、寡宿、蜚廉、破碎、天德、月德、年解
   （`getYearlyStarIndex`）；以及天空（年支 + 1）。年解只表示 `getAdjectiveStar`
-  输出的本命 `origin` `helper`，不实现流年/horoscope 流曜范围。
+  输出的本命 `origin` `helper`；流年年解是独立的 `NianJieYearly` 时间层落点。
 - **农历月份**：天姚、天刑；以及天巫、天月、阴煞、解神由固定月份查表决定
   （`getMonthlyStarIndex`）。
 - **出生时辰地支**：台辅、封诰（`getTimelyStarIndex`）。
@@ -269,7 +328,8 @@ iztro 2.5.8 `getAdjectiveStar` 在默认（非中州派）算法下输出 **38**
 都不需要时间范围层、阳历转农历、闰月或早晚子时变体。
 
 中州派变体 `algorithm: 'zhongzhou'` 现在已支持四颗中州派特有本命杂曜。本已支持的
-`getAdjectiveStar` 切片以外的神煞、流曜，以及所有时间/horoscope 安星仍然延期。
+`getAdjectiveStar` 切片以外的神煞、yearly-scope 装饰性数组和完整 horoscope 组装仍然
+延期；scoped 流曜安放已由独立 fixture 覆盖。
 四化仍作为 `mutagen: Option<Mutagen>` 事实附于安星，而非独立星曜。
 
 ## Golden tests

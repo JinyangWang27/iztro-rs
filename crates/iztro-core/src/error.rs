@@ -49,6 +49,16 @@ pub enum ChartError {
     /// A placement rule depends on the Life or Body Palace, which is absent.
     #[error("required Life/Body Palace context is missing")]
     RequiredLifeBodyPalaceMissing,
+    /// A placement rule depends on the five-element bureau, which is absent.
+    #[error("required five-element bureau is missing")]
+    RequiredFiveElementBureauMissing,
+    /// A decorative placement must name a known decorative (untyped) star whose
+    /// family matches and whose known metadata carries no `StarKind`.
+    #[error("invalid decorative star placement: {star:?}")]
+    InvalidDecorativeStarPlacement {
+        /// Star rejected as a decorative placement.
+        star: StarName,
+    },
     /// A temporal layer cannot use the natal scope; natal facts live in the chart.
     #[error("temporal layer cannot use the natal scope")]
     NatalScopeInTemporalLayer,

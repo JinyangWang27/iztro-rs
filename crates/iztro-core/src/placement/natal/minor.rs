@@ -10,6 +10,7 @@ use crate::model::chart::{Chart, Palace, StarPlacement};
 use crate::model::ganzhi::{EarthlyBranch, HeavenlyStem};
 use crate::model::star::mutagen::{Scope, birth_year_star_mutagen};
 use crate::model::star::{Brightness, StarMetadata, StarName};
+use crate::placement::location::{kui_yue_branches, lu_yang_tuo_ma_branches};
 use crate::placement::natal::life_body::LunarMonth;
 
 /// Inputs required to place the supported fourteen minor stars.
@@ -209,42 +210,6 @@ fn chang_qu_branches(birth_time: EarthlyBranch) -> (EarthlyBranch, EarthlyBranch
         EarthlyBranch::Xu.offset(-time_index),
         EarthlyBranch::Chen.offset(time_index),
     )
-}
-
-fn kui_yue_branches(year_stem: HeavenlyStem) -> (EarthlyBranch, EarthlyBranch) {
-    match year_stem {
-        HeavenlyStem::Jia | HeavenlyStem::Wu | HeavenlyStem::Geng => {
-            (EarthlyBranch::Chou, EarthlyBranch::Wei)
-        }
-        HeavenlyStem::Yi | HeavenlyStem::Ji => (EarthlyBranch::Zi, EarthlyBranch::Shen),
-        HeavenlyStem::Xin => (EarthlyBranch::Wu, EarthlyBranch::Yin),
-        HeavenlyStem::Bing | HeavenlyStem::Ding => (EarthlyBranch::Hai, EarthlyBranch::You),
-        HeavenlyStem::Ren | HeavenlyStem::Gui => (EarthlyBranch::Mao, EarthlyBranch::Si),
-    }
-}
-
-fn lu_yang_tuo_ma_branches(
-    year_stem: HeavenlyStem,
-    year_branch: EarthlyBranch,
-) -> (EarthlyBranch, EarthlyBranch, EarthlyBranch, EarthlyBranch) {
-    let lu = match year_stem {
-        HeavenlyStem::Jia => EarthlyBranch::Yin,
-        HeavenlyStem::Yi => EarthlyBranch::Mao,
-        HeavenlyStem::Bing | HeavenlyStem::Wu => EarthlyBranch::Si,
-        HeavenlyStem::Ding | HeavenlyStem::Ji => EarthlyBranch::Wu,
-        HeavenlyStem::Geng => EarthlyBranch::Shen,
-        HeavenlyStem::Xin => EarthlyBranch::You,
-        HeavenlyStem::Ren => EarthlyBranch::Hai,
-        HeavenlyStem::Gui => EarthlyBranch::Zi,
-    };
-    let ma = match year_branch {
-        EarthlyBranch::Yin | EarthlyBranch::Wu | EarthlyBranch::Xu => EarthlyBranch::Shen,
-        EarthlyBranch::Shen | EarthlyBranch::Zi | EarthlyBranch::Chen => EarthlyBranch::Yin,
-        EarthlyBranch::Si | EarthlyBranch::You | EarthlyBranch::Chou => EarthlyBranch::Hai,
-        EarthlyBranch::Hai | EarthlyBranch::Mao | EarthlyBranch::Wei => EarthlyBranch::Si,
-    };
-
-    (lu, lu.offset(1), lu.offset(-1), ma)
 }
 
 fn kong_jie_branches(birth_time: EarthlyBranch) -> (EarthlyBranch, EarthlyBranch) {
