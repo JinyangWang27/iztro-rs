@@ -54,14 +54,17 @@ only — no flow stars, no natal mutation, no calendar/age-range/大限命宫/de
 palace derivation — and 四化 stay modeled as `MutagenActivation` facts, not
 independent stars.
 
-Star metadata is intentionally split. The represented metadata table covers 70
-placed and fixture-covered natal stars, including algorithm-gated Zhongzhou-only
-杂曜. The known metadata table records 170 upstream `iztro@2.5.8` runtime
-star-name entries, including decorative arrays and horoscope flow-star names,
-but entries outside the represented table are metadata-only. `xunzhong` / `旬中`
-is excluded as locale-only, and 神煞 placement beyond the supported natal
-`getAdjectiveStar` slice, 流曜 placement, horoscope placement, brightness
-expansion, and mutagen-as-star modeling remain deferred.
+Star metadata is intentionally split. `represented_star_metadata_table().len() ==
+70` covers placed and fixture-covered natal stars, including algorithm-gated
+Zhongzhou-only 杂曜. `known_star_metadata_table().len() == 170` records upstream
+`iztro@2.5.8` runtime star-name entries, including represented natal stars,
+decorative runtime arrays, and horoscope flow-star names. Represented metadata
+stays natal-only; decorative runtime entries are known untyped runtime facts,
+while flow stars are known typed temporal facts placed through `TemporalLayer`.
+`xunzhong` / `旬中` is excluded as locale-only, and 神煞 placement beyond the
+supported natal `getAdjectiveStar` slice, yearly-scope decorative arrays, full
+horoscope palace derivation, brightness expansion, and mutagen-as-star modeling
+remain deferred.
 
 ## Phase 3: Chart generation compatibility
 
@@ -72,21 +75,27 @@ expansion, and mutagen-as-star modeling remain deferred.
 - [x] Document known differences for the implemented slice.
 - [x] Add the default-algorithm natal adjective stars. All 38 of iztro 2.5.8's default-algorithm 杂曜 are placed; see the compatibility "Default-algorithm natal adjective-star set" for the per-star placement basis.
 - [x] Add Zhongzhou-only natal adjective stars. `ChartAlgorithmKind::Zhongzhou` places 龙德/截空/劫煞/大耗 from upstream iztro 2.5.8 fixtures, omits default 截路/空亡, and preserves the Zhongzhou 天伤/天使 swap.
-- [ ] Add solar-to-lunar conversion, leap-month behavior, rat-hour variants, temporal star scopes, and bindings.
+- [x] Place decorative runtime star families. `by_lunar` places 长生/博士/岁前/将前十二神 as untyped `DecorativeStarPlacement`s on each palace, separate from `Chart::stars()`. 岁破 is known and can replace the seventh 岁前 slot under Zhongzhou, but it is not a supplemental thirteenth 岁前 placement.
+- [x] Place scoped flow stars. `build_flow_star_layer` places the decadal/yearly/monthly/daily/hourly 流曜 (and yearly 年解) as branch-tagged `ScopedStarPlacement`s through normalized `FlowStarScope` + `FlowStarBase` identity.
+- [ ] Add solar-to-lunar conversion, leap-month behavior, rat-hour variants, full horoscope assembly, and bindings.
 
-Current core slice: `by_lunar` accepts explicit lunar inputs plus explicit birth-year stem and branch, builds deterministic natal chart facts, and validates minimal chart fields, fourteen major stars, fourteen supported minor stars, the complete default-algorithm set of 38 natal adjective/helper stars, and the Zhongzhou 40-star natal adjective/helper output against selected `iztro` 2.5.8 fixtures. Default/non-Zhongzhou output remains 14 major + 14 minor + 38 adjective/helper = 66 natal stars; Zhongzhou output is 14 major + 14 minor + 40 adjective/helper = 68 natal stars. The represented metadata table has 70 stars because default-only and Zhongzhou-only natal adjective stars are both represented. 神煞 beyond the supported `getAdjectiveStar` slice, 流曜, solar-to-lunar conversion, leap-month behavior, rat-hour variants, temporal/horoscope star scopes, and bindings remain deferred. 四化 remain `Mutagen` facts on placements, not independent stars.
+Current core slice: `by_lunar` accepts explicit lunar inputs plus explicit birth-year stem and branch, builds deterministic natal chart facts, and validates minimal chart fields, fourteen major stars, fourteen supported minor stars, the complete default-algorithm set of 38 natal adjective/helper stars, and the Zhongzhou 40-star natal adjective/helper output against selected `iztro` 2.5.8 fixtures. Default/non-Zhongzhou output remains 14 major + 14 minor + 38 adjective/helper = 66 natal stars; Zhongzhou output is 14 major + 14 minor + 40 adjective/helper = 68 natal stars. The represented metadata table has 70 stars because default-only and Zhongzhou-only natal adjective stars are both represented. The decorative runtime families (长生/博士/岁前/将前十二神) and scoped 流曜 are now placed as separate facts (see below). Full horoscope assembly (period derivation and palace-name layout), the upstream yearly decorative arrays (`yearlyDecStar`), solar-to-lunar conversion, leap-month behavior, rat-hour variants, and bindings remain deferred. 四化 remain `Mutagen` facts on placements, not independent stars.
 
-The broader known star-name inventory supports API discovery and future scoped
-work, but it does not change `by_lunar`, placement behavior, fixtures,
-brightness, or mutagen modeling.
+The four decorative runtime families are placed by `by_lunar` as untyped
+`DecorativeStarPlacement`s in a separate `Palace::decorative_stars()` collection,
+so `Chart::stars()` stays typed-only and its 66/68 counts are unchanged. They
+resolve only through `try_known_star_metadata` (no `StarKind`). Upstream emits
+exactly 12 岁前 entries: 岁破 is known and can replace 大耗 under Zhongzhou, but it
+is not placed as an additional 岁前 entry.
 
-Flow-star runtime identity is now normalized with a small pure helper layer:
-scope-specific upstream names such as `YunKui`, `LiuKui`, `YueKui`, `RiKui`,
-and `ShiKui` remain distinct `StarName` variants for serde/runtime fidelity,
-while `FlowStarScope` + `FlowStarBase` expose their shared identity for future
-placement work. This is identity-only groundwork; it does not place flow stars,
-change metadata table counts, alter `by_lunar`, add fixtures, or model temporal
-mutagens as stars.
+Flow-star runtime identity is normalized by `FlowStarScope` + `FlowStarBase`:
+scope-specific upstream names such as `YunKui`, `LiuKui`, `YueKui`, `RiKui`, and
+`ShiKui` remain distinct `StarName` variants, and `flow_star_name(scope, base)`
+exposes their shared identity. `build_flow_star_layer` now uses this to place the
+ten matrix 流曜 (plus yearly 年解) as typed, branch-tagged `ScopedStarPlacement`s
+inside a `TemporalLayer`. This places flow stars without changing metadata table
+counts, altering natal `by_lunar` output, or modeling temporal mutagens as
+stars; `represented_star_metadata_table()` stays natal-only (70).
 
 ## Phase 4: Feature extraction
 

@@ -44,12 +44,14 @@
 不修改本命、不推导历法/年龄区间/大限命宫/大限宫位——四化仍作为 `MutagenActivation`
 事实，而非独立星曜。
 
-星曜 metadata 有意拆成两层。已表示 metadata table 覆盖 70 颗已安放且有 fixture
-覆盖的本命星，其中包含受算法门控的中州派特有杂曜。Known metadata table 记录
-170 个上游 `iztro@2.5.8` runtime 星曜名称条目，包括装饰性数组以及 horoscope 流曜
-名称；但已表示表之外的条目仅是 metadata。`xunzhong` / `旬中` 因只属于 locale 而被
-排除；已支持本命 `getAdjectiveStar` 切片以外的神煞安星、流曜安星、horoscope 安星、
-亮度扩展，以及把四化建模为星曜，仍然延期。
+星曜 metadata 有意拆成两层。`represented_star_metadata_table().len() == 70` 覆盖已安放
+且有 fixture 覆盖的本命星，其中包含受算法门控的中州派特有杂曜。
+`known_star_metadata_table().len() == 170` 记录上游 `iztro@2.5.8` runtime 星曜名称条目，
+包括已表示本命星、装饰性 runtime 数组以及 horoscope 流曜名称。已表示 metadata 保持
+仅本命；装饰性 runtime 条目是 known 的无类型 runtime 事实，流曜则是通过
+`TemporalLayer` 安放的 known 有类型时间事实。`xunzhong` / `旬中` 因只属于 locale 而
+被排除；已支持本命 `getAdjectiveStar` 切片以外的神煞安星、yearly-scope 装饰性数组、
+完整 horoscope 宫名推导、亮度扩展，以及把四化建模为星曜，仍然延期。
 
 ## Phase 3：排盘兼容性
 
@@ -60,19 +62,25 @@
 - [x] 记录 implemented slice 的已知差异。
 - [x] 添加默认算法本命杂曜。iztro 2.5.8 默认算法的全部 38 颗杂曜均已安放；逐星落点基准见兼容性文档「默认算法本命杂曜全集」。
 - [x] 添加中州派特有本命杂曜。`ChartAlgorithmKind::Zhongzhou` 根据上游 iztro 2.5.8 fixtures 安放龙德/截空/劫煞/大耗，省略默认截路/空亡，并保留中州派天伤/天使互换。
-- [ ] 添加阳历转农历、闰月行为、早晚子时变体、时间范围星曜和 bindings。
+- [x] 安放装饰性 runtime 星曜家族。`by_lunar` 将长生/博士/岁前/将前十二神作为每宫无类型的 `DecorativeStarPlacement` 安放，并与 `Chart::stars()` 分离。岁破 known，且在中州派下可替代第七个岁前位置，但不是额外的第十三个岁前 placement。
+- [x] 安放 scoped flow stars。`build_flow_star_layer` 通过规范化的 `FlowStarScope` + `FlowStarBase` identity，将大限/流年/流月/流日/流时流曜（以及流年年解）安放为带地支标签的 `ScopedStarPlacement`。
+- [ ] 添加阳历转农历、闰月行为、早晚子时变体、完整 horoscope 组装和 bindings。
 
-当前核心切片：`by_lunar` 接受显式农历输入以及显式出生年干、年支，生成确定性的本命星盘事实，并用选定的 `iztro` 2.5.8 fixtures 校验 minimal chart 字段、十四主星、十四颗已支持辅星、完整默认算法的 38 颗本命杂曜/辅助星，以及中州派 40 颗本命杂曜/辅助星输出。默认/非中州派输出保持 14 主星 + 14 辅星 + 38 杂曜/辅助星 = 66 颗本命星；中州派输出为 14 主星 + 14 辅星 + 40 杂曜/辅助星 = 68 颗本命星。已表示 metadata table 为 70 颗，因为默认专属与中州派专属本命杂曜都属于已表示星曜。已支持 `getAdjectiveStar` 切片以外的神煞、流曜、阳历转农历、闰月行为、早晚子时变体、时间/horoscope 星曜范围和 bindings 仍然推迟。四化仍作为安星上的 `Mutagen` 事实，而非独立星曜。
+当前核心切片：`by_lunar` 接受显式农历输入以及显式出生年干、年支，生成确定性的本命星盘事实，并用选定的 `iztro` 2.5.8 fixtures 校验 minimal chart 字段、十四主星、十四颗已支持辅星、完整默认算法的 38 颗本命杂曜/辅助星，以及中州派 40 颗本命杂曜/辅助星输出。默认/非中州派输出保持 14 主星 + 14 辅星 + 38 杂曜/辅助星 = 66 颗本命星；中州派输出为 14 主星 + 14 辅星 + 40 杂曜/辅助星 = 68 颗本命星。已表示 metadata table 为 70 颗，因为默认专属与中州派专属本命杂曜都属于已表示星曜。装饰性 runtime 家族（长生/博士/岁前/将前十二神）与 scoped 流曜现在作为独立事实安放（见下文）。完整 horoscope 组装（period 推导与宫名布局）、上游 yearly decorative arrays（`yearlyDecStar`）、阳历转农历、闰月行为、早晚子时变体和 bindings 仍然推迟。四化仍作为安星上的 `Mutagen` 事实，而非独立星曜。
 
-更广的 known 星曜名称清单支持 API discovery 和未来小范围工作，但不改变 `by_lunar`、
-安星行为、fixtures、亮度或四化建模。
+四组装饰性 runtime 家族由 `by_lunar` 作为无类型 `DecorativeStarPlacement` 安放到独立
+的 `Palace::decorative_stars()` collection 中，因此 `Chart::stars()` 仍只包含有类型
+星曜，66/68 的计数不变。它们只能通过 `try_known_star_metadata` resolve（没有
+`StarKind`）。上游只输出 12 个岁前条目：岁破 known，且在中州派下可替代大耗，但不
+会作为额外岁前条目安放。
 
-流曜 runtime identity 现在加入了一层小型纯 helper 进行规范化：`YunKui`、
+流曜 runtime identity 通过 `FlowStarScope` + `FlowStarBase` 规范化：`YunKui`、
 `LiuKui`、`YueKui`、`RiKui`、`ShiKui` 等带范围的上游名称仍保留为彼此独立的
-`StarName` 变体，以保证 serde/runtime fidelity；同时用 `FlowStarScope` +
-`FlowStarBase` 表示它们共享的 identity，为未来安星逻辑做准备。这只是 identity-only
-基础工作；不安放流曜，不改变 metadata table 数量，不改变 `by_lunar`，不增加
-fixtures，也不把时间范围四化建模为星曜。
+`StarName` 变体，以保证 serde/runtime fidelity；`flow_star_name(scope, base)` 暴露
+它们共享的 identity。`build_flow_star_layer` 现在据此将十颗 matrix 流曜（加流年年解）
+作为有类型、带地支标签的 `ScopedStarPlacement` 安放到 `TemporalLayer` 中。这样安放
+流曜不会改变 metadata table 数量、不会改变本命 `by_lunar` 输出，也不会把时间范围四化
+建模为星曜；`represented_star_metadata_table()` 保持仅本命（70）。
 
 ## Phase 4：特征提取
 
