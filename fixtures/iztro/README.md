@@ -57,7 +57,8 @@ Fixtures compare **only** fields currently implemented by `iztro-rs`:
 - the full default-algorithm set of 38 natal adjective/helper-star facts in the
   adjective-star fixtures;
 - the four decorative runtime families in runtime-family fixtures;
-- the current combined supported `by_lunar` fields in the E2E fixture;
+- typed temporal flow-star facts in flow-star fixtures;
+- the current combined supported `by_lunar` fields in the E2E fixture.
 
 `metadata.supported_fields_only` is `true`.
 
@@ -90,7 +91,14 @@ Each case records:
 - all 12 palace branch/stem/name facts;
 - represented typed natal stars with `name`, `kind`, `brightness`, and
   `mutagen`;
-- the four decorative runtime families per palace.
+- the four decorative runtime families per palace;
+- typed temporal flow-star placements for decadal, yearly, monthly, daily, and
+  hourly scopes from explicit stem-branch contexts.
+
+The fixture preserves raw upstream labels next to normalized keys for diagnosis,
+for example `raw_branch`, `raw_name`, `raw_kind`, `raw_brightness`, and
+family-specific decorative raw fields such as `raw_suiqian12`. Rust tests assert
+the normalized fields only.
 
 The Rust E2E test builds each case through
 `iztro_core::by_lunar(LunarChartRequest::builder()...)`, maps `default` to
@@ -98,7 +106,8 @@ The Rust E2E test builds each case through
 `ChartAlgorithmKind::Zhongzhou`, then compares the normalized supported fields
 branch by branch. It also asserts the current inventory and count boundaries:
 66 default typed natal stars, 68 Zhongzhou typed natal stars, 48 decorative
-runtime entries, `known_star_metadata_table().len() == 170`, and
+runtime entries, yearly-only `NianJieYearly` outside `FlowStarBase`,
+`known_star_metadata_table().len() == 170`, and
 `represented_star_metadata_table().len() == 70`.
 
 Regenerate it from the repo root with:
@@ -110,8 +119,8 @@ npm run dump:e2e-supported --prefix tools/iztro-reference -- --write
 
 This fixture intentionally excludes full facade serialization parity, raw
 upstream `iztro_output`, calendar conversion, leap-month behavior, rat-hour
-variants, horoscope derivation, feature extraction, rule-engine output, and
-narrative output.
+variants, horoscope palace-name derivation, temporal decorative arrays, feature
+extraction, rule-engine output, and narrative output.
 
 ### Palace heavenly stems
 
@@ -376,4 +385,5 @@ combined supported `by_lunar` E2E fixture. Default `by_lunar` output remains 66
 natal stars (14 major + 14 minor + 38 adjective/helper); Zhongzhou profile
 output is 68 natal stars (14 major + 14 minor + 40 adjective/helper). The
 represented metadata table is 70 because it includes both default-only and
-Zhongzhou-only algorithm-gated adjective stars.
+Zhongzhou-only algorithm-gated adjective stars. Typed flow stars remain
+known/typed-but-temporal and outside represented natal metadata.

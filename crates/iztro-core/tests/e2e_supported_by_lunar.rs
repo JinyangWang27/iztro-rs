@@ -2,8 +2,10 @@ use std::collections::{HashMap, HashSet};
 
 use iztro_core::{
     Brightness, Chart, ChartAlgorithmKind, DecorativeStarFamily, EarthlyBranch, FiveElementBureau,
-    HeavenlyStem, LunarChartRequest, LunarDay, LunarMonth, MethodProfile, Mutagen, PalaceName,
-    StarKind, StarName, by_lunar, known_star_metadata_table, represented_star_metadata_table,
+    FlowStarBase, FlowStarScope, HeavenlyStem, LunarChartRequest, LunarDay, LunarMonth,
+    MethodProfile, Mutagen, PalaceName, Scope, StarKind, StarName, StemBranch, TemporalContext,
+    build_flow_star_layer, by_lunar, flow_star_name, known_star_metadata_table,
+    represented_star_metadata_table, try_flow_star_parts,
 };
 use serde::de::DeserializeOwned;
 use serde_json::Value;
@@ -42,13 +44,15 @@ fn by_lunar_matches_supported_e2e_fixture_cases() {
     for fixture_case in cases {
         let algorithm = parse_algorithm(fixture_case["algorithm"].as_str().expect("algorithm"));
         let chart = chart_from_case(fixture_case, algorithm);
+        let case_label = case_label(fixture_case);
 
         assert_eq!(known_star_metadata_table().len(), 170);
         assert_eq!(represented_star_metadata_table().len(), 70);
-        assert_palaces_match(&chart, fixture_case);
-        assert_typed_stars_match(&chart, fixture_case, algorithm);
-        assert_decorative_stars_match(&chart, fixture_case);
-        assert_suiqian_algorithm_boundary(&chart, algorithm);
+        assert_palaces_match(&chart, fixture_case, &case_label);
+        assert_typed_stars_match(&chart, fixture_case, algorithm, &case_label);
+        assert_decorative_stars_match(&chart, fixture_case, &case_label);
+        assert_temporal_flow_stars_match(fixture_case, &case_label);
+        assert_suiqian_algorithm_boundary(&chart, algorithm, &case_label);
     }
 }
 
@@ -90,7 +94,7 @@ fn chart_from_case(fixture_case: &Value, algorithm: ChartAlgorithmKind) -> Chart
     by_lunar(request).expect("by_lunar should build supported fixture chart")
 }
 
-fn assert_palaces_match(chart: &Chart, fixture_case: &Value) {
+fn assert_palaces_match(chart: &Chart, fixture_case: &Value, case_label: &str) {
     let supported = &fixture_case["supported_fields"];
 
     assert_eq!(
@@ -102,7 +106,8 @@ fn assert_palaces_match(chart: &Chart, fixture_case: &Value) {
             supported["life_palace_branch"]
                 .as_str()
                 .expect("life palace")
-        )
+        ),
+        "{case_label}: life palace branch mismatch"
     );
     assert_eq!(
         chart.body_palace_branch(),
@@ -110,7 +115,8 @@ fn assert_palaces_match(chart: &Chart, fixture_case: &Value) {
             supported["body_palace_branch"]
                 .as_str()
                 .expect("body palace")
-        ))
+        )),
+        "{case_label}: body palace branch mismatch"
     );
     assert_eq!(
         chart.five_element_bureau(),
@@ -118,7 +124,8 @@ fn assert_palaces_match(chart: &Chart, fixture_case: &Value) {
             supported["five_element_bureau"]
                 .as_str()
                 .expect("five element bureau")
-        ))
+        )),
+        "{case_label}: five-element bureau mismatch"
     );
 
     for expected in supported["palaces"].as_array().expect("supported palaces") {
@@ -132,17 +139,22 @@ fn assert_palaces_match(chart: &Chart, fixture_case: &Value) {
         assert_eq!(
             palace.name(),
             parse_key::<PalaceName>(expected["name"].as_str().expect("palace name")),
-            "palace name mismatch at {branch:?}"
+            "{case_label}: palace name mismatch at {branch:?}"
         );
         assert_eq!(
             palace.stem(),
             parse_key::<HeavenlyStem>(expected["stem"].as_str().expect("palace stem")),
-            "palace stem mismatch at {branch:?}"
+            "{case_label}: palace stem mismatch at {branch:?}"
         );
     }
 }
 
-fn assert_typed_stars_match(chart: &Chart, fixture_case: &Value, algorithm: ChartAlgorithmKind) {
+fn assert_typed_stars_match(
+    chart: &Chart,
+    fixture_case: &Value,
+    algorithm: ChartAlgorithmKind,
+    case_label: &str,
+) {
     let actual = collect_typed_stars(chart);
     let expected_palaces = fixture_case["supported_fields"]["typed_natal_stars"]
         .as_array()
@@ -155,9 +167,14 @@ fn assert_typed_stars_match(chart: &Chart, fixture_case: &Value, algorithm: Char
 
     assert_eq!(
         fixture_case["supported_fields"]["typed_natal_star_count"].as_u64(),
-        Some(expected_total as u64)
+        Some(expected_total as u64),
+        "{case_label}: fixture typed natal star count mismatch"
     );
-    assert_eq!(chart.stars().len(), expected_total);
+    assert_eq!(
+        chart.stars().len(),
+        expected_total,
+        "{case_label}: typed natal star count mismatch"
+    );
 
     for expected_palace in expected_palaces {
         let branch =
@@ -175,7 +192,7 @@ fn assert_typed_stars_match(chart: &Chart, fixture_case: &Value, algorithm: Char
 
         assert_eq!(
             actual_names, expected_names,
-            "typed-star mismatch in {branch:?}"
+            "{case_label}: typed-star mismatch in {branch:?}"
         );
 
         for expected_star in expected_palace["stars"].as_array().expect("stars array") {
@@ -187,30 +204,35 @@ fn assert_typed_stars_match(chart: &Chart, fixture_case: &Value, algorithm: Char
             assert_eq!(
                 got.kind,
                 parse_key::<StarKind>(expected_star["kind"].as_str().expect("kind")),
-                "kind mismatch for {name:?} in {branch:?}"
+                "{case_label}: kind mismatch for {name:?} in {branch:?}"
             );
             assert_eq!(
                 got.brightness,
                 parse_key::<Brightness>(expected_star["brightness"].as_str().expect("brightness")),
-                "brightness mismatch for {name:?} in {branch:?}"
+                "{case_label}: brightness mismatch for {name:?} in {branch:?}"
             );
             assert_eq!(
                 got.mutagen,
                 parse_optional_mutagen(&expected_star["mutagen"]),
-                "mutagen mismatch for {name:?} in {branch:?}"
+                "{case_label}: mutagen mismatch for {name:?} in {branch:?}"
             );
         }
     }
 }
 
-fn assert_decorative_stars_match(chart: &Chart, fixture_case: &Value) {
+fn assert_decorative_stars_match(chart: &Chart, fixture_case: &Value, case_label: &str) {
     let actual = collect_decorative_stars(chart);
 
     assert_eq!(
         fixture_case["supported_fields"]["decorative_runtime_star_count"].as_u64(),
-        Some(48)
+        Some(48),
+        "{case_label}: fixture decorative count mismatch"
     );
-    assert_eq!(chart.decorative_stars().len(), 48);
+    assert_eq!(
+        chart.decorative_stars().len(),
+        48,
+        "{case_label}: decorative count mismatch"
+    );
 
     for expected_palace in fixture_case["supported_fields"]["decorative_stars"]
         .as_array()
@@ -223,21 +245,134 @@ fn assert_decorative_stars_match(chart: &Chart, fixture_case: &Value) {
             assert_eq!(
                 actual.get(&(branch, family)).copied(),
                 Some(expected),
-                "{family:?} mismatch in {branch:?}"
+                "{case_label}: {family:?} mismatch in {branch:?}"
             );
         }
     }
 }
 
-fn assert_suiqian_algorithm_boundary(chart: &Chart, algorithm: ChartAlgorithmKind) {
+fn assert_temporal_flow_stars_match(fixture_case: &Value, case_label: &str) {
+    let temporal_cases = fixture_case["supported_fields"]["temporal_flow_stars"]
+        .as_array()
+        .expect("temporal flow stars");
+    assert_eq!(
+        temporal_cases.len(),
+        5,
+        "{case_label}: expected one temporal flow entry per supported scope"
+    );
+
+    for temporal_case in temporal_cases {
+        let flow_scope = parse_flow_scope(temporal_case["scope"].as_str().expect("scope"));
+        let scope = scope_for_flow(flow_scope);
+        let stem = parse_key::<HeavenlyStem>(temporal_case["stem"].as_str().expect("stem"));
+        let branch = parse_key::<EarthlyBranch>(temporal_case["branch"].as_str().expect("branch"));
+        let context = temporal_context_for(flow_scope, StemBranch::new(stem, branch));
+        let layer = build_flow_star_layer(context).expect("flow layer should build");
+        let actual = collect_temporal_placements(&layer);
+        let expected_placements = temporal_case["placements"]
+            .as_array()
+            .expect("temporal placements");
+        let expected_count = if flow_scope == FlowStarScope::Yearly {
+            11
+        } else {
+            10
+        };
+
+        assert_eq!(
+            layer.scope(),
+            scope,
+            "{case_label}: temporal layer scope mismatch for {flow_scope:?}"
+        );
+        assert_eq!(
+            expected_placements.len(),
+            expected_count,
+            "{case_label}: fixture temporal placement count mismatch for {flow_scope:?}"
+        );
+        assert_eq!(
+            actual.len(),
+            expected_count,
+            "{case_label}: actual temporal placement count mismatch for {flow_scope:?}"
+        );
+
+        for expected in expected_placements {
+            let name = parse_key::<StarName>(expected["name"].as_str().expect("name"));
+            let branch = parse_key::<EarthlyBranch>(expected["branch"].as_str().expect("branch"));
+            let expected_scope = parse_key::<Scope>(expected["scope"].as_str().expect("scope"));
+            let kind = parse_key::<StarKind>(expected["kind"].as_str().expect("kind"));
+            let got = actual
+                .get(&name)
+                .unwrap_or_else(|| panic!("{case_label}: missing temporal {name:?}"));
+
+            assert_eq!(
+                got.branch, branch,
+                "{case_label}: branch mismatch for temporal {name:?}"
+            );
+            assert_eq!(
+                got.scope, expected_scope,
+                "{case_label}: scope mismatch for temporal {name:?}"
+            );
+            assert_eq!(
+                got.kind, kind,
+                "{case_label}: kind mismatch for temporal {name:?}"
+            );
+
+            if name == StarName::NianJieYearly {
+                assert_eq!(
+                    expected["base"],
+                    Value::Null,
+                    "{case_label}: NianJieYearly must not have FlowStarBase"
+                );
+                assert_eq!(
+                    flow_scope,
+                    FlowStarScope::Yearly,
+                    "{case_label}: NianJieYearly must be yearly-only"
+                );
+                assert_eq!(try_flow_star_parts(name), None);
+            } else {
+                let base = parse_flow_base(expected["base"].as_str().expect("base"));
+                assert_eq!(
+                    flow_star_name(flow_scope, base),
+                    name,
+                    "{case_label}: flow star name/base mismatch for {name:?}"
+                );
+                assert_eq!(try_flow_star_parts(name), Some((flow_scope, base)));
+            }
+        }
+
+        if flow_scope != FlowStarScope::Yearly {
+            assert!(
+                !actual.contains_key(&StarName::NianJieYearly),
+                "{case_label}: NianJieYearly must be yearly-only"
+            );
+        }
+    }
+}
+
+fn assert_suiqian_algorithm_boundary(
+    chart: &Chart,
+    algorithm: ChartAlgorithmKind,
+    case_label: &str,
+) {
     match algorithm {
         ChartAlgorithmKind::QuanShu => {
-            assert!(chart.decorative_star(StarName::SuiPo).is_none());
-            assert!(chart.decorative_star(StarName::DaHaoSuiqian).is_some());
+            assert!(
+                chart.decorative_star(StarName::SuiPo).is_none(),
+                "{case_label}: default must not place SuiPo"
+            );
+            assert!(
+                chart.decorative_star(StarName::DaHaoSuiqian).is_some(),
+                "{case_label}: default must place DaHaoSuiqian"
+            );
         }
         ChartAlgorithmKind::Zhongzhou => {
-            assert!(chart.decorative_star(StarName::SuiPo).is_some());
-            assert!(chart.decorative_star(StarName::DaHaoSuiqian).is_none());
+            assert!(
+                chart.decorative_star(StarName::SuiPo).is_some(),
+                "{case_label}: Zhongzhou must place SuiPo"
+            );
+            assert!(
+                chart.decorative_star(StarName::DaHaoSuiqian).is_none(),
+                "{case_label}: Zhongzhou must not place DaHaoSuiqian"
+            );
         }
         ChartAlgorithmKind::Placeholder => panic!("unsupported e2e fixture algorithm"),
     }
@@ -248,6 +383,13 @@ struct TypedStarFact {
     kind: StarKind,
     brightness: Brightness,
     mutagen: Option<Mutagen>,
+}
+
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+struct TemporalStarFact {
+    branch: EarthlyBranch,
+    scope: Scope,
+    kind: StarKind,
 }
 
 fn collect_typed_stars(chart: &Chart) -> HashMap<(EarthlyBranch, StarName), TypedStarFact> {
@@ -265,6 +407,25 @@ fn collect_typed_stars(chart: &Chart) -> HashMap<(EarthlyBranch, StarName), Type
     out
 }
 
+fn collect_temporal_placements(
+    layer: &iztro_core::TemporalLayer,
+) -> HashMap<StarName, TemporalStarFact> {
+    layer
+        .placements()
+        .iter()
+        .map(|placement| {
+            (
+                placement.placement().name(),
+                TemporalStarFact {
+                    branch: placement.branch(),
+                    scope: placement.scope(),
+                    kind: placement.placement().kind(),
+                },
+            )
+        })
+        .collect()
+}
+
 fn collect_decorative_stars(
     chart: &Chart,
 ) -> HashMap<(EarthlyBranch, DecorativeStarFamily), StarName> {
@@ -275,11 +436,78 @@ fn collect_decorative_stars(
     out
 }
 
+fn case_label(fixture_case: &Value) -> String {
+    format!(
+        "{} [{}]",
+        fixture_case["case"].as_str().expect("case id"),
+        fixture_case["algorithm"].as_str().expect("algorithm")
+    )
+}
+
 fn parse_algorithm(value: &str) -> ChartAlgorithmKind {
     match value {
         "default" => ChartAlgorithmKind::QuanShu,
         "zhongzhou" => ChartAlgorithmKind::Zhongzhou,
         other => panic!("unsupported fixture algorithm: {other}"),
+    }
+}
+
+fn temporal_context_for(scope: FlowStarScope, stem_branch: StemBranch) -> TemporalContext {
+    match scope {
+        FlowStarScope::Decadal => TemporalContext::Decadal {
+            stem_branch,
+            start_age: 6,
+        },
+        FlowStarScope::Yearly => TemporalContext::Yearly {
+            stem_branch,
+            lunar_year: 2020,
+        },
+        FlowStarScope::Monthly => TemporalContext::Monthly {
+            stem_branch,
+            lunar_month: 1,
+        },
+        FlowStarScope::Daily => TemporalContext::Daily {
+            stem_branch,
+            lunar_day: 1,
+        },
+        FlowStarScope::Hourly => TemporalContext::Hourly { stem_branch },
+    }
+}
+
+fn scope_for_flow(scope: FlowStarScope) -> Scope {
+    match scope {
+        FlowStarScope::Decadal => Scope::Decadal,
+        FlowStarScope::Yearly => Scope::Yearly,
+        FlowStarScope::Monthly => Scope::Monthly,
+        FlowStarScope::Daily => Scope::Daily,
+        FlowStarScope::Hourly => Scope::Hourly,
+    }
+}
+
+fn parse_flow_scope(value: &str) -> FlowStarScope {
+    match value {
+        "decadal" => FlowStarScope::Decadal,
+        "yearly" => FlowStarScope::Yearly,
+        "monthly" => FlowStarScope::Monthly,
+        "daily" => FlowStarScope::Daily,
+        "hourly" => FlowStarScope::Hourly,
+        other => panic!("unsupported flow scope: {other}"),
+    }
+}
+
+fn parse_flow_base(value: &str) -> FlowStarBase {
+    match value {
+        "kui" => FlowStarBase::Kui,
+        "yue" => FlowStarBase::Yue,
+        "chang" => FlowStarBase::Chang,
+        "qu" => FlowStarBase::Qu,
+        "lu" => FlowStarBase::Lu,
+        "yang" => FlowStarBase::Yang,
+        "tuo" => FlowStarBase::Tuo,
+        "ma" => FlowStarBase::Ma,
+        "luan" => FlowStarBase::Luan,
+        "xi" => FlowStarBase::Xi,
+        other => panic!("unsupported flow base: {other}"),
     }
 }
 

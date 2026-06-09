@@ -53,10 +53,12 @@ npm run dump:e2e-supported --prefix tools/iztro-reference -- --write
 ordinary lunar chart cases under both the default and Zhongzhou algorithms (12
 by_lunar E2E cases). It normalizes only the current Rust-supported facts:
 life/body palace branches, five-element bureau, palace branch/stem/name facts,
-typed natal stars, and the four decorative runtime families. It intentionally
-does not snapshot full facade serialization parity, calendar conversion,
-leap-month behavior, rat-hour variants, horoscope derivation, features, rules,
-or narrative output.
+typed natal stars, the four decorative runtime families, and typed temporal
+flow-star placements for explicit stem-branch contexts. It preserves raw
+upstream labels next to normalized keys for diagnosis, but intentionally does
+not snapshot full facade serialization parity, calendar conversion, leap-month
+behavior, rat-hour variants, horoscope palace-name derivation, temporal
+decorative arrays, features, rules, or narrative output.
 
 ### Runtime star families
 

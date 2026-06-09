@@ -9,6 +9,7 @@
 // to fixtures/iztro/e2e_supported_by_lunar.json.
 
 import { astro } from "iztro";
+import { getHoroscopeStar } from "iztro/lib/star/horoscopeStar.js";
 import { writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -32,6 +33,7 @@ const BRANCH_KEYS = new Map([
   ["戌", "xu"],
   ["亥", "hai"]
 ]);
+const RAW_BRANCHES = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
 
 const STEM_KEYS = new Map([
   ["甲", "jia"],
@@ -45,6 +47,9 @@ const STEM_KEYS = new Map([
   ["壬", "ren"],
   ["癸", "gui"]
 ]);
+
+const RAW_STEM_BY_KEY = reverseMap(STEM_KEYS);
+const RAW_BRANCH_BY_KEY = reverseMap(BRANCH_KEYS);
 
 const PALACE_KEYS = new Map([
   ["命宫", "life"],
@@ -222,6 +227,29 @@ const JIANGQIAN_KEYS = new Map([
   ["亡神", "wang_shen"]
 ]);
 
+const FLOW_BASE_BY_SUFFIX = new Map([
+  ["魁", "kui"],
+  ["钺", "yue"],
+  ["昌", "chang"],
+  ["曲", "qu"],
+  ["禄", "lu"],
+  ["羊", "yang"],
+  ["陀", "tuo"],
+  ["马", "ma"],
+  ["鸾", "luan"],
+  ["喜", "xi"]
+]);
+
+const FLOW_NAME_PREFIXES = new Map([
+  ["decadal", "yun"],
+  ["yearly", "liu"],
+  ["monthly", "yue"],
+  ["daily", "ri"],
+  ["hourly", "shi"]
+]);
+
+const FLOW_SCOPES = ["decadal", "yearly", "monthly", "daily", "hourly"];
+
 const CASES = [
   {
     case: "1990_05_17_chen_female",
@@ -305,12 +333,24 @@ const CASES = [
 
 const ALGORITHMS = ["default", "zhongzhou"];
 
+function reverseMap(map) {
+  return new Map([...map.entries()].map(([raw, key]) => [key, raw]));
+}
+
 function requiredKey(map, name, label) {
   const key = map.get(name);
   if (!key) {
     throw new Error(`Unsupported ${label}: ${name}`);
   }
   return key;
+}
+
+function requiredRaw(map, key, label) {
+  const raw = map.get(key);
+  if (!raw) {
+    throw new Error(`Unsupported ${label} key: ${key}`);
+  }
+  return raw;
 }
 
 function normalizeMutagen(mutagen) {
@@ -327,23 +367,31 @@ function normalizeBrightness(brightness) {
 function normalizeTypedStar(star) {
   return {
     name: requiredKey(TYPED_STAR_KEYS, star.name, "typed star"),
+    raw_name: star.name,
     kind: star.type,
+    raw_kind: star.type,
     brightness: normalizeBrightness(star.brightness),
-    mutagen: normalizeMutagen(star.mutagen)
+    raw_brightness: star.brightness || null,
+    mutagen: normalizeMutagen(star.mutagen),
+    raw_mutagen: star.mutagen || null
   };
 }
 
 function normalizePalaceFacts(palace) {
   return {
     branch: requiredKey(BRANCH_KEYS, palace.earthlyBranch, "branch"),
+    raw_branch: palace.earthlyBranch,
     name: requiredKey(PALACE_KEYS, palace.name, "palace"),
-    stem: requiredKey(STEM_KEYS, palace.heavenlyStem, "stem")
+    raw_name: palace.name,
+    stem: requiredKey(STEM_KEYS, palace.heavenlyStem, "stem"),
+    raw_stem: palace.heavenlyStem
   };
 }
 
 function normalizeTypedStars(palace) {
   return {
     branch: requiredKey(BRANCH_KEYS, palace.earthlyBranch, "branch"),
+    raw_branch: palace.earthlyBranch,
     stars: [
       ...palace.majorStars.map(normalizeTypedStar),
       ...palace.minorStars.map(normalizeTypedStar),
@@ -355,11 +403,92 @@ function normalizeTypedStars(palace) {
 function normalizeDecorativeStars(palace) {
   return {
     branch: requiredKey(BRANCH_KEYS, palace.earthlyBranch, "branch"),
+    raw_branch: palace.earthlyBranch,
     changsheng12: requiredKey(CHANGSHENG_KEYS, palace.changsheng12, "changsheng12"),
+    raw_changsheng12: palace.changsheng12,
     boshi12: requiredKey(BOSHI_KEYS, palace.boshi12, "boshi12"),
+    raw_boshi12: palace.boshi12,
     suiqian12: requiredKey(SUIQIAN_KEYS, palace.suiqian12, "suiqian12"),
-    jiangqian12: requiredKey(JIANGQIAN_KEYS, palace.jiangqian12, "jiangqian12")
+    raw_suiqian12: palace.suiqian12,
+    jiangqian12: requiredKey(JIANGQIAN_KEYS, palace.jiangqian12, "jiangqian12"),
+    raw_jiangqian12: palace.jiangqian12
   };
+}
+
+function flowStarName(scope, base) {
+  const prefix = FLOW_NAME_PREFIXES.get(scope);
+  if (!prefix) {
+    throw new Error(`Unsupported flow scope: ${scope}`);
+  }
+  return `${prefix}_${base}`;
+}
+
+function normalizeFlowPlacement(scope, star, branch) {
+  if (star.name === "年解") {
+    return {
+      name: "nian_jie_yearly",
+      raw_name: star.name,
+      branch,
+      raw_branch: requiredRaw(RAW_BRANCH_BY_KEY, branch, "branch"),
+      scope,
+      base: null,
+      kind: star.type,
+      raw_kind: star.type
+    };
+  }
+
+  const base = FLOW_BASE_BY_SUFFIX.get(star.name.slice(1));
+  if (!base) {
+    throw new Error(`Unsupported flow-star name: ${star.name}`);
+  }
+
+  return {
+    name: flowStarName(scope, base),
+    raw_name: star.name,
+    branch,
+    raw_branch: requiredRaw(RAW_BRANCH_BY_KEY, branch, "branch"),
+    scope,
+    base,
+    kind: star.type,
+    raw_kind: star.type
+  };
+}
+
+function temporalFlowCase(input, scope) {
+  const rawStem = requiredRaw(RAW_STEM_BY_KEY, input.birthYearStem, "stem");
+  const rawBranch = requiredRaw(RAW_BRANCH_BY_KEY, input.birthYearBranch, "branch");
+  const stars = getHoroscopeStar(rawStem, rawBranch, scope);
+  const placements = [];
+
+  stars.forEach((cell, index) => {
+    const branch = requiredKey(BRANCH_KEYS, RAW_BRANCHES[(index + 2) % 12], "branch");
+    for (const star of cell) {
+      placements.push(normalizeFlowPlacement(scope, star, branch));
+    }
+  });
+
+  placements.sort((a, b) => {
+    if (a.name === "nian_jie_yearly") {
+      return -1;
+    }
+    if (b.name === "nian_jie_yearly") {
+      return 1;
+    }
+    return a.name.localeCompare(b.name);
+  });
+
+  return {
+    scope,
+    stem: input.birthYearStem,
+    raw_stem: rawStem,
+    branch: input.birthYearBranch,
+    raw_branch: rawBranch,
+    placements
+  };
+}
+
+function temporalFlowCases(input) {
+  return FLOW_SCOPES.map((scope) => temporalFlowCase(input, scope));
 }
 
 function normalizeInput(input) {
@@ -402,6 +531,7 @@ function buildCase(input, algorithm) {
       palaces: chart.palaces.map(normalizePalaceFacts),
       typed_natal_stars: chart.palaces.map(normalizeTypedStars),
       decorative_stars: chart.palaces.map(normalizeDecorativeStars),
+      temporal_flow_stars: temporalFlowCases(input),
       typed_natal_star_count: typedStarCount,
       decorative_runtime_star_count: decorativeStarCount
     }
@@ -417,7 +547,7 @@ function buildFixture() {
       generated_at: GENERATED_AT,
       supported_fields_only: true,
       notes:
-        "Supported-field-only byLunar E2E fixture for iztro-rs. Cases cover the current explicit lunar facade inputs under default and Zhongzhou algorithms. The normalized fields include life/body palace branches, five-element bureau, palace branch/stem/name facts, represented typed natal stars, and the four decorative runtime families. Full facade serialization parity, calendar conversion, leap-month behavior, rat-hour variants, horoscope derivation, features, rules, and narrative are excluded.",
+        "Supported-field-only byLunar E2E fixture for iztro-rs. Cases cover the current explicit lunar facade inputs under default and Zhongzhou algorithms. The normalized fields include life/body palace branches, five-element bureau, palace branch/stem/name facts, represented typed natal stars, the four decorative runtime families, and typed temporal flow-star placements from getHoroscopeStar for explicit stem-branch contexts. Full facade serialization parity, calendar conversion, leap-month behavior, rat-hour variants, horoscope palace-name derivation, temporal decorative arrays, features, rules, and narrative are excluded.",
       generation_command: GENERATION_COMMAND
     },
     cases: CASES.flatMap((input) => ALGORITHMS.map((algorithm) => buildCase(input, algorithm)))

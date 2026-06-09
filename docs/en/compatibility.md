@@ -198,10 +198,13 @@ scope across all ten stems and twelve branches. See
 [Runtime star-family placement](#runtime-star-family-placement).
 
 `e2e_supported_by_lunar.json` covers current supported `by_lunar` facade facts
-for six chart cases under both default and Zhongzhou algorithms. It remains
-supported-field-only and intentionally excludes full facade serialization parity,
-calendar conversion, leap-month behavior, rat-hour variants, horoscope
-derivation, rules, and narrative.
+for six chart cases under both default and Zhongzhou algorithms, including typed
+temporal flow-star placements for explicit stem-branch contexts and yearly-only
+`NianJieYearly`. It remains supported-field-only, preserves raw upstream labels
+beside normalized keys for diagnosis, and intentionally excludes full facade
+serialization parity, calendar conversion, leap-month behavior, rat-hour
+variants, horoscope palace-name derivation, temporal decorative arrays, rules,
+and narrative.
 
 Only the current full default-algorithm adjective-star fixtures (38 stars each)
 and Zhongzhou adjective-star fixtures (40 stars each) are kept in-tree. Earlier,
