@@ -5,17 +5,15 @@
 //! placement, brightness, and supported birth-year mutagens are implemented
 //! here. Scopes beyond the natal chart stay out of scope.
 
-use crate::{
-    bureau::FiveElementBureau,
-    chart::{Chart, Palace, StarPlacement},
-    error::ChartError,
-    ganzhi::{EarthlyBranch, HeavenlyStem},
-    life_body::LunarDay,
-    mutagen::Scope,
-    star::{Brightness, StarKind, StarMetadata, StarName},
-};
+use crate::error::ChartError;
+use crate::model::bureau::FiveElementBureau;
+use crate::model::chart::{Chart, Palace, StarPlacement};
+use crate::model::ganzhi::{EarthlyBranch, HeavenlyStem};
+use crate::model::star::mutagen::Scope;
+use crate::model::star::{Brightness, StarKind, StarMetadata, StarName};
+use crate::placement::natal::life_body::LunarDay;
 
-pub use crate::mutagen::birth_year_major_star_mutagen;
+pub use crate::model::star::mutagen::birth_year_major_star_mutagen;
 
 /// Inputs required to place the fourteen major stars.
 ///
@@ -94,17 +92,17 @@ const TIAN_FU_SERIES: [(StarName, isize); 8] = [
 
 /// Returns factual metadata for the fourteen major stars.
 pub const fn major_star_metadata_table() -> &'static [StarMetadata; 14] {
-    crate::star::major_star_metadata_table()
+    crate::model::star::major_star_metadata_table()
 }
 
 /// Returns factual metadata for one major star.
 pub fn major_star_metadata(star: StarName) -> &'static StarMetadata {
-    crate::star::major_star_metadata(star)
+    crate::model::star::major_star_metadata(star)
 }
 
 /// Returns factual metadata for one major star, if it is a represented major star.
 pub fn try_major_star_metadata(star: StarName) -> Option<&'static StarMetadata> {
-    crate::star::try_major_star_metadata(star)
+    crate::model::star::try_major_star_metadata(star)
 }
 
 /// Returns a major star's brightness for a branch.

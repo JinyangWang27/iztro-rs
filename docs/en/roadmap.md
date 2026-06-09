@@ -24,6 +24,13 @@ This roadmap is intentionally conservative. The project should first establish s
 - [x] Add basic CI for formatting, clippy, and tests.
 - [x] Add serialization and fixture-based test infrastructure.
 
+`iztro-core` organizes its source tree into domain modules: `model` (value
+objects, star facts, and immutable chart facts), `placement` (deterministic 安星
+placement and overlay activation builders), `facade` (public iztro-compatible
+entry points), and `feature` (a boundary reserved for future derived-fact
+extraction). The crate error type stays at the crate root. This is an internal
+reorganization only; the public API and chart behavior are unchanged.
+
 ## Phase 2: Core chart models
 
 - [x] Define heavenly stems, earthly branches, palaces, stars, mutagens, scopes, gender, and calendar options.

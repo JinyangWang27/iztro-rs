@@ -1,7 +1,5 @@
-use crate::{
-    ganzhi::HeavenlyStem,
-    star::{StarCategory, StarName, star_metadata},
-};
+use crate::model::ganzhi::HeavenlyStem;
+use crate::model::star::{StarCategory, StarName, star_metadata};
 use serde::{Deserialize, Serialize};
 
 /// Four transformations, also known as mutagens.

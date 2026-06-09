@@ -5,26 +5,25 @@
 //! immutable natal [`Chart`] and an explicit decadal stem-branch,
 //! [`build_decadal_mutagen_layer`] produces a [`Scope::Decadal`]
 //! [`TemporalLayer`] whose
-//! [`MutagenActivation`](crate::horoscope::MutagenActivation)s apply the decadal
-//! Heavenly Stem to the represented stars actually present in the natal chart.
+//! [`MutagenActivation`](crate::model::chart::horoscope::MutagenActivation)s
+//! apply the decadal Heavenly Stem to the represented stars actually present in
+//! the natal chart.
 //!
 //! The layer is an overlay only: it never mutates the natal chart, never
 //! duplicates natal stars, places no temporal/flow stars (流曜), and derives no
 //! calendar facts. The decadal stem-branch and starting age are supplied by the
 //! caller; the decade's 大限命宫, decadal palace layout, and age-to-stem
 //! derivation are not computed here. 四化 stay modeled as
-//! [`MutagenActivation`](crate::horoscope::MutagenActivation) facts, not
-//! independent stars.
+//! [`MutagenActivation`](crate::model::chart::horoscope::MutagenActivation)
+//! facts, not independent stars.
 //!
-//! [`build_yearly_mutagen_layer`]: crate::yearly_mutagen::build_yearly_mutagen_layer
+//! [`build_yearly_mutagen_layer`]: crate::placement::overlay::yearly::build_yearly_mutagen_layer
 
-use crate::{
-    chart::Chart,
-    error::ChartError,
-    horoscope::{TemporalContext, TemporalLayer, stem_mutagen_activations},
-    mutagen::Scope,
-    sexagenary::StemBranch,
-};
+use crate::error::ChartError;
+use crate::model::chart::{Chart, TemporalContext, TemporalLayer};
+use crate::model::sexagenary::StemBranch;
+use crate::model::star::mutagen::Scope;
+use crate::placement::overlay::mutagen::stem_mutagen_activations;
 
 /// Explicit decadal facts consumed by [`build_decadal_mutagen_layer`].
 ///
@@ -64,10 +63,11 @@ impl DecadalMutagenLayerInput {
 /// The decadal Heavenly Stem comes from `input`'s stem-branch. For every
 /// represented star placed in `natal`, the shared Heavenly Stem mutagen table
 /// (via [`stem_mutagen_activations`]) decides whether the decadal stem maps that
-/// star to a [`Mutagen`](crate::mutagen::Mutagen); the same 天干四化 table drives
-/// the birth-year (natal), yearly (流年), and decadal (大限) transformations, so
-/// it is reused rather than duplicated. Each mapped, present star yields one
-/// [`Scope::Decadal`] [`MutagenActivation`](crate::horoscope::MutagenActivation)
+/// star to a [`Mutagen`](crate::model::star::mutagen::Mutagen); the same 天干四化
+/// table drives the birth-year (natal), yearly (流年), and decadal (大限)
+/// transformations, so it is reused rather than duplicated. Each mapped, present
+/// star yields one [`Scope::Decadal`]
+/// [`MutagenActivation`](crate::model::chart::horoscope::MutagenActivation)
 /// targeting the branch of the palace it occupies.
 ///
 /// Stars absent from `natal` (or not in the table, such as adjective stars)

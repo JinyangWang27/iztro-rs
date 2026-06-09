@@ -8,7 +8,7 @@
 
 use crate::{
     error::ChartError,
-    ganzhi::{EarthlyBranch, HeavenlyStem},
+    model::ganzhi::{EarthlyBranch, HeavenlyStem},
 };
 use serde::{Deserialize, Serialize};
 

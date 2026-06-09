@@ -1,6 +1,7 @@
 //! Life and body palace index calculation from lunar month and birth hour.
 
-use crate::{error::ChartError, ganzhi::EarthlyBranch};
+use crate::error::ChartError;
+use crate::model::ganzhi::EarthlyBranch;
 
 /// A validated non-leap lunar birth month.
 ///
