@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-/// Stable identifiers for stars represented in chart facts.
+/// Stable identifiers for represented stars and inventoried upstream runtime names.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum StarName {
@@ -150,103 +150,103 @@ pub enum StarName {
     JieShaAdj,
     /// Zhongzhou-only Da Hao adjective star (大耗).
     DaHaoAdj,
-    /// Changsheng 12 marker (长生).
+    /// 12 Changsheng phase (长生12神：长生).
     ChangSheng,
-    /// Changsheng 12 marker (沐浴).
+    /// 12 Changsheng phase (长生12神：沐浴).
     MuYu,
-    /// Changsheng 12 marker (冠带).
+    /// 12 Changsheng phase (长生12神：冠带).
     GuanDai,
-    /// Changsheng 12 marker (临官).
+    /// 12 Changsheng phase (长生12神：临官).
     LinGuan,
-    /// Changsheng 12 marker (帝旺).
+    /// 12 Changsheng phase (长生12神：帝旺).
     DiWang,
-    /// Changsheng 12 marker (衰).
+    /// 12 Changsheng phase (长生12神：衰).
     Shuai,
-    /// Changsheng 12 marker (病).
+    /// 12 Changsheng phase (长生12神：病).
     Bing,
-    /// Changsheng 12 marker (死).
+    /// 12 Changsheng phase (长生12神：死).
     Si,
-    /// Changsheng 12 marker (墓).
+    /// 12 Changsheng phase (长生12神：墓).
     Mu,
-    /// Changsheng 12 marker (绝).
+    /// 12 Changsheng phase (长生12神：绝).
     Jue,
-    /// Changsheng 12 marker (胎).
+    /// 12 Changsheng phase (长生12神：胎).
     Tai,
-    /// Changsheng 12 marker (养).
+    /// 12 Changsheng phase (长生12神：养).
     Yang,
-    /// Boshi 12 marker (博士).
+    /// Boshi 12 god entry (博士12神：博士).
     BoShi,
-    /// Boshi 12 marker (力士).
+    /// Boshi 12 god entry (博士12神：力士).
     LiShi,
-    /// Boshi 12 marker (青龙).
+    /// Boshi 12 god entry (博士12神：青龙).
     QingLong,
-    /// Boshi 12 marker (小耗).
+    /// Boshi 12 god entry (博士12神：小耗).
     XiaoHaoBoshi,
-    /// Boshi 12 marker (将军).
+    /// Boshi 12 god entry (博士12神：将军).
     JiangJun,
-    /// Boshi 12 marker (奏书).
+    /// Boshi 12 god entry (博士12神：奏书).
     ZhouShu,
-    /// Boshi 12 marker (飞廉), disambiguated from natal 蜚廉.
+    /// Boshi 12 god entry (博士12神：飞廉), disambiguated from natal 蜚廉.
     FayLianBoshi,
-    /// Boshi 12 marker (喜神).
+    /// Boshi 12 god entry (博士12神：喜神).
     XiShenBoshi,
-    /// Boshi 12 marker (病符).
+    /// Boshi 12 god entry (博士12神：病符).
     BingFuBoshi,
-    /// Boshi 12 marker (大耗).
+    /// Boshi 12 god entry (博士12神：大耗).
     DaHaoBoshi,
-    /// Boshi 12 marker (伏兵).
+    /// Boshi 12 god entry (博士12神：伏兵).
     FuBing,
-    /// Boshi 12 marker (官府).
+    /// Boshi 12 god entry (博士12神：官府).
     GuanFuBoshi,
-    /// Suiqian 12 marker (岁建).
+    /// Suiqian 12 god (岁前12神：岁建).
     SuiJian,
-    /// Suiqian 12 marker (晦气).
+    /// Suiqian 12 god (岁前12神：晦气).
     HuiQi,
-    /// Suiqian 12 marker (丧门).
+    /// Suiqian 12 god (岁前12神：丧门).
     SangMen,
-    /// Suiqian 12 marker (贯索).
+    /// Suiqian 12 god (岁前12神：贯索).
     GuanSuo,
-    /// Suiqian 12 marker (官符).
+    /// Suiqian 12 god (岁前12神：官符).
     GuanFuSuiqian,
-    /// Suiqian 12 marker (小耗).
+    /// Suiqian 12 god (岁前12神：小耗).
     XiaoHaoSuiqian,
-    /// Suiqian 12 marker (大耗).
+    /// Suiqian 12 god (岁前12神：大耗).
     DaHaoSuiqian,
-    /// Zhongzhou Suiqian marker (岁破).
+    /// Zhongzhou Suiqian god (岁破).
     SuiPo,
-    /// Suiqian 12 marker (龙德).
+    /// Suiqian 12 god (岁前12神：龙德).
     LongDeSuiqian,
-    /// Suiqian 12 marker (白虎).
+    /// Suiqian 12 god (岁前12神：白虎).
     BaiHu,
-    /// Suiqian 12 marker (天德).
+    /// Suiqian 12 god (岁前12神：天德).
     TianDeSuiqian,
-    /// Suiqian 12 marker (吊客).
+    /// Suiqian 12 god (岁前12神：吊客).
     DiaoKe,
-    /// Suiqian 12 marker (病符).
+    /// Suiqian 12 god (岁前12神：病符).
     BingFuSuiqian,
-    /// Jiangqian 12 marker (将星).
+    /// Jiangqian 12 god (将前12神：将星).
     JiangXing,
-    /// Jiangqian 12 marker (攀鞍).
+    /// Jiangqian 12 god (将前12神：攀鞍).
     PanAn,
-    /// Jiangqian 12 marker (岁驿).
+    /// Jiangqian 12 god (将前12神：岁驿).
     SuiYi,
-    /// Jiangqian 12 marker (息神).
+    /// Jiangqian 12 god (将前12神：息神).
     XiShenJiangqian,
-    /// Jiangqian 12 marker (华盖).
+    /// Jiangqian 12 god (将前12神：华盖).
     HuaGaiJiangqian,
-    /// Jiangqian 12 marker (劫煞).
+    /// Jiangqian 12 god (将前12神：劫煞).
     JieSha,
-    /// Jiangqian 12 marker (灾煞).
+    /// Jiangqian 12 god (将前12神：灾煞).
     ZaiSha,
-    /// Jiangqian 12 marker (天煞).
+    /// Jiangqian 12 god (将前12神：天煞).
     TianSha,
-    /// Jiangqian 12 marker (指背).
+    /// Jiangqian 12 god (将前12神：指背).
     ZhiBei,
-    /// Jiangqian 12 marker (咸池).
+    /// Jiangqian 12 god (将前12神：咸池).
     XianChiJiangqian,
-    /// Jiangqian 12 marker (月煞).
+    /// Jiangqian 12 god (将前12神：月煞).
     YueSha,
-    /// Jiangqian 12 marker (亡神).
+    /// Jiangqian 12 god (将前12神：亡神).
     WangShen,
     /// Decadal flow star (运魁).
     YunKui,
