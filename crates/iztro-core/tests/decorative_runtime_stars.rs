@@ -5,11 +5,12 @@
 use std::collections::{HashMap, HashSet};
 
 use iztro_core::{
-    BirthContext, CalendarDate, Chart, ChartAlgorithmKind, DecorativeStarFamily,
-    DecorativeStarPlacement, EarthlyBranch, Gender, HeavenlyStem, KnownStarFamily, LunarDay,
-    LunarMonth, MethodProfile, NatalChartWithSupportedStarsInput, Scope, StarName,
-    build_natal_chart_with_supported_stars, known_star_metadata_table, try_known_star_metadata,
-    try_star_metadata,
+    BirthContext, CalendarDate, Chart, ChartAlgorithmKind, ChartError, DecorativeStarFamily,
+    DecorativeStarPlacement, DecorativeStarPlacementInput, DecorativeStarPlacer,
+    DeterministicDecorativeStarPlacer, EarthlyBranch, Gender, HeavenlyStem, KnownStarFamily,
+    LunarDay, LunarMonth, MethodProfile, NatalChartWithSupportedStarsInput, Scope, StarName,
+    build_empty_chart, build_natal_chart_with_supported_stars, known_star_metadata_table,
+    try_known_star_metadata, try_star_metadata,
 };
 use serde_json::Value;
 
@@ -187,6 +188,86 @@ fn checked_constructor_rejects_typed_and_mismatched_stars() {
         )
         .is_ok()
     );
+}
+
+#[test]
+fn decorative_placement_json_deserializes_through_checked_constructor() {
+    let raw = r#"{"name":"chang_sheng","family":"changsheng12","scope":"natal"}"#;
+
+    let placement: DecorativeStarPlacement =
+        serde_json::from_str(raw).expect("valid decorative placement should deserialize");
+
+    assert_eq!(placement.name(), StarName::ChangSheng);
+    assert_eq!(placement.family(), DecorativeStarFamily::Changsheng12);
+    assert_eq!(placement.scope(), Scope::Natal);
+}
+
+#[test]
+fn decorative_placement_json_rejects_typed_star() {
+    let raw = r#"{"name":"zi_wei","family":"changsheng12","scope":"natal"}"#;
+
+    let error = serde_json::from_str::<DecorativeStarPlacement>(raw)
+        .expect_err("typed stars must not deserialize as decorative placements");
+
+    assert!(
+        error
+            .to_string()
+            .contains("invalid decorative star placement"),
+        "{error}"
+    );
+}
+
+#[test]
+fn decorative_placement_json_rejects_wrong_family() {
+    let raw = r#"{"name":"chang_sheng","family":"boshi12","scope":"natal"}"#;
+
+    let error = serde_json::from_str::<DecorativeStarPlacement>(raw)
+        .expect_err("decorative placements must match their family");
+
+    assert!(
+        error
+            .to_string()
+            .contains("invalid decorative star placement"),
+        "{error}"
+    );
+}
+
+#[test]
+fn decorative_placement_json_round_trips_valid_placement() {
+    let placement = DecorativeStarPlacement::try_new(
+        StarName::ChangSheng,
+        DecorativeStarFamily::Changsheng12,
+        Scope::Natal,
+    )
+    .expect("valid decorative placement should build");
+
+    let encoded = serde_json::to_string(&placement).expect("placement should serialize");
+    let decoded: DecorativeStarPlacement =
+        serde_json::from_str(&encoded).expect("placement should deserialize");
+
+    assert_eq!(decoded, placement);
+}
+
+#[test]
+fn decorative_placement_requires_five_element_bureau() {
+    let chart = build_empty_chart(
+        BirthContext::new(
+            CalendarDate::solar(1990, 5, 17),
+            EarthlyBranch::Chen,
+            Gender::Female,
+        ),
+        MethodProfile::placeholder("missing_bureau_profile"),
+    )
+    .expect("empty chart should build");
+
+    let error = DeterministicDecorativeStarPlacer
+        .place_decorative_stars(
+            chart,
+            DecorativeStarPlacementInput::new(HeavenlyStem::Geng, EarthlyBranch::Wu),
+        )
+        .expect_err("decorative placement should require the five-element bureau");
+
+    assert_eq!(error, ChartError::RequiredFiveElementBureauMissing);
 }
 
 fn collect_decorative(chart: &Chart) -> HashMap<(EarthlyBranch, DecorativeStarFamily), StarName> {

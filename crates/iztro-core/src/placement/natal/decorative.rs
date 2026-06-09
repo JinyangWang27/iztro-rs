@@ -148,7 +148,7 @@ fn decorative_star_placements(
 ) -> Result<Vec<(EarthlyBranch, StarName, DecorativeStarFamily)>, ChartError> {
     let bureau = chart
         .five_element_bureau()
-        .ok_or(ChartError::RequiredLifeBodyPalaceMissing)?;
+        .ok_or(ChartError::RequiredFiveElementBureauMissing)?;
     let gender = chart.birth_context().gender();
     let year_stem = input.birth_year_stem();
     let year_branch = input.birth_year_branch();

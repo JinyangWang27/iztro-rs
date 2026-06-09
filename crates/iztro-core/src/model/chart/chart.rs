@@ -12,7 +12,7 @@ use crate::{
         },
     },
 };
-use serde::{Deserialize, Serialize};
+use serde::{Deserialize, Deserializer, Serialize};
 
 /// Number of palaces required for a complete chart.
 pub const PALACE_COUNT: usize = 12;
@@ -451,7 +451,7 @@ impl DecorativeStarFamily {
 /// iztro emits them as bare names. The [`DecorativeStarPlacement::try_new`]
 /// constructor validates that the name is a known decorative star whose family
 /// matches and whose known metadata has no [`StarKind`].
-#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct DecorativeStarPlacement {
     name: StarName,
     family: DecorativeStarFamily,
@@ -496,5 +496,22 @@ impl DecorativeStarPlacement {
     /// Returns the scope of this decorative placement.
     pub const fn scope(&self) -> Scope {
         self.scope
+    }
+}
+
+impl<'de> Deserialize<'de> for DecorativeStarPlacement {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        #[derive(Deserialize)]
+        struct DecorativeStarPlacementData {
+            name: StarName,
+            family: DecorativeStarFamily,
+            scope: Scope,
+        }
+
+        let data = DecorativeStarPlacementData::deserialize(deserializer)?;
+        Self::try_new(data.name, data.family, data.scope).map_err(serde::de::Error::custom)
     }
 }

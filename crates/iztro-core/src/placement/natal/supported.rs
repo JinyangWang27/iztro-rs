@@ -52,8 +52,10 @@ pub fn build_natal_chart_with_major_stars(
 /// Builds a natal chart with all currently supported natal stars placed.
 ///
 /// This public builder preserves the minimal natal chart facts, places the
-/// natal-scope fourteen major stars, the supported fourteen minor stars, then
-/// the algorithm-selected natal adjective/helper stars.
+/// natal-scope fourteen major stars, the supported fourteen minor stars, the
+/// algorithm-selected natal adjective/helper stars, and the natal decorative
+/// runtime families. Typed stars remain available through [`Chart::stars`],
+/// while decorative runtime entries use the separate decorative fact surface.
 /// Temporal scopes beyond natal, horoscope placement, feature extraction,
 /// rule-engine output, and narrative output remain out of scope.
 pub fn build_natal_chart_with_supported_stars(
