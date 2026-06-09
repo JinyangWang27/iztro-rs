@@ -661,6 +661,7 @@ fn star_key(star: StarName) -> &'static str {
         StarName::JieLu => "jie_lu",
         StarName::KongWang => "kong_wang",
         StarName::XunKong => "xun_kong",
+        other => panic!("unsupported star key: {other:?}"),
     }
 }
 

@@ -33,6 +33,26 @@
 workspace：`npm ci --prefix tools/iztro-reference`。已提交的 fixture JSON 仍是兼容性
 source of truth。
 
+## 星曜名称清单
+
+`iztro-core` 现在保留两套相互独立的星曜 metadata surface：
+
+- `represented_star_metadata_table()` 仍保持严格边界：只覆盖当前由星盘事实表示、由
+  Rust 代码安放、并由 fixtures 校验的 **66** 颗星。
+- `known_star_metadata_table()` 清点更广的上游 `iztro@2.5.8` runtime 星曜名称宇宙：
+  **170** 个已知条目，包含已表示星曜、中州派特有杂曜、装饰性 runtime 数组
+  （`changsheng12`、`boshi12`、`suiqian12`、`jiangqian12`），以及大限、流年、流月、
+  流日、流时的 horoscope 流曜名称。
+
+Known metadata 仅为清单，不表示 `iztro-rs` 已安放这些星曜、以 fixtures 校验它们、
+分配亮度、推导时间宫位，或实现 horoscope 安星。装饰性 runtime 条目在上游没有
+`FunctionalStar` type，因此没有 `StarKind`；horoscope 流曜条目则保留 iztro 已分配
+的细分类。
+
+上游 locale key `xunzhong` / `旬中` 被有意排除，因为在 `iztro@2.5.8` 中没有找到
+内置的 `FunctionalStar` 构造或 `StarType` 分配。四化仍作为 `Mutagen` /
+`MutagenActivation` 事实存在，而不是 `StarName` variants。
+
 ## 公开 facade 兼容性
 
 `by_lunar` 是 `iztro-rs` 的第一个 iztro-compatible facade 入口。它在概念上对应
@@ -228,7 +248,8 @@ iztro 2.5.8 `getAdjectiveStar` 在默认（非中州派）算法下输出 **38**
 其余四颗杂曜为**中州派特有**（中州派变体 `algorithm: 'zhongzhou'`），与中州派算法
 选择本身一并延后：龙德 LongDe、截空 JieKong、劫煞 JieSha（杂曜）、大耗 DaHao
 （杂曜）。在中州派下，这四颗取代默认的截路/空亡两颗。本默认 `getAdjectiveStar`
-切片以外的神煞、流曜，以及所有时间/horoscope 安星同样延后。四化仍作为
+切片以外的神煞、流曜，以及所有时间/horoscope 安星同样延后。这四个中州派特有名称
+已进入 metadata 清单，但尚未安放，也没有 fixture 覆盖。四化仍作为
 `mutagen: Option<Mutagen>` 事实附于安星，而非独立星曜。
 
 ## Golden tests
