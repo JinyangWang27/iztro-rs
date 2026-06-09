@@ -78,6 +78,14 @@ The broader known star-name inventory supports API discovery and future scoped
 work, but it does not change `by_lunar`, placement behavior, fixtures,
 brightness, or mutagen modeling.
 
+Flow-star runtime identity is now normalized with a small pure helper layer:
+scope-specific upstream names such as `YunKui`, `LiuKui`, `YueKui`, `RiKui`,
+and `ShiKui` remain distinct `StarName` variants for serde/runtime fidelity,
+while `FlowStarScope` + `FlowStarBase` expose their shared identity for future
+placement work. This is identity-only groundwork; it does not place flow stars,
+change metadata table counts, alter `by_lunar`, add fixtures, or model temporal
+mutagens as stars.
+
 ## Phase 4: Feature extraction
 
 - [x] Extract palace features.

@@ -65,6 +65,13 @@ metadata。`xunzhong` / `旬中` 因只属于 locale 而被排除；中州派安
 更广的 known 星曜名称清单支持 API discovery 和未来小范围工作，但不改变 `by_lunar`、
 安星行为、fixtures、亮度或四化建模。
 
+流曜 runtime identity 现在加入了一层小型纯 helper 进行规范化：`YunKui`、
+`LiuKui`、`YueKui`、`RiKui`、`ShiKui` 等带范围的上游名称仍保留为彼此独立的
+`StarName` 变体，以保证 serde/runtime fidelity；同时用 `FlowStarScope` +
+`FlowStarBase` 表示它们共享的 identity，为未来安星逻辑做准备。这只是 identity-only
+基础工作；不安放流曜，不改变 metadata table 数量，不改变 `by_lunar`，不增加
+fixtures，也不把时间范围四化建模为星曜。
+
 ## Phase 4：特征提取
 
 - [x] 提取宫位特征。

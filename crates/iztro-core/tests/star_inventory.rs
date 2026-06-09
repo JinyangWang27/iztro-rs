@@ -1,9 +1,31 @@
 use std::collections::HashSet;
 
 use iztro_core::{
-    KnownStarFamily, StarKind, StarName, known_star_metadata, known_star_metadata_table,
-    represented_star_metadata_table, try_known_star_metadata, try_star_metadata,
+    FlowStarBase, FlowStarScope, KnownStarFamily, StarKind, StarName, flow_star_name,
+    known_star_metadata, known_star_metadata_table, represented_star_metadata_table,
+    try_flow_star_parts, try_known_star_metadata, try_star_metadata,
 };
+
+const FLOW_SCOPES: [FlowStarScope; 5] = [
+    FlowStarScope::Decadal,
+    FlowStarScope::Yearly,
+    FlowStarScope::Monthly,
+    FlowStarScope::Daily,
+    FlowStarScope::Hourly,
+];
+
+const FLOW_BASES: [FlowStarBase; 10] = [
+    FlowStarBase::Kui,
+    FlowStarBase::Yue,
+    FlowStarBase::Chang,
+    FlowStarBase::Qu,
+    FlowStarBase::Lu,
+    FlowStarBase::Yang,
+    FlowStarBase::Tuo,
+    FlowStarBase::Ma,
+    FlowStarBase::Luan,
+    FlowStarBase::Xi,
+];
 
 #[test]
 fn represented_metadata_table_stays_strict() {
@@ -169,4 +191,63 @@ fn collision_prone_new_star_name_serde_keys_are_stable() {
 #[test]
 fn try_known_star_metadata_resolves_known_inventory_names() {
     assert!(try_known_star_metadata(StarName::LongDeAdj).is_some());
+}
+
+#[test]
+fn flow_star_name_maps_scope_and_base_to_runtime_star_name() {
+    assert_eq!(
+        flow_star_name(FlowStarScope::Daily, FlowStarBase::Kui),
+        StarName::RiKui
+    );
+    assert_eq!(
+        flow_star_name(FlowStarScope::Hourly, FlowStarBase::Kui),
+        StarName::ShiKui
+    );
+    assert_eq!(
+        flow_star_name(FlowStarScope::Decadal, FlowStarBase::Lu),
+        StarName::YunLu
+    );
+    assert_eq!(
+        flow_star_name(FlowStarScope::Yearly, FlowStarBase::Luan),
+        StarName::LiuLuan
+    );
+    assert_eq!(
+        flow_star_name(FlowStarScope::Monthly, FlowStarBase::Ma),
+        StarName::YueMa
+    );
+}
+
+#[test]
+fn try_flow_star_parts_round_trips_all_matrix_entries() {
+    for scope in FLOW_SCOPES {
+        for base in FLOW_BASES {
+            let star = flow_star_name(scope, base);
+
+            assert_eq!(try_flow_star_parts(star), Some((scope, base)));
+        }
+    }
+}
+
+#[test]
+fn try_flow_star_parts_rejects_non_matrix_stars() {
+    for star in [
+        StarName::ZiWei,
+        StarName::NianJieYearly,
+        StarName::LongDeAdj,
+        StarName::BoShi,
+    ] {
+        assert_eq!(try_flow_star_parts(star), None);
+    }
+}
+
+#[test]
+fn flow_star_names_are_known_but_not_represented() {
+    for scope in FLOW_SCOPES {
+        for base in FLOW_BASES {
+            let star = flow_star_name(scope, base);
+
+            assert!(try_known_star_metadata(star).is_some());
+            assert!(try_star_metadata(star).is_none());
+        }
+    }
 }

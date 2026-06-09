@@ -2,12 +2,14 @@
 //! and the Heavenly Stem mutagen (四化) table.
 
 pub mod brightness;
+pub mod flow;
 pub mod kind;
 pub mod metadata;
 pub mod mutagen;
 pub mod name;
 
 pub use brightness::Brightness;
+pub use flow::{FlowStarBase, FlowStarScope, flow_star_name, try_flow_star_parts};
 pub use kind::{StarCategory, StarKind};
 pub use metadata::{
     KnownStarFamily, KnownStarMetadata, StarMetadata, adjective_star_metadata,
