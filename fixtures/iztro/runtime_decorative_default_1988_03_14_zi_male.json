@@ -1,0 +1,115 @@
+{
+  "metadata": {
+    "source": "iztro",
+    "target_package": "npm:iztro",
+    "target_version": "2.5.8",
+    "algorithm": "default",
+    "generated_at": "2026-06-09T00:00:00Z",
+    "supported_fields_only": true,
+    "notes": "Decorative runtime star families (长生/博士/岁前/将前十二神) from iztro@2.5.8 byLunar per-palace output. Upstream emits these as bare names with no StarKind. Under the Zhongzhou algorithm the seventh 岁前 entry 大耗 is renamed 岁破. Flow stars, by_solar, calendar conversion, leap-month behavior, rat-hour variants, features, rules, and narrative are excluded.",
+    "generation_command": "npm ci --prefix tools/iztro-reference && node tools/iztro-reference/scripts/dump-runtime-star-families.mjs --write"
+  },
+  "input": {
+    "lunar_date": "1988-3-14",
+    "lunar_year": 1988,
+    "lunar_month": 3,
+    "lunar_day": 14,
+    "birth_time": "zi",
+    "iztro_time_index": 0,
+    "gender": "male",
+    "iztro_gender": "男",
+    "birth_year_stem": "wu",
+    "birth_year_branch": "chen",
+    "is_leap_month": false,
+    "fix_leap": true,
+    "language": "zh-CN"
+  },
+  "supported_fields": {
+    "decorative_stars": [
+      {
+        "branch": "yin",
+        "changsheng12": "bing",
+        "boshi12": "da_hao_boshi",
+        "suiqian12": "diao_ke",
+        "jiangqian12": "sui_yi"
+      },
+      {
+        "branch": "mao",
+        "changsheng12": "si",
+        "boshi12": "fu_bing",
+        "suiqian12": "bing_fu_suiqian",
+        "jiangqian12": "xi_shen_jiangqian"
+      },
+      {
+        "branch": "chen",
+        "changsheng12": "mu",
+        "boshi12": "guan_fu_boshi",
+        "suiqian12": "sui_jian",
+        "jiangqian12": "hua_gai_jiangqian"
+      },
+      {
+        "branch": "si",
+        "changsheng12": "jue",
+        "boshi12": "bo_shi",
+        "suiqian12": "hui_qi",
+        "jiangqian12": "jie_sha"
+      },
+      {
+        "branch": "wu",
+        "changsheng12": "tai",
+        "boshi12": "li_shi",
+        "suiqian12": "sang_men",
+        "jiangqian12": "zai_sha"
+      },
+      {
+        "branch": "wei",
+        "changsheng12": "yang",
+        "boshi12": "qing_long",
+        "suiqian12": "guan_suo",
+        "jiangqian12": "tian_sha"
+      },
+      {
+        "branch": "shen",
+        "changsheng12": "chang_sheng",
+        "boshi12": "xiao_hao_boshi",
+        "suiqian12": "guan_fu_suiqian",
+        "jiangqian12": "zhi_bei"
+      },
+      {
+        "branch": "you",
+        "changsheng12": "mu_yu",
+        "boshi12": "jiang_jun",
+        "suiqian12": "xiao_hao_suiqian",
+        "jiangqian12": "xian_chi_jiangqian"
+      },
+      {
+        "branch": "xu",
+        "changsheng12": "guan_dai",
+        "boshi12": "zhou_shu",
+        "suiqian12": "da_hao_suiqian",
+        "jiangqian12": "yue_sha"
+      },
+      {
+        "branch": "hai",
+        "changsheng12": "lin_guan",
+        "boshi12": "fay_lian_boshi",
+        "suiqian12": "long_de_suiqian",
+        "jiangqian12": "wang_shen"
+      },
+      {
+        "branch": "zi",
+        "changsheng12": "di_wang",
+        "boshi12": "xi_shen_boshi",
+        "suiqian12": "bai_hu",
+        "jiangqian12": "jiang_xing"
+      },
+      {
+        "branch": "chou",
+        "changsheng12": "shuai",
+        "boshi12": "bing_fu_boshi",
+        "suiqian12": "tian_de_suiqian",
+        "jiangqian12": "pan_an"
+      }
+    ]
+  }
+}

@@ -120,6 +120,27 @@ fn horoscope_chart_round_trips_through_json() {
 }
 
 #[test]
+fn scoped_placement_exposes_branch_and_scope() {
+    let layer = sample_yearly_layer();
+    let scoped = &layer.placements()[0];
+
+    assert_eq!(scoped.branch(), EarthlyBranch::Si);
+    assert_eq!(scoped.scope(), Scope::Yearly);
+    assert_eq!(scoped.placement().name(), StarName::NianJieYearly);
+}
+
+#[test]
+fn temporal_layer_round_trips_branch_tagged_placements() {
+    let layer = sample_yearly_layer();
+
+    let encoded = serde_json::to_string(&layer).expect("layer should serialize");
+    let decoded: TemporalLayer = serde_json::from_str(&encoded).expect("layer should deserialize");
+
+    assert_eq!(decoded, layer);
+    assert_eq!(decoded.placements()[0].branch(), EarthlyBranch::Si);
+}
+
+#[test]
 fn temporal_layer_rejects_natal_scope() {
     let result = TemporalLayer::try_new(Scope::Natal, yearly_context(), Vec::new(), Vec::new());
 

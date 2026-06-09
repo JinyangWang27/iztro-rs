@@ -1,0 +1,3445 @@
+{
+  "metadata": {
+    "source": "iztro",
+    "target_package": "npm:iztro",
+    "target_version": "2.5.8",
+    "generated_at": "2026-06-09T00:00:00Z",
+    "supported_fields_only": true,
+    "notes": "Scoped flow stars (流耀) from iztro@2.5.8 getHoroscopeStar(stem, branch, scope). Each case lists the ten matrix stars (魁钺昌曲禄羊陀马鸾喜) by base and branch; the yearly scope also records 年解. Placement depends only on the period stem-branch. Cases cover all ten stems and twelve branches across every scope. Palace index 0 is 寅.",
+    "generation_command": "npm ci --prefix tools/iztro-reference && node tools/iztro-reference/scripts/dump-runtime-star-families.mjs --write"
+  },
+  "cases": [
+    {
+      "scope": "decadal",
+      "stem": "jia",
+      "branch": "zi",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "si",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "chou",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "yin",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "mao",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "yin",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "you",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "chou",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "you",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "mao",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "wei",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "yearly",
+      "stem": "jia",
+      "branch": "zi",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "si",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "chou",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "yin",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "mao",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "yin",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "you",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "chou",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "you",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "mao",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "wei",
+          "type": "soft"
+        }
+      ],
+      "nian_jie_branch": "xu"
+    },
+    {
+      "scope": "monthly",
+      "stem": "jia",
+      "branch": "zi",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "si",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "chou",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "yin",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "mao",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "yin",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "you",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "chou",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "you",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "mao",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "wei",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "daily",
+      "stem": "jia",
+      "branch": "zi",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "si",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "chou",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "yin",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "mao",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "yin",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "you",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "chou",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "you",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "mao",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "wei",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "hourly",
+      "stem": "jia",
+      "branch": "zi",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "si",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "chou",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "yin",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "mao",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "yin",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "you",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "chou",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "you",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "mao",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "wei",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "decadal",
+      "stem": "yi",
+      "branch": "chou",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "wu",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "zi",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "mao",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "yin",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "hai",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "shen",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "yin",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "shen",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "chen",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "shen",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "yearly",
+      "stem": "yi",
+      "branch": "chou",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "wu",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "zi",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "mao",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "yin",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "hai",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "shen",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "yin",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "shen",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "chen",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "shen",
+          "type": "soft"
+        }
+      ],
+      "nian_jie_branch": "you"
+    },
+    {
+      "scope": "monthly",
+      "stem": "yi",
+      "branch": "chou",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "wu",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "zi",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "mao",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "yin",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "hai",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "shen",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "yin",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "shen",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "chen",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "shen",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "daily",
+      "stem": "yi",
+      "branch": "chou",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "wu",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "zi",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "mao",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "yin",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "hai",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "shen",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "yin",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "shen",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "chen",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "shen",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "hourly",
+      "stem": "yi",
+      "branch": "chou",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "wu",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "zi",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "mao",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "yin",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "hai",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "shen",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "yin",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "shen",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "chen",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "shen",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "decadal",
+      "stem": "bing",
+      "branch": "yin",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "shen",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "hai",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "si",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "chou",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "shen",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "wu",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "chen",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "wei",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "wu",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "you",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "yearly",
+      "stem": "bing",
+      "branch": "yin",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "shen",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "hai",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "si",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "chou",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "shen",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "wu",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "chen",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "wei",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "wu",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "you",
+          "type": "soft"
+        }
+      ],
+      "nian_jie_branch": "shen"
+    },
+    {
+      "scope": "monthly",
+      "stem": "bing",
+      "branch": "yin",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "shen",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "hai",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "si",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "chou",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "shen",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "wu",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "chen",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "wei",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "wu",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "you",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "daily",
+      "stem": "bing",
+      "branch": "yin",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "shen",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "hai",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "si",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "chou",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "shen",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "wu",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "chen",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "wei",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "wu",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "you",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "hourly",
+      "stem": "bing",
+      "branch": "yin",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "shen",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "hai",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "si",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "chou",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "shen",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "wu",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "chen",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "wei",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "wu",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "you",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "decadal",
+      "stem": "ding",
+      "branch": "mao",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "you",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "hai",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "wu",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "zi",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "si",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "si",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "si",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "wu",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "wei",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "you",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "yearly",
+      "stem": "ding",
+      "branch": "mao",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "you",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "hai",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "wu",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "zi",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "si",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "si",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "si",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "wu",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "wei",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "you",
+          "type": "soft"
+        }
+      ],
+      "nian_jie_branch": "wei"
+    },
+    {
+      "scope": "monthly",
+      "stem": "ding",
+      "branch": "mao",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "you",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "hai",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "wu",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "zi",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "si",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "si",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "si",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "wu",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "wei",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "you",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "daily",
+      "stem": "ding",
+      "branch": "mao",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "you",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "hai",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "wu",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "zi",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "si",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "si",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "si",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "wu",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "wei",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "you",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "hourly",
+      "stem": "ding",
+      "branch": "mao",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "you",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "hai",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "wu",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "zi",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "si",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "si",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "si",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "wu",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "wei",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "you",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "decadal",
+      "stem": "wu",
+      "branch": "chen",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "shen",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "chou",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "si",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "hai",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "yin",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "wu",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "chen",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "si",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "wu",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "wei",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "yearly",
+      "stem": "wu",
+      "branch": "chen",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "shen",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "chou",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "si",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "hai",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "yin",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "wu",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "chen",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "si",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "wu",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "wei",
+          "type": "soft"
+        }
+      ],
+      "nian_jie_branch": "wu"
+    },
+    {
+      "scope": "monthly",
+      "stem": "wu",
+      "branch": "chen",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "shen",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "chou",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "si",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "hai",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "yin",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "wu",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "chen",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "si",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "wu",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "wei",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "daily",
+      "stem": "wu",
+      "branch": "chen",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "shen",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "chou",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "si",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "hai",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "yin",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "wu",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "chen",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "si",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "wu",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "wei",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "hourly",
+      "stem": "wu",
+      "branch": "chen",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "shen",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "chou",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "si",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "hai",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "yin",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "wu",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "chen",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "si",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "wu",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "wei",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "decadal",
+      "stem": "ji",
+      "branch": "si",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "you",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "zi",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "wu",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "xu",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "hai",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "si",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "si",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "chen",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "wei",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "shen",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "yearly",
+      "stem": "ji",
+      "branch": "si",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "you",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "zi",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "wu",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "xu",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "hai",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "si",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "si",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "chen",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "wei",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "shen",
+          "type": "soft"
+        }
+      ],
+      "nian_jie_branch": "si"
+    },
+    {
+      "scope": "monthly",
+      "stem": "ji",
+      "branch": "si",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "you",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "zi",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "wu",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "xu",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "hai",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "si",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "si",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "chen",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "wei",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "shen",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "daily",
+      "stem": "ji",
+      "branch": "si",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "you",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "zi",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "wu",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "xu",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "hai",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "si",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "si",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "chen",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "wei",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "shen",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "hourly",
+      "stem": "ji",
+      "branch": "si",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "you",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "zi",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "wu",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "xu",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "hai",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "si",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "si",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "chen",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "wei",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "shen",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "decadal",
+      "stem": "geng",
+      "branch": "wu",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "hai",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "chou",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "shen",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "you",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "shen",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "mao",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "wei",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "mao",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "you",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "wei",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "yearly",
+      "stem": "geng",
+      "branch": "wu",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "hai",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "chou",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "shen",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "you",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "shen",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "mao",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "wei",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "mao",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "you",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "wei",
+          "type": "soft"
+        }
+      ],
+      "nian_jie_branch": "chen"
+    },
+    {
+      "scope": "monthly",
+      "stem": "geng",
+      "branch": "wu",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "hai",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "chou",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "shen",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "you",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "shen",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "mao",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "wei",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "mao",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "you",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "wei",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "daily",
+      "stem": "geng",
+      "branch": "wu",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "hai",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "chou",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "shen",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "you",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "shen",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "mao",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "wei",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "mao",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "you",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "wei",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "hourly",
+      "stem": "geng",
+      "branch": "wu",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "hai",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "chou",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "shen",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "you",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "shen",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "mao",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "wei",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "mao",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "you",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "wei",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "decadal",
+      "stem": "xin",
+      "branch": "wei",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "zi",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "wu",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "you",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "shen",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "si",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "yin",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "shen",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "yin",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "xu",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "yin",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "yearly",
+      "stem": "xin",
+      "branch": "wei",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "zi",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "wu",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "you",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "shen",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "si",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "yin",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "shen",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "yin",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "xu",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "yin",
+          "type": "soft"
+        }
+      ],
+      "nian_jie_branch": "mao"
+    },
+    {
+      "scope": "monthly",
+      "stem": "xin",
+      "branch": "wei",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "zi",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "wu",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "you",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "shen",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "si",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "yin",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "shen",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "yin",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "xu",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "yin",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "daily",
+      "stem": "xin",
+      "branch": "wei",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "zi",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "wu",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "you",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "shen",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "si",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "yin",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "shen",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "yin",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "xu",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "yin",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "hourly",
+      "stem": "xin",
+      "branch": "wei",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "zi",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "wu",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "you",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "shen",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "si",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "yin",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "shen",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "yin",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "xu",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "yin",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "decadal",
+      "stem": "ren",
+      "branch": "shen",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "yin",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "mao",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "hai",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "wei",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "yin",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "zi",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "xu",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "chou",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "zi",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "si",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "yearly",
+      "stem": "ren",
+      "branch": "shen",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "yin",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "mao",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "hai",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "wei",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "yin",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "zi",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "xu",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "chou",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "zi",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "si",
+          "type": "soft"
+        }
+      ],
+      "nian_jie_branch": "yin"
+    },
+    {
+      "scope": "monthly",
+      "stem": "ren",
+      "branch": "shen",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "yin",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "mao",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "hai",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "wei",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "yin",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "zi",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "xu",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "chou",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "zi",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "si",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "daily",
+      "stem": "ren",
+      "branch": "shen",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "yin",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "mao",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "hai",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "wei",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "yin",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "zi",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "xu",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "chou",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "zi",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "si",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "hourly",
+      "stem": "ren",
+      "branch": "shen",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "yin",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "mao",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "hai",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "wei",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "yin",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "zi",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "xu",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "chou",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "zi",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "si",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "decadal",
+      "stem": "gui",
+      "branch": "you",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "mao",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "mao",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "zi",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "wu",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "hai",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "hai",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "hai",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "zi",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "chou",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "si",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "yearly",
+      "stem": "gui",
+      "branch": "you",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "mao",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "mao",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "zi",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "wu",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "hai",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "hai",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "hai",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "zi",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "chou",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "si",
+          "type": "soft"
+        }
+      ],
+      "nian_jie_branch": "chou"
+    },
+    {
+      "scope": "monthly",
+      "stem": "gui",
+      "branch": "you",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "mao",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "mao",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "zi",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "wu",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "hai",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "hai",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "hai",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "zi",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "chou",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "si",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "daily",
+      "stem": "gui",
+      "branch": "you",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "mao",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "mao",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "zi",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "wu",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "hai",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "hai",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "hai",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "zi",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "chou",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "si",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "hourly",
+      "stem": "gui",
+      "branch": "you",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "mao",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "mao",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "zi",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "wu",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "hai",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "hai",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "hai",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "zi",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "chou",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "si",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "decadal",
+      "stem": "jia",
+      "branch": "xu",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "si",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "chou",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "yin",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "si",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "shen",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "you",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "chou",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "hai",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "mao",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "wei",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "yearly",
+      "stem": "jia",
+      "branch": "xu",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "si",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "chou",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "yin",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "si",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "shen",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "you",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "chou",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "hai",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "mao",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "wei",
+          "type": "soft"
+        }
+      ],
+      "nian_jie_branch": "zi"
+    },
+    {
+      "scope": "monthly",
+      "stem": "jia",
+      "branch": "xu",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "si",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "chou",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "yin",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "si",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "shen",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "you",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "chou",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "hai",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "mao",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "wei",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "daily",
+      "stem": "jia",
+      "branch": "xu",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "si",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "chou",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "yin",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "si",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "shen",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "you",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "chou",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "hai",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "mao",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "wei",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "hourly",
+      "stem": "jia",
+      "branch": "xu",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "si",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "chou",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "yin",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "si",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "shen",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "you",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "chou",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "hai",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "mao",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "wei",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "decadal",
+      "stem": "yi",
+      "branch": "hai",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "wu",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "zi",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "mao",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "chen",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "si",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "shen",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "yin",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "xu",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "chen",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "shen",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "yearly",
+      "stem": "yi",
+      "branch": "hai",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "wu",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "zi",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "mao",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "chen",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "si",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "shen",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "yin",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "xu",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "chen",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "shen",
+          "type": "soft"
+        }
+      ],
+      "nian_jie_branch": "hai"
+    },
+    {
+      "scope": "monthly",
+      "stem": "yi",
+      "branch": "hai",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "wu",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "zi",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "mao",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "chen",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "si",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "shen",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "yin",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "xu",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "chen",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "shen",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "daily",
+      "stem": "yi",
+      "branch": "hai",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "wu",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "zi",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "mao",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "chen",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "si",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "shen",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "yin",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "xu",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "chen",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "shen",
+          "type": "soft"
+        }
+      ]
+    },
+    {
+      "scope": "hourly",
+      "stem": "yi",
+      "branch": "hai",
+      "matrix": [
+        {
+          "base": "chang",
+          "branch": "wu",
+          "type": "soft"
+        },
+        {
+          "base": "kui",
+          "branch": "zi",
+          "type": "soft"
+        },
+        {
+          "base": "lu",
+          "branch": "mao",
+          "type": "lucun"
+        },
+        {
+          "base": "luan",
+          "branch": "chen",
+          "type": "flower"
+        },
+        {
+          "base": "ma",
+          "branch": "si",
+          "type": "tianma"
+        },
+        {
+          "base": "qu",
+          "branch": "shen",
+          "type": "soft"
+        },
+        {
+          "base": "tuo",
+          "branch": "yin",
+          "type": "tough"
+        },
+        {
+          "base": "xi",
+          "branch": "xu",
+          "type": "flower"
+        },
+        {
+          "base": "yang",
+          "branch": "chen",
+          "type": "tough"
+        },
+        {
+          "base": "yue",
+          "branch": "shen",
+          "type": "soft"
+        }
+      ]
+    }
+  ]
+}
