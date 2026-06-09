@@ -23,8 +23,10 @@ pub use error::ChartError;
 pub use model::bureau::{FiveElementBureau, five_element_bureau_from_life_palace};
 pub use model::calendar::{BirthContext, CalendarDate, CalendarKind, Gender};
 pub use model::chart::{
-    Chart, HoroscopeChart, MajorStarPlacementRef, MutagenActivation, PALACE_COUNT, PALACE_NAMES,
-    Palace, PalaceName, StarPlacement, StarPlacementRef, TemporalContext, TemporalLayer,
+    Chart, DecorativeStarFamily, DecorativeStarPlacement, DecorativeStarPlacementRef,
+    HoroscopeChart, MajorStarPlacementRef, MutagenActivation, PALACE_COUNT, PALACE_NAMES, Palace,
+    PalaceName, ScopedStarPlacement, StarPlacement, StarPlacementRef, TemporalContext,
+    TemporalLayer,
 };
 pub use model::ganzhi::{EARTHLY_BRANCHES, EarthlyBranch, HEAVENLY_STEMS, HeavenlyStem};
 pub use model::profile::{ChartAlgorithmKind, MethodProfile};

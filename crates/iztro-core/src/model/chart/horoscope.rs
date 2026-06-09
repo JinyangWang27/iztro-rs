@@ -142,6 +142,42 @@ impl MutagenActivation {
     }
 }
 
+/// A typed star placement positioned by branch within a temporal layer.
+///
+/// Natal [`StarPlacement`]s take their branch from the containing [`Palace`], but
+/// a [`TemporalLayer`] is not palace-structured, so a flow placement records the
+/// branch it occupies directly — the same stable spatial reference used by
+/// [`MutagenActivation::target_branch`].
+///
+/// [`Palace`]: crate::model::chart::Palace
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct ScopedStarPlacement {
+    branch: EarthlyBranch,
+    placement: StarPlacement,
+}
+
+impl ScopedStarPlacement {
+    /// Creates a branch-positioned temporal star placement.
+    pub const fn new(branch: EarthlyBranch, placement: StarPlacement) -> Self {
+        Self { branch, placement }
+    }
+
+    /// Returns the branch this placement occupies.
+    pub const fn branch(&self) -> EarthlyBranch {
+        self.branch
+    }
+
+    /// Returns the underlying typed placement.
+    pub const fn placement(&self) -> &StarPlacement {
+        &self.placement
+    }
+
+    /// Returns the scope of the underlying placement.
+    pub const fn scope(&self) -> Scope {
+        self.placement.scope()
+    }
+}
+
 /// A single temporal overlay on top of a natal chart.
 ///
 /// A layer never restates natal facts: it carries only the star placements and
@@ -154,7 +190,7 @@ impl MutagenActivation {
 pub struct TemporalLayer {
     scope: Scope,
     context: TemporalContext,
-    placements: Vec<StarPlacement>,
+    placements: Vec<ScopedStarPlacement>,
     activations: Vec<MutagenActivation>,
 }
 
@@ -169,7 +205,7 @@ impl TemporalLayer {
     pub fn try_new(
         scope: Scope,
         context: TemporalContext,
-        placements: Vec<StarPlacement>,
+        placements: Vec<ScopedStarPlacement>,
         activations: Vec<MutagenActivation>,
     ) -> Result<Self, ChartError> {
         if scope == Scope::Natal {
@@ -218,8 +254,8 @@ impl TemporalLayer {
         &self.context
     }
 
-    /// Returns the star placements scoped to this layer.
-    pub fn placements(&self) -> &[StarPlacement] {
+    /// Returns the branch-positioned star placements scoped to this layer.
+    pub fn placements(&self) -> &[ScopedStarPlacement] {
         &self.placements
     }
 
@@ -240,7 +276,7 @@ impl<'de> Deserialize<'de> for TemporalLayer {
         struct TemporalLayerData {
             scope: Scope,
             context: TemporalContext,
-            placements: Vec<StarPlacement>,
+            placements: Vec<ScopedStarPlacement>,
             activations: Vec<MutagenActivation>,
         }
 

@@ -9,7 +9,10 @@ pub mod horoscope;
 pub mod palace;
 
 pub use chart::{
-    Chart, MajorStarPlacementRef, PALACE_COUNT, Palace, StarPlacement, StarPlacementRef,
+    Chart, DecorativeStarFamily, DecorativeStarPlacement, DecorativeStarPlacementRef,
+    MajorStarPlacementRef, PALACE_COUNT, Palace, StarPlacement, StarPlacementRef,
 };
-pub use horoscope::{HoroscopeChart, MutagenActivation, TemporalContext, TemporalLayer};
+pub use horoscope::{
+    HoroscopeChart, MutagenActivation, ScopedStarPlacement, TemporalContext, TemporalLayer,
+};
 pub use palace::{PALACE_NAMES, PalaceName};
