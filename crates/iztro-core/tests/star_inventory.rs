@@ -29,7 +29,7 @@ const FLOW_BASES: [FlowStarBase; 10] = [
 
 #[test]
 fn represented_metadata_table_stays_strict() {
-    assert_eq!(represented_star_metadata_table().len(), 66);
+    assert_eq!(represented_star_metadata_table().len(), 70);
 }
 
 #[test]
@@ -56,15 +56,25 @@ fn every_represented_star_is_known() {
 }
 
 #[test]
-fn non_represented_runtime_stars_are_known_but_not_represented() {
-    let long_de = known_star_metadata(StarName::LongDeAdj);
-    assert_eq!(long_de.key(), "long_de_adj");
-    assert_eq!(long_de.upstream_key(), "longde");
-    assert_eq!(long_de.chinese_name(), "龙德");
-    assert_eq!(long_de.family(), KnownStarFamily::ZhongzhouAdjective);
-    assert_eq!(long_de.kind(), Some(StarKind::Adjective));
-    assert!(try_star_metadata(StarName::LongDeAdj).is_none());
+fn zhongzhou_adjective_stars_are_known_and_represented() {
+    for (star, key, upstream, chinese) in [
+        (StarName::LongDeAdj, "long_de_adj", "longde", "龙德"),
+        (StarName::JieKong, "jie_kong", "jiekong", "截空"),
+        (StarName::JieShaAdj, "jie_sha_adj", "jieshaAdj", "劫杀"),
+        (StarName::DaHaoAdj, "da_hao_adj", "dahao", "大耗"),
+    ] {
+        let metadata = known_star_metadata(star);
+        assert_eq!(metadata.key(), key);
+        assert_eq!(metadata.upstream_key(), upstream);
+        assert_eq!(metadata.chinese_name(), chinese);
+        assert_eq!(metadata.family(), KnownStarFamily::ZhongzhouAdjective);
+        assert_eq!(metadata.kind(), Some(StarKind::Adjective));
+        assert!(try_star_metadata(star).is_some());
+    }
+}
 
+#[test]
+fn non_represented_runtime_stars_are_known_but_not_represented() {
     let da_hao = known_star_metadata(StarName::DaHaoSuiqian);
     assert_eq!(da_hao.key(), "da_hao_suiqian");
     assert_eq!(da_hao.upstream_key(), "dahao");

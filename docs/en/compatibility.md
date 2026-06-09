@@ -39,20 +39,22 @@ The committed fixture JSON files remain the compatibility source of truth.
 
 `iztro-core` now keeps two separate star metadata surfaces:
 
-- `represented_star_metadata_table()` remains strict: it covers only the **66**
+- `represented_star_metadata_table()` remains strict: it covers only the **70**
   stars currently represented by chart facts, placed by Rust code, and validated
-  by fixtures.
+  by fixtures. Four represented adjective stars are algorithm-gated and appear
+  only under `ChartAlgorithmKind::Zhongzhou`.
 - `known_star_metadata_table()` inventories the broader upstream
   `iztro@2.5.8` runtime star-name universe: **170** known entries spanning the
-  represented stars, Zhongzhou-only adjective stars, decorative runtime arrays
+  represented stars, decorative runtime arrays
   (`changsheng12`, `boshi12`, `suiqian12`, `jiangqian12`), and horoscope flow
   star names for decadal, yearly, monthly, daily, and hourly scopes.
 
-Known metadata is inventory-only. It does not mean `iztro-rs` places those
-stars, validates them against fixtures, assigns brightness, derives temporal
-palaces, or implements horoscope placement. Decorative runtime entries have no
-upstream `FunctionalStar` type and therefore no `StarKind`; horoscope flow
-entries keep the upstream fine type where iztro assigns one.
+Known metadata outside the represented table is inventory-only. It does not mean
+`iztro-rs` places those stars, validates them against fixtures, assigns
+brightness, derives temporal palaces, or implements horoscope placement.
+Decorative runtime entries have no upstream `FunctionalStar` type and therefore
+no `StarKind`; horoscope flow entries keep the upstream fine type where iztro
+assigns one.
 
 The upstream locale key `xunzhong` / `旬中` is intentionally excluded because no
 built-in upstream `FunctionalStar` construction or `StarType` assignment was
@@ -124,10 +126,13 @@ The fixtures are:
 - `fixtures/iztro/adjective_stars_full_default_1990_05_17_chen_female.json`
 - `fixtures/iztro/adjective_stars_full_default_1988_03_14_zi_male.json`
 - `fixtures/iztro/adjective_stars_full_default_1991_08_09_hai_female.json`
+- `fixtures/iztro/zhongzhou_adjective_stars_1990_05_17_chen_female.json`
+- `fixtures/iztro/zhongzhou_adjective_stars_1988_03_14_zi_male.json`
+- `fixtures/iztro/zhongzhou_adjective_stars_1991_08_09_hai_female.json`
 
 Only the current full default-algorithm adjective-star fixtures (38 stars each)
-are kept in-tree. Earlier, smaller adjective-star subsets are available through
-git history.
+and Zhongzhou adjective-star fixtures (40 stars each) are kept in-tree. Earlier,
+smaller adjective-star subsets are available through git history.
 
 The minimal-natal fixture compares only fields currently implemented by
 `iztro-rs`:
@@ -289,6 +294,30 @@ extraction, rule-engine output, narrative output, solar-to-lunar conversion,
 leap-month behavior, rat-hour variants, or temporal star scopes (大限, yearly, or
 other flowing scopes).
 
+### Zhongzhou natal adjective-star set
+
+The three `zhongzhou_adjective_stars_*` fixtures compare the
+`ChartAlgorithmKind::Zhongzhou` natal adjective-star output against iztro
+2.5.8's Zhongzhou `getAdjectiveStar` behavior. Zhongzhou output keeps the common
+default natal adjective/helper stars, does not place the default 截路 (`JieLu`) or
+空亡 (`KongWang`) pair, and adds four Zhongzhou-only natal adjective stars:
+龙德 (`LongDeAdj`), 截空 (`JieKong`), 劫杀 (`JieShaAdj`), and 大耗
+(`DaHaoAdj`). It also follows iztro `getTianshiTianshangIndex`, including the
+Zhongzhou-only 天伤/天使 yin-yang/gender swap when applicable.
+
+For Zhongzhou, `by_lunar` / `build_natal_chart_with_supported_stars` now yields
+14 major + 14 minor + 40 adjective/helper = **68 natal stars**. The default and
+placeholder/non-Zhongzhou profile output remains unchanged at **66 natal stars**.
+The represented metadata table includes both default-only and Zhongzhou-only
+algorithm-gated natal adjective stars, so it now has **70** represented stars
+total: 14 major + 14 minor + 42 natal adjective/helper stars.
+
+This fixture set still does **not** compare decorative runtime arrays,
+adjective-star brightness, feature extraction, rule-engine output, narrative
+output, solar-to-lunar conversion, leap-month behavior, rat-hour variants,
+horoscope placement, or temporal star scopes. 四化 remain `Mutagen` /
+`MutagenActivation` facts, not `StarName` variants.
+
 ### Adjective/helper star coverage
 
 iztro 2.5.8 `getAdjectiveStar` emits **38** natal-origin 杂曜 under the default
@@ -299,14 +328,11 @@ already threads — lunar month, lunar day, birth time, birth-year stem,
 birth-year branch, and the Life/Body palace branches. None require temporal
 layers, solar-to-lunar conversion, leap-month handling, or rat-hour variants.
 
-The remaining four 杂曜 are **Zhongzhou-only** (Zhongzhou variant
-`algorithm: 'zhongzhou'`) and stay deferred along with Zhongzhou algorithm
-selection itself: 龙德 LongDe, 截空 JieKong, 劫煞 JieSha (adj), 大耗 DaHao (adj).
-Under Zhongzhou these four replace the default 截路/空亡 pair. 神煞 beyond this
-default `getAdjectiveStar` slice, 流曜, and all temporal/horoscope placement also
-remain deferred. These four Zhongzhou-only names are known in the metadata
-inventory, but they are not placed or fixture-covered. 四化 remain
-`mutagen: Option<Mutagen>` facts on placements, not independent stars.
+The Zhongzhou variant `algorithm: 'zhongzhou'` is now supported for the four
+Zhongzhou-only natal adjective stars. 神煞 beyond the supported
+`getAdjectiveStar` slice, 流曜, and all temporal/horoscope placement remain
+deferred. 四化 remain `mutagen: Option<Mutagen>` facts on placements, not
+independent stars.
 
 ## Golden tests
 

@@ -37,15 +37,16 @@ const MINOR_STAR_METADATA: [StarMetadata; 14] = [
     StarMetadata::new("di_jie", "地劫", StarName::DiJie, StarKind::Tough),
 ];
 
-/// Factual metadata for the full default-algorithm adjective-star (杂曜) set.
+/// Factual metadata for the supported natal adjective-star (杂曜) set.
 ///
-/// This is the complete set of 38 natal-origin 杂曜 emitted by iztro 2.5.8
-/// `getAdjectiveStar` under the default (non-Zhongzhou) algorithm. 红鸾/天喜/
+/// This includes the complete set of 38 natal-origin 杂曜 emitted by iztro 2.5.8
+/// `getAdjectiveStar` under the default (non-Zhongzhou) algorithm, plus the
+/// four Zhongzhou-only natal adjective stars (龙德/截空/劫煞/大耗). 红鸾/天喜/
 /// 天姚/咸池 are peach-blossom (`Flower`) stars; 解神/年解 are `Helper` stars;
-/// the remaining 32 are plain miscellaneous (`Adjective`) stars. All derive
-/// [`StarCategory::Adjective`]. The Zhongzhou-only 杂曜 (龙德/截空/劫煞/大耗),
-/// adjective-star brightness, and 神煞 beyond this slice stay out of scope.
-const ADJECTIVE_STAR_METADATA: [StarMetadata; 38] = [
+/// the remaining represented natal 杂曜 are plain miscellaneous (`Adjective`)
+/// stars. All derive [`StarCategory::Adjective`]. Adjective-star brightness and
+/// 神煞 beyond this slice stay out of scope.
+const ADJECTIVE_STAR_METADATA: [StarMetadata; 42] = [
     StarMetadata::new("hong_luan", "红鸾", StarName::HongLuan, StarKind::Flower),
     StarMetadata::new("tian_xi", "天喜", StarName::TianXi, StarKind::Flower),
     StarMetadata::new("tian_yao", "天姚", StarName::TianYao, StarKind::Flower),
@@ -99,10 +100,29 @@ const ADJECTIVE_STAR_METADATA: [StarMetadata; 38] = [
     StarMetadata::new("jie_lu", "截路", StarName::JieLu, StarKind::Adjective),
     StarMetadata::new("kong_wang", "空亡", StarName::KongWang, StarKind::Adjective),
     StarMetadata::new("xun_kong", "旬空", StarName::XunKong, StarKind::Adjective),
+    StarMetadata::new(
+        "long_de_adj",
+        "龙德",
+        StarName::LongDeAdj,
+        StarKind::Adjective,
+    ),
+    StarMetadata::new("jie_kong", "截空", StarName::JieKong, StarKind::Adjective),
+    StarMetadata::new(
+        "jie_sha_adj",
+        "劫杀",
+        StarName::JieShaAdj,
+        StarKind::Adjective,
+    ),
+    StarMetadata::new(
+        "da_hao_adj",
+        "大耗",
+        StarName::DaHaoAdj,
+        StarKind::Adjective,
+    ),
 ];
 
 /// Factual metadata for all currently represented stars.
-const REPRESENTED_STAR_METADATA: [StarMetadata; 66] = [
+const REPRESENTED_STAR_METADATA: [StarMetadata; 70] = [
     StarMetadata::new("zi_wei", "紫微", StarName::ZiWei, StarKind::Major),
     StarMetadata::new("tian_ji", "天机", StarName::TianJi, StarKind::Major),
     StarMetadata::new("tai_yang", "太阳", StarName::TaiYang, StarKind::Major),
@@ -184,6 +204,25 @@ const REPRESENTED_STAR_METADATA: [StarMetadata; 66] = [
     StarMetadata::new("jie_lu", "截路", StarName::JieLu, StarKind::Adjective),
     StarMetadata::new("kong_wang", "空亡", StarName::KongWang, StarKind::Adjective),
     StarMetadata::new("xun_kong", "旬空", StarName::XunKong, StarKind::Adjective),
+    StarMetadata::new(
+        "long_de_adj",
+        "龙德",
+        StarName::LongDeAdj,
+        StarKind::Adjective,
+    ),
+    StarMetadata::new("jie_kong", "截空", StarName::JieKong, StarKind::Adjective),
+    StarMetadata::new(
+        "jie_sha_adj",
+        "劫杀",
+        StarName::JieShaAdj,
+        StarKind::Adjective,
+    ),
+    StarMetadata::new(
+        "da_hao_adj",
+        "大耗",
+        StarName::DaHaoAdj,
+        StarKind::Adjective,
+    ),
 ];
 
 /// Factual metadata for a represented star.
@@ -1814,6 +1853,10 @@ pub fn try_adjective_star_metadata(star: StarName) -> Option<&'static StarMetada
         StarName::JieLu => 35,
         StarName::KongWang => 36,
         StarName::XunKong => 37,
+        StarName::LongDeAdj => 38,
+        StarName::JieKong => 39,
+        StarName::JieShaAdj => 40,
+        StarName::DaHaoAdj => 41,
         _ => return None,
     };
 

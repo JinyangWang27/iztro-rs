@@ -1,11 +1,13 @@
 //! Deterministic adjective-star (杂曜) placement for the natal chart.
 //!
-//! Reproduces the full default-algorithm natal 杂曜 set of `iztro` 2.5.8
+//! Reproduces the full supported natal 杂曜 set of `iztro` 2.5.8
 //! `adjectiveStars` (`getAdjectiveStar` plus the `getLuanXiIndex`,
 //! `getMonthlyStarIndex`, `getTimelyStarIndex`, `getDailyStarIndex`,
 //! `getHuagaiXianchiIndex`, and `getYearlyStarIndex` helpers in `src/star`,
-//! MIT licensed). All 38 natal-origin stars iztro emits under the default
-//! (non-Zhongzhou) algorithm are placed here, grouped by placement basis:
+//! MIT licensed). The default (non-Zhongzhou) algorithm places 38 natal-origin
+//! stars. Zhongzhou keeps the common natal stars, replaces 截路/空亡 with
+//! 龙德/截空/劫煞/大耗, and may swap 天伤/天使 by year-branch/gender polarity.
+//! The common stars are grouped by placement basis:
 //!
 //! - 红鸾 (HongLuan) / 天喜 (TianXi): from the birth year branch;
 //! - 天姚 (TianYao) / 天刑 (TianXing): from the lunar month;
@@ -30,20 +32,21 @@
 //! - 旬空 (XunKong): the 旬中空亡 void branch whose阴阳 polarity matches the birth
 //!   year branch.
 //!
-//! The Zhongzhou-only 杂曜 (龙德/截空/劫煞/大耗) and Zhongzhou algorithm
-//! selection, 神煞 beyond this default slice, adjective-star brightness,
-//! temporal scopes, horoscope placement, leap-month behavior, and rat-hour
-//! variants stay out of scope. 四化 remain `mutagen: Option<Mutagen>` facts on
-//! placements, never independent stars.
+//! 神煞 beyond this supported natal slice, adjective-star brightness, temporal
+//! scopes, horoscope placement, leap-month behavior, and rat-hour variants stay
+//! out of scope. 四化 remain `mutagen: Option<Mutagen>` facts on placements,
+//! never independent stars.
 
 use crate::error::ChartError;
+use crate::model::calendar::Gender;
 use crate::model::chart::{Chart, Palace, StarPlacement};
 use crate::model::ganzhi::{EarthlyBranch, HeavenlyStem};
+use crate::model::profile::ChartAlgorithmKind;
 use crate::model::star::mutagen::Scope;
 use crate::model::star::{Brightness, StarMetadata, StarName};
 use crate::placement::natal::life_body::{LunarDay, LunarMonth};
 
-/// Inputs required to place the default-algorithm adjective-star set.
+/// Inputs required to place the supported natal adjective-star set.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub struct AdjectiveStarPlacementInput {
     lunar_month: LunarMonth,
@@ -204,7 +207,7 @@ impl AdjectiveStarPlacer for DeterministicAdjectiveStarPlacer {
 fn adjective_star_placements(
     chart: &Chart,
     input: AdjectiveStarPlacementInput,
-) -> Result<[(EarthlyBranch, StarName); 38], ChartError> {
+) -> Result<Vec<(EarthlyBranch, StarName)>, ChartError> {
     // iztro `getMonthlyStarIndex` lookup tables, indexed by the zero-based lunar
     // month (正月 = 0). Each entry is the target Earthly Branch.
     const TIAN_WU_BY_MONTH: [EarthlyBranch; 4] = [
@@ -271,6 +274,20 @@ fn adjective_star_placements(
         EarthlyBranch::Zi,
         EarthlyBranch::Hai,
     ];
+    const DA_HAO_ADJ_BY_YEAR_BRANCH: [EarthlyBranch; 12] = [
+        EarthlyBranch::Wei,
+        EarthlyBranch::Wu,
+        EarthlyBranch::You,
+        EarthlyBranch::Shen,
+        EarthlyBranch::Hai,
+        EarthlyBranch::Xu,
+        EarthlyBranch::Chou,
+        EarthlyBranch::Zi,
+        EarthlyBranch::Mao,
+        EarthlyBranch::Yin,
+        EarthlyBranch::Si,
+        EarthlyBranch::Chen,
+    ];
 
     let month_index = usize::from(input.lunar_month().value()) - 1;
     let month_offset = month_index as isize;
@@ -327,16 +344,23 @@ fn adjective_star_placements(
     let jie_lu = jie_lu_branch(year_stem);
     let kong_wang = kong_wang_branch(year_stem);
     // Life/Body-palace anchored group. 天才/天寿 count forward from the Life /
-    // Body palaces by the birth year branch index; 天伤/天使 occupy the 仆役
-    // (Life + 5) and 疾厄 (Life + 7) palaces under the default algorithm.
+    // Body palaces by the birth year branch index. 天伤/天使 occupy the 仆役
+    // (Life + 5) and 疾厄 (Life + 7) palaces under the default algorithm, but
+    // iztro `getTianshiTianshangIndex` swaps them for Zhongzhou when the birth
+    // year branch polarity and gender polarity differ.
     let tian_cai = life_branch.offset(year_branch_offset);
     let tian_shou = body_branch.offset(year_branch_offset);
-    let tian_shang = life_branch.offset(5);
-    let tian_shi = life_branch.offset(7);
+    let (tian_shang, tian_shi) = tian_shang_tian_shi_branches(
+        chart.method_profile().algorithm_kind(),
+        chart.birth_context().gender(),
+        year_branch,
+        life_branch,
+    );
     // Void / 空亡 family.
     let xun_kong = xun_kong_branch(year_stem, year_branch);
 
-    Ok([
+    let mut placements = Vec::with_capacity(40);
+    placements.extend([
         (hong_luan, StarName::HongLuan),
         (tian_xi, StarName::TianXi),
         (tian_yao, StarName::TianYao),
@@ -372,10 +396,39 @@ fn adjective_star_placements(
         (tian_shou, StarName::TianShou),
         (tian_shang, StarName::TianShang),
         (tian_shi, StarName::TianShi),
-        (jie_lu, StarName::JieLu),
-        (kong_wang, StarName::KongWang),
         (xun_kong, StarName::XunKong),
-    ])
+    ]);
+
+    match chart.method_profile().algorithm_kind() {
+        ChartAlgorithmKind::Zhongzhou => {
+            placements.extend([
+                // iztro `getAdjectiveStar` reads 龙德 from Zhongzhou `getYearly12`
+                // suiqian12: LongDe sits seven palaces forward from the year branch.
+                (year_branch.offset(7), StarName::LongDeAdj),
+                // iztro `getYearlyStarIndex` `jiekongIndex`: yang year branch
+                // uses 截路's branch, yin year branch uses 空亡's branch.
+                (
+                    zhongzhou_jie_kong_branch(year_branch, jie_lu, kong_wang),
+                    StarName::JieKong,
+                ),
+                (
+                    zhongzhou_jie_sha_adj_branch(year_branch),
+                    StarName::JieShaAdj,
+                ),
+                (
+                    DA_HAO_ADJ_BY_YEAR_BRANCH[year_branch_index],
+                    StarName::DaHaoAdj,
+                ),
+            ]);
+        }
+        ChartAlgorithmKind::QuanShu | ChartAlgorithmKind::Placeholder => {
+            // Placeholder keeps the historical default path for backward
+            // compatibility until callers opt into an explicit algorithm.
+            placements.extend([(jie_lu, StarName::JieLu), (kong_wang, StarName::KongWang)]);
+        }
+    }
+
+    Ok(placements)
 }
 
 fn hua_gai_branch(year_branch: EarthlyBranch) -> EarthlyBranch {
@@ -499,6 +552,48 @@ fn kong_wang_branch(year_stem: HeavenlyStem) -> EarthlyBranch {
         HeavenlyStem::Bing | HeavenlyStem::Xin => EarthlyBranch::Si,
         HeavenlyStem::Ding | HeavenlyStem::Ren => EarthlyBranch::Mao,
         HeavenlyStem::Wu | HeavenlyStem::Gui => EarthlyBranch::Chou,
+    }
+}
+
+fn zhongzhou_jie_kong_branch(
+    year_branch: EarthlyBranch,
+    jie_lu: EarthlyBranch,
+    kong_wang: EarthlyBranch,
+) -> EarthlyBranch {
+    if year_branch.index() % 2 == 0 {
+        jie_lu
+    } else {
+        kong_wang
+    }
+}
+
+fn zhongzhou_jie_sha_adj_branch(year_branch: EarthlyBranch) -> EarthlyBranch {
+    match year_branch {
+        EarthlyBranch::Shen | EarthlyBranch::Zi | EarthlyBranch::Chen => EarthlyBranch::Si,
+        EarthlyBranch::Hai | EarthlyBranch::Mao | EarthlyBranch::Wei => EarthlyBranch::Shen,
+        EarthlyBranch::Yin | EarthlyBranch::Wu | EarthlyBranch::Xu => EarthlyBranch::Hai,
+        EarthlyBranch::Si | EarthlyBranch::You | EarthlyBranch::Chou => EarthlyBranch::Yin,
+    }
+}
+
+fn tian_shang_tian_shi_branches(
+    algorithm: ChartAlgorithmKind,
+    gender: Gender,
+    year_branch: EarthlyBranch,
+    life_branch: EarthlyBranch,
+) -> (EarthlyBranch, EarthlyBranch) {
+    let default_tian_shang = life_branch.offset(5);
+    let default_tian_shi = life_branch.offset(7);
+    let same_yinyang = year_branch.index() % 2
+        == match gender {
+            Gender::Male => 0,
+            Gender::Female => 1,
+        };
+
+    if algorithm == ChartAlgorithmKind::Zhongzhou && !same_yinyang {
+        (default_tian_shi, default_tian_shang)
+    } else {
+        (default_tian_shang, default_tian_shi)
     }
 }
 

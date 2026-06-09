@@ -38,16 +38,17 @@ source of truth。
 `iztro-core` 现在保留两套相互独立的星曜 metadata surface：
 
 - `represented_star_metadata_table()` 仍保持严格边界：只覆盖当前由星盘事实表示、由
-  Rust 代码安放、并由 fixtures 校验的 **66** 颗星。
+  Rust 代码安放、并由 fixtures 校验的 **70** 颗星。其中四颗已表示杂曜受算法门控，
+  只会在 `ChartAlgorithmKind::Zhongzhou` 下出现在星盘输出中。
 - `known_star_metadata_table()` 清点更广的上游 `iztro@2.5.8` runtime 星曜名称宇宙：
-  **170** 个已知条目，包含已表示星曜、中州派特有杂曜、装饰性 runtime 数组
+  **170** 个已知条目，包含已表示星曜、装饰性 runtime 数组
   （`changsheng12`、`boshi12`、`suiqian12`、`jiangqian12`），以及大限、流年、流月、
   流日、流时的 horoscope 流曜名称。
 
-Known metadata 仅为清单，不表示 `iztro-rs` 已安放这些星曜、以 fixtures 校验它们、
-分配亮度、推导时间宫位，或实现 horoscope 安星。装饰性 runtime 条目在上游没有
-`FunctionalStar` type，因此没有 `StarKind`；horoscope 流曜条目则保留 iztro 已分配
-的细分类。
+已表示表之外的 known metadata 仅为清单，不表示 `iztro-rs` 已安放这些星曜、以
+fixtures 校验它们、分配亮度、推导时间宫位，或实现 horoscope 安星。装饰性 runtime
+条目在上游没有 `FunctionalStar` type，因此没有 `StarKind`；horoscope 流曜条目则保留
+iztro 已分配的细分类。
 
 上游 locale key `xunzhong` / `旬中` 被有意排除，因为在 `iztro@2.5.8` 中没有找到
 内置的 `FunctionalStar` 构造或 `StarType` 分配。四化仍作为 `Mutagen` /
@@ -105,9 +106,12 @@ fixtures 为：
 - `fixtures/iztro/adjective_stars_full_default_1990_05_17_chen_female.json`
 - `fixtures/iztro/adjective_stars_full_default_1988_03_14_zi_male.json`
 - `fixtures/iztro/adjective_stars_full_default_1991_08_09_hai_female.json`
+- `fixtures/iztro/zhongzhou_adjective_stars_1990_05_17_chen_female.json`
+- `fixtures/iztro/zhongzhou_adjective_stars_1988_03_14_zi_male.json`
+- `fixtures/iztro/zhongzhou_adjective_stars_1991_08_09_hai_female.json`
 
-仅保留当前完整默认算法杂曜 fixtures（每个 38 颗星）在源码树中；更早、更小的杂曜
-子集可通过 git history 获取。
+仅保留当前完整默认算法杂曜 fixtures（每个 38 颗星）和中州派杂曜 fixtures（每个
+40 颗星）在源码树中；更早、更小的杂曜子集可通过 git history 获取。
 
 minimal-natal fixture 只比较 `iztro-rs` 当前已实现的字段：
 
@@ -237,6 +241,25 @@ bindings、Python bindings 或 WebAssembly bindings。
 该组 fixtures 仍**不**比较杂曜亮度、特征提取、规则引擎输出、叙事输出、阳历转农历、
 闰月行为、早晚子时变体，或时间范围星曜（大限、流年或其他流曜范围）。
 
+### 中州派本命杂曜
+
+三个 `zhongzhou_adjective_stars_*` fixtures 将 `ChartAlgorithmKind::Zhongzhou`
+的本命杂曜输出与 iztro 2.5.8 中州派 `getAdjectiveStar` 行为对照。中州派输出保留
+默认算法共通的本命杂曜/辅助星，不安放默认的截路（`JieLu`）与空亡（`KongWang`）
+两颗，并新增四颗中州派特有本命杂曜：龙德（`LongDeAdj`）、截空（`JieKong`）、
+劫杀（`JieShaAdj`）和大耗（`DaHaoAdj`）。同时复现 iztro
+`getTianshiTianshangIndex`，包括适用时中州派特有的天伤/天使阴阳性别互换。
+
+在中州派下，`by_lunar` / `build_natal_chart_with_supported_stars` 现在产出
+14 主星 + 14 辅星 + 40 杂曜/辅助星 = **68 颗本命星**。默认与
+placeholder/非中州派 profile 输出保持不变，仍为 **66 颗本命星**。已表示 metadata
+table 同时包含默认专属与中州派专属的算法门控本命杂曜，因此总数为 **70**：
+14 主星 + 14 辅星 + 42 颗本命杂曜/辅助星。
+
+该组 fixtures 仍**不**比较装饰性 runtime 数组、杂曜亮度、特征提取、规则引擎输出、
+叙事输出、阳历转农历、闰月行为、早晚子时变体、horoscope 安星或时间范围星曜。
+四化仍作为 `Mutagen` / `MutagenActivation` 事实存在，而不是 `StarName` variants。
+
 ### 杂曜/辅助星覆盖
 
 iztro 2.5.8 `getAdjectiveStar` 在默认（非中州派）算法下输出 **38** 颗本命
@@ -245,12 +268,9 @@ iztro 2.5.8 `getAdjectiveStar` 在默认（非中州派）算法下输出 **38**
 输入推出——农历月、农历日、出生时辰、出生年干、出生年支，以及命宫/身宫地支。它们
 都不需要时间范围层、阳历转农历、闰月或早晚子时变体。
 
-其余四颗杂曜为**中州派特有**（中州派变体 `algorithm: 'zhongzhou'`），与中州派算法
-选择本身一并延后：龙德 LongDe、截空 JieKong、劫煞 JieSha（杂曜）、大耗 DaHao
-（杂曜）。在中州派下，这四颗取代默认的截路/空亡两颗。本默认 `getAdjectiveStar`
-切片以外的神煞、流曜，以及所有时间/horoscope 安星同样延后。这四个中州派特有名称
-已进入 metadata 清单，但尚未安放，也没有 fixture 覆盖。四化仍作为
-`mutagen: Option<Mutagen>` 事实附于安星，而非独立星曜。
+中州派变体 `algorithm: 'zhongzhou'` 现在已支持四颗中州派特有本命杂曜。本已支持的
+`getAdjectiveStar` 切片以外的神煞、流曜，以及所有时间/horoscope 安星仍然延期。
+四化仍作为 `mutagen: Option<Mutagen>` 事实附于安星，而非独立星曜。
 
 ## Golden tests
 
