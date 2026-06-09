@@ -33,8 +33,9 @@ pub use model::star::mutagen::{
     Mutagen, Scope, birth_year_major_star_mutagen, birth_year_star_mutagen,
 };
 pub use model::star::{
-    Brightness, StarCategory, StarKind, StarMetadata, StarName, represented_star_metadata_table,
-    star_metadata, try_star_metadata,
+    Brightness, KnownStarFamily, KnownStarMetadata, StarCategory, StarKind, StarMetadata, StarName,
+    known_star_metadata, known_star_metadata_table, represented_star_metadata_table, star_metadata,
+    try_known_star_metadata, try_star_metadata,
 };
 
 pub use placement::natal::adjective::{
