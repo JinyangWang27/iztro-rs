@@ -37,6 +37,7 @@ reorganization only; the public API and chart behavior are unchanged.
 - [x] Define chart, palace, and star placement models.
 - [x] Define decadal and horoscope models.
 - [x] Ensure implemented models are strongly typed and serializable.
+- [x] Inventory upstream `iztro@2.5.8` runtime star names separately from represented chart facts.
 
 Decadal and horoscope models are defined as overlays: `HoroscopeChart` wraps an
 immutable natal `Chart` and holds zero or more `TemporalLayer`s, each with a
@@ -53,6 +54,14 @@ only — no flow stars, no natal mutation, no calendar/age-range/大限命宫/de
 palace derivation — and 四化 stay modeled as `MutagenActivation` facts, not
 independent stars.
 
+Star metadata is intentionally split. The represented metadata table remains
+the 66 placed and fixture-covered natal stars. The known metadata table records
+170 upstream `iztro@2.5.8` runtime star-name entries, including Zhongzhou-only
+杂曜, decorative arrays, and horoscope flow-star names, but those additional
+entries are metadata-only. `xunzhong` / `旬中` is excluded as locale-only, and
+Zhongzhou placement, 神煞 placement, 流曜 placement, horoscope placement,
+brightness expansion, and mutagen-as-star modeling remain deferred.
+
 ## Phase 3: Chart generation compatibility
 
 - [x] Implement minimal `by_lunar` entry point.
@@ -64,6 +73,10 @@ independent stars.
 - [ ] Add solar-to-lunar conversion, leap-month behavior, rat-hour variants, temporal star scopes, and bindings.
 
 Current core slice: `by_lunar` accepts explicit lunar inputs plus explicit birth-year stem and branch, builds deterministic natal chart facts, and validates minimal chart fields, fourteen major stars, fourteen supported minor stars, and the complete default-algorithm set of 38 natal adjective/helper stars against selected `iztro` 2.5.8 fixtures — 14 major + 14 minor + 38 adjective/helper = 66 represented natal stars. The Zhongzhou-only 杂曜 and Zhongzhou algorithm selection, 神煞 beyond the default `getAdjectiveStar` slice, 流曜, solar-to-lunar conversion, leap-month behavior, rat-hour variants, temporal/horoscope star scopes, and bindings remain deferred. 四化 remain `Mutagen` facts on placements, not independent stars.
+
+The broader known star-name inventory supports API discovery and future scoped
+work, but it does not change `by_lunar`, placement behavior, fixtures,
+brightness, or mutagen modeling.
 
 ## Phase 4: Feature extraction
 

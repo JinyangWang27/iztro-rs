@@ -35,6 +35,30 @@ For local upstream inspection, use the pinned npm reference workspace under
 `npm ci --prefix tools/iztro-reference`.
 The committed fixture JSON files remain the compatibility source of truth.
 
+## Star-name inventory
+
+`iztro-core` now keeps two separate star metadata surfaces:
+
+- `represented_star_metadata_table()` remains strict: it covers only the **66**
+  stars currently represented by chart facts, placed by Rust code, and validated
+  by fixtures.
+- `known_star_metadata_table()` inventories the broader upstream
+  `iztro@2.5.8` runtime star-name universe: **170** known entries spanning the
+  represented stars, Zhongzhou-only adjective stars, decorative runtime arrays
+  (`changsheng12`, `boshi12`, `suiqian12`, `jiangqian12`), and horoscope flow
+  star names for decadal, yearly, monthly, daily, and hourly scopes.
+
+Known metadata is inventory-only. It does not mean `iztro-rs` places those
+stars, validates them against fixtures, assigns brightness, derives temporal
+palaces, or implements horoscope placement. Decorative runtime entries have no
+upstream `FunctionalStar` type and therefore no `StarKind`; horoscope flow
+entries keep the upstream fine type where iztro assigns one.
+
+The upstream locale key `xunzhong` / `旬中` is intentionally excluded because no
+built-in upstream `FunctionalStar` construction or `StarType` assignment was
+found for it in `iztro@2.5.8`. 四化 remain `Mutagen` /
+`MutagenActivation` facts, not `StarName` variants.
+
 ## Public facade compatibility
 
 `by_lunar` is the first iztro-compatible facade entry point in `iztro-rs`. It
@@ -280,8 +304,9 @@ The remaining four 杂曜 are **Zhongzhou-only** (Zhongzhou variant
 selection itself: 龙德 LongDe, 截空 JieKong, 劫煞 JieSha (adj), 大耗 DaHao (adj).
 Under Zhongzhou these four replace the default 截路/空亡 pair. 神煞 beyond this
 default `getAdjectiveStar` slice, 流曜, and all temporal/horoscope placement also
-remain deferred. 四化 remain `mutagen: Option<Mutagen>` facts on placements, not
-independent stars.
+remain deferred. These four Zhongzhou-only names are known in the metadata
+inventory, but they are not placed or fixture-covered. 四化 remain
+`mutagen: Option<Mutagen>` facts on placements, not independent stars.
 
 ## Golden tests
 
