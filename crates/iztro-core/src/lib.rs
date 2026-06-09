@@ -70,6 +70,7 @@ pub use placement::natal::supported::{
     build_natal_chart_with_major_stars, build_natal_chart_with_supported_stars,
 };
 pub use placement::overlay::decadal::{DecadalMutagenLayerInput, build_decadal_mutagen_layer};
+pub use placement::overlay::flow::build_flow_star_layer;
 pub use placement::overlay::yearly::{YearlyMutagenLayerInput, build_yearly_mutagen_layer};
 
 pub use facade::by_lunar::{LunarChartRequest, LunarChartRequestBuilder, by_lunar};

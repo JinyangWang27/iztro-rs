@@ -49,6 +49,54 @@ pub(crate) fn lu_yang_tuo_ma_branches(
     (lu, lu.offset(1), lu.offset(-1), ma)
 }
 
+/// Returns the 文昌/文曲 branches by Heavenly Stem
+/// (iztro `getChangQuIndexByHeavenlyStem`).
+///
+/// This is the **flow** 昌曲 rule and is deliberately distinct from the natal
+/// time-based 文昌文曲 rule (iztro `getChangQuIndex`).
+pub(crate) const fn chang_qu_branches_by_stem(
+    stem: HeavenlyStem,
+) -> (EarthlyBranch, EarthlyBranch) {
+    match stem {
+        HeavenlyStem::Jia => (EarthlyBranch::Si, EarthlyBranch::You),
+        HeavenlyStem::Yi => (EarthlyBranch::Wu, EarthlyBranch::Shen),
+        HeavenlyStem::Bing | HeavenlyStem::Wu => (EarthlyBranch::Shen, EarthlyBranch::Wu),
+        HeavenlyStem::Ding | HeavenlyStem::Ji => (EarthlyBranch::You, EarthlyBranch::Si),
+        HeavenlyStem::Geng => (EarthlyBranch::Hai, EarthlyBranch::Mao),
+        HeavenlyStem::Xin => (EarthlyBranch::Zi, EarthlyBranch::Yin),
+        HeavenlyStem::Ren => (EarthlyBranch::Yin, EarthlyBranch::Zi),
+        HeavenlyStem::Gui => (EarthlyBranch::Mao, EarthlyBranch::Hai),
+    }
+}
+
+/// Returns the 红鸾/天喜 branches for a branch (iztro `getLuanXiIndex`):
+/// 红鸾 counts backward from 卯 by the branch's index, 天喜 sits opposite.
+pub(crate) fn luan_xi_branches(branch: EarthlyBranch) -> (EarthlyBranch, EarthlyBranch) {
+    let hong_luan = EarthlyBranch::Mao.offset(-(branch.index() as isize));
+    (hong_luan, hong_luan.offset(6))
+}
+
+/// Returns the 年解 branch for a year branch (iztro `getNianjieIndex`):
+/// 解神 starts at 戌 on 子 and counts backward to the year branch.
+pub(crate) fn nian_jie_branch(year_branch: EarthlyBranch) -> EarthlyBranch {
+    const NIAN_JIE_BY_YEAR_BRANCH: [EarthlyBranch; 12] = [
+        EarthlyBranch::Xu,
+        EarthlyBranch::You,
+        EarthlyBranch::Shen,
+        EarthlyBranch::Wei,
+        EarthlyBranch::Wu,
+        EarthlyBranch::Si,
+        EarthlyBranch::Chen,
+        EarthlyBranch::Mao,
+        EarthlyBranch::Yin,
+        EarthlyBranch::Chou,
+        EarthlyBranch::Zi,
+        EarthlyBranch::Hai,
+    ];
+
+    NIAN_JIE_BY_YEAR_BRANCH[year_branch.index()]
+}
+
 /// Returns the starting branch of the 长生十二神 for a five-element bureau
 /// (iztro `getChangesheng12StartIndex`).
 pub(crate) const fn changsheng_start_branch(bureau: FiveElementBureau) -> EarthlyBranch {
