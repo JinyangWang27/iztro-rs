@@ -1,4 +1,4 @@
-use crate::ganzhi::EarthlyBranch;
+use crate::model::ganzhi::EarthlyBranch;
 use serde::{Deserialize, Serialize};
 
 /// Calendar system used to express a birth date.

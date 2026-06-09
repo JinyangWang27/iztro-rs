@@ -1,12 +1,14 @@
 use crate::{
-    bureau::FiveElementBureau,
-    calendar::BirthContext,
     error::ChartError,
-    ganzhi::{EarthlyBranch, HeavenlyStem},
-    mutagen::{Mutagen, Scope},
-    palace::PalaceName,
-    profile::MethodProfile,
-    star::{Brightness, StarCategory, StarKind, StarName},
+    model::{
+        bureau::FiveElementBureau,
+        calendar::BirthContext,
+        chart::palace::PalaceName,
+        ganzhi::{EarthlyBranch, HeavenlyStem},
+        profile::MethodProfile,
+        star::mutagen::{Mutagen, Scope},
+        star::{Brightness, StarCategory, StarKind, StarName},
+    },
 };
 use serde::{Deserialize, Serialize};
 

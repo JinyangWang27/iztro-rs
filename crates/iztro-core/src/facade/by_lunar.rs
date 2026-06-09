@@ -1,14 +1,13 @@
 //! Convenient public facade entry points over strongly typed chart builders.
 
-use crate::{
-    calendar::{BirthContext, CalendarDate, Gender},
-    chart::Chart,
-    error::ChartError,
-    ganzhi::{EarthlyBranch, HeavenlyStem},
-    life_body::{LunarDay, LunarMonth},
-    natal::{NatalChartWithSupportedStarsInput, build_natal_chart_with_supported_stars},
-    profile::MethodProfile,
-};
+use crate::error::ChartError;
+use crate::model::calendar::{BirthContext, CalendarDate, Gender};
+use crate::model::chart::Chart;
+use crate::model::ganzhi::{EarthlyBranch, HeavenlyStem};
+use crate::model::profile::MethodProfile;
+use crate::placement::natal::input::NatalChartWithSupportedStarsInput;
+use crate::placement::natal::life_body::{LunarDay, LunarMonth};
+use crate::placement::natal::supported::build_natal_chart_with_supported_stars;
 
 /// Typed lunar-date request for the iztro-compatible natal chart facade.
 ///

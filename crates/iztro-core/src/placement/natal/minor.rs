@@ -5,14 +5,12 @@
 //! supported brightness tables, and represented birth-year mutagens are
 //! implemented here.
 
-use crate::{
-    chart::{Chart, Palace, StarPlacement},
-    error::ChartError,
-    ganzhi::{EarthlyBranch, HeavenlyStem},
-    life_body::LunarMonth,
-    mutagen::{Scope, birth_year_star_mutagen},
-    star::{Brightness, StarMetadata, StarName},
-};
+use crate::error::ChartError;
+use crate::model::chart::{Chart, Palace, StarPlacement};
+use crate::model::ganzhi::{EarthlyBranch, HeavenlyStem};
+use crate::model::star::mutagen::{Scope, birth_year_star_mutagen};
+use crate::model::star::{Brightness, StarMetadata, StarName};
+use crate::placement::natal::life_body::LunarMonth;
 
 /// Inputs required to place the supported fourteen minor stars.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
@@ -74,17 +72,17 @@ pub trait MinorStarPlacer {
 
 /// Returns factual metadata for the supported fourteen minor stars.
 pub const fn minor_star_metadata_table() -> &'static [StarMetadata; 14] {
-    crate::star::minor_star_metadata_table()
+    crate::model::star::minor_star_metadata_table()
 }
 
 /// Returns factual metadata for one supported minor star.
 pub fn minor_star_metadata(star: StarName) -> &'static StarMetadata {
-    crate::star::minor_star_metadata(star)
+    crate::model::star::minor_star_metadata(star)
 }
 
 /// Returns factual metadata for one minor star, if it is a represented minor star.
 pub fn try_minor_star_metadata(star: StarName) -> Option<&'static StarMetadata> {
-    crate::star::try_minor_star_metadata(star)
+    crate::model::star::try_minor_star_metadata(star)
 }
 
 /// Returns a minor star's brightness for a branch.

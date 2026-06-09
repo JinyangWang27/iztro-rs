@@ -36,14 +36,12 @@
 //! variants stay out of scope. 四化 remain `mutagen: Option<Mutagen>` facts on
 //! placements, never independent stars.
 
-use crate::{
-    chart::{Chart, Palace, StarPlacement},
-    error::ChartError,
-    ganzhi::{EarthlyBranch, HeavenlyStem},
-    life_body::{LunarDay, LunarMonth},
-    mutagen::Scope,
-    star::{Brightness, StarMetadata, StarName},
-};
+use crate::error::ChartError;
+use crate::model::chart::{Chart, Palace, StarPlacement};
+use crate::model::ganzhi::{EarthlyBranch, HeavenlyStem};
+use crate::model::star::mutagen::Scope;
+use crate::model::star::{Brightness, StarMetadata, StarName};
+use crate::placement::natal::life_body::{LunarDay, LunarMonth};
 
 /// Inputs required to place the default-algorithm adjective-star set.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
@@ -113,17 +111,17 @@ pub trait AdjectiveStarPlacer {
 
 /// Returns factual metadata for the supported adjective-star subset.
 pub const fn adjective_star_metadata_table() -> &'static [StarMetadata] {
-    crate::star::adjective_star_metadata_table()
+    crate::model::star::adjective_star_metadata_table()
 }
 
 /// Returns factual metadata for one supported adjective star.
 pub fn adjective_star_metadata(star: StarName) -> &'static StarMetadata {
-    crate::star::adjective_star_metadata(star)
+    crate::model::star::adjective_star_metadata(star)
 }
 
 /// Returns factual metadata for one adjective star, if it is represented.
 pub fn try_adjective_star_metadata(star: StarName) -> Option<&'static StarMetadata> {
-    crate::star::try_adjective_star_metadata(star)
+    crate::model::star::try_adjective_star_metadata(star)
 }
 
 /// Places the supported adjective-star subset deterministically.
@@ -544,7 +542,7 @@ mod tests {
         jie_lu_branch, kong_wang_branch, tian_chu_branch, tian_fu_adj_branch, tian_guan_branch,
         xian_chi_branch, xun_kong_branch,
     };
-    use crate::ganzhi::{EARTHLY_BRANCHES, EarthlyBranch, HEAVENLY_STEMS, HeavenlyStem};
+    use crate::model::ganzhi::{EARTHLY_BRANCHES, EarthlyBranch, HEAVENLY_STEMS, HeavenlyStem};
 
     // Tables transcribed from iztro 2.5.8 `getYearlyStarIndex` /
     // `getHuagaiXianchiIndex` and cross-checked against `astro.byLunar` output.

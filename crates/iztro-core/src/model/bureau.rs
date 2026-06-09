@@ -13,7 +13,7 @@
 
 use crate::{
     error::ChartError,
-    sexagenary::{NaYinElement, StemBranch, nayin_element},
+    model::sexagenary::{NaYinElement, StemBranch, nayin_element},
 };
 use serde::{Deserialize, Serialize};
 
