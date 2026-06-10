@@ -74,8 +74,8 @@ Known metadata 仍不表示已支持亮度表或完整 horoscope 宫名推导。
 `by_lunar` 把传入的农历日期记录为星盘输入事实，并委托给已支持星曜的本命盘
 builder。它现在通过 `is_leap_month` 与 `fix_leap` 携带显式的闰月语义（builder 默认
 分别为 `false` 与 `true`，保持原有非闰月行为）。请求的 `is_leap_month` 会先通过内部
-ICU 适配器（以 `resolve_lunar_date` 暴露，仅返回类型化的领域事实）按真实历法解析：
-只有当请求的月份确实是该年的闰月时，闰月标志才被采纳，复现上游 `lunar2solar`。无效的
+ICU-backed 历法 normalizer 按真实历法解析；公开 API 不暴露 ICU 或 calendar-adapter
+类型。只有当请求的月份确实是该年的闰月时，闰月标志才被采纳，复现上游 `lunar2solar`。无效的
 闰月请求——例如 `2020-3-20` 且 `is_leap_month=true`，而 2020 年的闰月是四月而非
 三月——会按普通月份处理。解析之后，真实闰月的后半月（农历日 > 15）且 `fix_leap` 时，
 用于月份相关安星的有效月份加一，复现上游 `iztro@2.5.8` `fixLunarMonthIndex`；否则按

@@ -223,8 +223,9 @@ a `resolved_lunar` block (the lunar date upstream resolved to via `lunar2solar`)
 and the supported chart fields. The Rust E2E test
 (`crates/iztro-core/tests/leap_month_by_lunar.rs`) builds each case through
 `iztro_core::by_lunar(...)` with the leap flags set, compares the supported
-fields, and asserts `iztro_core::resolve_lunar_date(...)` reproduces the upstream
-`resolved_lunar` block — so an invalid leap flag is caught, not merely echoed.
+fields, and asserts the chart's recorded lunar date reproduces the upstream
+`resolved_lunar` block. The resolved leap flag remains covered by internal
+calendar unit tests and by fixture parity for palace/star placement.
 
 Regenerate it with:
 

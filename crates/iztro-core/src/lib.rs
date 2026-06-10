@@ -18,12 +18,10 @@ pub mod feature;
 pub mod model;
 pub mod placement;
 
-// Internal calendar-conversion adapters. ICU4X types are isolated here and never
-// exposed in the public API; the facade and the re-exported `resolve_lunar_date`
-// helper consume only typed output.
+// Internal calendar-conversion and normalization adapters. ICU4X and calendar
+// adapter types are isolated here and never exposed in the public API; public
+// callers use the facade request types and chart facts instead.
 mod calendar;
-
-pub use calendar::{ResolvedLunarDate, resolve_lunar_date};
 
 pub use error::ChartError;
 

@@ -221,8 +221,8 @@ impl LunarChartRequestBuilder {
 /// [`by_solar`](crate::facade::by_solar::by_solar), which delegates here.
 ///
 /// Leap-month behavior is explicit and upstream-compatible. The requested
-/// `is_leap_month` is first resolved against the real calendar through
-/// [`resolve_lunar_date`] (the flag is honored only when the requested month is
+/// `is_leap_month` is first resolved against the real calendar through an
+/// internal normalizer (the flag is honored only when the requested month is
 /// actually the year's leap month, mirroring upstream `lunar2solar`). The
 /// recorded calendar date keeps the resolved lunar year/month/day, while
 /// month-based star placement uses the effective month derived from
@@ -271,9 +271,9 @@ pub fn by_lunar(request: LunarChartRequest) -> Result<Chart, ChartError> {
 /// non-leap month is always used as-is. iztro-rs does not model the late
 /// rat-hour (晚子时) variant, so that upstream guard is always satisfied here.
 ///
-/// `is_leap_month` here is the **resolved** leap state from
-/// [`resolve_lunar_date`], not the raw request flag, so an invalid leap request
-/// (a month that is not actually leap that year) never advances the month.
+/// `is_leap_month` here is the **resolved** leap state from the internal
+/// calendar normalizer, not the raw request flag, so an invalid leap request (a
+/// month that is not actually leap that year) never advances the month.
 ///
 /// A leap twelfth month would push the effective month past 12 into the next
 /// lunar year, which is out of the supported slice, so it returns

@@ -1,13 +1,12 @@
 //! Internal calendar-conversion adapters.
 //!
 //! This module isolates the third-party calendar dependency (ICU4X
-//! `icu_calendar`) behind a small adapter surface. ICU4X types never leak past
-//! this boundary: [`solar_to_lunar`] returns a [`LunarConversion`] built from the
-//! crate's own strongly typed domain values. The public facade
-//! ([`crate::facade::by_solar`]) consumes only that typed output.
+//! `icu_calendar`) and lunar-date normalization behind internal adapters. ICU4X
+//! and calendar-adapter types never leak past this boundary: facades consume
+//! only the crate's own typed domain values and expose request/chart facts.
 
 mod lunar_normalize;
 mod solar_to_lunar;
 
-pub use lunar_normalize::{ResolvedLunarDate, resolve_lunar_date};
+pub(crate) use lunar_normalize::resolve_lunar_date;
 pub(crate) use solar_to_lunar::solar_to_lunar;
