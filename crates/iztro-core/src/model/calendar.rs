@@ -1,5 +1,53 @@
+use crate::error::ChartError;
 use crate::model::ganzhi::EarthlyBranch;
 use serde::{Deserialize, Serialize};
+
+/// A validated solar (Gregorian) month (`1..=12`).
+///
+/// This is a coarse range check only. Whether the day-of-month is valid for the
+/// month and year is enforced later during calendar conversion.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
+pub struct SolarMonth(u8);
+
+impl SolarMonth {
+    /// Creates a validated solar month.
+    pub const fn new(value: u8) -> Result<Self, ChartError> {
+        if value == 0 || value > 12 {
+            return Err(ChartError::InvalidSolarMonth { value });
+        }
+
+        Ok(Self(value))
+    }
+
+    /// Returns the one-based solar month value.
+    pub const fn value(self) -> u8 {
+        self.0
+    }
+}
+
+/// A validated solar (Gregorian) day of the month (`1..=31`).
+///
+/// This is a coarse range check only. Whether the day exists for the given month
+/// and year (for example 31 April or 29 February) is enforced later during
+/// calendar conversion.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
+pub struct SolarDay(u8);
+
+impl SolarDay {
+    /// Creates a validated solar day.
+    pub const fn new(value: u8) -> Result<Self, ChartError> {
+        if value == 0 || value > 31 {
+            return Err(ChartError::InvalidSolarDay { value });
+        }
+
+        Ok(Self(value))
+    }
+
+    /// Returns the one-based solar day value.
+    pub const fn value(self) -> u8 {
+        self.0
+    }
+}
 
 /// Calendar system used to express a birth date.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]

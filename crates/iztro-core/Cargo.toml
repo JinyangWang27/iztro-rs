@@ -9,6 +9,7 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
+icu_calendar.workspace = true
 serde.workspace = true
 thiserror.workspace = true
 

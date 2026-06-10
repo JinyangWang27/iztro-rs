@@ -18,10 +18,17 @@ pub mod feature;
 pub mod model;
 pub mod placement;
 
+// Internal calendar-conversion adapters. ICU4X types are isolated here and never
+// exposed in the public API; the facade and the re-exported `resolve_lunar_date`
+// helper consume only typed output.
+mod calendar;
+
+pub use calendar::{ResolvedLunarDate, resolve_lunar_date};
+
 pub use error::ChartError;
 
 pub use model::bureau::{FiveElementBureau, five_element_bureau_from_life_palace};
-pub use model::calendar::{BirthContext, CalendarDate, CalendarKind, Gender};
+pub use model::calendar::{BirthContext, CalendarDate, CalendarKind, Gender, SolarDay, SolarMonth};
 pub use model::chart::{
     Chart, DecorativeStarFamily, DecorativeStarPlacement, DecorativeStarPlacementRef,
     HoroscopeChart, MajorStarPlacementRef, MutagenActivation, PALACE_COUNT, PALACE_NAMES, Palace,
@@ -74,3 +81,4 @@ pub use placement::overlay::flow::build_flow_star_layer;
 pub use placement::overlay::yearly::{YearlyMutagenLayerInput, build_yearly_mutagen_layer};
 
 pub use facade::by_lunar::{LunarChartRequest, LunarChartRequestBuilder, by_lunar};
+pub use facade::by_solar::{SolarChartRequest, SolarChartRequestBuilder, by_solar};

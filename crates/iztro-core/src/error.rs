@@ -26,6 +26,67 @@ pub enum ChartError {
         /// Unsupported lunar day value.
         value: u8,
     },
+    /// Solar (Gregorian) month input must be in the `1..=12` range.
+    #[error("invalid solar month: expected 1..=12, got {value}")]
+    InvalidSolarMonth {
+        /// Unsupported solar month value.
+        value: u8,
+    },
+    /// Solar (Gregorian) day input must be in the `1..=31` range.
+    ///
+    /// This is a coarse range check; whether the day exists for the given month
+    /// and year (for example 31 April or 29 February) is validated during
+    /// calendar conversion and reported as [`ChartError::InvalidSolarDate`].
+    #[error("invalid solar day: expected 1..=31, got {value}")]
+    InvalidSolarDay {
+        /// Unsupported solar day value.
+        value: u8,
+    },
+    /// A solar (Gregorian) date is not a real calendar date.
+    #[error("invalid solar date: {year}-{month}-{day}")]
+    InvalidSolarDate {
+        /// Gregorian year of the rejected date.
+        year: i32,
+        /// Gregorian month of the rejected date.
+        month: u8,
+        /// Gregorian day of the rejected date.
+        day: u8,
+    },
+    /// A solar date falls outside the supported calendar-conversion range.
+    #[error("unsupported calendar date: {year}-{month}-{day}")]
+    UnsupportedCalendarDate {
+        /// Gregorian year of the unsupported date.
+        year: i32,
+        /// Gregorian month of the unsupported date.
+        month: u8,
+        /// Gregorian day of the unsupported date.
+        day: u8,
+    },
+    /// Gregorian-to-Chinese-lunisolar conversion did not yield usable lunar facts.
+    #[error("calendar conversion failed for {year}-{month}-{day}")]
+    CalendarConversionFailed {
+        /// Gregorian year that failed to convert.
+        year: i32,
+        /// Gregorian month that failed to convert.
+        month: u8,
+        /// Gregorian day that failed to convert.
+        day: u8,
+    },
+    /// A leap-month request cannot be represented by the supported chart slice.
+    ///
+    /// The supported slice models a leap month by shifting the effective lunar
+    /// month forward by one for the second half of the month. A leap twelfth
+    /// month would roll the effective month into the next lunar year, which is
+    /// out of scope, so it is rejected rather than guessed.
+    #[error(
+        "unsupported leap-month combination: lunar month {lunar_month}, day {lunar_day} (effective month would exceed 12)"
+    )]
+    UnsupportedLeapMonthCombination {
+        /// Lunar month of the rejected leap-month request.
+        lunar_month: u8,
+        /// Lunar day of the rejected leap-month request.
+        lunar_day: u8,
+    },
     /// A stem-branch pair must belong to the sexagenary cycle (matching parity).
     #[error("invalid sexagenary stem-branch pair: {stem:?}-{branch:?}")]
     InvalidStemBranchPair {
