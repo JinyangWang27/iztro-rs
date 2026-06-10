@@ -292,8 +292,7 @@ pub fn by_lunar(request: LunarChartRequest) -> Result<Chart, ChartError> {
 /// leap month, leap-month adjustment is enabled, and the lunar day is in the
 /// second half of the month (after the 15th), the effective month advances by
 /// one. Otherwise a leap month is treated as the same numeric month, and a
-/// non-leap month is always used as-is. iztro-rs does not model the late
-/// rat-hour (晚子时) variant, so that upstream guard is always satisfied here.
+/// non-leap month is always used as-is.
 ///
 /// `is_leap_month` here is the **resolved** leap state from the internal
 /// calendar normalizer, not the raw request flag, so an invalid leap request (a

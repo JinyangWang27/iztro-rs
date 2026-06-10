@@ -33,9 +33,8 @@
 //!   year branch.
 //!
 //! 神煞 beyond this supported natal slice, adjective-star brightness, temporal
-//! scopes, horoscope placement, leap-month behavior, and rat-hour variants stay
-//! out of scope. 四化 remain `mutagen: Option<Mutagen>` facts on placements,
-//! never independent stars.
+//! scopes, horoscope placement, and leap-month behavior stay out of scope.
+//! 四化 remain `mutagen: Option<Mutagen>` facts on placements, never independent stars.
 
 use crate::error::ChartError;
 use crate::model::calendar::{BirthTime, Gender};
