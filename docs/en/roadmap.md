@@ -69,7 +69,7 @@ remain deferred.
 ## Phase 3: Chart generation compatibility
 
 - [x] Implement minimal `by_lunar` entry point.
-- [ ] Implement minimal `by_solar` entry point.
+- [x] Implement minimal `by_solar` entry point.
 - [x] Port or reimplement the current chart-generation slice in small deterministic modules.
 - [x] Add golden tests against selected `iztro` outputs for the implemented slice.
 - [x] Document known differences for the implemented slice.
@@ -77,9 +77,10 @@ remain deferred.
 - [x] Add Zhongzhou-only natal adjective stars. `ChartAlgorithmKind::Zhongzhou` places 龙德/截空/劫煞/大耗 from upstream iztro 2.5.8 fixtures, omits default 截路/空亡, and preserves the Zhongzhou 天伤/天使 swap.
 - [x] Place decorative runtime star families. `by_lunar` places 长生/博士/岁前/将前十二神 as untyped `DecorativeStarPlacement`s on each palace, separate from `Chart::stars()`. 岁破 is known and can replace the seventh 岁前 slot under Zhongzhou, but it is not a supplemental thirteenth 岁前 placement.
 - [x] Place scoped flow stars. `build_flow_star_layer` places the decadal/yearly/monthly/daily/hourly 流曜 (and yearly 年解) as branch-tagged `ScopedStarPlacement`s through normalized `FlowStarScope` + `FlowStarBase` identity.
-- [ ] Add solar-to-lunar conversion, leap-month behavior, rat-hour variants, full horoscope assembly, and bindings.
+- [x] Add solar-to-lunar conversion and leap-month behavior. `by_solar` converts Gregorian dates to Chinese-lunisolar facts through an internal ICU4X (`icu_calendar`) adapter and delegates to `by_lunar`; `by_lunar` carries explicit `is_leap_month`/`fix_leap` semantics for the supported slice. Both are fixture-backed against `iztro@2.5.8`. ICU4X types are not exposed in the public API.
+- [ ] Add rat-hour variants, full horoscope assembly, and bindings.
 
-Current core slice: `by_lunar` accepts explicit lunar inputs plus explicit birth-year stem and branch, builds deterministic natal chart facts, and validates minimal chart fields, fourteen major stars, fourteen supported minor stars, the complete default-algorithm set of 38 natal adjective/helper stars, and the Zhongzhou 40-star natal adjective/helper output against selected `iztro` 2.5.8 fixtures. Default/non-Zhongzhou output remains 14 major + 14 minor + 38 adjective/helper = 66 natal stars; Zhongzhou output is 14 major + 14 minor + 40 adjective/helper = 68 natal stars. The represented metadata table has 70 stars because default-only and Zhongzhou-only natal adjective stars are both represented. The decorative runtime families (长生/博士/岁前/将前十二神) and scoped 流曜 are now placed as separate facts (see below). Full horoscope assembly (period derivation and palace-name layout), the upstream yearly decorative arrays (`yearlyDecStar`), solar-to-lunar conversion, leap-month behavior, rat-hour variants, and bindings remain deferred. 四化 remain `Mutagen` facts on placements, not independent stars.
+Current core slice: `by_lunar` accepts explicit lunar inputs plus explicit birth-year stem and branch, builds deterministic natal chart facts, and validates minimal chart fields, fourteen major stars, fourteen supported minor stars, the complete default-algorithm set of 38 natal adjective/helper stars, and the Zhongzhou 40-star natal adjective/helper output against selected `iztro` 2.5.8 fixtures. Default/non-Zhongzhou output remains 14 major + 14 minor + 38 adjective/helper = 66 natal stars; Zhongzhou output is 14 major + 14 minor + 40 adjective/helper = 68 natal stars. The represented metadata table has 70 stars because default-only and Zhongzhou-only natal adjective stars are both represented. The decorative runtime families (长生/博士/岁前/将前十二神) and scoped 流曜 are now placed as separate facts (see below). `by_solar` adds minimal ICU4X-backed solar-to-lunar conversion and delegates to `by_lunar`, which now models fixture-backed leap-month behavior (`is_leap_month`/`fix_leap`) for the supported slice. Full horoscope assembly (period derivation and palace-name layout), the upstream yearly decorative arrays (`yearlyDecStar`), rat-hour variants, and bindings remain deferred. 四化 remain `Mutagen` facts on placements, not independent stars.
 
 The four decorative runtime families are placed by `by_lunar` as untyped
 `DecorativeStarPlacement`s in a separate `Palace::decorative_stars()` collection,

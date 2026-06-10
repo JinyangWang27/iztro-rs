@@ -1,8 +1,11 @@
 //! Typed inputs for the natal chart builders.
 //!
-//! Solar-to-lunar conversion and year-to-ganzhi derivation are not implemented,
-//! so callers supply the already-known non-leap lunar month (and lunar day where
-//! needed) alongside the explicit birth year stem and branch.
+//! These low-level builders are calendar-agnostic: they accept an
+//! already-resolved **effective** lunar month (and lunar day where needed)
+//! alongside the explicit birth-year stem and branch. Calendar conversion and
+//! leap-month normalization happen one layer up, in the facade/calendar adapter
+//! (`by_solar` and `by_lunar`); year-to-ganzhi derivation from a lunar year is
+//! still deferred, so the year stem and branch are supplied explicitly.
 
 use crate::model::calendar::BirthContext;
 use crate::model::ganzhi::{EarthlyBranch, HeavenlyStem};
@@ -11,10 +14,10 @@ use crate::placement::natal::life_body::{LunarDay, LunarMonth};
 
 /// Inputs required by the minimal natal chart builder.
 ///
-/// Solar-to-lunar conversion is not implemented here. Callers must provide the
-/// already-known non-leap lunar month alongside the typed birth context. Birth
-/// year stem derivation from a Gregorian date is likewise deferred, so the year
-/// stem is supplied explicitly.
+/// This builder is calendar-agnostic: callers provide the already-resolved
+/// effective lunar month (leap-month normalization happens upstream in the
+/// facade/calendar layer) alongside the typed birth context. Year-to-ganzhi
+/// derivation is deferred, so the year stem is supplied explicitly.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct NatalChartInput {
     birth_context: BirthContext,
@@ -62,10 +65,10 @@ impl NatalChartInput {
 
 /// Inputs required by the natal chart builder with fourteen major stars.
 ///
-/// Solar-to-lunar conversion is not implemented here. Callers must provide the
-/// already-known non-leap lunar month and lunar day. Birth year stem derivation
-/// from a Gregorian date is likewise deferred, so the year stem is supplied
-/// explicitly.
+/// This builder is calendar-agnostic: callers provide the already-resolved
+/// effective lunar month and lunar day (leap-month normalization happens upstream
+/// in the facade/calendar layer). Year-to-ganzhi derivation is deferred, so the
+/// year stem is supplied explicitly.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct NatalChartWithMajorStarsInput {
     birth_context: BirthContext,
@@ -121,9 +124,10 @@ impl NatalChartWithMajorStarsInput {
 
 /// Inputs required by the natal chart builder with all currently supported stars.
 ///
-/// Solar-to-lunar conversion is not implemented here. Callers must provide the
-/// already-known non-leap lunar month and lunar day. Birth year stem and branch
-/// derivation are likewise deferred, so both are supplied explicitly.
+/// This builder is calendar-agnostic: callers provide the already-resolved
+/// effective lunar month and lunar day (leap-month normalization happens upstream
+/// in the facade/calendar layer). Year-to-ganzhi derivation is deferred, so the
+/// year stem and branch are supplied explicitly.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct NatalChartWithSupportedStarsInput {
     birth_context: BirthContext,

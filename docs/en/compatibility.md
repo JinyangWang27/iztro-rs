@@ -72,18 +72,43 @@ found for it in `iztro@2.5.8`. 四化 remain `Mutagen` /
 
 ## Public facade compatibility
 
-`by_lunar` is the first iztro-compatible facade entry point in `iztro-rs`. It
-mirrors iztro's `astro.byLunar(...)` conceptually, but uses the typed
-`LunarChartRequest` request object instead of JavaScript-style positional
-arguments.
+`by_lunar` and `by_solar` are the iztro-compatible facade entry points in
+`iztro-rs`. They mirror iztro's `astro.byLunar(...)` and `astro.bySolar(...)`
+conceptually, but use the typed `LunarChartRequest` and `SolarChartRequest`
+request objects instead of JavaScript-style positional arguments.
 
-The facade records the provided lunar date as chart input facts, delegates to
-the supported-star natal chart builder, and does not perform solar-to-lunar
-conversion. The birth year stem and branch remain explicit because
-Gregorian/lunar year-to-ganzhi derivation is deferred.
+`by_lunar` records the provided lunar date as chart input facts and delegates to
+the supported-star natal chart builder. It now carries explicit leap-month
+semantics through `is_leap_month` and `fix_leap` (builder defaults `false` and
+`true`, preserving prior non-leap behavior). The requested `is_leap_month` is
+first resolved against the real calendar through the internal ICU-backed
+calendar normalizer; no ICU or calendar-adapter types are exposed from the
+public API. The leap flag is honored **only** when the requested month is
+actually that year's leap month, mirroring upstream `lunar2solar`. An invalid leap request — for
+example `2020-3-20` with `is_leap_month=true`, where 2020's leap month is the
+fourth, not the third — is treated as the ordinary month. After resolution, the
+second half of an actual leap month (lunar day > 15) with `fix_leap` advances the
+effective month used for month-based star placement by one, matching upstream
+`iztro@2.5.8` `fixLunarMonthIndex`; otherwise the month is used as-is. A leap
+twelfth month is rejected with `ChartError::UnsupportedLeapMonthCombination`
+rather than guessed. The birth year stem and branch are still supplied explicitly
+to `by_lunar` because year-to-ganzhi derivation from a lunar year is not
+implemented there.
 
-`by_solar`, leap-month handling, rat-hour variants, and full calendar behavior
-remain deferred.
+`by_solar` is a minimal adaptor over the same supported slice: it validates the
+Gregorian/solar date, converts it to Chinese-lunisolar facts through an internal
+ICU4X (`icu_calendar`) adapter, derives the birth-year Heavenly Stem and Earthly
+Branch from the converted cyclic year, sets `is_leap_month` from the conversion
+and `fix_leap` from the request, then delegates to `by_lunar`. It performs no
+chart construction of its own, so it produces exactly the `by_lunar` supported
+slice. ICU4X is used internally only; ICU4X types are not part of the public API.
+The conversion uses the lunar-new-year boundary, matching iztro's default
+`yearDivide: 'normal'`, so the converted year ganzhi agrees with upstream even
+across the 立春/正月初一 window.
+
+Rat-hour variants (早晚子时), full horoscope assembly, temporal decorative arrays
+(`yearlyDecStar`), full facade serialization parity, and
+interpretation/rule-engine/narrative remain deferred.
 
 ## Horoscope layer models
 
@@ -164,9 +189,11 @@ places 年解 (`NianJieYearly`), which is intentionally kept outside `FlowStarBa
 No horoscope palace-name derivation is performed; placement is branch-based.
 
 四化 remain `Mutagen` / `MutagenActivation` facts, never `StarName` variants.
-`by_solar`, calendar/leap-month/rat-hour behavior, the upstream yearly
-decorative arrays (`yearlyDecStar`), and interpretation/rule-engine/narrative
-remain deferred.
+Minimal `by_solar` (ICU4X-backed solar-to-lunar conversion) and fixture-backed
+leap-month behavior for the supported `by_lunar`/`by_solar` slice are now
+implemented (see [Public facade compatibility](#public-facade-compatibility)).
+Rat-hour variants, the upstream yearly decorative arrays (`yearlyDecStar`), full
+horoscope assembly, and interpretation/rule-engine/narrative remain deferred.
 
 ## Current fixtures
 
@@ -191,6 +218,8 @@ The fixtures are:
 - `fixtures/iztro/runtime_decorative_zhongzhou_1991_08_09_hai_female.json`
 - `fixtures/iztro/flow_stars.json`
 - `fixtures/iztro/e2e_supported_by_lunar.json`
+- `fixtures/iztro/e2e_supported_by_solar.json`
+- `fixtures/iztro/leap_month_by_lunar.json`
 
 The `runtime_decorative_*` fixtures cover the four decorative families per palace
 (default and Zhongzhou); `flow_stars.json` covers the scoped flow stars for every
@@ -205,6 +234,41 @@ beside normalized keys for diagnosis, and intentionally excludes full facade
 serialization parity, calendar conversion, leap-month behavior, rat-hour
 variants, horoscope palace-name derivation, temporal decorative arrays, rules,
 and narrative.
+
+`e2e_supported_by_solar.json` covers the supported `by_solar` slice for seven
+solar cases under both algorithms (fourteen cases): Chinese New Year boundaries,
+ordinary dates, a date converting into a leap lunar month, and a date after a
+leap month, plus the leap second-half date under both `fix_leap=true` and
+`fix_leap=false` (which yield different month-based placement). Each case adds a
+`converted_lunar` block (lunar year/month/day, leap flag, birth-year stem/branch)
+so calendar mismatches are diagnosable. Regenerate it from the repo root with:
+
+```bash
+npm ci --prefix tools/iztro-reference
+npm run dump:e2e-supported-by-solar --prefix tools/iztro-reference -- --write
+```
+
+`leap_month_by_lunar.json` covers explicit `by_lunar` leap-month behavior using
+real 2020 闰四月 dates across the `is_leap_month` and `fix_leap` toggles: before
+the leap month, the regular month with the leap-month number, both halves of the
+leap month, and a date after it. The leap fourth-month day > 15 pair (`fix_leap`
+true vs false) is the discriminator that shows the effective month advancing. It
+also covers **invalid** leap requests (`is_leap_month=true` for a month that is
+not that year's leap month — third and fifth months of 2020, and an ordinary
+2021 month): upstream ignores the flag, and each case records the upstream
+`resolved_lunar` block so the Rust test asserts the same resolution rather than
+merely echoing input flags. Regenerate it with:
+
+```bash
+npm run dump:leap-month --prefix tools/iztro-reference -- --write
+```
+
+Both new fixtures are supported-field-only and exclude temporal flow stars (these
+depend only on the year stem/branch and are covered by
+`e2e_supported_by_lunar.json`), full facade serialization parity, rat-hour
+variants, horoscope palace-name derivation, temporal decorative arrays, features,
+rules, and narrative. ICU4X (`icu_calendar`) backs `by_solar`'s conversion
+internally and does not appear in the public API.
 
 Only the current full default-algorithm adjective-star fixtures (38 stars each)
 and Zhongzhou adjective-star fixtures (40 stars each) are kept in-tree. Earlier,

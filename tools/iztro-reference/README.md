@@ -24,6 +24,8 @@ npm run check:version --prefix tools/iztro-reference
 npm run dump:by-lunar --prefix tools/iztro-reference
 npm run dump:adjective --prefix tools/iztro-reference
 npm run dump:e2e-supported --prefix tools/iztro-reference
+npm run dump:e2e-supported-by-solar --prefix tools/iztro-reference
+npm run dump:leap-month --prefix tools/iztro-reference
 ```
 
 The dump commands use the canonical lunar fixture case:
@@ -59,6 +61,48 @@ upstream labels next to normalized keys for diagnosis, but intentionally does
 not snapshot full facade serialization parity, calendar conversion, leap-month
 behavior, rat-hour variants, horoscope palace-name derivation, temporal
 decorative arrays, features, rules, or narrative output.
+
+### Supported by_solar E2E fixture
+
+```bash
+# inspect
+npm run dump:e2e-supported-by-solar --prefix tools/iztro-reference
+
+# regenerate fixtures/iztro/e2e_supported_by_solar.json from repo root
+npm run dump:e2e-supported-by-solar --prefix tools/iztro-reference -- --write
+```
+
+`dump:e2e-supported-by-solar` emits one supported-field-only `bySolar` fixture
+with seven solar cases under both algorithms (14 cases): Chinese New Year
+boundaries, ordinary non-leap dates, a date converting into a leap lunar month,
+a date after a leap month, and the leap second-half date under both `fix_leap=true`
+and `fix_leap=false` (`fix_leap` is per-case input, not hardcoded). Each case adds
+a `converted_lunar` block (lunar year/month/day, leap flag, birth-year ganzhi)
+derived from upstream `rawDates.lunarDate` and `rawDates.chineseDate.yearly`, so
+calendar mismatches are diagnosable. It preserves raw upstream labels beside
+normalized keys and excludes temporal flow stars, full facade serialization
+parity, rat-hour variants, horoscope palace-name derivation, temporal decorative
+arrays, features, rules, and narrative.
+
+### Leap-month by_lunar fixture
+
+```bash
+# inspect
+npm run dump:leap-month --prefix tools/iztro-reference
+
+# regenerate fixtures/iztro/leap_month_by_lunar.json from repo root
+npm run dump:leap-month --prefix tools/iztro-reference -- --write
+```
+
+`dump:leap-month` emits a `byLunar` fixture that characterizes leap-month behavior
+using real 2020 闰四月 lunar dates across the `isLeapMonth` and `fixLeap` toggles.
+The leap fourth-month day > 15 pair (`fixLeap` true vs false) is the discriminator
+for the effective-month advance. It also includes invalid leap requests
+(`isLeapMonth=true` for a non-leap month/year), which upstream resolves back to
+ordinary months; each case records the upstream `resolved_lunar` block.
+
+Shared normalization maps/helpers for these two generators live in
+`scripts/lib/normalize.mjs`.
 
 ### Runtime star families
 

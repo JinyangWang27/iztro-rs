@@ -3,10 +3,11 @@
 use crate::error::ChartError;
 use crate::model::ganzhi::EarthlyBranch;
 
-/// A validated non-leap lunar birth month.
+/// A validated lunar birth month in the supported `1..=12` range.
 ///
-/// Leap-month handling is intentionally deferred. Current callers must pass the
-/// effective lunar month in the supported `1..=12` range.
+/// This is the **effective** month used for placement. Leap-month resolution and
+/// the leap second-half adjustment happen upstream in the facade/calendar layer
+/// (`by_lunar`/`by_solar`), so callers here pass an already-resolved month.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub struct LunarMonth(u8);
 
@@ -29,8 +30,8 @@ impl LunarMonth {
 /// A validated lunar day of the month (初一 = 1 through 30).
 ///
 /// Lunar months span at most thirty days, so the supported range is `1..=30`.
-/// Full calendar conversion is deferred, so callers supply the lunar day
-/// directly.
+/// Calendar conversion happens upstream in the facade/calendar layer; this
+/// low-level type just validates the day callers pass in.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub struct LunarDay(u8);
 
@@ -113,7 +114,9 @@ impl LifeBodyPalaceIndices {
 /// - from that month position, count backward from Zi hour to place Life;
 /// - from that month position, count forward from Zi hour to place Body.
 ///
-/// Leap-month behavior is intentionally not implemented yet.
+/// This consumes the already-resolved effective lunar month; leap-month
+/// resolution and the second-half adjustment are applied upstream in the
+/// facade/calendar layer before this rule runs.
 pub fn calculate_life_body_palace_indices(
     context: LunarBirthContext,
 ) -> Result<LifeBodyPalaceIndices, ChartError> {
