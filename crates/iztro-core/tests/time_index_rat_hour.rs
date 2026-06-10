@@ -1,8 +1,6 @@
-//! End-to-end test for explicit leap-month `by_lunar` behavior against pinned
-//! upstream `iztro@2.5.8`. Builds each fixture case through `by_lunar` with
-//! `is_leap_month` / `fix_leap` set, then compares the currently supported chart
-//! fields. The leap fourth-month day>15 pair (fix_leap true vs false) exercises
-//! the effective-month divergence. Shared assertions live in `common`.
+//! End-to-end test for iztro `timeIndex` 0..=12 rat-hour behavior against
+//! pinned upstream `iztro@2.5.8`. The fixture distinguishes early Zi (0), late
+//! Zi (12), a normal non-Zi time, and the leap second-half late-Zi guard.
 
 mod common;
 
@@ -12,15 +10,15 @@ use common::{
 };
 
 use iztro_core::{
-    CalendarKind, Chart, ChartAlgorithmKind, LunarChartRequest, LunarDay, LunarMonth,
+    BirthTime, CalendarKind, Chart, ChartAlgorithmKind, LunarChartRequest, LunarDay, LunarMonth,
     MethodProfile, by_lunar,
 };
 use serde_json::Value;
 
-const FIXTURE: &str = include_str!("../../../fixtures/iztro/leap_month_by_lunar.json");
+const FIXTURE: &str = include_str!("../../../fixtures/iztro/time_index_rat_hour.json");
 
 #[test]
-fn by_lunar_matches_leap_month_fixture_cases() {
+fn by_lunar_matches_time_index_rat_hour_fixture_cases() {
     let fixture: Value = serde_json::from_str(FIXTURE).expect("fixture should be valid JSON");
 
     assert_eq!(
@@ -38,8 +36,8 @@ fn by_lunar_matches_leap_month_fixture_cases() {
 
     let cases = fixture["cases"]
         .as_array()
-        .expect("fixture should list leap-month cases");
-    assert_eq!(cases.len(), 9);
+        .expect("fixture should list rat-hour cases");
+    assert_eq!(cases.len(), 5);
 
     for fixture_case in cases {
         let algorithm = parse_algorithm(fixture_case["algorithm"].as_str().expect("algorithm"));
@@ -49,6 +47,7 @@ fn by_lunar_matches_leap_month_fixture_cases() {
 
         assert_metadata_counts();
         assert_resolved_lunar_matches(&chart, fixture_case, &case_label);
+        assert_birth_time_variant_matches(&chart, fixture_case, &case_label);
         assert_palaces_match(&chart, supported, &case_label);
         assert_typed_stars_match(&chart, supported, algorithm, &case_label);
         assert_decorative_stars_match(&chart, supported, &case_label);
@@ -60,14 +59,14 @@ fn chart_from_case(fixture_case: &Value, algorithm: ChartAlgorithmKind) -> Chart
     let input = &fixture_case["input"];
     let method_profile = MethodProfile::new(
         format!(
-            "iztro_2_5_8_leap_month_{}",
+            "iztro_2_5_8_time_index_{}",
             fixture_case["case"].as_str().expect("case id")
         ),
         algorithm,
-        "iztro 2.5.8 leap-month by_lunar fixture",
+        "iztro 2.5.8 time-index rat-hour by_lunar fixture",
     );
 
-    let builder = LunarChartRequest::builder()
+    let request = LunarChartRequest::builder()
         .lunar_year(input["lunar_year"].as_i64().expect("lunar_year") as i32)
         .lunar_month(
             LunarMonth::new(input["lunar_month"].as_u64().expect("lunar_month") as u8)
@@ -76,15 +75,13 @@ fn chart_from_case(fixture_case: &Value, algorithm: ChartAlgorithmKind) -> Chart
         .lunar_day(
             LunarDay::new(input["lunar_day"].as_u64().expect("lunar_day") as u8)
                 .expect("fixture lunar day should be valid"),
-        );
-    let builder = if let Some(index) = input["iztro_time_index"].as_u64() {
-        builder
-            .iztro_time_index(index as u8)
-            .expect("fixture iztro time index should be valid")
-    } else {
-        builder.birth_time(parse_key(input["birth_time"].as_str().expect("birth_time")))
-    };
-    let request = builder
+        )
+        .iztro_time_index(
+            input["iztro_time_index"]
+                .as_u64()
+                .expect("iztro_time_index") as u8,
+        )
+        .expect("fixture time index should be valid")
         .gender(parse_key(input["gender"].as_str().expect("gender")))
         .birth_year_stem(parse_key(
             input["birth_year_stem"].as_str().expect("birth_year_stem"),
@@ -100,12 +97,9 @@ fn chart_from_case(fixture_case: &Value, algorithm: ChartAlgorithmKind) -> Chart
         .build()
         .expect("fixture request should build");
 
-    by_lunar(request).expect("by_lunar should build leap-month fixture chart")
+    by_lunar(request).expect("by_lunar should build rat-hour fixture chart")
 }
 
-/// Asserts that `by_lunar` records the same resolved lunar date upstream did.
-/// Invalid leap flags are still exercised through chart parity and the internal
-/// calendar unit tests assert the resolved leap flag directly.
 fn assert_resolved_lunar_matches(chart: &Chart, fixture_case: &Value, case_label: &str) {
     let expected = &fixture_case["resolved_lunar"];
     let date = chart.birth_context().date();
@@ -129,6 +123,27 @@ fn assert_resolved_lunar_matches(chart: &Chart, fixture_case: &Value, case_label
         date.day(),
         expected["lunar_day"].as_u64().expect("lunar_day") as u8,
         "{case_label}: resolved lunar day mismatch"
+    );
+}
+
+fn assert_birth_time_variant_matches(chart: &Chart, fixture_case: &Value, case_label: &str) {
+    let input = &fixture_case["input"];
+    let expected = BirthTime::from_iztro_time_index(
+        input["iztro_time_index"]
+            .as_u64()
+            .expect("iztro_time_index") as u8,
+    )
+    .expect("fixture time index should be valid");
+
+    assert_eq!(
+        chart.birth_context().birth_time_variant(),
+        expected,
+        "{case_label}: birth time variant mismatch"
+    );
+    assert_eq!(
+        chart.birth_context().birth_time(),
+        expected.branch(),
+        "{case_label}: birth time branch mismatch"
     );
 }
 

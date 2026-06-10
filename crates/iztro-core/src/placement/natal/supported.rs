@@ -81,9 +81,9 @@ pub fn build_natal_chart_with_supported_stars(
 
     let with_minor_stars = DeterministicMinorStarPlacer.place_minor_stars(
         with_major_stars,
-        MinorStarPlacementInput::new(
+        MinorStarPlacementInput::new_with_birth_time_variant(
             input.lunar_month(),
-            input.birth_context().birth_time(),
+            input.birth_context().birth_time_variant(),
             input.birth_year_stem(),
             input.birth_year_branch(),
         ),
@@ -91,10 +91,11 @@ pub fn build_natal_chart_with_supported_stars(
 
     let with_adjective_stars = DeterministicAdjectiveStarPlacer.place_adjective_stars(
         with_minor_stars,
-        AdjectiveStarPlacementInput::new(
+        AdjectiveStarPlacementInput::new_with_daily_star_offset(
             input.lunar_month(),
             input.lunar_day(),
-            input.birth_context().birth_time(),
+            input.daily_star_offset(),
+            input.birth_context().birth_time_variant(),
             input.birth_year_stem(),
             input.birth_year_branch(),
         ),

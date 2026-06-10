@@ -67,7 +67,7 @@ fn chart_from_case(fixture_case: &Value, algorithm: ChartAlgorithmKind) -> Chart
         "iztro 2.5.8 supported by_solar e2e fixture",
     );
 
-    let request = SolarChartRequest::builder()
+    let builder = SolarChartRequest::builder()
         .solar_year(input["solar_year"].as_i64().expect("solar_year") as i32)
         .solar_month(
             SolarMonth::new(input["solar_month"].as_u64().expect("solar_month") as u8)
@@ -76,8 +76,15 @@ fn chart_from_case(fixture_case: &Value, algorithm: ChartAlgorithmKind) -> Chart
         .solar_day(
             SolarDay::new(input["solar_day"].as_u64().expect("solar_day") as u8)
                 .expect("fixture solar day should be valid"),
-        )
-        .birth_time(parse_key(input["birth_time"].as_str().expect("birth_time")))
+        );
+    let builder = if let Some(index) = input["iztro_time_index"].as_u64() {
+        builder
+            .iztro_time_index(index as u8)
+            .expect("fixture iztro time index should be valid")
+    } else {
+        builder.birth_time(parse_key(input["birth_time"].as_str().expect("birth_time")))
+    };
+    let request = builder
         .gender(parse_key(input["gender"].as_str().expect("gender")))
         .fix_leap(input["fix_leap"].as_bool().expect("fix_leap"))
         .method_profile(method_profile)

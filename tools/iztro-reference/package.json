@@ -12,6 +12,7 @@
     "dump:runtime-star-families": "node scripts/dump-runtime-star-families.mjs",
     "dump:e2e-supported": "node scripts/dump-e2e-supported-fixtures.mjs",
     "dump:e2e-supported-by-solar": "node scripts/dump-e2e-supported-by-solar-fixtures.mjs",
-    "dump:leap-month": "node scripts/dump-leap-month-fixtures.mjs"
+    "dump:leap-month": "node scripts/dump-leap-month-fixtures.mjs",
+    "dump:time-index-rat-hour": "node scripts/dump-time-index-rat-hour-fixtures.mjs"
   }
 }

@@ -1,10 +1,11 @@
 use std::collections::{HashMap, HashSet};
 
 use iztro_core::{
-    BirthContext, Brightness, CalendarDate, CalendarKind, Chart, ChartError, EarthlyBranch,
-    FiveElementBureau, Gender, HeavenlyStem, LunarChartRequest, LunarDay, LunarMonth,
-    MethodProfile, Mutagen, NatalChartWithSupportedStarsInput, PALACE_COUNT, StarCategory,
-    StarName, build_natal_chart_with_supported_stars, by_lunar,
+    BirthContext, BirthTime, Brightness, CalendarDate, CalendarKind, Chart, ChartError,
+    EarthlyBranch, FiveElementBureau, Gender, HeavenlyStem, LunarChartRequest, LunarDay,
+    LunarMonth, MethodProfile, Mutagen, NatalChartWithSupportedStarsInput, PALACE_COUNT,
+    SolarChartRequest, SolarDay, SolarMonth, StarCategory, StarName,
+    build_natal_chart_with_supported_stars, by_lunar,
 };
 use serde_json::Value;
 
@@ -31,6 +32,7 @@ fn by_lunar_builds_major_star_chart() {
     assert_eq!(date.month(), 4);
     assert_eq!(date.day(), 23);
     assert_eq!(chart.birth_context().birth_time(), EarthlyBranch::Chen);
+    assert_eq!(chart.birth_context().birth_time_variant(), BirthTime::Chen);
     assert_eq!(chart.birth_context().gender(), Gender::Female);
     assert_eq!(chart.palaces().len(), PALACE_COUNT);
     assert_eq!(chart.major_stars().len(), 14);
@@ -140,10 +142,113 @@ fn lunar_chart_request_builder_builds_and_accessors_return_inputs() {
     assert_eq!(request.lunar_month().value(), 4);
     assert_eq!(request.lunar_day().value(), 23);
     assert_eq!(request.birth_time(), EarthlyBranch::Chen);
+    assert_eq!(request.birth_time_variant(), BirthTime::Chen);
     assert_eq!(request.gender(), Gender::Female);
     assert_eq!(request.birth_year_stem(), HeavenlyStem::Geng);
     assert_eq!(request.birth_year_branch(), EarthlyBranch::Wu);
     assert_eq!(request.method_profile(), &method_profile);
+}
+
+#[test]
+fn birth_time_preserves_iztro_rat_hour_variants() {
+    assert_eq!(
+        BirthTime::from_iztro_time_index(0).expect("0 is early zi"),
+        BirthTime::EarlyZi
+    );
+    assert_eq!(BirthTime::EarlyZi.iztro_time_index(), 0);
+    assert_eq!(BirthTime::EarlyZi.branch(), EarthlyBranch::Zi);
+    assert!(!BirthTime::EarlyZi.is_late_zi());
+
+    assert_eq!(
+        BirthTime::from_iztro_time_index(12).expect("12 is late zi"),
+        BirthTime::LateZi
+    );
+    assert_eq!(BirthTime::LateZi.iztro_time_index(), 12);
+    assert_eq!(BirthTime::LateZi.branch(), EarthlyBranch::Zi);
+    assert!(BirthTime::LateZi.is_late_zi());
+
+    assert_eq!(
+        BirthTime::from_iztro_time_index(4).expect("4 is chen"),
+        BirthTime::Chen
+    );
+    assert_eq!(BirthTime::Chen.branch(), EarthlyBranch::Chen);
+    assert_eq!(
+        BirthTime::from_iztro_time_index(13),
+        Err(ChartError::InvalidBirthTimeIndex { value: 13 })
+    );
+}
+
+#[test]
+fn birth_time_serialization_distinguishes_zi_variants_and_accepts_legacy_zi() {
+    assert_eq!(
+        serde_json::to_string(&BirthTime::EarlyZi).expect("serialize early zi"),
+        "\"early_zi\""
+    );
+    assert_eq!(
+        serde_json::to_string(&BirthTime::LateZi).expect("serialize late zi"),
+        "\"late_zi\""
+    );
+    assert_eq!(
+        serde_json::from_str::<BirthTime>("\"zi\"").expect("legacy zi should parse"),
+        BirthTime::EarlyZi
+    );
+}
+
+#[test]
+fn branch_based_birth_time_defaults_zi_to_early_variant() {
+    let request = LunarChartRequest::builder()
+        .lunar_year(1990)
+        .lunar_month(LunarMonth::new(4).expect("month 4 should be valid"))
+        .lunar_day(LunarDay::new(23).expect("day 23 should be valid"))
+        .birth_time(EarthlyBranch::Zi)
+        .gender(Gender::Female)
+        .birth_year_stem(HeavenlyStem::Geng)
+        .birth_year_branch(EarthlyBranch::Wu)
+        .method_profile(MethodProfile::placeholder("early_zi_default"))
+        .build()
+        .expect("request should build");
+
+    assert_eq!(request.birth_time(), EarthlyBranch::Zi);
+    assert_eq!(request.birth_time_variant(), BirthTime::EarlyZi);
+}
+
+#[test]
+fn builders_accept_birth_time_variant_and_iztro_time_index() {
+    let lunar = LunarChartRequest::builder()
+        .lunar_year(1990)
+        .lunar_month(LunarMonth::new(4).expect("month 4 should be valid"))
+        .lunar_day(LunarDay::new(23).expect("day 23 should be valid"))
+        .birth_time_variant(BirthTime::LateZi)
+        .gender(Gender::Female)
+        .birth_year_stem(HeavenlyStem::Geng)
+        .birth_year_branch(EarthlyBranch::Wu)
+        .method_profile(MethodProfile::placeholder("late_zi_lunar"))
+        .build()
+        .expect("request should build");
+    assert_eq!(lunar.birth_time(), EarthlyBranch::Zi);
+    assert_eq!(lunar.birth_time_variant(), BirthTime::LateZi);
+
+    let solar = SolarChartRequest::builder()
+        .solar_year(1990)
+        .solar_month(SolarMonth::new(5).expect("month 5 should be valid"))
+        .solar_day(SolarDay::new(17).expect("day 17 should be valid"))
+        .iztro_time_index(12)
+        .expect("late zi index should build")
+        .gender(Gender::Female)
+        .method_profile(MethodProfile::placeholder("late_zi_solar"))
+        .build()
+        .expect("request should build");
+    assert_eq!(solar.birth_time(), EarthlyBranch::Zi);
+    assert_eq!(solar.birth_time_variant(), BirthTime::LateZi);
+
+    assert_eq!(
+        LunarChartRequest::builder().iztro_time_index(13),
+        Err(ChartError::InvalidBirthTimeIndex { value: 13 })
+    );
+    assert_eq!(
+        SolarChartRequest::builder().iztro_time_index(13),
+        Err(ChartError::InvalidBirthTimeIndex { value: 13 })
+    );
 }
 
 #[test]
