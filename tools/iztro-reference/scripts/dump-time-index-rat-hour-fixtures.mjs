@@ -92,6 +92,19 @@ const CASES = [
     birthTime: "zi",
     gender: "男",
     genderKey: "male"
+  },
+  {
+    case: "1990_04_29_month_end_late_zi",
+    lunarDate: "1990-4-29",
+    lunarYear: 1990,
+    lunarMonth: 4,
+    lunarDay: 29,
+    isLeapMonth: false,
+    fixLeap: true,
+    timeIndex: 12,
+    birthTime: "zi",
+    gender: "女",
+    genderKey: "female"
   }
 ];
 
@@ -175,7 +188,7 @@ function buildFixture() {
       generated_at: GENERATED_AT,
       supported_fields_only: true,
       notes:
-        "Supported-field-only byLunar fixture for iztro-rs timeIndex behavior. Cases cover early Zi timeIndex 0, late Zi timeIndex 12, one normal non-Zi time, and a real 2020 leap fourth-month second-half date with fixLeap=true for both normal time and late Zi. The late-Zi leap case proves upstream does not advance the effective month when timeIndex is 12. supported_fields normalizes life/body palace branches, five-element bureau, palace branch/stem/name facts, represented typed natal stars, and the four decorative runtime families. Birth-year ganzhi is taken from upstream and fed back to the Rust by_lunar call. Full facade serialization parity, horoscope palace-name derivation, temporal decorative arrays, features, rules, and narrative are excluded.",
+        "Supported-field-only byLunar fixture for iztro-rs timeIndex behavior. Cases cover early Zi timeIndex 0, late Zi timeIndex 12, one normal non-Zi time, a real 2020 leap fourth-month second-half date with fixLeap=true for both normal time and late Zi, and a late-Zi case on the last day of a 29-day lunar month (1990-4-29) to exercise month-end wrap-around in major_lunar_day. The late-Zi leap case proves upstream does not advance the effective month when timeIndex is 12. supported_fields normalizes life/body palace branches, five-element bureau, palace branch/stem/name facts, represented typed natal stars, and the four decorative runtime families. Birth-year ganzhi is taken from upstream and fed back to the Rust by_lunar call. Full facade serialization parity, horoscope palace-name derivation, temporal decorative arrays, features, rules, and narrative are excluded.",
       generation_command: GENERATION_COMMAND
     },
     cases: CASES.map(buildCase)

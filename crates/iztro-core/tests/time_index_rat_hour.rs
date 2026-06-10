@@ -37,7 +37,7 @@ fn by_lunar_matches_time_index_rat_hour_fixture_cases() {
     let cases = fixture["cases"]
         .as_array()
         .expect("fixture should list rat-hour cases");
-    assert_eq!(cases.len(), 5);
+    assert_eq!(cases.len(), 6);
 
     for fixture_case in cases {
         let algorithm = parse_algorithm(fixture_case["algorithm"].as_str().expect("algorithm"));
