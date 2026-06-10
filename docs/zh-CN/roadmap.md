@@ -56,7 +56,7 @@
 ## Phase 3：排盘兼容性
 
 - [x] 实现最小 `by_lunar` 入口。
-- [ ] 实现最小 `by_solar` 入口。
+- [x] 实现最小 `by_solar` 入口。
 - [x] 将当前排盘切片拆成小的确定性模块进行移植或重写。
 - [x] 加入与选定 `iztro` 输出对齐的 implemented-slice golden tests。
 - [x] 记录 implemented slice 的已知差异。
@@ -64,9 +64,10 @@
 - [x] 添加中州派特有本命杂曜。`ChartAlgorithmKind::Zhongzhou` 根据上游 iztro 2.5.8 fixtures 安放龙德/截空/劫煞/大耗，省略默认截路/空亡，并保留中州派天伤/天使互换。
 - [x] 安放装饰性 runtime 星曜家族。`by_lunar` 将长生/博士/岁前/将前十二神作为每宫无类型的 `DecorativeStarPlacement` 安放，并与 `Chart::stars()` 分离。岁破 known，且在中州派下可替代第七个岁前位置，但不是额外的第十三个岁前 placement。
 - [x] 安放 scoped flow stars。`build_flow_star_layer` 通过规范化的 `FlowStarScope` + `FlowStarBase` identity，将大限/流年/流月/流日/流时流曜（以及流年年解）安放为带地支标签的 `ScopedStarPlacement`。
-- [ ] 添加阳历转农历、闰月行为、早晚子时变体、完整 horoscope 组装和 bindings。
+- [x] 添加阳历转农历与闰月行为。`by_solar` 通过内部 ICU4X（`icu_calendar`）适配器将公历日期转换为农历事实并委托给 `by_lunar`；`by_lunar` 为已支持切片携带显式的 `is_leap_month`/`fix_leap` 语义。两者均以 `iztro@2.5.8` fixtures 校验。ICU4X 类型不出现在公开 API 中。
+- [ ] 添加早晚子时变体、完整 horoscope 组装和 bindings。
 
-当前核心切片：`by_lunar` 接受显式农历输入以及显式出生年干、年支，生成确定性的本命星盘事实，并用选定的 `iztro` 2.5.8 fixtures 校验 minimal chart 字段、十四主星、十四颗已支持辅星、完整默认算法的 38 颗本命杂曜/辅助星，以及中州派 40 颗本命杂曜/辅助星输出。默认/非中州派输出保持 14 主星 + 14 辅星 + 38 杂曜/辅助星 = 66 颗本命星；中州派输出为 14 主星 + 14 辅星 + 40 杂曜/辅助星 = 68 颗本命星。已表示 metadata table 为 70 颗，因为默认专属与中州派专属本命杂曜都属于已表示星曜。装饰性 runtime 家族（长生/博士/岁前/将前十二神）与 scoped 流曜现在作为独立事实安放（见下文）。完整 horoscope 组装（period 推导与宫名布局）、上游 yearly decorative arrays（`yearlyDecStar`）、阳历转农历、闰月行为、早晚子时变体和 bindings 仍然推迟。四化仍作为安星上的 `Mutagen` 事实，而非独立星曜。
+当前核心切片：`by_lunar` 接受显式农历输入以及显式出生年干、年支，生成确定性的本命星盘事实，并用选定的 `iztro` 2.5.8 fixtures 校验 minimal chart 字段、十四主星、十四颗已支持辅星、完整默认算法的 38 颗本命杂曜/辅助星，以及中州派 40 颗本命杂曜/辅助星输出。默认/非中州派输出保持 14 主星 + 14 辅星 + 38 杂曜/辅助星 = 66 颗本命星；中州派输出为 14 主星 + 14 辅星 + 40 杂曜/辅助星 = 68 颗本命星。已表示 metadata table 为 70 颗，因为默认专属与中州派专属本命杂曜都属于已表示星曜。装饰性 runtime 家族（长生/博士/岁前/将前十二神）与 scoped 流曜现在作为独立事实安放（见下文）。`by_solar` 增加了最小的 ICU4X 阳历转农历转换并委托给 `by_lunar`，后者现在为已支持切片建模 fixture 支持的闰月行为（`is_leap_month`/`fix_leap`）。完整 horoscope 组装（period 推导与宫名布局）、上游 yearly decorative arrays（`yearlyDecStar`）、早晚子时变体和 bindings 仍然推迟。四化仍作为安星上的 `Mutagen` 事实，而非独立星曜。
 
 四组装饰性 runtime 家族由 `by_lunar` 作为无类型 `DecorativeStarPlacement` 安放到独立
 的 `Palace::decorative_stars()` collection 中，因此 `Chart::stars()` 仍只包含有类型

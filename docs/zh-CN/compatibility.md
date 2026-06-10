@@ -66,15 +66,32 @@ Known metadata 仍不表示已支持亮度表或完整 horoscope 宫名推导。
 
 ## 公开 facade 兼容性
 
-`by_lunar` 是 `iztro-rs` 的第一个 iztro-compatible facade 入口。它在概念上对应
-iztro 的 `astro.byLunar(...)`，但使用强类型的 `LunarChartRequest` 请求对象，而
-不是 JavaScript 风格的位置参数。
+`by_lunar` 与 `by_solar` 是 `iztro-rs` 的 iztro-compatible facade 入口。它们在概念
+上对应 iztro 的 `astro.byLunar(...)` 与 `astro.bySolar(...)`，但使用强类型的
+`LunarChartRequest` 与 `SolarChartRequest` 请求对象，而不是 JavaScript 风格的位置
+参数。
 
-该 facade 只把传入的农历日期记录为星盘输入事实，并委托给已支持星曜的本命盘
-builder；它不执行阳历转农历转换。出生年干和年支仍需显式提供，因为公历/农历年份
-到干支年的推导仍未实现。
+`by_lunar` 把传入的农历日期记录为星盘输入事实，并委托给已支持星曜的本命盘
+builder。它现在通过 `is_leap_month` 与 `fix_leap` 携带显式的闰月语义（builder 默认
+分别为 `false` 与 `true`，保持原有非闰月行为）。请求的 `is_leap_month` 会先通过内部
+ICU 适配器（以 `resolve_lunar_date` 暴露，仅返回类型化的领域事实）按真实历法解析：
+只有当请求的月份确实是该年的闰月时，闰月标志才被采纳，复现上游 `lunar2solar`。无效的
+闰月请求——例如 `2020-3-20` 且 `is_leap_month=true`，而 2020 年的闰月是四月而非
+三月——会按普通月份处理。解析之后，真实闰月的后半月（农历日 > 15）且 `fix_leap` 时，
+用于月份相关安星的有效月份加一，复现上游 `iztro@2.5.8` `fixLunarMonthIndex`；否则按
+原月份计算。闰十二月会以 `ChartError::UnsupportedLeapMonthCombination` 拒绝而非猜测。
+出生年干和年支仍需显式传给 `by_lunar`，因为 `by_lunar` 本身不做农历年到干支年的推导。
 
-`by_solar`、闰月处理、早晚子时变体，以及完整历法行为仍延期实现。
+`by_solar` 是同一已支持切片之上的最小适配层：它校验公历日期，通过内部 ICU4X
+（`icu_calendar`）适配器将其转换为农历事实，从转换得到的干支年推导出生年天干与
+地支，依据转换结果设置 `is_leap_month`、依据请求设置 `fix_leap`，再委托给
+`by_lunar`。它自身不做任何排盘，因此产出与 `by_lunar` 完全一致的已支持切片。ICU4X
+仅在内部使用；ICU4X 类型不属于公开 API。转换以正月初一为年界，与 iztro 默认的
+`yearDivide: 'normal'` 一致，因此换算出的年干支即便落在立春/正月初一之间的窗口也
+与上游一致。
+
+早晚子时变体、完整 horoscope 组装、上游 yearly decorative arrays（`yearlyDecStar`）、
+完整 facade 序列化对齐，以及解读/规则引擎/叙事仍延期实现。
 
 ## 运限层模型
 
@@ -139,8 +156,10 @@ scope-generic 算法为大限、流年、流月、流日、流时安放十颗 ma
 保持在 `FlowStarBase` 之外。目前不做 horoscope 宫名推导；安放是地支层面的。
 
 四化仍是 `Mutagen` / `MutagenActivation` 事实，永远不是 `StarName` variants。
-`by_solar`、历法/闰月/早晚子时行为、上游 yearly decorative arrays
-（`yearlyDecStar`），以及解读/规则引擎/叙事仍然延期。
+最小 `by_solar`（ICU4X 支持的阳历转农历）与已支持 `by_lunar`/`by_solar` 切片的
+fixture 支持闰月行为现已实现（见[公开 facade 兼容性](#公开-facade-兼容性)）。
+早晚子时变体、上游 yearly decorative arrays（`yearlyDecStar`）、完整 horoscope
+组装，以及解读/规则引擎/叙事仍然延期。
 
 ## 当前 fixtures
 
@@ -164,6 +183,30 @@ fixtures 为：
 - `fixtures/iztro/runtime_decorative_zhongzhou_1988_03_14_zi_male.json`
 - `fixtures/iztro/runtime_decorative_zhongzhou_1991_08_09_hai_female.json`
 - `fixtures/iztro/flow_stars.json`
+- `fixtures/iztro/e2e_supported_by_lunar.json`
+- `fixtures/iztro/e2e_supported_by_solar.json`
+- `fixtures/iztro/leap_month_by_lunar.json`
+
+`e2e_supported_by_solar.json` 覆盖已支持 `by_solar` 切片的七个阳历用例（两种算法，
+共十四例），含农历新年分界、普通日期、转换为闰月的日期、闰月之后的日期，以及同一个
+闰月后半日期在 `fix_leap=true` 与 `fix_leap=false` 下的两种结果（月份相关安星不同）；
+每个用例附带 `converted_lunar`（农历年/月/日、闰月标志、出生年干支），便于诊断历法
+偏差。`leap_month_by_lunar.json` 用 2020 闰四月的真实农历日期，覆盖 `is_leap_month`
+与 `fix_leap` 的组合：闰月前、与闰月同号的常规月、闰月前后半月，以及闰月之后；其中
+闰四月、农历日 > 15 的 `fix_leap` true/false 对是有效月份进位的判别用例。它还覆盖
+**无效**闰月请求（`is_leap_month=true` 但该月并非当年闰月——2020 年三月与五月，以及
+普通的 2021 年某月）：上游会忽略该标志，每个用例记录上游 `resolved_lunar`，因此
+Rust 测试断言相同的解析结果，而不仅仅回显输入标志。两个新 fixtures 均为
+supported-field-only，排除流曜（仅依赖年干支，已由 `e2e_supported_by_lunar.json`
+覆盖）、完整 facade 序列化对齐、早晚子时变体、horoscope 宫名推导、temporal
+decorative arrays、特征、规则与叙事。`by_solar` 的转换由内部 ICU4X（`icu_calendar`）
+支持，不出现在公开 API 中。重新生成：
+
+```bash
+npm ci --prefix tools/iztro-reference
+npm run dump:e2e-supported-by-solar --prefix tools/iztro-reference -- --write
+npm run dump:leap-month --prefix tools/iztro-reference -- --write
+```
 
 `runtime_decorative_*` fixtures 覆盖默认与中州派下每宫的四组装饰性家族；
 `flow_stars.json` 覆盖所有 scope、十天干和十二地支组合下的 scoped flow stars。见

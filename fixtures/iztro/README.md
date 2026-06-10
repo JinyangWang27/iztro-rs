@@ -19,6 +19,8 @@ npm run check:version --prefix tools/iztro-reference
 npm run dump:by-lunar --prefix tools/iztro-reference
 npm run dump:adjective --prefix tools/iztro-reference
 npm run dump:e2e-supported --prefix tools/iztro-reference
+npm run dump:e2e-supported-by-solar --prefix tools/iztro-reference
+npm run dump:leap-month --prefix tools/iztro-reference
 ```
 
 The workspace targets `npm:iztro` version `2.5.8` and keeps
@@ -64,16 +66,22 @@ Fixtures compare **only** fields currently implemented by `iztro-rs`:
 
 ## Facade coverage
 
-`iztro-core::by_lunar` is the first iztro-compatible public facade entry point.
-It mirrors iztro's `astro.byLunar(...)` conceptually through a typed
-`LunarChartRequest`, not JavaScript-style positional arguments. It records the
-provided lunar date and delegates to the existing natal chart with supported
-stars builder.
+`iztro-core::by_lunar` and `iztro-core::by_solar` are the iztro-compatible public
+facade entry points. They mirror iztro's `astro.byLunar(...)` and
+`astro.bySolar(...)` conceptually through the typed `LunarChartRequest` and
+`SolarChartRequest`, not JavaScript-style positional arguments.
 
-The facade does not perform solar-to-lunar conversion, leap-month behavior,
-rat-hour variants, or year-to-ganzhi derivation. The fixture input therefore
-continues to provide `lunar_month`, `lunar_day`, `birth_year_stem`, and where
-needed `birth_year_branch` explicitly.
+`by_lunar` records the provided lunar date and delegates to the natal chart with
+supported stars builder. It now carries explicit `is_leap_month` / `fix_leap`
+semantics: a leap month with `fix_leap` and lunar day > 15 advances the effective
+month used for month-based placement. `by_solar` validates the Gregorian date,
+converts it through an internal ICU4X (`icu_calendar`) adapter, derives the
+birth-year stem/branch from the cyclic year, and delegates to `by_lunar`; ICU4X
+types are not exposed in the public API.
+
+`by_lunar` still does not perform year-to-ganzhi derivation, so its fixtures
+provide `birth_year_stem` and `birth_year_branch` explicitly; `by_solar` derives
+them from the conversion. Rat-hour variants remain deferred.
 
 ## Supported by_lunar E2E fixture
 
@@ -159,6 +167,75 @@ uses the year branch for 天马 and 火星/铃星.
 - decadal scopes
 - yearly scopes
 - narrative output
+
+## Supported by_solar E2E fixture
+
+`e2e_supported_by_solar.json` is a supported-field-only regression fixture for the
+public `by_solar` facade. It contains seven solar chart cases, each generated
+under the default and Zhongzhou algorithms (14 cases total), spanning Chinese New
+Year boundaries, ordinary non-leap dates, a date that converts into a leap lunar
+month (second half, so the effective month advances), and a date after a leap
+month. The leap second-half date appears twice — once with `fix_leap=true` and
+once with `fix_leap=false` — and the two produce different month-based placement.
+
+Each case records:
+
+- the solar facade inputs used by Rust (`solar_year`/`solar_month`/`solar_day`,
+  `birth_time`, `gender`, `fix_leap`), with `fix_leap` read from the fixture (not
+  hardcoded);
+- a `converted_lunar` block with the lunar year/month/day, leap flag, and
+  birth-year stem/branch that upstream derived (from `rawDates.lunarDate` and
+  `rawDates.chineseDate.yearly`), to diagnose calendar mismatches;
+- the supported chart fields (life/body palace branches, five-element bureau,
+  palace branch/stem/name facts, typed natal stars, and the four decorative
+  runtime families), with counts.
+
+The Rust E2E test (`crates/iztro-core/tests/e2e_supported_by_solar.rs`) builds
+each case through `iztro_core::by_solar(SolarChartRequest::builder()...)`, asserts
+the ICU-converted lunar year/month/day recorded on the chart equals
+`converted_lunar`, and compares the supported fields. The converted leap flag and
+birth-year ganzhi are covered by the ICU adapter's own unit tests and, end to
+end, by the palace-stem and minor-star comparisons that depend on them.
+
+Regenerate it from the repo root with:
+
+```bash
+npm ci --prefix tools/iztro-reference
+npm run dump:e2e-supported-by-solar --prefix tools/iztro-reference -- --write
+```
+
+## Leap-month by_lunar fixture
+
+`leap_month_by_lunar.json` characterizes explicit `by_lunar` leap-month behavior
+using real 2020 闰四月 lunar dates across the `is_leap_month` and `fix_leap`
+toggles: a date before the leap month, the regular month with the leap-month
+number, both halves of the leap month, and a date after it. The leap fourth-month
+day > 15 pair (`fix_leap` true vs false) is the discriminator — only `fix_leap`
+true advances the effective month, so the life palace and bureau diverge; the day
+≤ 15 leap case matches the regular month. It also includes **invalid** leap
+requests — `is_leap_month=true` for the third and fifth months of 2020 (whose
+leap month is the fourth) and for an ordinary 2021 month — which upstream resolves
+back to ordinary, non-leap months.
+
+Each case records the lunar facade inputs (including `is_leap_month`, `fix_leap`,
+and the upstream-derived `birth_year_stem`/`birth_year_branch` fed back to Rust),
+a `resolved_lunar` block (the lunar date upstream resolved to via `lunar2solar`),
+and the supported chart fields. The Rust E2E test
+(`crates/iztro-core/tests/leap_month_by_lunar.rs`) builds each case through
+`iztro_core::by_lunar(...)` with the leap flags set, compares the supported
+fields, and asserts `iztro_core::resolve_lunar_date(...)` reproduces the upstream
+`resolved_lunar` block — so an invalid leap flag is caught, not merely echoed.
+
+Regenerate it with:
+
+```bash
+npm run dump:leap-month --prefix tools/iztro-reference -- --write
+```
+
+Both fixtures are supported-field-only and exclude temporal flow stars (covered by
+`e2e_supported_by_lunar.json`), full facade serialization parity, rat-hour
+variants, horoscope palace-name derivation, temporal decorative arrays, features,
+rules, and narrative.
 
 ## Major-star fixture
 
