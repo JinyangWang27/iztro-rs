@@ -1,4 +1,4 @@
-//! Lunar-date normalization backed by ICU4X `icu_calendar`.
+//! Lunar-date normalization backed by `lunar-lite`.
 //!
 //! Upstream `iztro.byLunar(date, _, _, isLeapMonth, _)` delegates to
 //! `lunar-lite.lunar2solar(date, isLeapMonth)`, which only honors
@@ -7,13 +7,11 @@
 //! month, the flag is ignored and the date is treated as the ordinary month.
 //!
 //! [`resolve_lunar_date`] reproduces that rule: it never blindly trusts the
-//! caller's `is_leap_month`. It resolves the flag against the real calendar with
-//! ICU4X (reverse-constructing the Chinese date) and returns the corrected facts.
+//! caller's `is_leap_month`. It resolves the flag with `lunar-lite` and returns
+//! the corrected facts.
 //! Like the rest of this module, it exposes only the crate's own domain types.
 
-use icu_calendar::Date;
-use icu_calendar::cal::ChineseTraditional;
-use icu_calendar::types::MonthCode;
+use lunar_lite::{LunarDate, LunarError, normalize_lunar_date};
 
 use crate::error::ChartError;
 use crate::placement::natal::life_body::{LunarDay, LunarMonth};
@@ -71,56 +69,44 @@ pub(crate) fn resolve_lunar_date(
 ) -> Result<ResolvedLunarDate, ChartError> {
     let month = lunar_month.value();
     let day = lunar_day.value();
-    let unsupported = || ChartError::UnsupportedCalendarDate {
-        year: lunar_year,
-        month,
-        day,
-    };
     let conversion_failed = || ChartError::CalendarConversionFailed {
         year: lunar_year,
         month,
         day,
     };
 
-    let normal_code = MonthCode::new_normal(month).ok_or_else(conversion_failed)?;
+    let date = normalize_lunar_date(LunarDate {
+        year: lunar_year,
+        month,
+        day,
+        is_leap_month,
+    })
+    .map_err(|err| map_lunar_normalize_error(err, lunar_year, month, day))?;
 
-    // Honor the leap flag only when the requested month is actually leap that
-    // year, probed by reverse-constructing the leap month's first day.
-    let use_leap = is_leap_month && {
-        let leap_code = MonthCode::new_leap(month).ok_or_else(conversion_failed)?;
-        Date::try_new_from_codes(None, lunar_year, leap_code, 1, ChineseTraditional::new()).is_ok()
+    let month_days = match normalize_lunar_date(LunarDate { day: 30, ..date }) {
+        Ok(_) => 30,
+        Err(LunarError::InvalidLunarDate { .. }) => 29,
+        Err(err) => return Err(map_lunar_normalize_error(err, lunar_year, month, day)),
     };
 
-    let month_code = if use_leap {
-        MonthCode::new_leap(month).ok_or_else(conversion_failed)?
-    } else {
-        normal_code
-    };
-
-    let date =
-        Date::try_new_from_codes(None, lunar_year, month_code, day, ChineseTraditional::new())
-            .map_err(|_| unsupported())?;
-    let month_days =
-        if Date::try_new_from_codes(None, lunar_year, month_code, 30, ChineseTraditional::new())
-            .is_ok()
-        {
-            30
-        } else {
-            29
-        };
-
-    let month_info = date.month();
     Ok(ResolvedLunarDate {
-        lunar_year: date
-            .year()
-            .cyclic()
-            .map(|cyclic| cyclic.related_iso)
-            .unwrap_or(lunar_year),
-        lunar_month: LunarMonth::new(month_info.month_number()).map_err(|_| conversion_failed())?,
-        lunar_day: LunarDay::new(date.day_of_month().0).map_err(|_| conversion_failed())?,
-        is_leap_month: month_info.is_leap(),
+        lunar_year: date.year,
+        lunar_month: LunarMonth::new(date.month).map_err(|_| conversion_failed())?,
+        lunar_day: LunarDay::new(date.day).map_err(|_| conversion_failed())?,
+        is_leap_month: date.is_leap_month,
         month_days,
     })
+}
+
+fn map_lunar_normalize_error(err: LunarError, year: i32, month: u8, day: u8) -> ChartError {
+    match err {
+        LunarError::InvalidLunarDate { .. } | LunarError::YearOutOfRange { .. } => {
+            ChartError::UnsupportedCalendarDate { year, month, day }
+        }
+        LunarError::InvalidSolarDate { .. } | LunarError::InvalidTime { .. } => {
+            ChartError::CalendarConversionFailed { year, month, day }
+        }
+    }
 }
 
 #[cfg(test)]

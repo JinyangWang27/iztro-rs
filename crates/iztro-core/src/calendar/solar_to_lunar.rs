@@ -1,18 +1,15 @@
-//! Gregorian-to-Chinese-lunisolar conversion backed by ICU4X `icu_calendar`.
+//! Gregorian-to-Chinese-lunisolar conversion backed by `lunar-lite`.
 //!
-//! This is the **only** module that depends on `icu_calendar`. It maps an
-//! ICU4X Chinese-calendar date onto the crate's own typed lunar facts and
-//! birth-year ganzhi, so callers never see ICU4X types.
+//! This module maps `lunar-lite` date values onto the crate's own typed lunar
+//! facts and birth-year ganzhi, so callers never see calendar-backend types.
 //!
-//! The mapping is verified against pinned upstream `iztro@2.5.8`: ICU4X reports a
-//! cyclic year whose `related_iso` is the lunar year and whose 1-based cyclic
-//! index gives the year ganzhi, plus a month number, a leap-month flag, and a
-//! day of month. iztro derives the chart year pillar with its default
-//! `yearDivide: 'normal'` (lunar-new-year boundary), which matches ICU4X's
-//! cyclic year, so the two agree even across the 立春/正月初一 window.
+//! The mapping is verified against pinned upstream `iztro@2.5.8`: `lunar-lite`
+//! returns the lunar-new-year-bounded year, month, leap-month flag, and day.
+//! iztro derives the chart year pillar with its default `yearDivide: 'normal'`
+//! (lunar-new-year boundary), so deriving ganzhi from the converted lunar year
+//! agrees with upstream even across the 立春/正月初一 window.
 
-use icu_calendar::Date;
-use icu_calendar::cal::ChineseTraditional;
+use lunar_lite::{LunarError, SolarDate, solar_to_lunar as convert_solar_to_lunar};
 
 use crate::error::ChartError;
 use crate::model::calendar::{SolarDay, SolarMonth};
@@ -21,7 +18,7 @@ use crate::placement::natal::life_body::{LunarDay, LunarMonth};
 
 /// Typed lunar facts produced from a Gregorian/solar date.
 ///
-/// All fields are the crate's own domain types; no ICU4X types are exposed.
+/// All fields are the crate's own domain types; no calendar-backend types are exposed.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) struct LunarConversion {
     lunar_year: i32,
@@ -70,8 +67,10 @@ impl LunarConversion {
 ///
 /// - [`ChartError::InvalidSolarDate`] when the year-month-day is not a real
 ///   Gregorian date (for example 30 February);
-/// - [`ChartError::CalendarConversionFailed`] when ICU4X does not yield the
-///   cyclic year or in-range lunar month/day the supported slice needs.
+/// - [`ChartError::UnsupportedCalendarDate`] when `lunar-lite` reports the date
+///   is outside its supported range;
+/// - [`ChartError::CalendarConversionFailed`] when conversion does not yield
+///   in-range lunar month/day facts the supported slice needs.
 pub(crate) fn solar_to_lunar(
     year: i32,
     month: SolarMonth,
@@ -83,36 +82,39 @@ pub(crate) fn solar_to_lunar(
         day: day.value(),
     };
 
-    let iso = Date::try_new_iso(year, month.value(), day.value()).map_err(|_| {
-        ChartError::InvalidSolarDate {
-            year,
-            month: month.value(),
-            day: day.value(),
-        }
-    })?;
-    let chinese = iso.to_calendar(ChineseTraditional::new());
+    let lunar = convert_solar_to_lunar(SolarDate {
+        year,
+        month: month.value(),
+        day: day.value(),
+    })
+    .map_err(|err| map_solar_conversion_error(err, year, month.value(), day.value()))?;
 
-    let cyclic = chinese.year().cyclic().ok_or_else(conversion_failed)?;
-    let cyclic_index = cyclic.year.checked_sub(1).ok_or_else(conversion_failed)? as usize;
-    // `from_index` wraps with modulo, mapping the 1-based cyclic index onto the
-    // ten Heavenly Stems and twelve Earthly Branches (cyclic year 1 = 甲子).
-    let birth_year_stem = HeavenlyStem::from_index(cyclic_index);
-    let birth_year_branch = EarthlyBranch::from_index(cyclic_index);
-
-    let month_info = chinese.month();
-    let lunar_month =
-        LunarMonth::new(month_info.month_number()).map_err(|_| conversion_failed())?;
-    let is_leap_month = month_info.is_leap();
-    let lunar_day = LunarDay::new(chinese.day_of_month().0).map_err(|_| conversion_failed())?;
+    let lunar_month = LunarMonth::new(lunar.month).map_err(|_| conversion_failed())?;
+    let lunar_day = LunarDay::new(lunar.day).map_err(|_| conversion_failed())?;
+    let year_offset = lunar.year - 1984;
+    let birth_year_stem = HeavenlyStem::from_index(year_offset.rem_euclid(10) as usize);
+    let birth_year_branch = EarthlyBranch::from_index(year_offset.rem_euclid(12) as usize);
 
     Ok(LunarConversion {
-        lunar_year: cyclic.related_iso,
+        lunar_year: lunar.year,
         lunar_month,
         lunar_day,
-        is_leap_month,
+        is_leap_month: lunar.is_leap_month,
         birth_year_stem,
         birth_year_branch,
     })
+}
+
+fn map_solar_conversion_error(err: LunarError, year: i32, month: u8, day: u8) -> ChartError {
+    match err {
+        LunarError::InvalidSolarDate { .. } => ChartError::InvalidSolarDate { year, month, day },
+        LunarError::YearOutOfRange { .. } => {
+            ChartError::UnsupportedCalendarDate { year, month, day }
+        }
+        LunarError::InvalidLunarDate { .. } | LunarError::InvalidTime { .. } => {
+            ChartError::CalendarConversionFailed { year, month, day }
+        }
+    }
 }
 
 #[cfg(test)]
@@ -123,12 +125,12 @@ mod tests {
     //   node --input-type=module -e "import { astro } from 'iztro';
     //     const a = astro.bySolar('YYYY-M-D', 4, '女', true, 'zh-CN');
     //     console.log(a.rawDates.lunarDate, a.rawDates.chineseDate.yearly);"
-    // These exercise the ICU4X mapping independently of the chart E2E fixtures:
+    // These exercise the adapter mapping independently of the chart E2E fixtures:
     // before / on / after Chinese New Year, an ordinary mid-year date, a date
     // that converts into a leap lunar month (both halves), and a date after a
     // leap month. 1985-02-15 sits in the 立春/正月初一 window and still resolves
-    // to the prior lunar year, proving ICU4X uses the lunar-new-year boundary
-    // like iztro's default `yearDivide: 'normal'`.
+    // to the prior lunar year, proving the adapter uses the lunar-new-year
+    // boundary like iztro's default `yearDivide: 'normal'`.
     struct Case {
         year: i32,
         month: u8,

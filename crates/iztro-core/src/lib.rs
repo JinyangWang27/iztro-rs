@@ -18,9 +18,9 @@ pub mod feature;
 pub mod model;
 pub mod placement;
 
-// Internal calendar-conversion and normalization adapters. ICU4X and calendar
-// adapter types are isolated here and never exposed in the public API; public
-// callers use the facade request types and chart facts instead.
+// Internal calendar-conversion and normalization adapters. Calendar-backend
+// types are isolated here and never exposed in the public API; public callers
+// use the facade request types and chart facts instead.
 mod calendar;
 
 pub use error::ChartError;
