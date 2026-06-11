@@ -39,7 +39,7 @@
 use crate::error::ChartError;
 use crate::model::calendar::{BirthTime, Gender};
 use crate::model::chart::{Chart, Palace, StarPlacement};
-use crate::model::ganzhi::{EarthlyBranch, HeavenlyStem};
+use lunar_lite::{EarthlyBranch, HeavenlyStem};
 use crate::model::profile::ChartAlgorithmKind;
 use crate::model::star::mutagen::Scope;
 use crate::model::star::{Brightness, StarMetadata, StarName};
@@ -667,7 +667,7 @@ mod tests {
         jie_lu_branch, kong_wang_branch, tian_chu_branch, tian_fu_adj_branch, tian_guan_branch,
         xian_chi_branch, xun_kong_branch,
     };
-    use crate::model::ganzhi::{EARTHLY_BRANCHES, EarthlyBranch, HEAVENLY_STEMS, HeavenlyStem};
+    use lunar_lite::{EARTHLY_BRANCHES, EarthlyBranch, HEAVENLY_STEMS, HeavenlyStem};
 
     // Tables transcribed from iztro 2.5.8 `getYearlyStarIndex` /
     // `getHuagaiXianchiIndex` and cross-checked against `astro.byLunar` output.

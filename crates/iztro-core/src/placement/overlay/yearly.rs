@@ -17,7 +17,7 @@
 
 use crate::error::ChartError;
 use crate::model::chart::{Chart, TemporalContext, TemporalLayer};
-use crate::model::sexagenary::StemBranch;
+use lunar_lite::StemBranch;
 use crate::model::star::mutagen::Scope;
 use crate::placement::overlay::mutagen::stem_mutagen_activations;
 

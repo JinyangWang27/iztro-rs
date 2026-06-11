@@ -12,7 +12,7 @@
 
 use crate::error::ChartError;
 use crate::model::chart::{ScopedStarPlacement, StarPlacement, TemporalContext, TemporalLayer};
-use crate::model::ganzhi::{EarthlyBranch, HeavenlyStem};
+use lunar_lite::{EarthlyBranch, HeavenlyStem};
 use crate::model::star::mutagen::Scope;
 use crate::model::star::{
     Brightness, FlowStarBase, FlowStarScope, StarName, flow_star_name, known_star_metadata,

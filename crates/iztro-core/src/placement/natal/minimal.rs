@@ -9,10 +9,9 @@ use crate::error::ChartError;
 use crate::model::bureau::five_element_bureau_from_life_palace;
 use crate::model::calendar::BirthContext;
 use crate::model::chart::{Chart, PALACE_COUNT, PALACE_NAMES, Palace, PalaceName};
-use crate::model::ganzhi::{EARTHLY_BRANCHES, EarthlyBranch, HEAVENLY_STEMS};
 use crate::model::profile::MethodProfile;
-use crate::model::sexagenary::StemBranch;
 use crate::placement::natal::input::NatalChartInput;
+use lunar_lite::{EARTHLY_BRANCHES, EarthlyBranch, HEAVENLY_STEMS, StemBranch};
 use crate::placement::natal::life_body::{LunarBirthContext, calculate_life_body_palace_indices};
 use crate::placement::natal::palace_stems::palace_stem_for_branch;
 
@@ -75,8 +74,13 @@ pub fn build_minimal_natal_chart(input: NatalChartInput) -> Result<Chart, ChartE
         })
         .collect();
 
-    let life_pair = StemBranch::new(palace_stem_for_branch(year_stem, life_branch), life_branch);
-    let five_element_bureau = five_element_bureau_from_life_palace(life_pair)?;
+    let life_pair = StemBranch::try_new(palace_stem_for_branch(year_stem, life_branch), life_branch)
+        .map_err(|err| match err {
+            lunar_lite::StemBranchError::InvalidStemBranchPair { stem, branch } => {
+                ChartError::InvalidStemBranchPair { stem, branch }
+            }
+        })?;
+    let five_element_bureau = five_element_bureau_from_life_palace(life_pair);
 
     Chart::try_new(
         input.birth_context().clone(),

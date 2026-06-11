@@ -11,7 +11,7 @@ use crate::error::ChartError;
 use crate::facade::by_lunar::{LunarChartRequest, by_lunar};
 use crate::model::calendar::{BirthTime, Gender, SolarDay, SolarMonth};
 use crate::model::chart::Chart;
-use crate::model::ganzhi::EarthlyBranch;
+use lunar_lite::EarthlyBranch;
 use crate::model::profile::MethodProfile;
 
 /// Typed solar-date request for the iztro-compatible natal chart facade.

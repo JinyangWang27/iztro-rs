@@ -1,4 +1,4 @@
-use crate::model::ganzhi::HeavenlyStem;
+use lunar_lite::HeavenlyStem;
 use crate::model::star::{StarCategory, StarName, star_metadata};
 use serde::{Deserialize, Serialize};
 

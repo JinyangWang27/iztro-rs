@@ -20,7 +20,7 @@ use lunar_lite::{
 
 use crate::error::ChartError;
 use crate::model::calendar::{SolarDay, SolarMonth};
-use crate::model::ganzhi::{EarthlyBranch, HeavenlyStem};
+use lunar_lite::{EarthlyBranch, HeavenlyStem};
 use crate::placement::natal::life_body::{LunarDay, LunarMonth};
 
 /// Typed lunar facts produced from a Gregorian/solar date.

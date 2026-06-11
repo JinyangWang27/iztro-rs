@@ -11,10 +11,8 @@
 //! Fire  -> Fire6  (火六局)
 //! ```
 
-use crate::{
-    error::ChartError,
-    model::sexagenary::{NaYinElement, StemBranch, nayin_element},
-};
+use crate::model::nayin::{NaYinElement, nayin_element};
+use lunar_lite::StemBranch;
 use serde::{Deserialize, Serialize};
 
 /// The five-element bureau (五行局) of a chart.
@@ -70,10 +68,7 @@ impl FiveElementBureau {
 
 /// Calculates the five-element bureau from the Life Palace stem-branch pair.
 ///
-/// Returns [`ChartError::InvalidStemBranchPair`] when the pair is not part of
-/// the sexagenary cycle.
-pub fn five_element_bureau_from_life_palace(
-    pair: StemBranch,
-) -> Result<FiveElementBureau, ChartError> {
-    Ok(FiveElementBureau::from_element(nayin_element(pair)?))
+/// `lunar_lite::StemBranch` is valid by construction, so this always succeeds.
+pub fn five_element_bureau_from_life_palace(pair: StemBranch) -> FiveElementBureau {
+    FiveElementBureau::from_element(nayin_element(pair))
 }

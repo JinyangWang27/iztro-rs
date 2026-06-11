@@ -18,12 +18,11 @@ use crate::{
     error::ChartError,
     model::{
         chart::{Chart, StarPlacement},
-        ganzhi::EarthlyBranch,
-        sexagenary::StemBranch,
         star::StarName,
         star::mutagen::{Mutagen, Scope},
     },
 };
+use lunar_lite::{EarthlyBranch, StemBranch};
 use serde::{Deserialize, Deserializer, Serialize};
 
 /// Typed temporal context distinguishing each non-natal horoscope scope.

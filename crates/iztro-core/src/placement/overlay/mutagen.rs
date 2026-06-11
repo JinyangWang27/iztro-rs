@@ -1,7 +1,7 @@
 //! Shared Heavenly Stem mutagen-activation builder for temporal overlays.
 
 use crate::model::chart::{Chart, MutagenActivation};
-use crate::model::ganzhi::HeavenlyStem;
+use lunar_lite::HeavenlyStem;
 use crate::model::star::mutagen::{Scope, birth_year_star_mutagen};
 
 /// Builds the [`MutagenActivation`]s a Heavenly Stem produces over a natal chart.
