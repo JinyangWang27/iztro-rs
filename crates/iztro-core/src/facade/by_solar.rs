@@ -2,7 +2,7 @@
 //!
 //! [`by_solar`] mirrors iztro's `astro.bySolar(...)` conceptually through the
 //! typed [`SolarChartRequest`]. It is an adaptor layer: it validates the solar
-//! input, converts it to lunar facts with the internal ICU4X-backed calendar
+//! input, converts it to lunar facts with the internal `lunar-lite` calendar
 //! adapter, then delegates to [`by_lunar`] so chart construction reuses exactly
 //! the same supported slice. No new star-placement logic lives here.
 
@@ -184,7 +184,7 @@ impl SolarChartRequestBuilder {
 /// Builds a natal chart with currently supported natal stars from a solar date.
 ///
 /// This facade validates the Gregorian/solar date, converts it to Chinese
-/// lunisolar facts with the internal ICU4X-backed adapter, derives the
+/// lunisolar facts with the internal `lunar-lite` adapter, derives the
 /// birth-year stem/branch from the cyclic year, sets `is_leap_month` from the
 /// conversion and `fix_leap` from the request, then delegates to [`by_lunar`].
 /// It performs no chart construction of its own, so it preserves the exact

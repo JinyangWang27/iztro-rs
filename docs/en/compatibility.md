@@ -81,9 +81,9 @@ request objects instead of JavaScript-style positional arguments.
 the supported-star natal chart builder. It now carries explicit leap-month
 semantics through `is_leap_month` and `fix_leap` (builder defaults `false` and
 `true`, preserving prior non-leap behavior). The requested `is_leap_month` is
-first resolved against the real calendar through the internal ICU-backed
-calendar normalizer; no ICU or calendar-adapter types are exposed from the
-public API. The leap flag is honored **only** when the requested month is
+first resolved against the real calendar through the internal lunar-lite-backed calendar normalizer; 
+no calendar-adapter types are exposed from the public API. 
+The leap flag is honored **only** when the requested month is
 actually that year's leap month, mirroring upstream `lunar2solar`. An invalid
 leap request — for example `2020-3-20` with `is_leap_month=true`, where 2020's
 leap month is the fourth, not the third — is treated as the ordinary month.
@@ -106,15 +106,15 @@ the next lunar day, daily adjective-star placement uses upstream
 late Zi.
 
 `by_solar` is a minimal adaptor over the same supported slice: it validates the
-Gregorian/solar date, converts it to Chinese-lunisolar facts through an internal
-ICU4X (`icu_calendar`) adapter, derives the birth-year Heavenly Stem and Earthly
-Branch from the converted cyclic year, sets `is_leap_month` from the conversion
-and `fix_leap` from the request, then delegates to `by_lunar`. It performs no
-chart construction of its own, so it produces exactly the `by_lunar` supported
-slice. ICU4X is used internally only; ICU4X types are not part of the public API.
-The conversion uses the lunar-new-year boundary, matching iztro's default
-`yearDivide: 'normal'`, so the converted year ganzhi agrees with upstream even
-across the 立春/正月初一 window.
+Gregorian/solar date, converts it to Chinese-lunisolar facts through the internal
+`lunar-lite` adapter, derives the birth-year Heavenly Stem and Earthly Branch
+from the converted lunar year, sets `is_leap_month` from the conversion and
+`fix_leap` from the request, then delegates to `by_lunar`. It performs no chart
+construction of its own, so it produces exactly the `by_lunar` supported slice.
+`lunar-lite` is used internally only; calendar-backend types are not part of the
+public API. The conversion uses the lunar-new-year boundary, matching iztro's
+default `yearDivide: 'normal'`, so the converted year ganzhi agrees with
+upstream even across the 立春/正月初一 window.
 
 Full BaZi output, full horoscope assembly, temporal decorative arrays
 (`yearlyDecStar`), full facade serialization parity, bindings, feature
@@ -199,7 +199,7 @@ places 年解 (`NianJieYearly`), which is intentionally kept outside `FlowStarBa
 No horoscope palace-name derivation is performed; placement is branch-based.
 
 四化 remain `Mutagen` / `MutagenActivation` facts, never `StarName` variants.
-Minimal `by_solar` (ICU4X-backed solar-to-lunar conversion), fixture-backed
+Minimal `by_solar` (`lunar-lite`-backed solar-to-lunar conversion), fixture-backed
 leap-month behavior, and `BirthTime`/`timeIndex` `0..=12` rat-hour variants for
 the supported `by_lunar`/`by_solar` slice are now implemented (see
 [Public facade compatibility](#public-facade-compatibility)). Full BaZi output,
@@ -289,8 +289,8 @@ Both new fixtures are supported-field-only and exclude temporal flow stars (thes
 depend only on the year stem/branch and are covered by
 `e2e_supported_by_lunar.json`), full facade serialization parity, rat-hour
 variants, horoscope palace-name derivation, temporal decorative arrays, features,
-rules, and narrative. ICU4X (`icu_calendar`) backs `by_solar`'s conversion
-internally and does not appear in the public API.
+rules, and narrative. `lunar-lite` backs `by_solar`'s conversion internally and
+calendar-backend types do not appear in the public API.
 
 Only the current full default-algorithm adjective-star fixtures (38 stars each)
 and Zhongzhou adjective-star fixtures (40 stars each) are kept in-tree. Earlier,
