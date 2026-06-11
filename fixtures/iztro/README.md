@@ -21,6 +21,7 @@ npm run dump:adjective --prefix tools/iztro-reference
 npm run dump:e2e-supported --prefix tools/iztro-reference
 npm run dump:e2e-supported-by-solar --prefix tools/iztro-reference
 npm run dump:leap-month --prefix tools/iztro-reference
+npm run dump:time-index-rat-hour --prefix tools/iztro-reference
 ```
 
 The workspace targets `npm:iztro` version `2.5.8` and keeps
@@ -74,14 +75,17 @@ facade entry points. They mirror iztro's `astro.byLunar(...)` and
 `by_lunar` records the provided lunar date and delegates to the natal chart with
 supported stars builder. It now carries explicit `is_leap_month` / `fix_leap`
 semantics: a leap month with `fix_leap` and lunar day > 15 advances the effective
-month used for month-based placement. `by_solar` validates the Gregorian date,
-converts it through an internal ICU4X (`icu_calendar`) adapter, derives the
-birth-year stem/branch from the cyclic year, and delegates to `by_lunar`; ICU4X
-types are not exposed in the public API.
+month used for month-based placement except for late Zi (`timeIndex = 12`),
+matching upstream's guard. `BirthTime` supports upstream `timeIndex` `0..=12`,
+preserving early Zi (`0`) and late Zi (`12`) while keeping branch-based request
+APIs backward compatible. `by_solar` validates the Gregorian date, converts it
+through an internal ICU4X (`icu_calendar`) adapter, derives the birth-year
+stem/branch from the cyclic year, and delegates to `by_lunar`; ICU4X types are
+not exposed in the public API.
 
 `by_lunar` still does not perform year-to-ganzhi derivation, so its fixtures
 provide `birth_year_stem` and `birth_year_branch` explicitly; `by_solar` derives
-them from the conversion. Rat-hour variants remain deferred.
+them from the conversion.
 
 ## Supported by_lunar E2E fixture
 
@@ -233,10 +237,31 @@ Regenerate it with:
 npm run dump:leap-month --prefix tools/iztro-reference -- --write
 ```
 
-Both fixtures are supported-field-only and exclude temporal flow stars (covered by
-`e2e_supported_by_lunar.json`), full facade serialization parity, rat-hour
-variants, horoscope palace-name derivation, temporal decorative arrays, features,
-rules, and narrative.
+## Time-index rat-hour fixture
+
+`time_index_rat_hour.json` characterizes upstream `iztro` `timeIndex` `0..=12`
+behavior for the supported `by_lunar` facade. It covers early Zi (`0`), late Zi
+(`12`), one ordinary non-Zi time, and a real 2020 leap fourth-month second-half
+pair under `fix_leap=true` proving late Zi does not advance the effective month.
+
+Each case records the lunar facade inputs, the upstream-derived
+`birth_year_stem`/`birth_year_branch` fed back to Rust, the `resolved_lunar`
+block, and the supported chart fields. The Rust E2E test
+(`crates/iztro-core/tests/time_index_rat_hour.rs`) builds each case through
+`iztro_core::by_lunar(...)` using `iztro_time_index`, asserts the recorded
+`BirthTime` variant, compares the supported fields, and verifies the chart's
+recorded lunar date reproduces upstream `resolved_lunar`.
+
+Regenerate it with:
+
+```bash
+npm run dump:time-index-rat-hour --prefix tools/iztro-reference -- --write
+```
+
+These facade fixtures are supported-field-only and exclude temporal flow stars
+(covered by `e2e_supported_by_lunar.json`), full facade serialization parity,
+horoscope palace-name derivation, temporal decorative arrays, features, rules,
+and narrative.
 
 ## Major-star fixture
 

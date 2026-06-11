@@ -33,12 +33,11 @@
 //!   year branch.
 //!
 //! 神煞 beyond this supported natal slice, adjective-star brightness, temporal
-//! scopes, horoscope placement, leap-month behavior, and rat-hour variants stay
-//! out of scope. 四化 remain `mutagen: Option<Mutagen>` facts on placements,
-//! never independent stars.
+//! scopes, horoscope placement, and leap-month behavior stay out of scope.
+//! 四化 remain `mutagen: Option<Mutagen>` facts on placements, never independent stars.
 
 use crate::error::ChartError;
-use crate::model::calendar::Gender;
+use crate::model::calendar::{BirthTime, Gender};
 use crate::model::chart::{Chart, Palace, StarPlacement};
 use crate::model::ganzhi::{EarthlyBranch, HeavenlyStem};
 use crate::model::profile::ChartAlgorithmKind;
@@ -51,7 +50,8 @@ use crate::placement::natal::life_body::{LunarDay, LunarMonth};
 pub struct AdjectiveStarPlacementInput {
     lunar_month: LunarMonth,
     lunar_day: LunarDay,
-    birth_time: EarthlyBranch,
+    daily_star_offset: u8,
+    birth_time: BirthTime,
     birth_year_stem: HeavenlyStem,
     birth_year_branch: EarthlyBranch,
 }
@@ -65,9 +65,29 @@ impl AdjectiveStarPlacementInput {
         birth_year_stem: HeavenlyStem,
         birth_year_branch: EarthlyBranch,
     ) -> Self {
+        Self::new_with_daily_star_offset(
+            lunar_month,
+            lunar_day,
+            lunar_day.value() - 1,
+            BirthTime::from_branch(birth_time),
+            birth_year_stem,
+            birth_year_branch,
+        )
+    }
+
+    /// Creates adjective-star placement input with explicit daily-star offset.
+    pub const fn new_with_daily_star_offset(
+        lunar_month: LunarMonth,
+        lunar_day: LunarDay,
+        daily_star_offset: u8,
+        birth_time: BirthTime,
+        birth_year_stem: HeavenlyStem,
+        birth_year_branch: EarthlyBranch,
+    ) -> Self {
         Self {
             lunar_month,
             lunar_day,
+            daily_star_offset,
             birth_time,
             birth_year_stem,
             birth_year_branch,
@@ -84,8 +104,18 @@ impl AdjectiveStarPlacementInput {
         self.lunar_day
     }
 
+    /// Returns the day offset used by daily adjective-star formulas.
+    pub const fn daily_star_offset(self) -> u8 {
+        self.daily_star_offset
+    }
+
     /// Returns the birth time branch.
     pub const fn birth_time(self) -> EarthlyBranch {
+        self.birth_time.branch()
+    }
+
+    /// Returns the full birth-time variant.
+    pub const fn birth_time_variant(self) -> BirthTime {
         self.birth_time
     }
 
@@ -291,8 +321,8 @@ fn adjective_star_placements(
 
     let month_index = usize::from(input.lunar_month().value()) - 1;
     let month_offset = month_index as isize;
-    let day_offset = isize::from(input.lunar_day().value()) - 1;
-    let time_index = input.birth_time().index() as isize;
+    let day_offset = isize::from(input.daily_star_offset());
+    let time_index = isize::from(input.birth_time_variant().iztro_time_index() % 12);
     let year_stem = input.birth_year_stem();
     let year_branch = input.birth_year_branch();
     let year_branch_index = year_branch.index();

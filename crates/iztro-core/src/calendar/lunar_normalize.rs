@@ -26,6 +26,7 @@ pub(crate) struct ResolvedLunarDate {
     lunar_month: LunarMonth,
     lunar_day: LunarDay,
     is_leap_month: bool,
+    month_days: u8,
 }
 
 impl ResolvedLunarDate {
@@ -47,6 +48,11 @@ impl ResolvedLunarDate {
     /// Returns whether the resolved lunar month is actually a leap month.
     pub(crate) const fn is_leap_month(&self) -> bool {
         self.is_leap_month
+    }
+
+    /// Returns the number of days in the resolved lunar month.
+    pub(crate) const fn month_days(&self) -> u8 {
+        self.month_days
     }
 }
 
@@ -94,6 +100,14 @@ pub(crate) fn resolve_lunar_date(
     let date =
         Date::try_new_from_codes(None, lunar_year, month_code, day, ChineseTraditional::new())
             .map_err(|_| unsupported())?;
+    let month_days =
+        if Date::try_new_from_codes(None, lunar_year, month_code, 30, ChineseTraditional::new())
+            .is_ok()
+        {
+            30
+        } else {
+            29
+        };
 
     let month_info = date.month();
     Ok(ResolvedLunarDate {
@@ -105,6 +119,7 @@ pub(crate) fn resolve_lunar_date(
         lunar_month: LunarMonth::new(month_info.month_number()).map_err(|_| conversion_failed())?,
         lunar_day: LunarDay::new(date.day_of_month().0).map_err(|_| conversion_failed())?,
         is_leap_month: month_info.is_leap(),
+        month_days,
     })
 }
 
@@ -129,6 +144,7 @@ mod tests {
         assert_eq!(resolved.lunar_year(), 2020);
         assert_eq!(resolved.lunar_month().value(), 4);
         assert_eq!(resolved.lunar_day().value(), 27);
+        assert_eq!(resolved.month_days(), 29);
         assert!(resolved.is_leap_month());
     }
 

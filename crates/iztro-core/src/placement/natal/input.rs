@@ -134,6 +134,7 @@ pub struct NatalChartWithSupportedStarsInput {
     method_profile: MethodProfile,
     lunar_month: LunarMonth,
     lunar_day: LunarDay,
+    daily_star_offset: u8,
     birth_year_stem: HeavenlyStem,
     birth_year_branch: EarthlyBranch,
 }
@@ -148,11 +149,37 @@ impl NatalChartWithSupportedStarsInput {
         birth_year_stem: HeavenlyStem,
         birth_year_branch: EarthlyBranch,
     ) -> Self {
+        Self::new_with_daily_star_offset(
+            birth_context,
+            method_profile,
+            lunar_month,
+            lunar_day,
+            lunar_day.value() - 1,
+            birth_year_stem,
+            birth_year_branch,
+        )
+    }
+
+    /// Creates input for the supported-star builder with an explicit daily-star offset.
+    ///
+    /// The explicit offset is used by the facade to preserve upstream late-Zi
+    /// `fixLunarDayIndex` behavior separately from the major-star lunar day.
+    #[allow(clippy::too_many_arguments)]
+    pub const fn new_with_daily_star_offset(
+        birth_context: BirthContext,
+        method_profile: MethodProfile,
+        lunar_month: LunarMonth,
+        lunar_day: LunarDay,
+        daily_star_offset: u8,
+        birth_year_stem: HeavenlyStem,
+        birth_year_branch: EarthlyBranch,
+    ) -> Self {
         Self {
             birth_context,
             method_profile,
             lunar_month,
             lunar_day,
+            daily_star_offset,
             birth_year_stem,
             birth_year_branch,
         }
@@ -176,6 +203,11 @@ impl NatalChartWithSupportedStarsInput {
     /// Returns the validated lunar day.
     pub const fn lunar_day(&self) -> LunarDay {
         self.lunar_day
+    }
+
+    /// Returns the daily-star offset used for day-based adjective placement.
+    pub const fn daily_star_offset(&self) -> u8 {
+        self.daily_star_offset
     }
 
     /// Returns the birth year Heavenly Stem.

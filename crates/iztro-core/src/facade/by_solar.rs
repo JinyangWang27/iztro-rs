@@ -9,7 +9,7 @@
 use crate::calendar::solar_to_lunar;
 use crate::error::ChartError;
 use crate::facade::by_lunar::{LunarChartRequest, by_lunar};
-use crate::model::calendar::{Gender, SolarDay, SolarMonth};
+use crate::model::calendar::{BirthTime, Gender, SolarDay, SolarMonth};
 use crate::model::chart::Chart;
 use crate::model::ganzhi::EarthlyBranch;
 use crate::model::profile::MethodProfile;
@@ -24,7 +24,7 @@ pub struct SolarChartRequest {
     solar_year: i32,
     solar_month: SolarMonth,
     solar_day: SolarDay,
-    birth_time: EarthlyBranch,
+    birth_time: BirthTime,
     gender: Gender,
     fix_leap: bool,
     method_profile: MethodProfile,
@@ -56,6 +56,11 @@ impl SolarChartRequest {
 
     /// Returns the birth time branch.
     pub const fn birth_time(&self) -> EarthlyBranch {
+        self.birth_time.branch()
+    }
+
+    /// Returns the full birth-time variant.
+    pub const fn birth_time_variant(&self) -> BirthTime {
         self.birth_time
     }
 
@@ -85,7 +90,7 @@ pub struct SolarChartRequestBuilder {
     solar_year: Option<i32>,
     solar_month: Option<SolarMonth>,
     solar_day: Option<SolarDay>,
-    birth_time: Option<EarthlyBranch>,
+    birth_time: Option<BirthTime>,
     gender: Option<Gender>,
     fix_leap: Option<bool>,
     method_profile: Option<MethodProfile>,
@@ -112,8 +117,20 @@ impl SolarChartRequestBuilder {
 
     /// Sets the birth time branch.
     pub fn birth_time(mut self, value: EarthlyBranch) -> Self {
+        self.birth_time = Some(BirthTime::from_branch(value));
+        self
+    }
+
+    /// Sets the full birth-time variant.
+    pub fn birth_time_variant(mut self, value: BirthTime) -> Self {
         self.birth_time = Some(value);
         self
+    }
+
+    /// Sets the birth time from an upstream `iztro` `timeIndex`.
+    pub fn iztro_time_index(mut self, value: u8) -> Result<Self, ChartError> {
+        self.birth_time = Some(BirthTime::from_iztro_time_index(value)?);
+        Ok(self)
     }
 
     /// Sets the gender marker.
@@ -183,7 +200,7 @@ pub fn by_solar(request: SolarChartRequest) -> Result<Chart, ChartError> {
         .lunar_year(conversion.lunar_year())
         .lunar_month(conversion.lunar_month())
         .lunar_day(conversion.lunar_day())
-        .birth_time(request.birth_time())
+        .birth_time_variant(request.birth_time_variant())
         .gender(request.gender())
         .birth_year_stem(conversion.birth_year_stem())
         .birth_year_branch(conversion.birth_year_branch())

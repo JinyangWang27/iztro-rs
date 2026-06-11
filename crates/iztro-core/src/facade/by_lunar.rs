@@ -2,7 +2,7 @@
 
 use crate::calendar::resolve_lunar_date;
 use crate::error::ChartError;
-use crate::model::calendar::{BirthContext, CalendarDate, Gender};
+use crate::model::calendar::{BirthContext, BirthTime, CalendarDate, Gender};
 use crate::model::chart::Chart;
 use crate::model::ganzhi::{EarthlyBranch, HeavenlyStem};
 use crate::model::profile::MethodProfile;
@@ -20,7 +20,7 @@ pub struct LunarChartRequest {
     lunar_year: i32,
     lunar_month: LunarMonth,
     lunar_day: LunarDay,
-    birth_time: EarthlyBranch,
+    birth_time: BirthTime,
     gender: Gender,
     birth_year_stem: HeavenlyStem,
     birth_year_branch: EarthlyBranch,
@@ -55,6 +55,11 @@ impl LunarChartRequest {
 
     /// Returns the birth time branch.
     pub const fn birth_time(&self) -> EarthlyBranch {
+        self.birth_time.branch()
+    }
+
+    /// Returns the full birth-time variant.
+    pub const fn birth_time_variant(&self) -> BirthTime {
         self.birth_time
     }
 
@@ -99,7 +104,7 @@ pub struct LunarChartRequestBuilder {
     lunar_year: Option<i32>,
     lunar_month: Option<LunarMonth>,
     lunar_day: Option<LunarDay>,
-    birth_time: Option<EarthlyBranch>,
+    birth_time: Option<BirthTime>,
     gender: Option<Gender>,
     birth_year_stem: Option<HeavenlyStem>,
     birth_year_branch: Option<EarthlyBranch>,
@@ -129,8 +134,20 @@ impl LunarChartRequestBuilder {
 
     /// Sets the birth time branch.
     pub fn birth_time(mut self, value: EarthlyBranch) -> Self {
+        self.birth_time = Some(BirthTime::from_branch(value));
+        self
+    }
+
+    /// Sets the full birth-time variant.
+    pub fn birth_time_variant(mut self, value: BirthTime) -> Self {
         self.birth_time = Some(value);
         self
+    }
+
+    /// Sets the birth time from an upstream `iztro` `timeIndex`.
+    pub fn iztro_time_index(mut self, value: u8) -> Result<Self, ChartError> {
+        self.birth_time = Some(BirthTime::from_iztro_time_index(value)?);
+        Ok(self)
     }
 
     /// Sets the gender marker.
@@ -235,31 +252,38 @@ pub fn by_lunar(request: LunarChartRequest) -> Result<Chart, ChartError> {
         request.is_leap_month(),
     )?;
 
+    let birth_time = request.birth_time_variant();
     let effective_lunar_month = effective_lunar_month(
         resolved.lunar_month(),
         resolved.lunar_day(),
         resolved.is_leap_month(),
         request.fix_leap(),
+        birth_time,
     )?;
+    let major_lunar_day = major_lunar_day(resolved.lunar_day(), resolved.month_days(), birth_time)?;
+    let daily_star_offset = daily_star_offset(resolved.lunar_day(), birth_time);
 
-    let birth_context = BirthContext::new(
+    let birth_context = BirthContext::new_with_birth_time_variant(
         CalendarDate::lunar(
             resolved.lunar_year(),
             resolved.lunar_month().value(),
             resolved.lunar_day().value(),
         ),
-        request.birth_time(),
+        birth_time,
         request.gender(),
     );
 
-    build_natal_chart_with_supported_stars(NatalChartWithSupportedStarsInput::new(
-        birth_context,
-        request.method_profile().clone(),
-        effective_lunar_month,
-        resolved.lunar_day(),
-        request.birth_year_stem(),
-        request.birth_year_branch(),
-    ))
+    build_natal_chart_with_supported_stars(
+        NatalChartWithSupportedStarsInput::new_with_daily_star_offset(
+            birth_context,
+            request.method_profile().clone(),
+            effective_lunar_month,
+            major_lunar_day,
+            daily_star_offset,
+            request.birth_year_stem(),
+            request.birth_year_branch(),
+        ),
+    )
 }
 
 /// Computes the effective lunar month used for month-based star placement.
@@ -268,8 +292,7 @@ pub fn by_lunar(request: LunarChartRequest) -> Result<Chart, ChartError> {
 /// leap month, leap-month adjustment is enabled, and the lunar day is in the
 /// second half of the month (after the 15th), the effective month advances by
 /// one. Otherwise a leap month is treated as the same numeric month, and a
-/// non-leap month is always used as-is. iztro-rs does not model the late
-/// rat-hour (晚子时) variant, so that upstream guard is always satisfied here.
+/// non-leap month is always used as-is.
 ///
 /// `is_leap_month` here is the **resolved** leap state from the internal
 /// calendar normalizer, not the raw request flag, so an invalid leap request (a
@@ -283,8 +306,10 @@ fn effective_lunar_month(
     lunar_day: LunarDay,
     is_leap_month: bool,
     fix_leap: bool,
+    birth_time: BirthTime,
 ) -> Result<LunarMonth, ChartError> {
-    let needs_advance = is_leap_month && fix_leap && lunar_day.value() > 15;
+    let needs_advance =
+        is_leap_month && fix_leap && lunar_day.value() > 15 && !birth_time.is_late_zi();
     if !needs_advance {
         return Ok(lunar_month);
     }
@@ -295,4 +320,30 @@ fn effective_lunar_month(
             lunar_day: lunar_day.value(),
         }
     })
+}
+
+fn major_lunar_day(
+    lunar_day: LunarDay,
+    month_days: u8,
+    birth_time: BirthTime,
+) -> Result<LunarDay, ChartError> {
+    if !birth_time.is_late_zi() {
+        return Ok(lunar_day);
+    }
+
+    let next_day = if lunar_day.value() >= month_days {
+        1
+    } else {
+        lunar_day.value() + 1
+    };
+
+    LunarDay::new(next_day)
+}
+
+fn daily_star_offset(lunar_day: LunarDay, birth_time: BirthTime) -> u8 {
+    if birth_time.is_late_zi() {
+        lunar_day.value()
+    } else {
+        lunar_day.value() - 1
+    }
 }

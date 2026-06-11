@@ -26,6 +26,12 @@ pub enum ChartError {
         /// Unsupported lunar day value.
         value: u8,
     },
+    /// iztro `timeIndex` input must be in the supported `0..=12` range.
+    #[error("invalid birth time index: expected 0..=12, got {value}")]
+    InvalidBirthTimeIndex {
+        /// Unsupported iztro time index value.
+        value: u8,
+    },
     /// Solar (Gregorian) month input must be in the `1..=12` range.
     #[error("invalid solar month: expected 1..=12, got {value}")]
     InvalidSolarMonth {

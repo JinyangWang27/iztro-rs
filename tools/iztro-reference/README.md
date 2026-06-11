@@ -26,6 +26,7 @@ npm run dump:adjective --prefix tools/iztro-reference
 npm run dump:e2e-supported --prefix tools/iztro-reference
 npm run dump:e2e-supported-by-solar --prefix tools/iztro-reference
 npm run dump:leap-month --prefix tools/iztro-reference
+npm run dump:time-index-rat-hour --prefix tools/iztro-reference
 ```
 
 The dump commands use the canonical lunar fixture case:
@@ -103,6 +104,24 @@ ordinary months; each case records the upstream `resolved_lunar` block.
 
 Shared normalization maps/helpers for these two generators live in
 `scripts/lib/normalize.mjs`.
+
+### Time-index rat-hour fixture
+
+```bash
+# inspect
+npm run dump:time-index-rat-hour --prefix tools/iztro-reference
+
+# regenerate fixtures/iztro/time_index_rat_hour.json from repo root
+npm run dump:time-index-rat-hour --prefix tools/iztro-reference -- --write
+```
+
+`dump:time-index-rat-hour` emits one supported-field-only `byLunar` fixture for
+upstream `timeIndex` `0..=12`. It covers early Zi (`0`), late Zi (`12`), one
+ordinary non-Zi time, and a real 2020 leap fourth-month second-half pair proving
+the late-Zi guard on effective-month advancement. It preserves raw upstream
+labels beside normalized keys and excludes full facade serialization parity,
+full horoscope assembly, temporal decorative arrays, features, rules, and
+narrative.
 
 ### Runtime star families
 

@@ -6,6 +6,7 @@
 //! implemented here.
 
 use crate::error::ChartError;
+use crate::model::calendar::BirthTime;
 use crate::model::chart::{Chart, Palace, StarPlacement};
 use crate::model::ganzhi::{EarthlyBranch, HeavenlyStem};
 use crate::model::star::mutagen::{Scope, birth_year_star_mutagen};
@@ -17,7 +18,7 @@ use crate::placement::natal::life_body::LunarMonth;
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
 pub struct MinorStarPlacementInput {
     lunar_month: LunarMonth,
-    birth_time: EarthlyBranch,
+    birth_time: BirthTime,
     birth_year_stem: HeavenlyStem,
     birth_year_branch: EarthlyBranch,
 }
@@ -27,6 +28,21 @@ impl MinorStarPlacementInput {
     pub const fn new(
         lunar_month: LunarMonth,
         birth_time: EarthlyBranch,
+        birth_year_stem: HeavenlyStem,
+        birth_year_branch: EarthlyBranch,
+    ) -> Self {
+        Self::new_with_birth_time_variant(
+            lunar_month,
+            BirthTime::from_branch(birth_time),
+            birth_year_stem,
+            birth_year_branch,
+        )
+    }
+
+    /// Creates minor-star placement input from the full birth-time variant.
+    pub const fn new_with_birth_time_variant(
+        lunar_month: LunarMonth,
+        birth_time: BirthTime,
         birth_year_stem: HeavenlyStem,
         birth_year_branch: EarthlyBranch,
     ) -> Self {
@@ -45,6 +61,11 @@ impl MinorStarPlacementInput {
 
     /// Returns the birth time branch.
     pub const fn birth_time(self) -> EarthlyBranch {
+        self.birth_time.branch()
+    }
+
+    /// Returns the full birth-time variant.
+    pub const fn birth_time_variant(self) -> BirthTime {
         self.birth_time
     }
 
@@ -169,12 +190,12 @@ impl MinorStarPlacer for DeterministicMinorStarPlacer {
 
 fn minor_star_placements(input: MinorStarPlacementInput) -> [(EarthlyBranch, StarName); 14] {
     let (zuo, you) = zuo_you_branches(input.lunar_month());
-    let (chang, qu) = chang_qu_branches(input.birth_time());
+    let (chang, qu) = chang_qu_branches(input.birth_time_variant());
     let (kui, yue) = kui_yue_branches(input.birth_year_stem());
     let (lu, yang, tuo, ma) =
         lu_yang_tuo_ma_branches(input.birth_year_stem(), input.birth_year_branch());
-    let (kong, jie) = kong_jie_branches(input.birth_time());
-    let (huo, ling) = huo_ling_branches(input.birth_year_branch(), input.birth_time());
+    let (kong, jie) = kong_jie_branches(input.birth_time_variant());
+    let (huo, ling) = huo_ling_branches(input.birth_year_branch(), input.birth_time_variant());
 
     [
         (zuo, StarName::ZuoFu),
@@ -203,7 +224,7 @@ fn zuo_you_branches(lunar_month: LunarMonth) -> (EarthlyBranch, EarthlyBranch) {
     )
 }
 
-fn chang_qu_branches(birth_time: EarthlyBranch) -> (EarthlyBranch, EarthlyBranch) {
+fn chang_qu_branches(birth_time: BirthTime) -> (EarthlyBranch, EarthlyBranch) {
     let time_index = birth_time_index(birth_time);
 
     (
@@ -212,7 +233,7 @@ fn chang_qu_branches(birth_time: EarthlyBranch) -> (EarthlyBranch, EarthlyBranch
     )
 }
 
-fn kong_jie_branches(birth_time: EarthlyBranch) -> (EarthlyBranch, EarthlyBranch) {
+fn kong_jie_branches(birth_time: BirthTime) -> (EarthlyBranch, EarthlyBranch) {
     let time_index = birth_time_index(birth_time);
 
     (
@@ -223,7 +244,7 @@ fn kong_jie_branches(birth_time: EarthlyBranch) -> (EarthlyBranch, EarthlyBranch
 
 fn huo_ling_branches(
     year_branch: EarthlyBranch,
-    birth_time: EarthlyBranch,
+    birth_time: BirthTime,
 ) -> (EarthlyBranch, EarthlyBranch) {
     let time_index = birth_time_index(birth_time);
     let (huo_start, ling_start) = match year_branch {
@@ -244,6 +265,6 @@ fn huo_ling_branches(
     (huo_start.offset(time_index), ling_start.offset(time_index))
 }
 
-fn birth_time_index(birth_time: EarthlyBranch) -> isize {
-    birth_time.index() as isize
+fn birth_time_index(birth_time: BirthTime) -> isize {
+    isize::from(birth_time.iztro_time_index() % 12)
 }

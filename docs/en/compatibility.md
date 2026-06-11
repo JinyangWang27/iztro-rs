@@ -84,16 +84,26 @@ semantics through `is_leap_month` and `fix_leap` (builder defaults `false` and
 first resolved against the real calendar through the internal ICU-backed
 calendar normalizer; no ICU or calendar-adapter types are exposed from the
 public API. The leap flag is honored **only** when the requested month is
-actually that year's leap month, mirroring upstream `lunar2solar`. An invalid leap request — for
-example `2020-3-20` with `is_leap_month=true`, where 2020's leap month is the
-fourth, not the third — is treated as the ordinary month. After resolution, the
-second half of an actual leap month (lunar day > 15) with `fix_leap` advances the
-effective month used for month-based star placement by one, matching upstream
-`iztro@2.5.8` `fixLunarMonthIndex`; otherwise the month is used as-is. A leap
-twelfth month is rejected with `ChartError::UnsupportedLeapMonthCombination`
-rather than guessed. The birth year stem and branch are still supplied explicitly
-to `by_lunar` because year-to-ganzhi derivation from a lunar year is not
-implemented there.
+actually that year's leap month, mirroring upstream `lunar2solar`. An invalid
+leap request — for example `2020-3-20` with `is_leap_month=true`, where 2020's
+leap month is the fourth, not the third — is treated as the ordinary month.
+After resolution, the second half of an actual leap month (lunar day > 15) with
+`fix_leap` advances the effective month used for month-based star placement by
+one, matching upstream `iztro@2.5.8` `fixLunarMonthIndex`, except when the birth
+time is late Zi (`timeIndex = 12`), where upstream keeps the effective month
+unchanged. A leap twelfth month is rejected with
+`ChartError::UnsupportedLeapMonthCombination` rather than guessed. The birth
+year stem and branch are still supplied explicitly to `by_lunar` because
+year-to-ganzhi derivation from a lunar year is not implemented there.
+
+Birth time is represented by `BirthTime`, matching upstream `iztro` `timeIndex`
+values `0..=12`. `EarlyZi` (`0`) and `LateZi` (`12`) both project to
+`EarthlyBranch::Zi`, while branch-based request setters continue to map `Zi` to
+early Zi for backward compatibility. Late Zi is fixture-backed against
+`iztro@2.5.8`: time-based formulas wrap it like Zi, major-star placement uses
+the next lunar day, daily adjective-star placement uses upstream
+`fixLunarDayIndex`, and leap-month second-half adjustment is guarded off for
+late Zi.
 
 `by_solar` is a minimal adaptor over the same supported slice: it validates the
 Gregorian/solar date, converts it to Chinese-lunisolar facts through an internal
@@ -106,9 +116,9 @@ The conversion uses the lunar-new-year boundary, matching iztro's default
 `yearDivide: 'normal'`, so the converted year ganzhi agrees with upstream even
 across the 立春/正月初一 window.
 
-Rat-hour variants (早晚子时), full horoscope assembly, temporal decorative arrays
-(`yearlyDecStar`), full facade serialization parity, and
-interpretation/rule-engine/narrative remain deferred.
+Full BaZi output, full horoscope assembly, temporal decorative arrays
+(`yearlyDecStar`), full facade serialization parity, bindings, feature
+extraction, rules, and narrative remain deferred.
 
 ## Horoscope layer models
 
@@ -189,11 +199,12 @@ places 年解 (`NianJieYearly`), which is intentionally kept outside `FlowStarBa
 No horoscope palace-name derivation is performed; placement is branch-based.
 
 四化 remain `Mutagen` / `MutagenActivation` facts, never `StarName` variants.
-Minimal `by_solar` (ICU4X-backed solar-to-lunar conversion) and fixture-backed
-leap-month behavior for the supported `by_lunar`/`by_solar` slice are now
-implemented (see [Public facade compatibility](#public-facade-compatibility)).
-Rat-hour variants, the upstream yearly decorative arrays (`yearlyDecStar`), full
-horoscope assembly, and interpretation/rule-engine/narrative remain deferred.
+Minimal `by_solar` (ICU4X-backed solar-to-lunar conversion), fixture-backed
+leap-month behavior, and `BirthTime`/`timeIndex` `0..=12` rat-hour variants for
+the supported `by_lunar`/`by_solar` slice are now implemented (see
+[Public facade compatibility](#public-facade-compatibility)). Full BaZi output,
+the upstream yearly decorative arrays (`yearlyDecStar`), full horoscope
+assembly, bindings, feature extraction, rules, and narrative remain deferred.
 
 ## Current fixtures
 
@@ -220,6 +231,7 @@ The fixtures are:
 - `fixtures/iztro/e2e_supported_by_lunar.json`
 - `fixtures/iztro/e2e_supported_by_solar.json`
 - `fixtures/iztro/leap_month_by_lunar.json`
+- `fixtures/iztro/time_index_rat_hour.json`
 
 The `runtime_decorative_*` fixtures cover the four decorative families per palace
 (default and Zhongzhou); `flow_stars.json` covers the scoped flow stars for every
@@ -261,6 +273,16 @@ merely echoing input flags. Regenerate it with:
 
 ```bash
 npm run dump:leap-month --prefix tools/iztro-reference -- --write
+```
+
+`time_index_rat_hour.json` covers upstream `iztro` `timeIndex` `0..=12`
+behavior for the supported `by_lunar` slice: early Zi (`0`), late Zi (`12`), one
+ordinary non-Zi time, and a real leap-month second-half pair proving the late-Zi
+guard on effective-month advancement. Regenerate it with:
+
+```bash
+npm ci --prefix tools/iztro-reference
+npm run dump:time-index-rat-hour --prefix tools/iztro-reference -- --write
 ```
 
 Both new fixtures are supported-field-only and exclude temporal flow stars (these
