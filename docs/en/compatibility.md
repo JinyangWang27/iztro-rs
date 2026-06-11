@@ -111,10 +111,12 @@ Gregorian/solar date, converts it to Chinese-lunisolar facts through the interna
 from the converted lunar year via lunar-lite 0.2's `StemBranch::from_lunar_year`
 helper, sets `is_leap_month` from the conversion and `fix_leap` from the request,
 then delegates to `by_lunar`. It performs no chart construction of its own, so it
-produces exactly the `by_lunar` supported slice. `lunar-lite` is used internally
-only — its `HeavenlyStem`/`EarthlyBranch` enums are mapped onto iztro-core's own
-`model::ganzhi` types inside the adapter, so calendar-backend types are not part
-of the public API. The conversion uses the lunar-new-year boundary, matching iztro's
+produces exactly the `by_lunar` supported slice. `lunar-lite` owns the canonical
+low-level stem/branch and sexagenary-cycle primitives (`HeavenlyStem`,
+`EarthlyBranch`, `StemBranch`) that iztro-core re-exports, so the birth-year pair
+flows straight through with no per-adapter mapping; the calendar-backend date
+types (`SolarDate`, `LunarError`) stay internal. The conversion uses the
+lunar-new-year boundary, matching iztro's
 default `yearDivide: 'normal'`, so the converted year ganzhi agrees with
 upstream even across the 立春/正月初一 window.
 

@@ -92,8 +92,10 @@ lunar-lite 历法 normalizer按真实历法解析；公开 API 不暴露 calenda
 `by_solar` 是同一已支持切片之上的最小适配层：它校验公历日期，通过内部 `lunar-lite`
 适配器将其转换为农历事实，从转换得到的农历年推导出生年天干与地支，依据转换结果设置
 `is_leap_month`、依据请求设置 `fix_leap`，再委托给 `by_lunar`。它自身不做任何排盘，
-因此产出与 `by_lunar` 完全一致的已支持切片。`lunar-lite` 仅在内部使用；日历后端类型
-不属于公开 API。转换以正月初一为年界，与 iztro 默认的 `yearDivide: 'normal'` 一致，
+因此产出与 `by_lunar` 完全一致的已支持切片。`lunar-lite` 拥有底层天干/地支与六十甲子
+原语（`HeavenlyStem`、`EarthlyBranch`、`StemBranch`），并由 iztro-core 直接 re-export，
+故出生年干支无需逐适配层映射即可直通；仅日历后端日期类型（`SolarDate`、`LunarError`）
+不出现在公开 API。转换以正月初一为年界，与 iztro 默认的 `yearDivide: 'normal'` 一致，
 因此换算出的年干支即便落在立春/正月初一之间的窗口也与上游一致。
 
 完整八字输出、完整 horoscope 组装、上游 yearly decorative arrays（`yearlyDecStar`）、
