@@ -1,6 +1,6 @@
-use lunar_lite::{EarthlyBranch, HeavenlyStem};
 use crate::model::star::StarName;
 use crate::model::star::mutagen::Scope;
+use lunar_lite::{EarthlyBranch, HeavenlyStem};
 use thiserror::Error;
 
 /// Errors produced by core chart construction or validation.

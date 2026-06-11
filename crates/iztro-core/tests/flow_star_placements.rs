@@ -25,7 +25,7 @@ fn flow_layers_match_upstream_fixtures() {
         let scope = parse_flow_scope(case["scope"].as_str().expect("scope"));
         let stem = parse_stem(case["stem"].as_str().expect("stem"));
         let branch = parse_branch(case["branch"].as_str().expect("branch"));
-        let stem_branch = StemBranch::new(stem, branch);
+        let stem_branch = StemBranch::try_new(stem, branch).expect("valid sexagenary pair");
         let context = context_for(scope, stem_branch);
 
         let layer = build_flow_star_layer(context).expect("flow layer should build");

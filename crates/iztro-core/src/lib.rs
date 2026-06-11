@@ -25,6 +25,7 @@ mod calendar;
 
 pub use error::ChartError;
 
+pub use lunar_lite::{EARTHLY_BRANCHES, EarthlyBranch, HEAVENLY_STEMS, HeavenlyStem, StemBranch};
 pub use model::bureau::{FiveElementBureau, five_element_bureau_from_life_palace};
 pub use model::calendar::{
     BirthContext, BirthTime, CalendarDate, CalendarKind, Gender, SolarDay, SolarMonth,
@@ -35,7 +36,6 @@ pub use model::chart::{
     PalaceName, ScopedStarPlacement, StarPlacement, StarPlacementRef, TemporalContext,
     TemporalLayer,
 };
-pub use lunar_lite::{EARTHLY_BRANCHES, EarthlyBranch, HEAVENLY_STEMS, HeavenlyStem, StemBranch};
 pub use model::nayin::{NaYinElement, nayin_element};
 pub use model::profile::{ChartAlgorithmKind, MethodProfile};
 pub use model::star::mutagen::{

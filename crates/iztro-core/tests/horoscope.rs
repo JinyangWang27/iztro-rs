@@ -28,7 +28,8 @@ fn supported_star_natal_chart() -> Chart {
 
 fn yearly_context() -> TemporalContext {
     TemporalContext::Yearly {
-        stem_branch: StemBranch::new(HeavenlyStem::Geng, EarthlyBranch::Wu),
+        stem_branch: StemBranch::try_new(HeavenlyStem::Geng, EarthlyBranch::Wu)
+            .expect("valid sexagenary pair"),
         lunar_year: 1990,
     }
 }
@@ -150,7 +151,8 @@ fn temporal_layer_rejects_natal_scope() {
 #[test]
 fn temporal_layer_rejects_scope_context_mismatch() {
     let context = TemporalContext::Decadal {
-        stem_branch: StemBranch::new(HeavenlyStem::Geng, EarthlyBranch::Wu),
+        stem_branch: StemBranch::try_new(HeavenlyStem::Geng, EarthlyBranch::Wu)
+            .expect("valid sexagenary pair"),
         start_age: 6,
     };
 

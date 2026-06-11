@@ -45,13 +45,13 @@ fn major_star_only_natal_chart() -> Chart {
 }
 
 fn geng_stem_branch() -> StemBranch {
-    StemBranch::new(HeavenlyStem::Geng, EarthlyBranch::Wu)
+    StemBranch::try_new(HeavenlyStem::Geng, EarthlyBranch::Wu).expect("valid sexagenary pair")
 }
 
 /// 辛酉 (Xin-You): the 辛 stem maps two major targets (巨门 Lu, 太阳 Quan) and
 /// two minor targets (文曲 Ke, 文昌 Ji).
 fn xin_stem_branch() -> StemBranch {
-    StemBranch::new(HeavenlyStem::Xin, EarthlyBranch::You)
+    StemBranch::try_new(HeavenlyStem::Xin, EarthlyBranch::You).expect("valid sexagenary pair")
 }
 
 #[test]

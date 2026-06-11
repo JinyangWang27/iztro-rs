@@ -39,11 +39,11 @@
 use crate::error::ChartError;
 use crate::model::calendar::{BirthTime, Gender};
 use crate::model::chart::{Chart, Palace, StarPlacement};
-use lunar_lite::{EarthlyBranch, HeavenlyStem};
 use crate::model::profile::ChartAlgorithmKind;
 use crate::model::star::mutagen::Scope;
 use crate::model::star::{Brightness, StarMetadata, StarName};
 use crate::placement::natal::life_body::{LunarDay, LunarMonth};
+use lunar_lite::{EarthlyBranch, HeavenlyStem};
 
 /// Inputs required to place the supported natal adjective-star set.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
