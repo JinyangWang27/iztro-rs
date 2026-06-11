@@ -81,9 +81,9 @@ request objects instead of JavaScript-style positional arguments.
 the supported-star natal chart builder. It now carries explicit leap-month
 semantics through `is_leap_month` and `fix_leap` (builder defaults `false` and
 `true`, preserving prior non-leap behavior). The requested `is_leap_month` is
-first resolved against the real calendar through the internal ICU-backed
-calendar normalizer; no ICU or calendar-adapter types are exposed from the
-public API. The leap flag is honored **only** when the requested month is
+first resolved against the real calendar through the internal lunar-lite-backed calendar normalizer; 
+no calendar-adapter types are exposed from the public API. 
+The leap flag is honored **only** when the requested month is
 actually that year's leap month, mirroring upstream `lunar2solar`. An invalid
 leap request — for example `2020-3-20` with `is_leap_month=true`, where 2020's
 leap month is the fourth, not the third — is treated as the ordinary month.
