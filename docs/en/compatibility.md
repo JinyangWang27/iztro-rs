@@ -108,11 +108,13 @@ late Zi.
 `by_solar` is a minimal adaptor over the same supported slice: it validates the
 Gregorian/solar date, converts it to Chinese-lunisolar facts through the internal
 `lunar-lite` adapter, derives the birth-year Heavenly Stem and Earthly Branch
-from the converted lunar year, sets `is_leap_month` from the conversion and
-`fix_leap` from the request, then delegates to `by_lunar`. It performs no chart
-construction of its own, so it produces exactly the `by_lunar` supported slice.
-`lunar-lite` is used internally only; calendar-backend types are not part of the
-public API. The conversion uses the lunar-new-year boundary, matching iztro's
+from the converted lunar year via lunar-lite 0.2's `StemBranch::from_lunar_year`
+helper, sets `is_leap_month` from the conversion and `fix_leap` from the request,
+then delegates to `by_lunar`. It performs no chart construction of its own, so it
+produces exactly the `by_lunar` supported slice. `lunar-lite` is used internally
+only — its `HeavenlyStem`/`EarthlyBranch` enums are mapped onto iztro-core's own
+`model::ganzhi` types inside the adapter, so calendar-backend types are not part
+of the public API. The conversion uses the lunar-new-year boundary, matching iztro's
 default `yearDivide: 'normal'`, so the converted year ganzhi agrees with
 upstream even across the 立春/正月初一 window.
 
