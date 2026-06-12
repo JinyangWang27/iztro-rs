@@ -1,0 +1,4105 @@
+{
+  "target": "iztro@2.5.8",
+  "description": "Upstream iztro@2.5.8 full-horoscope reference. Captures the decadal (大限), age (小限), yearly (流年), monthly (流月), daily (流日) and hourly (流时) frames returned by FunctionalAstrolabe#horoscope: each frame's index, period stem/branch, 12-palace layout, four-transform (四化) stars and flow-star (流耀) matrix, plus the yearly 年解 and yearlyDecStar (岁前/将前) families. Raw upstream labels are preserved beside normalized snake_case keys. Tooling-only fixture contract; no Rust parity is claimed. Narrative text and the re-embedded natal astrolabe are intentionally excluded.",
+  "generated_at": "2026-06-12T00:00:00Z",
+  "generation_command": "npm ci --prefix tools/iztro-reference && node tools/iztro-reference/scripts/dump-horoscope-fixtures.mjs --write",
+  "not_normalized_yet": [
+    "agePalace / palace / surroundPalaces (runtime palace projections)",
+    "astrolabe (the full natal chart re-embedded in the horoscope result)",
+    "hasHoroscopeStars / notHaveHoroscopeStars / hasOneOfHoroscopeStars / hasHoroscopeMutagen (query helpers)"
+  ],
+  "cases": [
+    {
+      "id": "canonical_female_default_2026",
+      "input": {
+        "calendar": "lunar",
+        "year": 1990,
+        "month": 5,
+        "day": 17,
+        "time_index": 4,
+        "gender": "female",
+        "is_leap_month": false,
+        "fix_leap": true,
+        "language": "zh-CN",
+        "algorithm": "default",
+        "target": {
+          "solar_date": "2026-7-1",
+          "year": 2026,
+          "time_index": 2
+        }
+      },
+      "raw_keys": {
+        "horoscope": [
+          "agePalace",
+          "palace",
+          "surroundPalaces",
+          "hasHoroscopeStars",
+          "notHaveHoroscopeStars",
+          "hasOneOfHoroscopeStars",
+          "hasHoroscopeMutagen",
+          "lunarDate",
+          "solarDate",
+          "decadal",
+          "age",
+          "yearly",
+          "monthly",
+          "daily",
+          "hourly",
+          "astrolabe"
+        ],
+        "decadal": [
+          "index",
+          "name",
+          "heavenlyStem",
+          "earthlyBranch",
+          "palaceNames",
+          "mutagen",
+          "stars"
+        ],
+        "age": [
+          "index",
+          "nominalAge",
+          "name",
+          "heavenlyStem",
+          "earthlyBranch",
+          "palaceNames",
+          "mutagen"
+        ],
+        "yearly": [
+          "index",
+          "name",
+          "heavenlyStem",
+          "earthlyBranch",
+          "palaceNames",
+          "mutagen",
+          "stars",
+          "yearlyDecStar"
+        ],
+        "monthly": [
+          "index",
+          "name",
+          "heavenlyStem",
+          "earthlyBranch",
+          "palaceNames",
+          "mutagen",
+          "stars"
+        ],
+        "daily": [
+          "index",
+          "name",
+          "heavenlyStem",
+          "earthlyBranch",
+          "palaceNames",
+          "mutagen",
+          "stars"
+        ],
+        "hourly": [
+          "index",
+          "name",
+          "heavenlyStem",
+          "earthlyBranch",
+          "palaceNames",
+          "mutagen",
+          "stars"
+        ]
+      },
+      "supported_fields": {
+        "lunar_date": "二〇二六年五月十七",
+        "solar_date": "2026-7-1",
+        "decadal": {
+          "index": 9,
+          "name": "decadal",
+          "raw_name": "大限",
+          "heavenly_stem": "ding",
+          "raw_heavenly_stem": "丁",
+          "earthly_branch": "hai",
+          "raw_earthly_branch": "亥",
+          "palace_names": [
+            {
+              "name": "property",
+              "raw_name": "田宅"
+            },
+            {
+              "name": "career",
+              "raw_name": "官禄"
+            },
+            {
+              "name": "friends",
+              "raw_name": "仆役"
+            },
+            {
+              "name": "migration",
+              "raw_name": "迁移"
+            },
+            {
+              "name": "health",
+              "raw_name": "疾厄"
+            },
+            {
+              "name": "wealth",
+              "raw_name": "财帛"
+            },
+            {
+              "name": "children",
+              "raw_name": "子女"
+            },
+            {
+              "name": "spouse",
+              "raw_name": "夫妻"
+            },
+            {
+              "name": "siblings",
+              "raw_name": "兄弟"
+            },
+            {
+              "name": "life",
+              "raw_name": "命宫"
+            },
+            {
+              "name": "parents",
+              "raw_name": "父母"
+            },
+            {
+              "name": "spirit",
+              "raw_name": "福德"
+            }
+          ],
+          "mutagen": {
+            "lu": {
+              "transform": "lu",
+              "star": "tai_yin",
+              "raw_star": "太阴"
+            },
+            "quan": {
+              "transform": "quan",
+              "star": "tian_tong",
+              "raw_star": "天同"
+            },
+            "ke": {
+              "transform": "ke",
+              "star": "tian_ji",
+              "raw_star": "天机"
+            },
+            "ji": {
+              "transform": "ji",
+              "star": "ju_men",
+              "raw_star": "巨门"
+            }
+          },
+          "flow_stars": [
+            {
+              "base": "chang",
+              "branch": "you",
+              "type": "soft",
+              "raw_name": "运昌"
+            },
+            {
+              "base": "kui",
+              "branch": "hai",
+              "type": "soft",
+              "raw_name": "运魁"
+            },
+            {
+              "base": "lu",
+              "branch": "wu",
+              "type": "lucun",
+              "raw_name": "运禄"
+            },
+            {
+              "base": "luan",
+              "branch": "chen",
+              "type": "flower",
+              "raw_name": "运鸾"
+            },
+            {
+              "base": "ma",
+              "branch": "si",
+              "type": "tianma",
+              "raw_name": "运马"
+            },
+            {
+              "base": "qu",
+              "branch": "si",
+              "type": "soft",
+              "raw_name": "运曲"
+            },
+            {
+              "base": "tuo",
+              "branch": "si",
+              "type": "tough",
+              "raw_name": "运陀"
+            },
+            {
+              "base": "xi",
+              "branch": "xu",
+              "type": "flower",
+              "raw_name": "运喜"
+            },
+            {
+              "base": "yang",
+              "branch": "wei",
+              "type": "tough",
+              "raw_name": "运羊"
+            },
+            {
+              "base": "yue",
+              "branch": "you",
+              "type": "soft",
+              "raw_name": "运钺"
+            }
+          ]
+        },
+        "age": {
+          "index": 2,
+          "name": "age",
+          "raw_name": "小限",
+          "heavenly_stem": "geng",
+          "raw_heavenly_stem": "庚",
+          "earthly_branch": "chen",
+          "raw_earthly_branch": "辰",
+          "palace_names": [
+            {
+              "name": "spouse",
+              "raw_name": "夫妻"
+            },
+            {
+              "name": "siblings",
+              "raw_name": "兄弟"
+            },
+            {
+              "name": "life",
+              "raw_name": "命宫"
+            },
+            {
+              "name": "parents",
+              "raw_name": "父母"
+            },
+            {
+              "name": "spirit",
+              "raw_name": "福德"
+            },
+            {
+              "name": "property",
+              "raw_name": "田宅"
+            },
+            {
+              "name": "career",
+              "raw_name": "官禄"
+            },
+            {
+              "name": "friends",
+              "raw_name": "仆役"
+            },
+            {
+              "name": "migration",
+              "raw_name": "迁移"
+            },
+            {
+              "name": "health",
+              "raw_name": "疾厄"
+            },
+            {
+              "name": "wealth",
+              "raw_name": "财帛"
+            },
+            {
+              "name": "children",
+              "raw_name": "子女"
+            }
+          ],
+          "mutagen": {
+            "lu": {
+              "transform": "lu",
+              "star": "tai_yang",
+              "raw_star": "太阳"
+            },
+            "quan": {
+              "transform": "quan",
+              "star": "wu_qu",
+              "raw_star": "武曲"
+            },
+            "ke": {
+              "transform": "ke",
+              "star": "tai_yin",
+              "raw_star": "太阴"
+            },
+            "ji": {
+              "transform": "ji",
+              "star": "tian_tong",
+              "raw_star": "天同"
+            }
+          },
+          "nominal_age": 37
+        },
+        "yearly": {
+          "index": 4,
+          "name": "yearly",
+          "raw_name": "流年",
+          "heavenly_stem": "bing",
+          "raw_heavenly_stem": "丙",
+          "earthly_branch": "wu",
+          "raw_earthly_branch": "午",
+          "palace_names": [
+            {
+              "name": "wealth",
+              "raw_name": "财帛"
+            },
+            {
+              "name": "children",
+              "raw_name": "子女"
+            },
+            {
+              "name": "spouse",
+              "raw_name": "夫妻"
+            },
+            {
+              "name": "siblings",
+              "raw_name": "兄弟"
+            },
+            {
+              "name": "life",
+              "raw_name": "命宫"
+            },
+            {
+              "name": "parents",
+              "raw_name": "父母"
+            },
+            {
+              "name": "spirit",
+              "raw_name": "福德"
+            },
+            {
+              "name": "property",
+              "raw_name": "田宅"
+            },
+            {
+              "name": "career",
+              "raw_name": "官禄"
+            },
+            {
+              "name": "friends",
+              "raw_name": "仆役"
+            },
+            {
+              "name": "migration",
+              "raw_name": "迁移"
+            },
+            {
+              "name": "health",
+              "raw_name": "疾厄"
+            }
+          ],
+          "mutagen": {
+            "lu": {
+              "transform": "lu",
+              "star": "tian_tong",
+              "raw_star": "天同"
+            },
+            "quan": {
+              "transform": "quan",
+              "star": "tian_ji",
+              "raw_star": "天机"
+            },
+            "ke": {
+              "transform": "ke",
+              "star": "wen_chang",
+              "raw_star": "文昌"
+            },
+            "ji": {
+              "transform": "ji",
+              "star": "lian_zhen",
+              "raw_star": "廉贞"
+            }
+          },
+          "flow_stars": [
+            {
+              "base": "chang",
+              "branch": "shen",
+              "type": "soft",
+              "raw_name": "流昌"
+            },
+            {
+              "base": "kui",
+              "branch": "hai",
+              "type": "soft",
+              "raw_name": "流魁"
+            },
+            {
+              "base": "lu",
+              "branch": "si",
+              "type": "lucun",
+              "raw_name": "流禄"
+            },
+            {
+              "base": "luan",
+              "branch": "you",
+              "type": "flower",
+              "raw_name": "流鸾"
+            },
+            {
+              "base": "ma",
+              "branch": "shen",
+              "type": "tianma",
+              "raw_name": "流马"
+            },
+            {
+              "base": "qu",
+              "branch": "wu",
+              "type": "soft",
+              "raw_name": "流曲"
+            },
+            {
+              "base": "tuo",
+              "branch": "chen",
+              "type": "tough",
+              "raw_name": "流陀"
+            },
+            {
+              "base": "xi",
+              "branch": "mao",
+              "type": "flower",
+              "raw_name": "流喜"
+            },
+            {
+              "base": "yang",
+              "branch": "wu",
+              "type": "tough",
+              "raw_name": "流羊"
+            },
+            {
+              "base": "yue",
+              "branch": "you",
+              "type": "soft",
+              "raw_name": "流钺"
+            }
+          ],
+          "nian_jie_branch": "chen",
+          "yearly_dec_stars": {
+            "suiqian12": [
+              {
+                "name": "bai_hu",
+                "raw_name": "白虎",
+                "branch": "yin"
+              },
+              {
+                "name": "tian_de_suiqian",
+                "raw_name": "天德",
+                "branch": "mao"
+              },
+              {
+                "name": "diao_ke",
+                "raw_name": "吊客",
+                "branch": "chen"
+              },
+              {
+                "name": "bing_fu_suiqian",
+                "raw_name": "病符",
+                "branch": "si"
+              },
+              {
+                "name": "sui_jian",
+                "raw_name": "岁建",
+                "branch": "wu"
+              },
+              {
+                "name": "hui_qi",
+                "raw_name": "晦气",
+                "branch": "wei"
+              },
+              {
+                "name": "sang_men",
+                "raw_name": "丧门",
+                "branch": "shen"
+              },
+              {
+                "name": "guan_suo",
+                "raw_name": "贯索",
+                "branch": "you"
+              },
+              {
+                "name": "guan_fu_suiqian",
+                "raw_name": "官符",
+                "branch": "xu"
+              },
+              {
+                "name": "xiao_hao_suiqian",
+                "raw_name": "小耗",
+                "branch": "hai"
+              },
+              {
+                "name": "da_hao_suiqian",
+                "raw_name": "大耗",
+                "branch": "zi"
+              },
+              {
+                "name": "long_de_suiqian",
+                "raw_name": "龙德",
+                "branch": "chou"
+              }
+            ],
+            "jiangqian12": [
+              {
+                "name": "zhi_bei",
+                "raw_name": "指背",
+                "branch": "yin"
+              },
+              {
+                "name": "xian_chi_jiangqian",
+                "raw_name": "咸池",
+                "branch": "mao"
+              },
+              {
+                "name": "yue_sha",
+                "raw_name": "月煞",
+                "branch": "chen"
+              },
+              {
+                "name": "wang_shen",
+                "raw_name": "亡神",
+                "branch": "si"
+              },
+              {
+                "name": "jiang_xing",
+                "raw_name": "将星",
+                "branch": "wu"
+              },
+              {
+                "name": "pan_an",
+                "raw_name": "攀鞍",
+                "branch": "wei"
+              },
+              {
+                "name": "sui_yi",
+                "raw_name": "岁驿",
+                "branch": "shen"
+              },
+              {
+                "name": "xi_shen_jiangqian",
+                "raw_name": "息神",
+                "branch": "you"
+              },
+              {
+                "name": "hua_gai_jiangqian",
+                "raw_name": "华盖",
+                "branch": "xu"
+              },
+              {
+                "name": "jie_sha",
+                "raw_name": "劫煞",
+                "branch": "hai"
+              },
+              {
+                "name": "zai_sha",
+                "raw_name": "灾煞",
+                "branch": "zi"
+              },
+              {
+                "name": "tian_sha",
+                "raw_name": "天煞",
+                "branch": "chou"
+              }
+            ]
+          }
+        },
+        "monthly": {
+          "index": 8,
+          "name": "monthly",
+          "raw_name": "流月",
+          "heavenly_stem": "jia",
+          "raw_heavenly_stem": "甲",
+          "earthly_branch": "wu",
+          "raw_earthly_branch": "午",
+          "palace_names": [
+            {
+              "name": "career",
+              "raw_name": "官禄"
+            },
+            {
+              "name": "friends",
+              "raw_name": "仆役"
+            },
+            {
+              "name": "migration",
+              "raw_name": "迁移"
+            },
+            {
+              "name": "health",
+              "raw_name": "疾厄"
+            },
+            {
+              "name": "wealth",
+              "raw_name": "财帛"
+            },
+            {
+              "name": "children",
+              "raw_name": "子女"
+            },
+            {
+              "name": "spouse",
+              "raw_name": "夫妻"
+            },
+            {
+              "name": "siblings",
+              "raw_name": "兄弟"
+            },
+            {
+              "name": "life",
+              "raw_name": "命宫"
+            },
+            {
+              "name": "parents",
+              "raw_name": "父母"
+            },
+            {
+              "name": "spirit",
+              "raw_name": "福德"
+            },
+            {
+              "name": "property",
+              "raw_name": "田宅"
+            }
+          ],
+          "mutagen": {
+            "lu": {
+              "transform": "lu",
+              "star": "lian_zhen",
+              "raw_star": "廉贞"
+            },
+            "quan": {
+              "transform": "quan",
+              "star": "po_jun",
+              "raw_star": "破军"
+            },
+            "ke": {
+              "transform": "ke",
+              "star": "wu_qu",
+              "raw_star": "武曲"
+            },
+            "ji": {
+              "transform": "ji",
+              "star": "tai_yang",
+              "raw_star": "太阳"
+            }
+          },
+          "flow_stars": [
+            {
+              "base": "chang",
+              "branch": "si",
+              "type": "soft",
+              "raw_name": "月昌"
+            },
+            {
+              "base": "kui",
+              "branch": "chou",
+              "type": "soft",
+              "raw_name": "月魁"
+            },
+            {
+              "base": "lu",
+              "branch": "yin",
+              "type": "lucun",
+              "raw_name": "月禄"
+            },
+            {
+              "base": "luan",
+              "branch": "you",
+              "type": "flower",
+              "raw_name": "月鸾"
+            },
+            {
+              "base": "ma",
+              "branch": "shen",
+              "type": "tianma",
+              "raw_name": "月马"
+            },
+            {
+              "base": "qu",
+              "branch": "you",
+              "type": "soft",
+              "raw_name": "月曲"
+            },
+            {
+              "base": "tuo",
+              "branch": "chou",
+              "type": "tough",
+              "raw_name": "月陀"
+            },
+            {
+              "base": "xi",
+              "branch": "mao",
+              "type": "flower",
+              "raw_name": "月喜"
+            },
+            {
+              "base": "yang",
+              "branch": "mao",
+              "type": "tough",
+              "raw_name": "月羊"
+            },
+            {
+              "base": "yue",
+              "branch": "wei",
+              "type": "soft",
+              "raw_name": "月钺"
+            }
+          ]
+        },
+        "daily": {
+          "index": 0,
+          "name": "daily",
+          "raw_name": "流日",
+          "heavenly_stem": "bing",
+          "raw_heavenly_stem": "丙",
+          "earthly_branch": "zi",
+          "raw_earthly_branch": "子",
+          "palace_names": [
+            {
+              "name": "life",
+              "raw_name": "命宫"
+            },
+            {
+              "name": "parents",
+              "raw_name": "父母"
+            },
+            {
+              "name": "spirit",
+              "raw_name": "福德"
+            },
+            {
+              "name": "property",
+              "raw_name": "田宅"
+            },
+            {
+              "name": "career",
+              "raw_name": "官禄"
+            },
+            {
+              "name": "friends",
+              "raw_name": "仆役"
+            },
+            {
+              "name": "migration",
+              "raw_name": "迁移"
+            },
+            {
+              "name": "health",
+              "raw_name": "疾厄"
+            },
+            {
+              "name": "wealth",
+              "raw_name": "财帛"
+            },
+            {
+              "name": "children",
+              "raw_name": "子女"
+            },
+            {
+              "name": "spouse",
+              "raw_name": "夫妻"
+            },
+            {
+              "name": "siblings",
+              "raw_name": "兄弟"
+            }
+          ],
+          "mutagen": {
+            "lu": {
+              "transform": "lu",
+              "star": "tian_tong",
+              "raw_star": "天同"
+            },
+            "quan": {
+              "transform": "quan",
+              "star": "tian_ji",
+              "raw_star": "天机"
+            },
+            "ke": {
+              "transform": "ke",
+              "star": "wen_chang",
+              "raw_star": "文昌"
+            },
+            "ji": {
+              "transform": "ji",
+              "star": "lian_zhen",
+              "raw_star": "廉贞"
+            }
+          },
+          "flow_stars": [
+            {
+              "base": "chang",
+              "branch": "shen",
+              "type": "soft",
+              "raw_name": "日昌"
+            },
+            {
+              "base": "kui",
+              "branch": "hai",
+              "type": "soft",
+              "raw_name": "日魁"
+            },
+            {
+              "base": "lu",
+              "branch": "si",
+              "type": "lucun",
+              "raw_name": "日禄"
+            },
+            {
+              "base": "luan",
+              "branch": "mao",
+              "type": "flower",
+              "raw_name": "日鸾"
+            },
+            {
+              "base": "ma",
+              "branch": "yin",
+              "type": "tianma",
+              "raw_name": "日马"
+            },
+            {
+              "base": "qu",
+              "branch": "wu",
+              "type": "soft",
+              "raw_name": "日曲"
+            },
+            {
+              "base": "tuo",
+              "branch": "chen",
+              "type": "tough",
+              "raw_name": "日陀"
+            },
+            {
+              "base": "xi",
+              "branch": "you",
+              "type": "flower",
+              "raw_name": "日喜"
+            },
+            {
+              "base": "yang",
+              "branch": "wu",
+              "type": "tough",
+              "raw_name": "日羊"
+            },
+            {
+              "base": "yue",
+              "branch": "you",
+              "type": "soft",
+              "raw_name": "日钺"
+            }
+          ]
+        },
+        "hourly": {
+          "index": 2,
+          "name": "hourly",
+          "raw_name": "流时",
+          "heavenly_stem": "geng",
+          "raw_heavenly_stem": "庚",
+          "earthly_branch": "yin",
+          "raw_earthly_branch": "寅",
+          "palace_names": [
+            {
+              "name": "spouse",
+              "raw_name": "夫妻"
+            },
+            {
+              "name": "siblings",
+              "raw_name": "兄弟"
+            },
+            {
+              "name": "life",
+              "raw_name": "命宫"
+            },
+            {
+              "name": "parents",
+              "raw_name": "父母"
+            },
+            {
+              "name": "spirit",
+              "raw_name": "福德"
+            },
+            {
+              "name": "property",
+              "raw_name": "田宅"
+            },
+            {
+              "name": "career",
+              "raw_name": "官禄"
+            },
+            {
+              "name": "friends",
+              "raw_name": "仆役"
+            },
+            {
+              "name": "migration",
+              "raw_name": "迁移"
+            },
+            {
+              "name": "health",
+              "raw_name": "疾厄"
+            },
+            {
+              "name": "wealth",
+              "raw_name": "财帛"
+            },
+            {
+              "name": "children",
+              "raw_name": "子女"
+            }
+          ],
+          "mutagen": {
+            "lu": {
+              "transform": "lu",
+              "star": "tai_yang",
+              "raw_star": "太阳"
+            },
+            "quan": {
+              "transform": "quan",
+              "star": "wu_qu",
+              "raw_star": "武曲"
+            },
+            "ke": {
+              "transform": "ke",
+              "star": "tai_yin",
+              "raw_star": "太阴"
+            },
+            "ji": {
+              "transform": "ji",
+              "star": "tian_tong",
+              "raw_star": "天同"
+            }
+          },
+          "flow_stars": [
+            {
+              "base": "chang",
+              "branch": "hai",
+              "type": "soft",
+              "raw_name": "时昌"
+            },
+            {
+              "base": "kui",
+              "branch": "chou",
+              "type": "soft",
+              "raw_name": "时魁"
+            },
+            {
+              "base": "lu",
+              "branch": "shen",
+              "type": "lucun",
+              "raw_name": "时禄"
+            },
+            {
+              "base": "luan",
+              "branch": "chou",
+              "type": "flower",
+              "raw_name": "时鸾"
+            },
+            {
+              "base": "ma",
+              "branch": "shen",
+              "type": "tianma",
+              "raw_name": "时马"
+            },
+            {
+              "base": "qu",
+              "branch": "mao",
+              "type": "soft",
+              "raw_name": "时曲"
+            },
+            {
+              "base": "tuo",
+              "branch": "wei",
+              "type": "tough",
+              "raw_name": "时陀"
+            },
+            {
+              "base": "xi",
+              "branch": "wei",
+              "type": "flower",
+              "raw_name": "时喜"
+            },
+            {
+              "base": "yang",
+              "branch": "you",
+              "type": "tough",
+              "raw_name": "时羊"
+            },
+            {
+              "base": "yue",
+              "branch": "wei",
+              "type": "soft",
+              "raw_name": "时钺"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "canonical_female_default_2034_decade_boundary",
+      "input": {
+        "calendar": "lunar",
+        "year": 1990,
+        "month": 5,
+        "day": 17,
+        "time_index": 4,
+        "gender": "female",
+        "is_leap_month": false,
+        "fix_leap": true,
+        "language": "zh-CN",
+        "algorithm": "default",
+        "target": {
+          "solar_date": "2034-7-1",
+          "year": 2034,
+          "time_index": 2
+        }
+      },
+      "raw_keys": {
+        "horoscope": [
+          "agePalace",
+          "palace",
+          "surroundPalaces",
+          "hasHoroscopeStars",
+          "notHaveHoroscopeStars",
+          "hasOneOfHoroscopeStars",
+          "hasHoroscopeMutagen",
+          "lunarDate",
+          "solarDate",
+          "decadal",
+          "age",
+          "yearly",
+          "monthly",
+          "daily",
+          "hourly",
+          "astrolabe"
+        ],
+        "decadal": [
+          "index",
+          "name",
+          "heavenlyStem",
+          "earthlyBranch",
+          "palaceNames",
+          "mutagen",
+          "stars"
+        ],
+        "age": [
+          "index",
+          "nominalAge",
+          "name",
+          "heavenlyStem",
+          "earthlyBranch",
+          "palaceNames",
+          "mutagen"
+        ],
+        "yearly": [
+          "index",
+          "name",
+          "heavenlyStem",
+          "earthlyBranch",
+          "palaceNames",
+          "mutagen",
+          "stars",
+          "yearlyDecStar"
+        ],
+        "monthly": [
+          "index",
+          "name",
+          "heavenlyStem",
+          "earthlyBranch",
+          "palaceNames",
+          "mutagen",
+          "stars"
+        ],
+        "daily": [
+          "index",
+          "name",
+          "heavenlyStem",
+          "earthlyBranch",
+          "palaceNames",
+          "mutagen",
+          "stars"
+        ],
+        "hourly": [
+          "index",
+          "name",
+          "heavenlyStem",
+          "earthlyBranch",
+          "palaceNames",
+          "mutagen",
+          "stars"
+        ]
+      },
+      "supported_fields": {
+        "lunar_date": "二〇三四年五月十六",
+        "solar_date": "2034-7-1",
+        "decadal": {
+          "index": 8,
+          "name": "decadal",
+          "raw_name": "大限",
+          "heavenly_stem": "bing",
+          "raw_heavenly_stem": "丙",
+          "earthly_branch": "xu",
+          "raw_earthly_branch": "戌",
+          "palace_names": [
+            {
+              "name": "career",
+              "raw_name": "官禄"
+            },
+            {
+              "name": "friends",
+              "raw_name": "仆役"
+            },
+            {
+              "name": "migration",
+              "raw_name": "迁移"
+            },
+            {
+              "name": "health",
+              "raw_name": "疾厄"
+            },
+            {
+              "name": "wealth",
+              "raw_name": "财帛"
+            },
+            {
+              "name": "children",
+              "raw_name": "子女"
+            },
+            {
+              "name": "spouse",
+              "raw_name": "夫妻"
+            },
+            {
+              "name": "siblings",
+              "raw_name": "兄弟"
+            },
+            {
+              "name": "life",
+              "raw_name": "命宫"
+            },
+            {
+              "name": "parents",
+              "raw_name": "父母"
+            },
+            {
+              "name": "spirit",
+              "raw_name": "福德"
+            },
+            {
+              "name": "property",
+              "raw_name": "田宅"
+            }
+          ],
+          "mutagen": {
+            "lu": {
+              "transform": "lu",
+              "star": "tian_tong",
+              "raw_star": "天同"
+            },
+            "quan": {
+              "transform": "quan",
+              "star": "tian_ji",
+              "raw_star": "天机"
+            },
+            "ke": {
+              "transform": "ke",
+              "star": "wen_chang",
+              "raw_star": "文昌"
+            },
+            "ji": {
+              "transform": "ji",
+              "star": "lian_zhen",
+              "raw_star": "廉贞"
+            }
+          },
+          "flow_stars": [
+            {
+              "base": "chang",
+              "branch": "shen",
+              "type": "soft",
+              "raw_name": "运昌"
+            },
+            {
+              "base": "kui",
+              "branch": "hai",
+              "type": "soft",
+              "raw_name": "运魁"
+            },
+            {
+              "base": "lu",
+              "branch": "si",
+              "type": "lucun",
+              "raw_name": "运禄"
+            },
+            {
+              "base": "luan",
+              "branch": "si",
+              "type": "flower",
+              "raw_name": "运鸾"
+            },
+            {
+              "base": "ma",
+              "branch": "shen",
+              "type": "tianma",
+              "raw_name": "运马"
+            },
+            {
+              "base": "qu",
+              "branch": "wu",
+              "type": "soft",
+              "raw_name": "运曲"
+            },
+            {
+              "base": "tuo",
+              "branch": "chen",
+              "type": "tough",
+              "raw_name": "运陀"
+            },
+            {
+              "base": "xi",
+              "branch": "hai",
+              "type": "flower",
+              "raw_name": "运喜"
+            },
+            {
+              "base": "yang",
+              "branch": "wu",
+              "type": "tough",
+              "raw_name": "运羊"
+            },
+            {
+              "base": "yue",
+              "branch": "you",
+              "type": "soft",
+              "raw_name": "运钺"
+            }
+          ]
+        },
+        "age": {
+          "index": 6,
+          "name": "age",
+          "raw_name": "小限",
+          "heavenly_stem": "jia",
+          "raw_heavenly_stem": "甲",
+          "earthly_branch": "shen",
+          "raw_earthly_branch": "申",
+          "palace_names": [
+            {
+              "name": "migration",
+              "raw_name": "迁移"
+            },
+            {
+              "name": "health",
+              "raw_name": "疾厄"
+            },
+            {
+              "name": "wealth",
+              "raw_name": "财帛"
+            },
+            {
+              "name": "children",
+              "raw_name": "子女"
+            },
+            {
+              "name": "spouse",
+              "raw_name": "夫妻"
+            },
+            {
+              "name": "siblings",
+              "raw_name": "兄弟"
+            },
+            {
+              "name": "life",
+              "raw_name": "命宫"
+            },
+            {
+              "name": "parents",
+              "raw_name": "父母"
+            },
+            {
+              "name": "spirit",
+              "raw_name": "福德"
+            },
+            {
+              "name": "property",
+              "raw_name": "田宅"
+            },
+            {
+              "name": "career",
+              "raw_name": "官禄"
+            },
+            {
+              "name": "friends",
+              "raw_name": "仆役"
+            }
+          ],
+          "mutagen": {
+            "lu": {
+              "transform": "lu",
+              "star": "lian_zhen",
+              "raw_star": "廉贞"
+            },
+            "quan": {
+              "transform": "quan",
+              "star": "po_jun",
+              "raw_star": "破军"
+            },
+            "ke": {
+              "transform": "ke",
+              "star": "wu_qu",
+              "raw_star": "武曲"
+            },
+            "ji": {
+              "transform": "ji",
+              "star": "tai_yang",
+              "raw_star": "太阳"
+            }
+          },
+          "nominal_age": 45
+        },
+        "yearly": {
+          "index": 0,
+          "name": "yearly",
+          "raw_name": "流年",
+          "heavenly_stem": "jia",
+          "raw_heavenly_stem": "甲",
+          "earthly_branch": "yin",
+          "raw_earthly_branch": "寅",
+          "palace_names": [
+            {
+              "name": "life",
+              "raw_name": "命宫"
+            },
+            {
+              "name": "parents",
+              "raw_name": "父母"
+            },
+            {
+              "name": "spirit",
+              "raw_name": "福德"
+            },
+            {
+              "name": "property",
+              "raw_name": "田宅"
+            },
+            {
+              "name": "career",
+              "raw_name": "官禄"
+            },
+            {
+              "name": "friends",
+              "raw_name": "仆役"
+            },
+            {
+              "name": "migration",
+              "raw_name": "迁移"
+            },
+            {
+              "name": "health",
+              "raw_name": "疾厄"
+            },
+            {
+              "name": "wealth",
+              "raw_name": "财帛"
+            },
+            {
+              "name": "children",
+              "raw_name": "子女"
+            },
+            {
+              "name": "spouse",
+              "raw_name": "夫妻"
+            },
+            {
+              "name": "siblings",
+              "raw_name": "兄弟"
+            }
+          ],
+          "mutagen": {
+            "lu": {
+              "transform": "lu",
+              "star": "lian_zhen",
+              "raw_star": "廉贞"
+            },
+            "quan": {
+              "transform": "quan",
+              "star": "po_jun",
+              "raw_star": "破军"
+            },
+            "ke": {
+              "transform": "ke",
+              "star": "wu_qu",
+              "raw_star": "武曲"
+            },
+            "ji": {
+              "transform": "ji",
+              "star": "tai_yang",
+              "raw_star": "太阳"
+            }
+          },
+          "flow_stars": [
+            {
+              "base": "chang",
+              "branch": "si",
+              "type": "soft",
+              "raw_name": "流昌"
+            },
+            {
+              "base": "kui",
+              "branch": "chou",
+              "type": "soft",
+              "raw_name": "流魁"
+            },
+            {
+              "base": "lu",
+              "branch": "yin",
+              "type": "lucun",
+              "raw_name": "流禄"
+            },
+            {
+              "base": "luan",
+              "branch": "chou",
+              "type": "flower",
+              "raw_name": "流鸾"
+            },
+            {
+              "base": "ma",
+              "branch": "shen",
+              "type": "tianma",
+              "raw_name": "流马"
+            },
+            {
+              "base": "qu",
+              "branch": "you",
+              "type": "soft",
+              "raw_name": "流曲"
+            },
+            {
+              "base": "tuo",
+              "branch": "chou",
+              "type": "tough",
+              "raw_name": "流陀"
+            },
+            {
+              "base": "xi",
+              "branch": "wei",
+              "type": "flower",
+              "raw_name": "流喜"
+            },
+            {
+              "base": "yang",
+              "branch": "mao",
+              "type": "tough",
+              "raw_name": "流羊"
+            },
+            {
+              "base": "yue",
+              "branch": "wei",
+              "type": "soft",
+              "raw_name": "流钺"
+            }
+          ],
+          "nian_jie_branch": "shen",
+          "yearly_dec_stars": {
+            "suiqian12": [
+              {
+                "name": "sui_jian",
+                "raw_name": "岁建",
+                "branch": "yin"
+              },
+              {
+                "name": "hui_qi",
+                "raw_name": "晦气",
+                "branch": "mao"
+              },
+              {
+                "name": "sang_men",
+                "raw_name": "丧门",
+                "branch": "chen"
+              },
+              {
+                "name": "guan_suo",
+                "raw_name": "贯索",
+                "branch": "si"
+              },
+              {
+                "name": "guan_fu_suiqian",
+                "raw_name": "官符",
+                "branch": "wu"
+              },
+              {
+                "name": "xiao_hao_suiqian",
+                "raw_name": "小耗",
+                "branch": "wei"
+              },
+              {
+                "name": "da_hao_suiqian",
+                "raw_name": "大耗",
+                "branch": "shen"
+              },
+              {
+                "name": "long_de_suiqian",
+                "raw_name": "龙德",
+                "branch": "you"
+              },
+              {
+                "name": "bai_hu",
+                "raw_name": "白虎",
+                "branch": "xu"
+              },
+              {
+                "name": "tian_de_suiqian",
+                "raw_name": "天德",
+                "branch": "hai"
+              },
+              {
+                "name": "diao_ke",
+                "raw_name": "吊客",
+                "branch": "zi"
+              },
+              {
+                "name": "bing_fu_suiqian",
+                "raw_name": "病符",
+                "branch": "chou"
+              }
+            ],
+            "jiangqian12": [
+              {
+                "name": "zhi_bei",
+                "raw_name": "指背",
+                "branch": "yin"
+              },
+              {
+                "name": "xian_chi_jiangqian",
+                "raw_name": "咸池",
+                "branch": "mao"
+              },
+              {
+                "name": "yue_sha",
+                "raw_name": "月煞",
+                "branch": "chen"
+              },
+              {
+                "name": "wang_shen",
+                "raw_name": "亡神",
+                "branch": "si"
+              },
+              {
+                "name": "jiang_xing",
+                "raw_name": "将星",
+                "branch": "wu"
+              },
+              {
+                "name": "pan_an",
+                "raw_name": "攀鞍",
+                "branch": "wei"
+              },
+              {
+                "name": "sui_yi",
+                "raw_name": "岁驿",
+                "branch": "shen"
+              },
+              {
+                "name": "xi_shen_jiangqian",
+                "raw_name": "息神",
+                "branch": "you"
+              },
+              {
+                "name": "hua_gai_jiangqian",
+                "raw_name": "华盖",
+                "branch": "xu"
+              },
+              {
+                "name": "jie_sha",
+                "raw_name": "劫煞",
+                "branch": "hai"
+              },
+              {
+                "name": "zai_sha",
+                "raw_name": "灾煞",
+                "branch": "zi"
+              },
+              {
+                "name": "tian_sha",
+                "raw_name": "天煞",
+                "branch": "chou"
+              }
+            ]
+          }
+        },
+        "monthly": {
+          "index": 4,
+          "name": "monthly",
+          "raw_name": "流月",
+          "heavenly_stem": "geng",
+          "raw_heavenly_stem": "庚",
+          "earthly_branch": "wu",
+          "raw_earthly_branch": "午",
+          "palace_names": [
+            {
+              "name": "wealth",
+              "raw_name": "财帛"
+            },
+            {
+              "name": "children",
+              "raw_name": "子女"
+            },
+            {
+              "name": "spouse",
+              "raw_name": "夫妻"
+            },
+            {
+              "name": "siblings",
+              "raw_name": "兄弟"
+            },
+            {
+              "name": "life",
+              "raw_name": "命宫"
+            },
+            {
+              "name": "parents",
+              "raw_name": "父母"
+            },
+            {
+              "name": "spirit",
+              "raw_name": "福德"
+            },
+            {
+              "name": "property",
+              "raw_name": "田宅"
+            },
+            {
+              "name": "career",
+              "raw_name": "官禄"
+            },
+            {
+              "name": "friends",
+              "raw_name": "仆役"
+            },
+            {
+              "name": "migration",
+              "raw_name": "迁移"
+            },
+            {
+              "name": "health",
+              "raw_name": "疾厄"
+            }
+          ],
+          "mutagen": {
+            "lu": {
+              "transform": "lu",
+              "star": "tai_yang",
+              "raw_star": "太阳"
+            },
+            "quan": {
+              "transform": "quan",
+              "star": "wu_qu",
+              "raw_star": "武曲"
+            },
+            "ke": {
+              "transform": "ke",
+              "star": "tai_yin",
+              "raw_star": "太阴"
+            },
+            "ji": {
+              "transform": "ji",
+              "star": "tian_tong",
+              "raw_star": "天同"
+            }
+          },
+          "flow_stars": [
+            {
+              "base": "chang",
+              "branch": "hai",
+              "type": "soft",
+              "raw_name": "月昌"
+            },
+            {
+              "base": "kui",
+              "branch": "chou",
+              "type": "soft",
+              "raw_name": "月魁"
+            },
+            {
+              "base": "lu",
+              "branch": "shen",
+              "type": "lucun",
+              "raw_name": "月禄"
+            },
+            {
+              "base": "luan",
+              "branch": "you",
+              "type": "flower",
+              "raw_name": "月鸾"
+            },
+            {
+              "base": "ma",
+              "branch": "shen",
+              "type": "tianma",
+              "raw_name": "月马"
+            },
+            {
+              "base": "qu",
+              "branch": "mao",
+              "type": "soft",
+              "raw_name": "月曲"
+            },
+            {
+              "base": "tuo",
+              "branch": "wei",
+              "type": "tough",
+              "raw_name": "月陀"
+            },
+            {
+              "base": "xi",
+              "branch": "mao",
+              "type": "flower",
+              "raw_name": "月喜"
+            },
+            {
+              "base": "yang",
+              "branch": "you",
+              "type": "tough",
+              "raw_name": "月羊"
+            },
+            {
+              "base": "yue",
+              "branch": "wei",
+              "type": "soft",
+              "raw_name": "月钺"
+            }
+          ]
+        },
+        "daily": {
+          "index": 7,
+          "name": "daily",
+          "raw_name": "流日",
+          "heavenly_stem": "wu",
+          "raw_heavenly_stem": "戊",
+          "earthly_branch": "wu",
+          "raw_earthly_branch": "午",
+          "palace_names": [
+            {
+              "name": "friends",
+              "raw_name": "仆役"
+            },
+            {
+              "name": "migration",
+              "raw_name": "迁移"
+            },
+            {
+              "name": "health",
+              "raw_name": "疾厄"
+            },
+            {
+              "name": "wealth",
+              "raw_name": "财帛"
+            },
+            {
+              "name": "children",
+              "raw_name": "子女"
+            },
+            {
+              "name": "spouse",
+              "raw_name": "夫妻"
+            },
+            {
+              "name": "siblings",
+              "raw_name": "兄弟"
+            },
+            {
+              "name": "life",
+              "raw_name": "命宫"
+            },
+            {
+              "name": "parents",
+              "raw_name": "父母"
+            },
+            {
+              "name": "spirit",
+              "raw_name": "福德"
+            },
+            {
+              "name": "property",
+              "raw_name": "田宅"
+            },
+            {
+              "name": "career",
+              "raw_name": "官禄"
+            }
+          ],
+          "mutagen": {
+            "lu": {
+              "transform": "lu",
+              "star": "tan_lang",
+              "raw_star": "贪狼"
+            },
+            "quan": {
+              "transform": "quan",
+              "star": "tai_yin",
+              "raw_star": "太阴"
+            },
+            "ke": {
+              "transform": "ke",
+              "star": "you_bi",
+              "raw_star": "右弼"
+            },
+            "ji": {
+              "transform": "ji",
+              "star": "tian_ji",
+              "raw_star": "天机"
+            }
+          },
+          "flow_stars": [
+            {
+              "base": "chang",
+              "branch": "shen",
+              "type": "soft",
+              "raw_name": "日昌"
+            },
+            {
+              "base": "kui",
+              "branch": "chou",
+              "type": "soft",
+              "raw_name": "日魁"
+            },
+            {
+              "base": "lu",
+              "branch": "si",
+              "type": "lucun",
+              "raw_name": "日禄"
+            },
+            {
+              "base": "luan",
+              "branch": "you",
+              "type": "flower",
+              "raw_name": "日鸾"
+            },
+            {
+              "base": "ma",
+              "branch": "shen",
+              "type": "tianma",
+              "raw_name": "日马"
+            },
+            {
+              "base": "qu",
+              "branch": "wu",
+              "type": "soft",
+              "raw_name": "日曲"
+            },
+            {
+              "base": "tuo",
+              "branch": "chen",
+              "type": "tough",
+              "raw_name": "日陀"
+            },
+            {
+              "base": "xi",
+              "branch": "mao",
+              "type": "flower",
+              "raw_name": "日喜"
+            },
+            {
+              "base": "yang",
+              "branch": "wu",
+              "type": "tough",
+              "raw_name": "日羊"
+            },
+            {
+              "base": "yue",
+              "branch": "wei",
+              "type": "soft",
+              "raw_name": "日钺"
+            }
+          ]
+        },
+        "hourly": {
+          "index": 9,
+          "name": "hourly",
+          "raw_name": "流时",
+          "heavenly_stem": "jia",
+          "raw_heavenly_stem": "甲",
+          "earthly_branch": "yin",
+          "raw_earthly_branch": "寅",
+          "palace_names": [
+            {
+              "name": "property",
+              "raw_name": "田宅"
+            },
+            {
+              "name": "career",
+              "raw_name": "官禄"
+            },
+            {
+              "name": "friends",
+              "raw_name": "仆役"
+            },
+            {
+              "name": "migration",
+              "raw_name": "迁移"
+            },
+            {
+              "name": "health",
+              "raw_name": "疾厄"
+            },
+            {
+              "name": "wealth",
+              "raw_name": "财帛"
+            },
+            {
+              "name": "children",
+              "raw_name": "子女"
+            },
+            {
+              "name": "spouse",
+              "raw_name": "夫妻"
+            },
+            {
+              "name": "siblings",
+              "raw_name": "兄弟"
+            },
+            {
+              "name": "life",
+              "raw_name": "命宫"
+            },
+            {
+              "name": "parents",
+              "raw_name": "父母"
+            },
+            {
+              "name": "spirit",
+              "raw_name": "福德"
+            }
+          ],
+          "mutagen": {
+            "lu": {
+              "transform": "lu",
+              "star": "lian_zhen",
+              "raw_star": "廉贞"
+            },
+            "quan": {
+              "transform": "quan",
+              "star": "po_jun",
+              "raw_star": "破军"
+            },
+            "ke": {
+              "transform": "ke",
+              "star": "wu_qu",
+              "raw_star": "武曲"
+            },
+            "ji": {
+              "transform": "ji",
+              "star": "tai_yang",
+              "raw_star": "太阳"
+            }
+          },
+          "flow_stars": [
+            {
+              "base": "chang",
+              "branch": "si",
+              "type": "soft",
+              "raw_name": "时昌"
+            },
+            {
+              "base": "kui",
+              "branch": "chou",
+              "type": "soft",
+              "raw_name": "时魁"
+            },
+            {
+              "base": "lu",
+              "branch": "yin",
+              "type": "lucun",
+              "raw_name": "时禄"
+            },
+            {
+              "base": "luan",
+              "branch": "chou",
+              "type": "flower",
+              "raw_name": "时鸾"
+            },
+            {
+              "base": "ma",
+              "branch": "shen",
+              "type": "tianma",
+              "raw_name": "时马"
+            },
+            {
+              "base": "qu",
+              "branch": "you",
+              "type": "soft",
+              "raw_name": "时曲"
+            },
+            {
+              "base": "tuo",
+              "branch": "chou",
+              "type": "tough",
+              "raw_name": "时陀"
+            },
+            {
+              "base": "xi",
+              "branch": "wei",
+              "type": "flower",
+              "raw_name": "时喜"
+            },
+            {
+              "base": "yang",
+              "branch": "mao",
+              "type": "tough",
+              "raw_name": "时羊"
+            },
+            {
+              "base": "yue",
+              "branch": "wei",
+              "type": "soft",
+              "raw_name": "时钺"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "canonical_female_zhongzhou_2026",
+      "input": {
+        "calendar": "lunar",
+        "year": 1990,
+        "month": 5,
+        "day": 17,
+        "time_index": 4,
+        "gender": "female",
+        "is_leap_month": false,
+        "fix_leap": true,
+        "language": "zh-CN",
+        "algorithm": "zhongzhou",
+        "target": {
+          "solar_date": "2026-7-1",
+          "year": 2026,
+          "time_index": 2
+        }
+      },
+      "raw_keys": {
+        "horoscope": [
+          "agePalace",
+          "palace",
+          "surroundPalaces",
+          "hasHoroscopeStars",
+          "notHaveHoroscopeStars",
+          "hasOneOfHoroscopeStars",
+          "hasHoroscopeMutagen",
+          "lunarDate",
+          "solarDate",
+          "decadal",
+          "age",
+          "yearly",
+          "monthly",
+          "daily",
+          "hourly",
+          "astrolabe"
+        ],
+        "decadal": [
+          "index",
+          "name",
+          "heavenlyStem",
+          "earthlyBranch",
+          "palaceNames",
+          "mutagen",
+          "stars"
+        ],
+        "age": [
+          "index",
+          "nominalAge",
+          "name",
+          "heavenlyStem",
+          "earthlyBranch",
+          "palaceNames",
+          "mutagen"
+        ],
+        "yearly": [
+          "index",
+          "name",
+          "heavenlyStem",
+          "earthlyBranch",
+          "palaceNames",
+          "mutagen",
+          "stars",
+          "yearlyDecStar"
+        ],
+        "monthly": [
+          "index",
+          "name",
+          "heavenlyStem",
+          "earthlyBranch",
+          "palaceNames",
+          "mutagen",
+          "stars"
+        ],
+        "daily": [
+          "index",
+          "name",
+          "heavenlyStem",
+          "earthlyBranch",
+          "palaceNames",
+          "mutagen",
+          "stars"
+        ],
+        "hourly": [
+          "index",
+          "name",
+          "heavenlyStem",
+          "earthlyBranch",
+          "palaceNames",
+          "mutagen",
+          "stars"
+        ]
+      },
+      "supported_fields": {
+        "lunar_date": "二〇二六年五月十七",
+        "solar_date": "2026-7-1",
+        "decadal": {
+          "index": 9,
+          "name": "decadal",
+          "raw_name": "大限",
+          "heavenly_stem": "ding",
+          "raw_heavenly_stem": "丁",
+          "earthly_branch": "hai",
+          "raw_earthly_branch": "亥",
+          "palace_names": [
+            {
+              "name": "property",
+              "raw_name": "田宅"
+            },
+            {
+              "name": "career",
+              "raw_name": "官禄"
+            },
+            {
+              "name": "friends",
+              "raw_name": "仆役"
+            },
+            {
+              "name": "migration",
+              "raw_name": "迁移"
+            },
+            {
+              "name": "health",
+              "raw_name": "疾厄"
+            },
+            {
+              "name": "wealth",
+              "raw_name": "财帛"
+            },
+            {
+              "name": "children",
+              "raw_name": "子女"
+            },
+            {
+              "name": "spouse",
+              "raw_name": "夫妻"
+            },
+            {
+              "name": "siblings",
+              "raw_name": "兄弟"
+            },
+            {
+              "name": "life",
+              "raw_name": "命宫"
+            },
+            {
+              "name": "parents",
+              "raw_name": "父母"
+            },
+            {
+              "name": "spirit",
+              "raw_name": "福德"
+            }
+          ],
+          "mutagen": {
+            "lu": {
+              "transform": "lu",
+              "star": "tai_yin",
+              "raw_star": "太阴"
+            },
+            "quan": {
+              "transform": "quan",
+              "star": "tian_tong",
+              "raw_star": "天同"
+            },
+            "ke": {
+              "transform": "ke",
+              "star": "tian_ji",
+              "raw_star": "天机"
+            },
+            "ji": {
+              "transform": "ji",
+              "star": "ju_men",
+              "raw_star": "巨门"
+            }
+          },
+          "flow_stars": [
+            {
+              "base": "chang",
+              "branch": "you",
+              "type": "soft",
+              "raw_name": "运昌"
+            },
+            {
+              "base": "kui",
+              "branch": "hai",
+              "type": "soft",
+              "raw_name": "运魁"
+            },
+            {
+              "base": "lu",
+              "branch": "wu",
+              "type": "lucun",
+              "raw_name": "运禄"
+            },
+            {
+              "base": "luan",
+              "branch": "chen",
+              "type": "flower",
+              "raw_name": "运鸾"
+            },
+            {
+              "base": "ma",
+              "branch": "si",
+              "type": "tianma",
+              "raw_name": "运马"
+            },
+            {
+              "base": "qu",
+              "branch": "si",
+              "type": "soft",
+              "raw_name": "运曲"
+            },
+            {
+              "base": "tuo",
+              "branch": "si",
+              "type": "tough",
+              "raw_name": "运陀"
+            },
+            {
+              "base": "xi",
+              "branch": "xu",
+              "type": "flower",
+              "raw_name": "运喜"
+            },
+            {
+              "base": "yang",
+              "branch": "wei",
+              "type": "tough",
+              "raw_name": "运羊"
+            },
+            {
+              "base": "yue",
+              "branch": "you",
+              "type": "soft",
+              "raw_name": "运钺"
+            }
+          ]
+        },
+        "age": {
+          "index": 2,
+          "name": "age",
+          "raw_name": "小限",
+          "heavenly_stem": "geng",
+          "raw_heavenly_stem": "庚",
+          "earthly_branch": "chen",
+          "raw_earthly_branch": "辰",
+          "palace_names": [
+            {
+              "name": "spouse",
+              "raw_name": "夫妻"
+            },
+            {
+              "name": "siblings",
+              "raw_name": "兄弟"
+            },
+            {
+              "name": "life",
+              "raw_name": "命宫"
+            },
+            {
+              "name": "parents",
+              "raw_name": "父母"
+            },
+            {
+              "name": "spirit",
+              "raw_name": "福德"
+            },
+            {
+              "name": "property",
+              "raw_name": "田宅"
+            },
+            {
+              "name": "career",
+              "raw_name": "官禄"
+            },
+            {
+              "name": "friends",
+              "raw_name": "仆役"
+            },
+            {
+              "name": "migration",
+              "raw_name": "迁移"
+            },
+            {
+              "name": "health",
+              "raw_name": "疾厄"
+            },
+            {
+              "name": "wealth",
+              "raw_name": "财帛"
+            },
+            {
+              "name": "children",
+              "raw_name": "子女"
+            }
+          ],
+          "mutagen": {
+            "lu": {
+              "transform": "lu",
+              "star": "tai_yang",
+              "raw_star": "太阳"
+            },
+            "quan": {
+              "transform": "quan",
+              "star": "wu_qu",
+              "raw_star": "武曲"
+            },
+            "ke": {
+              "transform": "ke",
+              "star": "tai_yin",
+              "raw_star": "太阴"
+            },
+            "ji": {
+              "transform": "ji",
+              "star": "tian_tong",
+              "raw_star": "天同"
+            }
+          },
+          "nominal_age": 37
+        },
+        "yearly": {
+          "index": 4,
+          "name": "yearly",
+          "raw_name": "流年",
+          "heavenly_stem": "bing",
+          "raw_heavenly_stem": "丙",
+          "earthly_branch": "wu",
+          "raw_earthly_branch": "午",
+          "palace_names": [
+            {
+              "name": "wealth",
+              "raw_name": "财帛"
+            },
+            {
+              "name": "children",
+              "raw_name": "子女"
+            },
+            {
+              "name": "spouse",
+              "raw_name": "夫妻"
+            },
+            {
+              "name": "siblings",
+              "raw_name": "兄弟"
+            },
+            {
+              "name": "life",
+              "raw_name": "命宫"
+            },
+            {
+              "name": "parents",
+              "raw_name": "父母"
+            },
+            {
+              "name": "spirit",
+              "raw_name": "福德"
+            },
+            {
+              "name": "property",
+              "raw_name": "田宅"
+            },
+            {
+              "name": "career",
+              "raw_name": "官禄"
+            },
+            {
+              "name": "friends",
+              "raw_name": "仆役"
+            },
+            {
+              "name": "migration",
+              "raw_name": "迁移"
+            },
+            {
+              "name": "health",
+              "raw_name": "疾厄"
+            }
+          ],
+          "mutagen": {
+            "lu": {
+              "transform": "lu",
+              "star": "tian_tong",
+              "raw_star": "天同"
+            },
+            "quan": {
+              "transform": "quan",
+              "star": "tian_ji",
+              "raw_star": "天机"
+            },
+            "ke": {
+              "transform": "ke",
+              "star": "wen_chang",
+              "raw_star": "文昌"
+            },
+            "ji": {
+              "transform": "ji",
+              "star": "lian_zhen",
+              "raw_star": "廉贞"
+            }
+          },
+          "flow_stars": [
+            {
+              "base": "chang",
+              "branch": "shen",
+              "type": "soft",
+              "raw_name": "流昌"
+            },
+            {
+              "base": "kui",
+              "branch": "hai",
+              "type": "soft",
+              "raw_name": "流魁"
+            },
+            {
+              "base": "lu",
+              "branch": "si",
+              "type": "lucun",
+              "raw_name": "流禄"
+            },
+            {
+              "base": "luan",
+              "branch": "you",
+              "type": "flower",
+              "raw_name": "流鸾"
+            },
+            {
+              "base": "ma",
+              "branch": "shen",
+              "type": "tianma",
+              "raw_name": "流马"
+            },
+            {
+              "base": "qu",
+              "branch": "wu",
+              "type": "soft",
+              "raw_name": "流曲"
+            },
+            {
+              "base": "tuo",
+              "branch": "chen",
+              "type": "tough",
+              "raw_name": "流陀"
+            },
+            {
+              "base": "xi",
+              "branch": "mao",
+              "type": "flower",
+              "raw_name": "流喜"
+            },
+            {
+              "base": "yang",
+              "branch": "wu",
+              "type": "tough",
+              "raw_name": "流羊"
+            },
+            {
+              "base": "yue",
+              "branch": "you",
+              "type": "soft",
+              "raw_name": "流钺"
+            }
+          ],
+          "nian_jie_branch": "chen",
+          "yearly_dec_stars": {
+            "suiqian12": [
+              {
+                "name": "bai_hu",
+                "raw_name": "白虎",
+                "branch": "yin"
+              },
+              {
+                "name": "tian_de_suiqian",
+                "raw_name": "天德",
+                "branch": "mao"
+              },
+              {
+                "name": "diao_ke",
+                "raw_name": "吊客",
+                "branch": "chen"
+              },
+              {
+                "name": "bing_fu_suiqian",
+                "raw_name": "病符",
+                "branch": "si"
+              },
+              {
+                "name": "sui_jian",
+                "raw_name": "岁建",
+                "branch": "wu"
+              },
+              {
+                "name": "hui_qi",
+                "raw_name": "晦气",
+                "branch": "wei"
+              },
+              {
+                "name": "sang_men",
+                "raw_name": "丧门",
+                "branch": "shen"
+              },
+              {
+                "name": "guan_suo",
+                "raw_name": "贯索",
+                "branch": "you"
+              },
+              {
+                "name": "guan_fu_suiqian",
+                "raw_name": "官符",
+                "branch": "xu"
+              },
+              {
+                "name": "xiao_hao_suiqian",
+                "raw_name": "小耗",
+                "branch": "hai"
+              },
+              {
+                "name": "sui_po",
+                "raw_name": "岁破",
+                "branch": "zi"
+              },
+              {
+                "name": "long_de_suiqian",
+                "raw_name": "龙德",
+                "branch": "chou"
+              }
+            ],
+            "jiangqian12": [
+              {
+                "name": "zhi_bei",
+                "raw_name": "指背",
+                "branch": "yin"
+              },
+              {
+                "name": "xian_chi_jiangqian",
+                "raw_name": "咸池",
+                "branch": "mao"
+              },
+              {
+                "name": "yue_sha",
+                "raw_name": "月煞",
+                "branch": "chen"
+              },
+              {
+                "name": "wang_shen",
+                "raw_name": "亡神",
+                "branch": "si"
+              },
+              {
+                "name": "jiang_xing",
+                "raw_name": "将星",
+                "branch": "wu"
+              },
+              {
+                "name": "pan_an",
+                "raw_name": "攀鞍",
+                "branch": "wei"
+              },
+              {
+                "name": "sui_yi",
+                "raw_name": "岁驿",
+                "branch": "shen"
+              },
+              {
+                "name": "xi_shen_jiangqian",
+                "raw_name": "息神",
+                "branch": "you"
+              },
+              {
+                "name": "hua_gai_jiangqian",
+                "raw_name": "华盖",
+                "branch": "xu"
+              },
+              {
+                "name": "jie_sha",
+                "raw_name": "劫煞",
+                "branch": "hai"
+              },
+              {
+                "name": "zai_sha",
+                "raw_name": "灾煞",
+                "branch": "zi"
+              },
+              {
+                "name": "tian_sha",
+                "raw_name": "天煞",
+                "branch": "chou"
+              }
+            ]
+          }
+        },
+        "monthly": {
+          "index": 8,
+          "name": "monthly",
+          "raw_name": "流月",
+          "heavenly_stem": "jia",
+          "raw_heavenly_stem": "甲",
+          "earthly_branch": "wu",
+          "raw_earthly_branch": "午",
+          "palace_names": [
+            {
+              "name": "career",
+              "raw_name": "官禄"
+            },
+            {
+              "name": "friends",
+              "raw_name": "仆役"
+            },
+            {
+              "name": "migration",
+              "raw_name": "迁移"
+            },
+            {
+              "name": "health",
+              "raw_name": "疾厄"
+            },
+            {
+              "name": "wealth",
+              "raw_name": "财帛"
+            },
+            {
+              "name": "children",
+              "raw_name": "子女"
+            },
+            {
+              "name": "spouse",
+              "raw_name": "夫妻"
+            },
+            {
+              "name": "siblings",
+              "raw_name": "兄弟"
+            },
+            {
+              "name": "life",
+              "raw_name": "命宫"
+            },
+            {
+              "name": "parents",
+              "raw_name": "父母"
+            },
+            {
+              "name": "spirit",
+              "raw_name": "福德"
+            },
+            {
+              "name": "property",
+              "raw_name": "田宅"
+            }
+          ],
+          "mutagen": {
+            "lu": {
+              "transform": "lu",
+              "star": "lian_zhen",
+              "raw_star": "廉贞"
+            },
+            "quan": {
+              "transform": "quan",
+              "star": "po_jun",
+              "raw_star": "破军"
+            },
+            "ke": {
+              "transform": "ke",
+              "star": "wu_qu",
+              "raw_star": "武曲"
+            },
+            "ji": {
+              "transform": "ji",
+              "star": "tai_yang",
+              "raw_star": "太阳"
+            }
+          },
+          "flow_stars": [
+            {
+              "base": "chang",
+              "branch": "si",
+              "type": "soft",
+              "raw_name": "月昌"
+            },
+            {
+              "base": "kui",
+              "branch": "chou",
+              "type": "soft",
+              "raw_name": "月魁"
+            },
+            {
+              "base": "lu",
+              "branch": "yin",
+              "type": "lucun",
+              "raw_name": "月禄"
+            },
+            {
+              "base": "luan",
+              "branch": "you",
+              "type": "flower",
+              "raw_name": "月鸾"
+            },
+            {
+              "base": "ma",
+              "branch": "shen",
+              "type": "tianma",
+              "raw_name": "月马"
+            },
+            {
+              "base": "qu",
+              "branch": "you",
+              "type": "soft",
+              "raw_name": "月曲"
+            },
+            {
+              "base": "tuo",
+              "branch": "chou",
+              "type": "tough",
+              "raw_name": "月陀"
+            },
+            {
+              "base": "xi",
+              "branch": "mao",
+              "type": "flower",
+              "raw_name": "月喜"
+            },
+            {
+              "base": "yang",
+              "branch": "mao",
+              "type": "tough",
+              "raw_name": "月羊"
+            },
+            {
+              "base": "yue",
+              "branch": "wei",
+              "type": "soft",
+              "raw_name": "月钺"
+            }
+          ]
+        },
+        "daily": {
+          "index": 0,
+          "name": "daily",
+          "raw_name": "流日",
+          "heavenly_stem": "bing",
+          "raw_heavenly_stem": "丙",
+          "earthly_branch": "zi",
+          "raw_earthly_branch": "子",
+          "palace_names": [
+            {
+              "name": "life",
+              "raw_name": "命宫"
+            },
+            {
+              "name": "parents",
+              "raw_name": "父母"
+            },
+            {
+              "name": "spirit",
+              "raw_name": "福德"
+            },
+            {
+              "name": "property",
+              "raw_name": "田宅"
+            },
+            {
+              "name": "career",
+              "raw_name": "官禄"
+            },
+            {
+              "name": "friends",
+              "raw_name": "仆役"
+            },
+            {
+              "name": "migration",
+              "raw_name": "迁移"
+            },
+            {
+              "name": "health",
+              "raw_name": "疾厄"
+            },
+            {
+              "name": "wealth",
+              "raw_name": "财帛"
+            },
+            {
+              "name": "children",
+              "raw_name": "子女"
+            },
+            {
+              "name": "spouse",
+              "raw_name": "夫妻"
+            },
+            {
+              "name": "siblings",
+              "raw_name": "兄弟"
+            }
+          ],
+          "mutagen": {
+            "lu": {
+              "transform": "lu",
+              "star": "tian_tong",
+              "raw_star": "天同"
+            },
+            "quan": {
+              "transform": "quan",
+              "star": "tian_ji",
+              "raw_star": "天机"
+            },
+            "ke": {
+              "transform": "ke",
+              "star": "wen_chang",
+              "raw_star": "文昌"
+            },
+            "ji": {
+              "transform": "ji",
+              "star": "lian_zhen",
+              "raw_star": "廉贞"
+            }
+          },
+          "flow_stars": [
+            {
+              "base": "chang",
+              "branch": "shen",
+              "type": "soft",
+              "raw_name": "日昌"
+            },
+            {
+              "base": "kui",
+              "branch": "hai",
+              "type": "soft",
+              "raw_name": "日魁"
+            },
+            {
+              "base": "lu",
+              "branch": "si",
+              "type": "lucun",
+              "raw_name": "日禄"
+            },
+            {
+              "base": "luan",
+              "branch": "mao",
+              "type": "flower",
+              "raw_name": "日鸾"
+            },
+            {
+              "base": "ma",
+              "branch": "yin",
+              "type": "tianma",
+              "raw_name": "日马"
+            },
+            {
+              "base": "qu",
+              "branch": "wu",
+              "type": "soft",
+              "raw_name": "日曲"
+            },
+            {
+              "base": "tuo",
+              "branch": "chen",
+              "type": "tough",
+              "raw_name": "日陀"
+            },
+            {
+              "base": "xi",
+              "branch": "you",
+              "type": "flower",
+              "raw_name": "日喜"
+            },
+            {
+              "base": "yang",
+              "branch": "wu",
+              "type": "tough",
+              "raw_name": "日羊"
+            },
+            {
+              "base": "yue",
+              "branch": "you",
+              "type": "soft",
+              "raw_name": "日钺"
+            }
+          ]
+        },
+        "hourly": {
+          "index": 2,
+          "name": "hourly",
+          "raw_name": "流时",
+          "heavenly_stem": "geng",
+          "raw_heavenly_stem": "庚",
+          "earthly_branch": "yin",
+          "raw_earthly_branch": "寅",
+          "palace_names": [
+            {
+              "name": "spouse",
+              "raw_name": "夫妻"
+            },
+            {
+              "name": "siblings",
+              "raw_name": "兄弟"
+            },
+            {
+              "name": "life",
+              "raw_name": "命宫"
+            },
+            {
+              "name": "parents",
+              "raw_name": "父母"
+            },
+            {
+              "name": "spirit",
+              "raw_name": "福德"
+            },
+            {
+              "name": "property",
+              "raw_name": "田宅"
+            },
+            {
+              "name": "career",
+              "raw_name": "官禄"
+            },
+            {
+              "name": "friends",
+              "raw_name": "仆役"
+            },
+            {
+              "name": "migration",
+              "raw_name": "迁移"
+            },
+            {
+              "name": "health",
+              "raw_name": "疾厄"
+            },
+            {
+              "name": "wealth",
+              "raw_name": "财帛"
+            },
+            {
+              "name": "children",
+              "raw_name": "子女"
+            }
+          ],
+          "mutagen": {
+            "lu": {
+              "transform": "lu",
+              "star": "tai_yang",
+              "raw_star": "太阳"
+            },
+            "quan": {
+              "transform": "quan",
+              "star": "wu_qu",
+              "raw_star": "武曲"
+            },
+            "ke": {
+              "transform": "ke",
+              "star": "tai_yin",
+              "raw_star": "太阴"
+            },
+            "ji": {
+              "transform": "ji",
+              "star": "tian_tong",
+              "raw_star": "天同"
+            }
+          },
+          "flow_stars": [
+            {
+              "base": "chang",
+              "branch": "hai",
+              "type": "soft",
+              "raw_name": "时昌"
+            },
+            {
+              "base": "kui",
+              "branch": "chou",
+              "type": "soft",
+              "raw_name": "时魁"
+            },
+            {
+              "base": "lu",
+              "branch": "shen",
+              "type": "lucun",
+              "raw_name": "时禄"
+            },
+            {
+              "base": "luan",
+              "branch": "chou",
+              "type": "flower",
+              "raw_name": "时鸾"
+            },
+            {
+              "base": "ma",
+              "branch": "shen",
+              "type": "tianma",
+              "raw_name": "时马"
+            },
+            {
+              "base": "qu",
+              "branch": "mao",
+              "type": "soft",
+              "raw_name": "时曲"
+            },
+            {
+              "base": "tuo",
+              "branch": "wei",
+              "type": "tough",
+              "raw_name": "时陀"
+            },
+            {
+              "base": "xi",
+              "branch": "wei",
+              "type": "flower",
+              "raw_name": "时喜"
+            },
+            {
+              "base": "yang",
+              "branch": "you",
+              "type": "tough",
+              "raw_name": "时羊"
+            },
+            {
+              "base": "yue",
+              "branch": "wei",
+              "type": "soft",
+              "raw_name": "时钺"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "male_1988_default_2026",
+      "input": {
+        "calendar": "lunar",
+        "year": 1988,
+        "month": 3,
+        "day": 14,
+        "time_index": 0,
+        "gender": "male",
+        "is_leap_month": false,
+        "fix_leap": true,
+        "language": "zh-CN",
+        "algorithm": "default",
+        "target": {
+          "solar_date": "2026-7-1",
+          "year": 2026,
+          "time_index": 2
+        }
+      },
+      "raw_keys": {
+        "horoscope": [
+          "agePalace",
+          "palace",
+          "surroundPalaces",
+          "hasHoroscopeStars",
+          "notHaveHoroscopeStars",
+          "hasOneOfHoroscopeStars",
+          "hasHoroscopeMutagen",
+          "lunarDate",
+          "solarDate",
+          "decadal",
+          "age",
+          "yearly",
+          "monthly",
+          "daily",
+          "hourly",
+          "astrolabe"
+        ],
+        "decadal": [
+          "index",
+          "name",
+          "heavenlyStem",
+          "earthlyBranch",
+          "palaceNames",
+          "mutagen",
+          "stars"
+        ],
+        "age": [
+          "index",
+          "nominalAge",
+          "name",
+          "heavenlyStem",
+          "earthlyBranch",
+          "palaceNames",
+          "mutagen"
+        ],
+        "yearly": [
+          "index",
+          "name",
+          "heavenlyStem",
+          "earthlyBranch",
+          "palaceNames",
+          "mutagen",
+          "stars",
+          "yearlyDecStar"
+        ],
+        "monthly": [
+          "index",
+          "name",
+          "heavenlyStem",
+          "earthlyBranch",
+          "palaceNames",
+          "mutagen",
+          "stars"
+        ],
+        "daily": [
+          "index",
+          "name",
+          "heavenlyStem",
+          "earthlyBranch",
+          "palaceNames",
+          "mutagen",
+          "stars"
+        ],
+        "hourly": [
+          "index",
+          "name",
+          "heavenlyStem",
+          "earthlyBranch",
+          "palaceNames",
+          "mutagen",
+          "stars"
+        ]
+      },
+      "supported_fields": {
+        "lunar_date": "二〇二六年五月十七",
+        "solar_date": "2026-7-1",
+        "decadal": {
+          "index": 5,
+          "name": "decadal",
+          "raw_name": "大限",
+          "heavenly_stem": "ji",
+          "raw_heavenly_stem": "己",
+          "earthly_branch": "wei",
+          "raw_earthly_branch": "未",
+          "palace_names": [
+            {
+              "name": "health",
+              "raw_name": "疾厄"
+            },
+            {
+              "name": "wealth",
+              "raw_name": "财帛"
+            },
+            {
+              "name": "children",
+              "raw_name": "子女"
+            },
+            {
+              "name": "spouse",
+              "raw_name": "夫妻"
+            },
+            {
+              "name": "siblings",
+              "raw_name": "兄弟"
+            },
+            {
+              "name": "life",
+              "raw_name": "命宫"
+            },
+            {
+              "name": "parents",
+              "raw_name": "父母"
+            },
+            {
+              "name": "spirit",
+              "raw_name": "福德"
+            },
+            {
+              "name": "property",
+              "raw_name": "田宅"
+            },
+            {
+              "name": "career",
+              "raw_name": "官禄"
+            },
+            {
+              "name": "friends",
+              "raw_name": "仆役"
+            },
+            {
+              "name": "migration",
+              "raw_name": "迁移"
+            }
+          ],
+          "mutagen": {
+            "lu": {
+              "transform": "lu",
+              "star": "wu_qu",
+              "raw_star": "武曲"
+            },
+            "quan": {
+              "transform": "quan",
+              "star": "tan_lang",
+              "raw_star": "贪狼"
+            },
+            "ke": {
+              "transform": "ke",
+              "star": "tian_liang",
+              "raw_star": "天梁"
+            },
+            "ji": {
+              "transform": "ji",
+              "star": "wen_qu",
+              "raw_star": "文曲"
+            }
+          },
+          "flow_stars": [
+            {
+              "base": "chang",
+              "branch": "you",
+              "type": "soft",
+              "raw_name": "运昌"
+            },
+            {
+              "base": "kui",
+              "branch": "zi",
+              "type": "soft",
+              "raw_name": "运魁"
+            },
+            {
+              "base": "lu",
+              "branch": "wu",
+              "type": "lucun",
+              "raw_name": "运禄"
+            },
+            {
+              "base": "luan",
+              "branch": "shen",
+              "type": "flower",
+              "raw_name": "运鸾"
+            },
+            {
+              "base": "ma",
+              "branch": "si",
+              "type": "tianma",
+              "raw_name": "运马"
+            },
+            {
+              "base": "qu",
+              "branch": "si",
+              "type": "soft",
+              "raw_name": "运曲"
+            },
+            {
+              "base": "tuo",
+              "branch": "si",
+              "type": "tough",
+              "raw_name": "运陀"
+            },
+            {
+              "base": "xi",
+              "branch": "yin",
+              "type": "flower",
+              "raw_name": "运喜"
+            },
+            {
+              "base": "yang",
+              "branch": "wei",
+              "type": "tough",
+              "raw_name": "运羊"
+            },
+            {
+              "base": "yue",
+              "branch": "shen",
+              "type": "soft",
+              "raw_name": "运钺"
+            }
+          ]
+        },
+        "age": {
+          "index": 10,
+          "name": "age",
+          "raw_name": "小限",
+          "heavenly_stem": "jia",
+          "raw_heavenly_stem": "甲",
+          "earthly_branch": "zi",
+          "raw_earthly_branch": "子",
+          "palace_names": [
+            {
+              "name": "spirit",
+              "raw_name": "福德"
+            },
+            {
+              "name": "property",
+              "raw_name": "田宅"
+            },
+            {
+              "name": "career",
+              "raw_name": "官禄"
+            },
+            {
+              "name": "friends",
+              "raw_name": "仆役"
+            },
+            {
+              "name": "migration",
+              "raw_name": "迁移"
+            },
+            {
+              "name": "health",
+              "raw_name": "疾厄"
+            },
+            {
+              "name": "wealth",
+              "raw_name": "财帛"
+            },
+            {
+              "name": "children",
+              "raw_name": "子女"
+            },
+            {
+              "name": "spouse",
+              "raw_name": "夫妻"
+            },
+            {
+              "name": "siblings",
+              "raw_name": "兄弟"
+            },
+            {
+              "name": "life",
+              "raw_name": "命宫"
+            },
+            {
+              "name": "parents",
+              "raw_name": "父母"
+            }
+          ],
+          "mutagen": {
+            "lu": {
+              "transform": "lu",
+              "star": "lian_zhen",
+              "raw_star": "廉贞"
+            },
+            "quan": {
+              "transform": "quan",
+              "star": "po_jun",
+              "raw_star": "破军"
+            },
+            "ke": {
+              "transform": "ke",
+              "star": "wu_qu",
+              "raw_star": "武曲"
+            },
+            "ji": {
+              "transform": "ji",
+              "star": "tai_yang",
+              "raw_star": "太阳"
+            }
+          },
+          "nominal_age": 39
+        },
+        "yearly": {
+          "index": 4,
+          "name": "yearly",
+          "raw_name": "流年",
+          "heavenly_stem": "bing",
+          "raw_heavenly_stem": "丙",
+          "earthly_branch": "wu",
+          "raw_earthly_branch": "午",
+          "palace_names": [
+            {
+              "name": "wealth",
+              "raw_name": "财帛"
+            },
+            {
+              "name": "children",
+              "raw_name": "子女"
+            },
+            {
+              "name": "spouse",
+              "raw_name": "夫妻"
+            },
+            {
+              "name": "siblings",
+              "raw_name": "兄弟"
+            },
+            {
+              "name": "life",
+              "raw_name": "命宫"
+            },
+            {
+              "name": "parents",
+              "raw_name": "父母"
+            },
+            {
+              "name": "spirit",
+              "raw_name": "福德"
+            },
+            {
+              "name": "property",
+              "raw_name": "田宅"
+            },
+            {
+              "name": "career",
+              "raw_name": "官禄"
+            },
+            {
+              "name": "friends",
+              "raw_name": "仆役"
+            },
+            {
+              "name": "migration",
+              "raw_name": "迁移"
+            },
+            {
+              "name": "health",
+              "raw_name": "疾厄"
+            }
+          ],
+          "mutagen": {
+            "lu": {
+              "transform": "lu",
+              "star": "tian_tong",
+              "raw_star": "天同"
+            },
+            "quan": {
+              "transform": "quan",
+              "star": "tian_ji",
+              "raw_star": "天机"
+            },
+            "ke": {
+              "transform": "ke",
+              "star": "wen_chang",
+              "raw_star": "文昌"
+            },
+            "ji": {
+              "transform": "ji",
+              "star": "lian_zhen",
+              "raw_star": "廉贞"
+            }
+          },
+          "flow_stars": [
+            {
+              "base": "chang",
+              "branch": "shen",
+              "type": "soft",
+              "raw_name": "流昌"
+            },
+            {
+              "base": "kui",
+              "branch": "hai",
+              "type": "soft",
+              "raw_name": "流魁"
+            },
+            {
+              "base": "lu",
+              "branch": "si",
+              "type": "lucun",
+              "raw_name": "流禄"
+            },
+            {
+              "base": "luan",
+              "branch": "you",
+              "type": "flower",
+              "raw_name": "流鸾"
+            },
+            {
+              "base": "ma",
+              "branch": "shen",
+              "type": "tianma",
+              "raw_name": "流马"
+            },
+            {
+              "base": "qu",
+              "branch": "wu",
+              "type": "soft",
+              "raw_name": "流曲"
+            },
+            {
+              "base": "tuo",
+              "branch": "chen",
+              "type": "tough",
+              "raw_name": "流陀"
+            },
+            {
+              "base": "xi",
+              "branch": "mao",
+              "type": "flower",
+              "raw_name": "流喜"
+            },
+            {
+              "base": "yang",
+              "branch": "wu",
+              "type": "tough",
+              "raw_name": "流羊"
+            },
+            {
+              "base": "yue",
+              "branch": "you",
+              "type": "soft",
+              "raw_name": "流钺"
+            }
+          ],
+          "nian_jie_branch": "chen",
+          "yearly_dec_stars": {
+            "suiqian12": [
+              {
+                "name": "bai_hu",
+                "raw_name": "白虎",
+                "branch": "yin"
+              },
+              {
+                "name": "tian_de_suiqian",
+                "raw_name": "天德",
+                "branch": "mao"
+              },
+              {
+                "name": "diao_ke",
+                "raw_name": "吊客",
+                "branch": "chen"
+              },
+              {
+                "name": "bing_fu_suiqian",
+                "raw_name": "病符",
+                "branch": "si"
+              },
+              {
+                "name": "sui_jian",
+                "raw_name": "岁建",
+                "branch": "wu"
+              },
+              {
+                "name": "hui_qi",
+                "raw_name": "晦气",
+                "branch": "wei"
+              },
+              {
+                "name": "sang_men",
+                "raw_name": "丧门",
+                "branch": "shen"
+              },
+              {
+                "name": "guan_suo",
+                "raw_name": "贯索",
+                "branch": "you"
+              },
+              {
+                "name": "guan_fu_suiqian",
+                "raw_name": "官符",
+                "branch": "xu"
+              },
+              {
+                "name": "xiao_hao_suiqian",
+                "raw_name": "小耗",
+                "branch": "hai"
+              },
+              {
+                "name": "da_hao_suiqian",
+                "raw_name": "大耗",
+                "branch": "zi"
+              },
+              {
+                "name": "long_de_suiqian",
+                "raw_name": "龙德",
+                "branch": "chou"
+              }
+            ],
+            "jiangqian12": [
+              {
+                "name": "zhi_bei",
+                "raw_name": "指背",
+                "branch": "yin"
+              },
+              {
+                "name": "xian_chi_jiangqian",
+                "raw_name": "咸池",
+                "branch": "mao"
+              },
+              {
+                "name": "yue_sha",
+                "raw_name": "月煞",
+                "branch": "chen"
+              },
+              {
+                "name": "wang_shen",
+                "raw_name": "亡神",
+                "branch": "si"
+              },
+              {
+                "name": "jiang_xing",
+                "raw_name": "将星",
+                "branch": "wu"
+              },
+              {
+                "name": "pan_an",
+                "raw_name": "攀鞍",
+                "branch": "wei"
+              },
+              {
+                "name": "sui_yi",
+                "raw_name": "岁驿",
+                "branch": "shen"
+              },
+              {
+                "name": "xi_shen_jiangqian",
+                "raw_name": "息神",
+                "branch": "you"
+              },
+              {
+                "name": "hua_gai_jiangqian",
+                "raw_name": "华盖",
+                "branch": "xu"
+              },
+              {
+                "name": "jie_sha",
+                "raw_name": "劫煞",
+                "branch": "hai"
+              },
+              {
+                "name": "zai_sha",
+                "raw_name": "灾煞",
+                "branch": "zi"
+              },
+              {
+                "name": "tian_sha",
+                "raw_name": "天煞",
+                "branch": "chou"
+              }
+            ]
+          }
+        },
+        "monthly": {
+          "index": 6,
+          "name": "monthly",
+          "raw_name": "流月",
+          "heavenly_stem": "jia",
+          "raw_heavenly_stem": "甲",
+          "earthly_branch": "wu",
+          "raw_earthly_branch": "午",
+          "palace_names": [
+            {
+              "name": "migration",
+              "raw_name": "迁移"
+            },
+            {
+              "name": "health",
+              "raw_name": "疾厄"
+            },
+            {
+              "name": "wealth",
+              "raw_name": "财帛"
+            },
+            {
+              "name": "children",
+              "raw_name": "子女"
+            },
+            {
+              "name": "spouse",
+              "raw_name": "夫妻"
+            },
+            {
+              "name": "siblings",
+              "raw_name": "兄弟"
+            },
+            {
+              "name": "life",
+              "raw_name": "命宫"
+            },
+            {
+              "name": "parents",
+              "raw_name": "父母"
+            },
+            {
+              "name": "spirit",
+              "raw_name": "福德"
+            },
+            {
+              "name": "property",
+              "raw_name": "田宅"
+            },
+            {
+              "name": "career",
+              "raw_name": "官禄"
+            },
+            {
+              "name": "friends",
+              "raw_name": "仆役"
+            }
+          ],
+          "mutagen": {
+            "lu": {
+              "transform": "lu",
+              "star": "lian_zhen",
+              "raw_star": "廉贞"
+            },
+            "quan": {
+              "transform": "quan",
+              "star": "po_jun",
+              "raw_star": "破军"
+            },
+            "ke": {
+              "transform": "ke",
+              "star": "wu_qu",
+              "raw_star": "武曲"
+            },
+            "ji": {
+              "transform": "ji",
+              "star": "tai_yang",
+              "raw_star": "太阳"
+            }
+          },
+          "flow_stars": [
+            {
+              "base": "chang",
+              "branch": "si",
+              "type": "soft",
+              "raw_name": "月昌"
+            },
+            {
+              "base": "kui",
+              "branch": "chou",
+              "type": "soft",
+              "raw_name": "月魁"
+            },
+            {
+              "base": "lu",
+              "branch": "yin",
+              "type": "lucun",
+              "raw_name": "月禄"
+            },
+            {
+              "base": "luan",
+              "branch": "you",
+              "type": "flower",
+              "raw_name": "月鸾"
+            },
+            {
+              "base": "ma",
+              "branch": "shen",
+              "type": "tianma",
+              "raw_name": "月马"
+            },
+            {
+              "base": "qu",
+              "branch": "you",
+              "type": "soft",
+              "raw_name": "月曲"
+            },
+            {
+              "base": "tuo",
+              "branch": "chou",
+              "type": "tough",
+              "raw_name": "月陀"
+            },
+            {
+              "base": "xi",
+              "branch": "mao",
+              "type": "flower",
+              "raw_name": "月喜"
+            },
+            {
+              "base": "yang",
+              "branch": "mao",
+              "type": "tough",
+              "raw_name": "月羊"
+            },
+            {
+              "base": "yue",
+              "branch": "wei",
+              "type": "soft",
+              "raw_name": "月钺"
+            }
+          ]
+        },
+        "daily": {
+          "index": 10,
+          "name": "daily",
+          "raw_name": "流日",
+          "heavenly_stem": "bing",
+          "raw_heavenly_stem": "丙",
+          "earthly_branch": "zi",
+          "raw_earthly_branch": "子",
+          "palace_names": [
+            {
+              "name": "spirit",
+              "raw_name": "福德"
+            },
+            {
+              "name": "property",
+              "raw_name": "田宅"
+            },
+            {
+              "name": "career",
+              "raw_name": "官禄"
+            },
+            {
+              "name": "friends",
+              "raw_name": "仆役"
+            },
+            {
+              "name": "migration",
+              "raw_name": "迁移"
+            },
+            {
+              "name": "health",
+              "raw_name": "疾厄"
+            },
+            {
+              "name": "wealth",
+              "raw_name": "财帛"
+            },
+            {
+              "name": "children",
+              "raw_name": "子女"
+            },
+            {
+              "name": "spouse",
+              "raw_name": "夫妻"
+            },
+            {
+              "name": "siblings",
+              "raw_name": "兄弟"
+            },
+            {
+              "name": "life",
+              "raw_name": "命宫"
+            },
+            {
+              "name": "parents",
+              "raw_name": "父母"
+            }
+          ],
+          "mutagen": {
+            "lu": {
+              "transform": "lu",
+              "star": "tian_tong",
+              "raw_star": "天同"
+            },
+            "quan": {
+              "transform": "quan",
+              "star": "tian_ji",
+              "raw_star": "天机"
+            },
+            "ke": {
+              "transform": "ke",
+              "star": "wen_chang",
+              "raw_star": "文昌"
+            },
+            "ji": {
+              "transform": "ji",
+              "star": "lian_zhen",
+              "raw_star": "廉贞"
+            }
+          },
+          "flow_stars": [
+            {
+              "base": "chang",
+              "branch": "shen",
+              "type": "soft",
+              "raw_name": "日昌"
+            },
+            {
+              "base": "kui",
+              "branch": "hai",
+              "type": "soft",
+              "raw_name": "日魁"
+            },
+            {
+              "base": "lu",
+              "branch": "si",
+              "type": "lucun",
+              "raw_name": "日禄"
+            },
+            {
+              "base": "luan",
+              "branch": "mao",
+              "type": "flower",
+              "raw_name": "日鸾"
+            },
+            {
+              "base": "ma",
+              "branch": "yin",
+              "type": "tianma",
+              "raw_name": "日马"
+            },
+            {
+              "base": "qu",
+              "branch": "wu",
+              "type": "soft",
+              "raw_name": "日曲"
+            },
+            {
+              "base": "tuo",
+              "branch": "chen",
+              "type": "tough",
+              "raw_name": "日陀"
+            },
+            {
+              "base": "xi",
+              "branch": "you",
+              "type": "flower",
+              "raw_name": "日喜"
+            },
+            {
+              "base": "yang",
+              "branch": "wu",
+              "type": "tough",
+              "raw_name": "日羊"
+            },
+            {
+              "base": "yue",
+              "branch": "you",
+              "type": "soft",
+              "raw_name": "日钺"
+            }
+          ]
+        },
+        "hourly": {
+          "index": 0,
+          "name": "hourly",
+          "raw_name": "流时",
+          "heavenly_stem": "geng",
+          "raw_heavenly_stem": "庚",
+          "earthly_branch": "yin",
+          "raw_earthly_branch": "寅",
+          "palace_names": [
+            {
+              "name": "life",
+              "raw_name": "命宫"
+            },
+            {
+              "name": "parents",
+              "raw_name": "父母"
+            },
+            {
+              "name": "spirit",
+              "raw_name": "福德"
+            },
+            {
+              "name": "property",
+              "raw_name": "田宅"
+            },
+            {
+              "name": "career",
+              "raw_name": "官禄"
+            },
+            {
+              "name": "friends",
+              "raw_name": "仆役"
+            },
+            {
+              "name": "migration",
+              "raw_name": "迁移"
+            },
+            {
+              "name": "health",
+              "raw_name": "疾厄"
+            },
+            {
+              "name": "wealth",
+              "raw_name": "财帛"
+            },
+            {
+              "name": "children",
+              "raw_name": "子女"
+            },
+            {
+              "name": "spouse",
+              "raw_name": "夫妻"
+            },
+            {
+              "name": "siblings",
+              "raw_name": "兄弟"
+            }
+          ],
+          "mutagen": {
+            "lu": {
+              "transform": "lu",
+              "star": "tai_yang",
+              "raw_star": "太阳"
+            },
+            "quan": {
+              "transform": "quan",
+              "star": "wu_qu",
+              "raw_star": "武曲"
+            },
+            "ke": {
+              "transform": "ke",
+              "star": "tai_yin",
+              "raw_star": "太阴"
+            },
+            "ji": {
+              "transform": "ji",
+              "star": "tian_tong",
+              "raw_star": "天同"
+            }
+          },
+          "flow_stars": [
+            {
+              "base": "chang",
+              "branch": "hai",
+              "type": "soft",
+              "raw_name": "时昌"
+            },
+            {
+              "base": "kui",
+              "branch": "chou",
+              "type": "soft",
+              "raw_name": "时魁"
+            },
+            {
+              "base": "lu",
+              "branch": "shen",
+              "type": "lucun",
+              "raw_name": "时禄"
+            },
+            {
+              "base": "luan",
+              "branch": "chou",
+              "type": "flower",
+              "raw_name": "时鸾"
+            },
+            {
+              "base": "ma",
+              "branch": "shen",
+              "type": "tianma",
+              "raw_name": "时马"
+            },
+            {
+              "base": "qu",
+              "branch": "mao",
+              "type": "soft",
+              "raw_name": "时曲"
+            },
+            {
+              "base": "tuo",
+              "branch": "wei",
+              "type": "tough",
+              "raw_name": "时陀"
+            },
+            {
+              "base": "xi",
+              "branch": "wei",
+              "type": "flower",
+              "raw_name": "时喜"
+            },
+            {
+              "base": "yang",
+              "branch": "you",
+              "type": "tough",
+              "raw_name": "时羊"
+            },
+            {
+              "base": "yue",
+              "branch": "wei",
+              "type": "soft",
+              "raw_name": "时钺"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
