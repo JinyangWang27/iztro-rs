@@ -5,3 +5,5 @@
 //! narrative interpretation.
 
 pub mod text;
+
+pub use text::{PlainTextChartRenderer, PlainTextRenderOptions, render_chart_stack_text};
