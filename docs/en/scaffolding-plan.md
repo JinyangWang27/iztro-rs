@@ -1,12 +1,14 @@
 # Rust Scaffolding Plan
 
-This document is the implementation brief for the first Rust code scaffolding PR. It is intentionally operational and should be read together with `AGENTS.md`, `docs/en/architecture.md`, and `docs/en/engineering-principles.md`.
+> Historical note: this document records the original implementation brief for the first Rust workspace scaffolding PR. The workspace has since moved beyond initial scaffolding. For the current implemented surface, see [`current-status.md`](current-status.md), [`roadmap.md`](roadmap.md), and [`architecture.md`](architecture.md).
 
-## Goal
+This document is retained as historical context because it captures the original crate-boundary intent: deterministic chart facts in core, feature extraction separate from rule matching, structured claims separate from narrative, and no premature GUI/LLM dependencies.
+
+## Original goal
 
 Create the initial Rust workspace for `iztro-rs` without implementing full Zi Wei Dou Shu chart-generation algorithms or interpretation rules.
 
-The first scaffolding PR should establish:
+The first scaffolding PR was expected to establish:
 
 - workspace structure;
 - crate boundaries;
@@ -15,9 +17,27 @@ The first scaffolding PR should establish:
 - basic CI;
 - minimal tests proving that the workspace compiles and layer boundaries are usable.
 
-## Non-goals
+## Current status since scaffolding
 
-Do not implement:
+The current workspace now includes:
+
+```text
+crates/
+  iztro-core/
+  iztro-features/
+  iztro-reading/
+  iztro-render/
+  iztro-rules/
+  iztro-cli/
+```
+
+The project now has implemented chart-generation slices, fixture-backed compatibility with `iztro@2.5.8`, `lunar-lite`-backed solar-to-lunar conversion, renderer-neutral `ChartStackSnapshot`, and a deterministic plain text renderer demo.
+
+The original non-goals below remain useful guardrails for incomplete areas: do not present deferred functionality as stable behavior.
+
+## Original non-goals
+
+The scaffolding phase did not aim to implement:
 
 - full calendar conversion;
 - full `by_solar` or `by_lunar` algorithms;
@@ -30,7 +50,9 @@ Do not implement:
 - LLM integration;
 - large generated datasets.
 
-## Rust settings
+Several of these items have since been partially implemented in scoped, fixture-backed form. Full horoscope assembly, bindings, GUI/WASM/TUI frontends, and narrative remain deferred.
+
+## Original Rust settings
 
 Initial recommendation:
 
@@ -38,7 +60,7 @@ Initial recommendation:
 - License: MIT.
 - MSRV: unspecified until the first release target is clearer.
 
-Initial dependencies should stay minimal:
+Initial dependencies were expected to stay minimal:
 
 - `serde` for serializable models;
 - `serde_json` for fixture and snapshot-friendly output;
@@ -46,102 +68,19 @@ Initial dependencies should stay minimal:
 - `anyhow` only in CLI code;
 - `toml` or `toml_edit` only when rule loading is introduced.
 
-Avoid adding framework dependencies before there is a concrete need.
+The current workspace still follows the same low-dependency direction.
 
-## Workspace layout
-
-Create this structure:
-
-```text
-Cargo.toml
-crates/
-  iztro-core/
-    Cargo.toml
-    src/
-      lib.rs
-      calendar.rs
-      nayin.rs
-      palace.rs
-      star.rs
-      mutagen.rs
-      chart.rs
-      profile.rs
-      error.rs
-  iztro-features/
-    Cargo.toml
-    src/
-      lib.rs
-      extractor.rs
-      palace_features.rs
-      star_features.rs
-      mutagen_flows.rs
-      relations.rs
-      domains.rs
-  iztro-rules/
-    Cargo.toml
-    src/
-      lib.rs
-      rule.rs
-      condition.rs
-      effect.rs
-      claim.rs
-      engine.rs
-      loader.rs
-  iztro-reading/
-    Cargo.toml
-    src/
-      lib.rs
-      report.rs
-      section.rs
-      renderer.rs
-  iztro-cli/
-    Cargo.toml
-    src/
-      main.rs
-.github/
-  workflows/
-    ci.yml
-```
-
-## Crate responsibilities
+## Original crate responsibilities
 
 ### `iztro-core`
 
 Contains deterministic chart facts and core domain models.
 
-Expected initial types include placeholders for:
-
-- heavenly stems;
-- earthly branches;
-- gender;
-- time index;
-- palace names;
-- star names;
-- star categories;
-- brightness;
-- mutagens;
-- scopes;
-- chart;
-- palace;
-- star placement;
-- method profile metadata;
-- chart errors.
-
-This crate must not contain interpretation prose, rule matching, report rendering, CLI formatting, or UI assumptions.
+This crate must not contain interpretation prose, rule matching, report rendering, CLI formatting, or UI assumptions. It now also exposes renderer-neutral snapshots, but actual rendering lives outside core.
 
 ### `iztro-features`
 
 Contains feature extraction types and traits.
-
-Expected initial items:
-
-- `FeatureExtractor` trait;
-- `ChartFeatures` placeholder;
-- palace feature structures;
-- star feature structures;
-- mutagen flow structures;
-- palace relation structures;
-- domain enum or identifiers.
 
 This crate consumes `iztro-core` and emits structured features. It must not render reports.
 
@@ -149,41 +88,29 @@ This crate consumes `iztro-core` and emits structured features. It must not rend
 
 Contains rule and claim types.
 
-Expected initial items:
-
-- rule metadata;
-- condition placeholder;
-- effect placeholder;
-- claim structure;
-- evidence structure;
-- `RuleEvaluator` trait or equivalent;
-- simple rule-engine skeleton;
-- loader placeholder that does not require a full rule format yet.
-
 Rules should emit structured claims, not final prose.
 
 ### `iztro-reading`
 
-Contains report structures and deterministic rendering interfaces.
-
-Expected initial items:
-
-- `ReadingReport`;
-- `ReadingSection`;
-- `ReportRenderer` trait;
-- deterministic placeholder renderer.
+Contains report structures and deterministic reading interfaces.
 
 This crate consumes structured claims. It should not recalculate chart facts.
 
+### `iztro-render`
+
+Contains renderer utilities for snapshot/read-model data.
+
+This crate consumes `ChartStackSnapshot`. It should not generate chart facts, derive temporal periods, evaluate rules, or produce interpretation.
+
 ### `iztro-cli`
 
-Contains a minimal CLI entry point.
+Contains command-line entry points.
 
-The first CLI may only print a placeholder message or version information. It should not expose incomplete astrology behavior as if it were stable.
+The CLI should expose only behavior that is explicit about its current support boundary.
 
-## Initial CI
+## CI expectations
 
-Add GitHub Actions for:
+All PRs should continue to satisfy:
 
 ```text
 cargo fmt --all -- --check
@@ -191,54 +118,18 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test --workspace
 ```
 
-If `-D warnings` is too strict during initial scaffolding, document the reason in the PR and keep the relaxation temporary.
-
-## Initial tests
-
-The first scaffolding PR should include minimal tests that verify:
-
-- core enums serialize or round-trip where implemented;
-- placeholder chart structures can be constructed;
-- a dummy feature extractor can produce a `ChartFeatures` value;
-- a dummy rule evaluator can emit a structured claim;
-- a dummy report renderer can render a report structure.
-
-Do not add golden `iztro` fixtures yet unless the exact compatibility target has been selected.
-
-## Acceptance criteria
-
-The scaffolding PR is acceptable only if:
-
-- `cargo fmt` passes;
-- `cargo clippy` passes or the PR explicitly documents a temporary exception;
-- `cargo test` passes;
-- all crates compile;
-- public structs, enums, and traits have basic documentation;
-- layer boundaries are respected;
-- no TUI or GUI dependencies are introduced;
-- no LLM dependencies are introduced;
-- no large rule data is introduced;
-- placeholder APIs clearly indicate incomplete behavior.
-
-## Suggested Codex task
-
-Use this prompt for the first code-scaffolding task:
+Renderer/demo PRs may additionally run:
 
 ```text
-Read AGENTS.md and docs/en/scaffolding-plan.md.
-
-Create the initial Rust workspace for iztro-rs.
-
-Do not implement full chart-generation algorithms. Only scaffold strongly typed domain models, traits, placeholder modules, and minimal tests so the workspace compiles.
-
-Follow the documented four-layer architecture:
-- iztro-core
-- iztro-features
-- iztro-rules
-- iztro-reading
-- iztro-cli
-
-Add basic CI for cargo fmt, cargo clippy, and cargo test.
-
-Keep the PR small and focused.
+cargo run -p iztro-render --example plain_text
 ```
+
+## Acceptance criteria that still apply
+
+New PRs are acceptable only if:
+
+- layer boundaries are respected;
+- deterministic chart facts stay separate from interpretation;
+- renderers consume snapshots/read models instead of mutating chart facts;
+- incomplete behavior is clearly marked as deferred;
+- no TUI, GUI, WASM, binding, rule-data, or LLM dependency is introduced without a concrete scope and design note.
