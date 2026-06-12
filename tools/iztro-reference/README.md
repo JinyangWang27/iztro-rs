@@ -177,8 +177,8 @@ Each temporal scope (`decadal` 大限, `age` 小限, `yearly` 流年, `monthly` 
 `daily` 流日, `hourly` 流时) carries its `index`, period `heavenly_stem` /
 `earthly_branch`, the 12-entry `palace_names` layout (index 0 = 寅), and the
 four-transform (`四化`) `mutagen` block keyed `lu` / `quan` / `ke` / `ji`. The
-flow-bearing scopes additionally carry the flow-star (`流耀`) `matrix` (base +
-branch + upstream type). `age` adds `nominal_age` and has no flow matrix. `yearly`
+flow-bearing scopes additionally carry the flow-star (`流耀`) `flow_stars` array
+(base + branch + upstream type). `age` adds `nominal_age` and has no `flow_stars` array. `yearly`
 adds `nian_jie_branch` (年解) and the `yearly_dec_stars` families `suiqian12`
 (岁前) and `jiangqian12` (将前). Raw upstream Chinese labels are preserved beside
 every normalized key for diagnosis. The dumper fails loudly if a scope exposes an

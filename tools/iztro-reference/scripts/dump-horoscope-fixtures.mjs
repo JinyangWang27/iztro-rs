@@ -246,11 +246,9 @@ function buildCase(def) {
 
   const h = chart.horoscope(def.targetSolarDate, def.targetTimeIndex);
 
-  // Fail loudly if upstream grows/renames a top-level horoscope field.
-  const extraTop = Object.keys(h).filter((key) => !TOP_LEVEL_KNOWN.includes(key));
-  if (extraTop.length) {
-    throw new Error(`Unexpected top-level horoscope keys: ${extraTop.join(", ")}`);
-  }
+  // Fail loudly if upstream grows/renames/drops a top-level horoscope field.
+  assertExactKeys(h, TOP_LEVEL_KNOWN, "top-level horoscope");
+  const horoscopeKeys = Object.keys(h);
   for (const scope of SCOPES) {
     if (!h[scope]) {
       throw new Error(`Missing horoscope scope: ${scope}`);
@@ -285,7 +283,7 @@ function buildCase(def) {
       }
     },
     raw_keys: {
-      horoscope: TOP_LEVEL_KNOWN,
+      horoscope: horoscopeKeys,
       ...Object.fromEntries(SCOPES.map((scope) => [scope, Object.keys(h[scope])]))
     },
     supported_fields: supported
