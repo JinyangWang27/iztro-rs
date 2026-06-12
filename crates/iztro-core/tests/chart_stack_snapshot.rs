@@ -1,9 +1,9 @@
 use iztro_core::{
-    Brightness, ChartLayerKind, ChartStackSnapshot, EarthlyBranch, Gender, HeavenlyStem,
-    HoroscopeChart, MethodProfile, Mutagen, MutagenActivation, PalaceGridPosition, PalaceRoleKind,
-    Scope, ScopedStarPlacement, SolarChartRequest, SolarDay, SolarMonth, StarKind, StarName,
-    StarPlacement, StemBranch, TemporalContext, TemporalLayer, VISUAL_BRANCH_ORDER, by_solar,
-    palace_grid_position,
+    Brightness, ChartAlgorithmKind, ChartLayerKind, ChartStackSnapshot, EarthlyBranch, Gender,
+    HeavenlyStem, HoroscopeChart, MethodProfile, Mutagen, MutagenActivation, PalaceGridPosition,
+    PalaceRoleKind, Scope, ScopedStarPlacement, SolarChartRequest, SolarDay, SolarMonth, StarKind,
+    StarName, StarPlacement, StemBranch, TemporalContext, TemporalLayer, VISUAL_BRANCH_ORDER,
+    by_solar, palace_grid_position,
 };
 
 fn solar_fixture_chart() -> iztro_core::Chart {
@@ -13,7 +13,11 @@ fn solar_fixture_chart() -> iztro_core::Chart {
         .solar_day(SolarDay::new(17).expect("day 17 should be valid"))
         .birth_time(EarthlyBranch::Chen)
         .gender(Gender::Female)
-        .method_profile(MethodProfile::placeholder("chart_stack_snapshot_test"))
+        .method_profile(MethodProfile::new(
+            "chart_stack_snapshot_test",
+            ChartAlgorithmKind::QuanShu,
+            "chart stack snapshot test",
+        ))
         .build()
         .expect("solar chart request should build");
 
@@ -26,6 +30,8 @@ fn natal_chart_stack_snapshot_preserves_renderer_ready_natal_facts() {
 
     let snapshot = chart.stack_snapshot();
 
+    assert_eq!(snapshot.birth_context(), chart.birth_context());
+    assert_eq!(snapshot.method_profile(), chart.method_profile());
     assert_eq!(
         snapshot.life_palace_branch(),
         chart.life_palace().map(|palace| palace.branch())
@@ -207,6 +213,8 @@ fn horoscope_chart_stack_snapshot_groups_temporal_overlays_by_branch_without_dup
 
     let snapshot = ChartStackSnapshot::from_horoscope_chart(&horoscope);
 
+    assert_eq!(snapshot.birth_context(), natal.birth_context());
+    assert_eq!(snapshot.method_profile(), natal.method_profile());
     assert_eq!(snapshot.layers().len(), 2);
     assert_eq!(snapshot.layers()[0].kind(), ChartLayerKind::Natal);
     assert_eq!(snapshot.layers()[0].z_index(), 0);

@@ -6,10 +6,12 @@
 
 use crate::model::{
     bureau::FiveElementBureau,
+    calendar::BirthContext,
     chart::{
         Chart, DecorativeStarPlacement, HoroscopeChart, MutagenActivation, PalaceName,
         ScopedStarPlacement, StarPlacement, TemporalContext, TemporalLayer,
     },
+    profile::MethodProfile,
     star::{
         Brightness, StarCategory, StarKind, StarName,
         mutagen::{Mutagen, Scope},
@@ -58,6 +60,8 @@ pub const fn palace_grid_position(branch: EarthlyBranch) -> PalaceGridPosition {
 /// Owned, renderer-neutral snapshot of natal facts and temporal overlays.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct ChartStackSnapshot {
+    birth_context: BirthContext,
+    method_profile: MethodProfile,
     life_palace_branch: Option<EarthlyBranch>,
     body_palace_branch: Option<EarthlyBranch>,
     five_element_bureau: Option<FiveElementBureau>,
@@ -68,6 +72,8 @@ impl ChartStackSnapshot {
     /// Creates a one-layer stack snapshot from a natal chart.
     pub fn from_natal_chart(chart: &Chart) -> Self {
         Self {
+            birth_context: chart.birth_context().clone(),
+            method_profile: chart.method_profile().clone(),
             life_palace_branch: chart.life_palace().map(|palace| palace.branch()),
             body_palace_branch: chart.body_palace_branch(),
             five_element_bureau: chart.five_element_bureau(),
@@ -77,18 +83,31 @@ impl ChartStackSnapshot {
 
     /// Creates a stack snapshot from a horoscope chart and its temporal layers.
     pub fn from_horoscope_chart(chart: &HoroscopeChart) -> Self {
+        let natal = chart.natal();
         let mut layers = Vec::with_capacity(chart.layers().len() + 1);
-        layers.push(ChartLayerSnapshot::from_natal_chart(chart.natal()));
+        layers.push(ChartLayerSnapshot::from_natal_chart(natal));
         layers.extend(chart.layers().iter().enumerate().map(|(index, layer)| {
-            ChartLayerSnapshot::from_temporal_layer(chart.natal(), layer, index + 1)
+            ChartLayerSnapshot::from_temporal_layer(natal, layer, index + 1)
         }));
 
         Self {
-            life_palace_branch: chart.natal().life_palace().map(|palace| palace.branch()),
-            body_palace_branch: chart.natal().body_palace_branch(),
-            five_element_bureau: chart.natal().five_element_bureau(),
+            birth_context: natal.birth_context().clone(),
+            method_profile: natal.method_profile().clone(),
+            life_palace_branch: natal.life_palace().map(|palace| palace.branch()),
+            body_palace_branch: natal.body_palace_branch(),
+            five_element_bureau: natal.five_element_bureau(),
             layers,
         }
+    }
+
+    /// Returns the birth context copied from the natal chart.
+    pub const fn birth_context(&self) -> &BirthContext {
+        &self.birth_context
+    }
+
+    /// Returns the method profile copied from the natal chart.
+    pub const fn method_profile(&self) -> &MethodProfile {
+        &self.method_profile
     }
 
     /// Returns the Life Palace branch copied from the natal chart, if present.
