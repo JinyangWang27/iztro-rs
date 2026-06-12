@@ -23,7 +23,8 @@ use crate::placement::natal::life_body::{LunarDay, LunarMonth};
 
 /// Typed lunar facts produced from a Gregorian/solar date.
 ///
-/// All fields are the crate's own domain types; no calendar-backend types are exposed.
+/// Calendar-backend date/error types stay internal; birth-year stem/branch use
+/// lunar-lite's canonical GanZhi primitives.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) struct LunarConversion {
     lunar_year: i32,
