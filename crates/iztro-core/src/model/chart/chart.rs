@@ -4,6 +4,7 @@ use crate::{
         bureau::FiveElementBureau,
         calendar::BirthContext,
         chart::palace::PalaceName,
+        chart::snapshot::ChartStackSnapshot,
         profile::MethodProfile,
         star::mutagen::{Mutagen, Scope},
         star::{
@@ -65,6 +66,11 @@ impl Chart {
     /// Returns the palaces in this chart.
     pub fn palaces(&self) -> &[Palace] {
         &self.palaces
+    }
+
+    /// Returns an owned renderer-neutral stack snapshot of this natal chart.
+    pub fn stack_snapshot(&self) -> ChartStackSnapshot {
+        ChartStackSnapshot::from_natal_chart(self)
     }
 
     /// Returns the branch containing the Body Palace, if known.

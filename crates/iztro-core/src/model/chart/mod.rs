@@ -7,6 +7,7 @@
 pub mod chart;
 pub mod horoscope;
 pub mod palace;
+pub mod snapshot;
 
 pub use chart::{
     Chart, DecorativeStarFamily, DecorativeStarPlacement, DecorativeStarPlacementRef,
@@ -16,3 +17,9 @@ pub use horoscope::{
     HoroscopeChart, MutagenActivation, ScopedStarPlacement, TemporalContext, TemporalLayer,
 };
 pub use palace::{PALACE_NAMES, PalaceName};
+pub use snapshot::{
+    ChartLayerKind, ChartLayerSnapshot, ChartStackSnapshot, DecorativeStarSnapshot,
+    MutagenActivationSnapshot, PalaceGridPosition, PalaceLayerCellSnapshot, PalaceRoleKind,
+    PalaceRoleSnapshot, ScopedStarSnapshot, TypedStarSnapshot, VISUAL_BRANCH_ORDER,
+    palace_grid_position,
+};
