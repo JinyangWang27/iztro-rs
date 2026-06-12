@@ -103,7 +103,10 @@ fn map_lunar_normalize_error(err: LunarError, year: i32, month: u8, day: u8) -> 
         LunarError::InvalidLunarDate { .. } | LunarError::YearOutOfRange { .. } => {
             ChartError::UnsupportedCalendarDate { year, month, day }
         }
-        LunarError::InvalidSolarDate { .. } | LunarError::InvalidTime { .. } => {
+        LunarError::InvalidSolarDate { .. }
+        | LunarError::InvalidTime { .. }
+        | LunarError::InvalidTimeIndex { .. }
+        | LunarError::SolarTermOutOfRange { .. } => {
             ChartError::CalendarConversionFailed { year, month, day }
         }
     }
