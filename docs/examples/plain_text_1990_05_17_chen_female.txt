@@ -1,0 +1,57 @@
+Chart Stack
+birth: Lunar 1990-4-23, time Chen, gender Female
+method: plain_text_renderer_test / QuanShu
+life_palace_branch: Chou
+body_palace_branch: You
+five_element_bureau: Fire6
+
+Layer 0: Natal
+[Si] Career / Xin
+roles: NatalPalace(Career)
+typed: TianLiang, HuoXing, SanTai, TianGui, PoSui
+decorative: Jue, XiaoHaoBoshi, BingFuSuiqian, WangShen
+[Wu] Friends / Ren
+roles: NatalPalace(Friends)
+typed: QiSha, WenChang, FengGao, TianFuAdj, TianShang, JieLu
+decorative: Mu, QingLong, SuiJian, JiangXing
+[Wei] Migration / Gui
+roles: NatalPalace(Migration)
+typed: ZuoFu, YouBi, TianYue, DiKong, LingXing, TuoLuo, TianKong, TianCai, ... (+1 more)
+decorative: Si, LiShi, HuiQi, PanAn
+[Shen] Health / Jia
+roles: NatalPalace(Health)
+typed: LianZhen, WenQu, LuCun, TianMa, YinSha, GuChen, TianShi
+decorative: Bing, BoShi, SangMen, SuiYi
+[Chen] Property / Geng
+roles: NatalPalace(Property)
+typed: ZiWei, TianXiang, TianYao, FengGe, GuaSu, NianJie
+decorative: Tai, JiangJun, DiaoKe, YueSha
+[You] Wealth / Yi
+roles: NatalPalace(Wealth), NatalBodyPalace
+typed: QingYang, HongLuan, BaZuo
+decorative: Shuai, GuanFuBoshi, GuanSuo, XiShenJiangqian
+[Mao] Spirit / Ji
+roles: NatalPalace(Spirit)
+typed: TianJi, JuMen, DiJie, TianXi, EnGuang, TianDe, XianChi, TianShou
+decorative: Yang, ZhouShu, TianDeSuiqian, XianChiJiangqian
+[Xu] Children / Bing
+roles: NatalPalace(Children)
+typed: PoJun, TaiFu, LongChi, JieShen, HuaGai, XunKong
+decorative: DiWang, FuBing, GuanFuSuiqian, HuaGaiJiangqian
+[Yin] Parents / Wu
+roles: NatalPalace(Parents)
+typed: TanLang, TianYueAdj, FeiLian, TianChu
+decorative: ChangSheng, FayLianBoshi, BaiHu, ZhiBei
+[Chou] Life / Ji
+roles: NatalPalace(Life)
+typed: TaiYang, TaiYin, TianKui
+decorative: MuYu, XiShenBoshi, LongDeSuiqian, TianSha
+[Zi] Siblings / Wu
+roles: NatalPalace(Siblings)
+typed: WuQu, TianFu, TianXing, TianKu, TianXu
+decorative: GuanDai, BingFuBoshi, DaHaoSuiqian, ZaiSha
+[Hai] Spouse / Ding
+roles: NatalPalace(Spouse)
+typed: TianTong, TianWu, YueDe, TianGuan
+decorative: LinGuan, DaHaoBoshi, XiaoHaoSuiqian, JieSha
+
