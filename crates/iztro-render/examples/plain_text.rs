@@ -12,9 +12,9 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .birth_time(EarthlyBranch::Chen)
         .gender(Gender::Female)
         .method_profile(MethodProfile::new(
-            "plain_text_renderer_test",
+            "readme_demo",
             ChartAlgorithmKind::QuanShu,
-            "plain text renderer test",
+            "README plain text demo",
         ))
         .build()?;
 
