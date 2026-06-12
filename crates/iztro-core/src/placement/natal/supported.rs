@@ -34,6 +34,7 @@ pub fn build_natal_chart_with_major_stars(
         input.method_profile().clone(),
         input.lunar_month(),
         input.birth_year_stem(),
+        input.birth_year_branch(),
     ))?;
     let five_element_bureau = chart
         .five_element_bureau()
@@ -66,6 +67,7 @@ pub fn build_natal_chart_with_supported_stars(
         input.method_profile().clone(),
         input.lunar_month(),
         input.birth_year_stem(),
+        input.birth_year_branch(),
     ))?;
     let five_element_bureau = chart
         .five_element_bureau()

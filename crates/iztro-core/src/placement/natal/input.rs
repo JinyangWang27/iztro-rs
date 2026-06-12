@@ -4,8 +4,8 @@
 //! already-resolved **effective** lunar month (and lunar day where needed)
 //! alongside the explicit birth-year stem and branch. Calendar conversion and
 //! leap-month normalization happen one layer up, in the facade/calendar adapter
-//! (`by_solar` and `by_lunar`); year-to-ganzhi derivation from a lunar year is
-//! still deferred, so the year stem and branch are supplied explicitly.
+//! (`by_solar` and `by_lunar`), so the year stem and branch are supplied
+//! explicitly.
 
 use crate::model::calendar::BirthContext;
 use crate::model::profile::MethodProfile;
@@ -24,6 +24,7 @@ pub struct NatalChartInput {
     method_profile: MethodProfile,
     lunar_month: LunarMonth,
     birth_year_stem: HeavenlyStem,
+    birth_year_branch: EarthlyBranch,
 }
 
 impl NatalChartInput {
@@ -33,12 +34,14 @@ impl NatalChartInput {
         method_profile: MethodProfile,
         lunar_month: LunarMonth,
         birth_year_stem: HeavenlyStem,
+        birth_year_branch: EarthlyBranch,
     ) -> Self {
         Self {
             birth_context,
             method_profile,
             lunar_month,
             birth_year_stem,
+            birth_year_branch,
         }
     }
 
@@ -61,6 +64,11 @@ impl NatalChartInput {
     pub const fn birth_year_stem(&self) -> HeavenlyStem {
         self.birth_year_stem
     }
+
+    /// Returns the birth year Earthly Branch.
+    pub const fn birth_year_branch(&self) -> EarthlyBranch {
+        self.birth_year_branch
+    }
 }
 
 /// Inputs required by the natal chart builder with fourteen major stars.
@@ -76,6 +84,7 @@ pub struct NatalChartWithMajorStarsInput {
     lunar_month: LunarMonth,
     lunar_day: LunarDay,
     birth_year_stem: HeavenlyStem,
+    birth_year_branch: EarthlyBranch,
 }
 
 impl NatalChartWithMajorStarsInput {
@@ -86,6 +95,7 @@ impl NatalChartWithMajorStarsInput {
         lunar_month: LunarMonth,
         lunar_day: LunarDay,
         birth_year_stem: HeavenlyStem,
+        birth_year_branch: EarthlyBranch,
     ) -> Self {
         Self {
             birth_context,
@@ -93,6 +103,7 @@ impl NatalChartWithMajorStarsInput {
             lunar_month,
             lunar_day,
             birth_year_stem,
+            birth_year_branch,
         }
     }
 
@@ -119,6 +130,11 @@ impl NatalChartWithMajorStarsInput {
     /// Returns the birth year Heavenly Stem used for palace stem assignment.
     pub const fn birth_year_stem(&self) -> HeavenlyStem {
         self.birth_year_stem
+    }
+
+    /// Returns the birth year Earthly Branch.
+    pub const fn birth_year_branch(&self) -> EarthlyBranch {
+        self.birth_year_branch
     }
 }
 

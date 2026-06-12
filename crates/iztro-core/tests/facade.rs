@@ -4,8 +4,8 @@ use iztro_core::{
     BirthContext, BirthTime, Brightness, CalendarDate, CalendarKind, Chart, ChartError,
     EarthlyBranch, FiveElementBureau, Gender, HeavenlyStem, LunarChartRequest, LunarDay,
     LunarMonth, MethodProfile, Mutagen, NatalChartWithSupportedStarsInput, PALACE_COUNT,
-    SolarChartRequest, SolarDay, SolarMonth, StarCategory, StarName,
-    build_natal_chart_with_supported_stars, by_lunar,
+    SolarChartRequest, SolarDay, SolarMonth, StarCategory, StarName, StemBranch,
+    build_natal_chart_with_supported_stars, by_lunar, by_solar,
 };
 use serde_json::Value;
 
@@ -40,6 +40,36 @@ fn by_lunar_builds_major_star_chart() {
     assert_eq!(chart.stars_by_category(StarCategory::Adjective).len(), 38);
     assert_eq!(chart.stars().len(), 66);
     assert_eq!(chart.five_element_bureau(), Some(FiveElementBureau::Fire6));
+}
+
+#[test]
+fn by_lunar_records_explicit_birth_year_stem_branch() {
+    let chart = by_lunar(fixture_request()).expect("by_lunar should build fixture chart");
+
+    assert_eq!(
+        chart.birth_year(),
+        StemBranch::try_new(HeavenlyStem::Geng, EarthlyBranch::Wu).expect("valid sexagenary pair")
+    );
+}
+
+#[test]
+fn by_solar_records_four_pillar_birth_year_stem_branch() {
+    let request = SolarChartRequest::builder()
+        .solar_year(1990)
+        .solar_month(SolarMonth::new(5).expect("May should be valid"))
+        .solar_day(SolarDay::new(17).expect("day 17 should be valid"))
+        .birth_time(EarthlyBranch::Chen)
+        .gender(Gender::Female)
+        .method_profile(MethodProfile::placeholder("by_solar_birth_year"))
+        .build()
+        .expect("solar request should build");
+
+    let chart = by_solar(request).expect("by_solar should build fixture chart");
+
+    assert_eq!(
+        chart.birth_year(),
+        StemBranch::try_new(HeavenlyStem::Geng, EarthlyBranch::Wu).expect("valid sexagenary pair")
+    );
 }
 
 #[test]

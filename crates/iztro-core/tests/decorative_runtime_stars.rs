@@ -9,8 +9,8 @@ use iztro_core::{
     DecorativeStarPlacement, DecorativeStarPlacementInput, DecorativeStarPlacer,
     DeterministicDecorativeStarPlacer, EarthlyBranch, Gender, HeavenlyStem, KnownStarFamily,
     LunarDay, LunarMonth, MethodProfile, NatalChartWithSupportedStarsInput, Scope, StarName,
-    build_empty_chart, build_natal_chart_with_supported_stars, known_star_metadata_table,
-    try_known_star_metadata, try_star_metadata,
+    StemBranch, build_empty_chart, build_natal_chart_with_supported_stars,
+    known_star_metadata_table, try_known_star_metadata, try_star_metadata,
 };
 use serde_json::Value;
 
@@ -256,6 +256,7 @@ fn decorative_placement_requires_five_element_bureau() {
             EarthlyBranch::Chen,
             Gender::Female,
         ),
+        StemBranch::try_new(HeavenlyStem::Geng, EarthlyBranch::Wu).expect("valid sexagenary pair"),
         MethodProfile::placeholder("missing_bureau_profile"),
     )
     .expect("empty chart should build");

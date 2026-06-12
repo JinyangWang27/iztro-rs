@@ -39,12 +39,14 @@ fn minimal_natal_chart_matches_supported_iztro_fixture_fields() {
             .as_str()
             .expect("fixture should include birth_year_stem"),
     );
+    let birth_year_branch = EarthlyBranch::Wu;
     let birth_context = BirthContext::new(solar_date, birth_branch, gender);
     let chart = build_minimal_natal_chart(NatalChartInput::new(
         birth_context.clone(),
         MethodProfile::placeholder("iztro_compatibility_fixture"),
         lunar_month,
         birth_year_stem,
+        birth_year_branch,
     ))
     .expect("minimal natal chart should build for fixture input");
     let life_palace = chart

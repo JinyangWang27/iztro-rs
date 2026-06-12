@@ -1,6 +1,6 @@
 use iztro_core::{
-    BirthContext, CalendarDate, Chart, EarthlyBranch, Gender, MethodProfile, PalaceName,
-    build_empty_chart,
+    BirthContext, CalendarDate, Chart, EarthlyBranch, Gender, HeavenlyStem, MethodProfile,
+    PalaceName, StemBranch, build_empty_chart,
 };
 use iztro_features::{
     ChartFeatures, Domain, FeatureExtractionError, FeatureExtractor, PalaceFeature, PalaceRelation,
@@ -35,6 +35,7 @@ fn dummy_extractor_can_emit_chart_features() {
             EarthlyBranch::Chen,
             Gender::Female,
         ),
+        StemBranch::try_new(HeavenlyStem::Geng, EarthlyBranch::Wu).expect("valid sexagenary pair"),
         MethodProfile::placeholder("feature_test_profile"),
     )
     .expect("twelve-palace scaffold chart should be valid");

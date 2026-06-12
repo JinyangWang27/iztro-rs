@@ -342,6 +342,11 @@ fn adjective_stars_require_minor_star_anchors() {
         LunarDay::new(input["lunar_day"].as_u64().expect("lunar_day") as u8)
             .expect("fixture lunar day should be valid"),
         parse_stem_key(input["birth_year_stem"].as_str().expect("birth_year_stem")),
+        parse_branch_key(
+            input["birth_year_branch"]
+                .as_str()
+                .expect("birth_year_branch"),
+        ),
     ))
     .expect("major-star chart should build");
 
@@ -629,6 +634,11 @@ fn minor_chart_from_fixture(fixture: &Value) -> Chart {
         LunarDay::new(input["lunar_day"].as_u64().expect("lunar_day") as u8)
             .expect("fixture lunar day should be valid"),
         parse_stem_key(input["birth_year_stem"].as_str().expect("birth_year_stem")),
+        parse_branch_key(
+            input["birth_year_branch"]
+                .as_str()
+                .expect("birth_year_branch"),
+        ),
     ))
     .expect("major-star chart should build");
 

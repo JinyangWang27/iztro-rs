@@ -453,6 +453,11 @@ fn fourteen_major_stars_match_iztro_fixture() {
                 .expect("fixture should include lunar_day") as u8,
         ),
         parse_stem_key(input["birth_year_stem"].as_str().expect("birth_year_stem")),
+        parse_branch_key(
+            input["birth_year_branch"]
+                .as_str()
+                .expect("birth_year_branch"),
+        ),
     ))
     .expect("natal chart with major stars should build for fixture input");
 
@@ -535,6 +540,7 @@ fn build_fixture_chart() -> Chart {
         MethodProfile::placeholder("major_star_profile"),
         LunarMonth::new(4).expect("month 4 should be valid"),
         HeavenlyStem::Geng,
+        EarthlyBranch::Wu,
     ))
     .expect("minimal natal chart should build")
 }

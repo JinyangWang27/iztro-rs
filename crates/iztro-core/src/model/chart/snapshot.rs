@@ -17,7 +17,7 @@ use crate::model::{
         mutagen::{Mutagen, Scope},
     },
 };
-use lunar_lite::{EarthlyBranch, HeavenlyStem};
+use lunar_lite::{EarthlyBranch, HeavenlyStem, StemBranch};
 use serde::{Deserialize, Serialize};
 
 /// Branch order for the renderer-ready 4x4 visual palace grid.
@@ -61,6 +61,7 @@ pub const fn palace_grid_position(branch: EarthlyBranch) -> PalaceGridPosition {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct ChartStackSnapshot {
     birth_context: BirthContext,
+    birth_year: StemBranch,
     method_profile: MethodProfile,
     life_palace_branch: Option<EarthlyBranch>,
     body_palace_branch: Option<EarthlyBranch>,
@@ -73,6 +74,7 @@ impl ChartStackSnapshot {
     pub fn from_natal_chart(chart: &Chart) -> Self {
         Self {
             birth_context: chart.birth_context().clone(),
+            birth_year: chart.birth_year(),
             method_profile: chart.method_profile().clone(),
             life_palace_branch: chart.life_palace().map(|palace| palace.branch()),
             body_palace_branch: chart.body_palace_branch(),
@@ -92,6 +94,7 @@ impl ChartStackSnapshot {
 
         Self {
             birth_context: natal.birth_context().clone(),
+            birth_year: natal.birth_year(),
             method_profile: natal.method_profile().clone(),
             life_palace_branch: natal.life_palace().map(|palace| palace.branch()),
             body_palace_branch: natal.body_palace_branch(),
@@ -103,6 +106,11 @@ impl ChartStackSnapshot {
     /// Returns the birth context copied from the natal chart.
     pub const fn birth_context(&self) -> &BirthContext {
         &self.birth_context
+    }
+
+    /// Returns the birth-year stem-branch copied from the natal chart.
+    pub const fn birth_year(&self) -> StemBranch {
+        self.birth_year
     }
 
     /// Returns the method profile copied from the natal chart.
