@@ -23,6 +23,7 @@ fn fixture_chart() -> Chart {
         LunarMonth::new(4).expect("month 4 should be valid"),
         LunarDay::new(23).expect("day 23 should be valid"),
         HeavenlyStem::Geng,
+        EarthlyBranch::Wu,
     ))
     .expect("natal chart with major stars should build for fixture input")
 }

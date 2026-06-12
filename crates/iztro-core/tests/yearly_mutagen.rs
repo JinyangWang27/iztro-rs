@@ -40,6 +40,7 @@ fn major_star_only_natal_chart() -> Chart {
         LunarMonth::new(1).expect("month 1 should be valid"),
         LunarDay::new(23).expect("day 23 should be valid"),
         HeavenlyStem::Geng,
+        EarthlyBranch::Wu,
     ))
     .expect("major-star natal chart should build")
 }

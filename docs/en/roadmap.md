@@ -38,11 +38,12 @@ This roadmap is intentionally conservative. The project should first establish s
 - [x] Inventory upstream `iztro@2.5.8` runtime star names separately from represented chart facts.
 - [x] Reuse `lunar-lite` for canonical low-level stem/branch and sexagenary-cycle primitives.
 - [x] Isolate Zi Wei-specific NaYin and five-element bureau logic in `iztro-core`.
+- [x] Retain birth-year `StemBranch` as a reusable natal `Chart` fact.
 - [x] Add renderer-neutral `ChartStackSnapshot` read model.
 
-Decadal and horoscope models are defined as overlays: `HoroscopeChart` wraps an immutable natal `Chart` and holds zero or more `TemporalLayer`s, each with a non-natal `Scope`, a typed `TemporalContext`, scoped `StarPlacement`s, and `MutagenActivation`s. These are model-only facts supplied explicitly by the caller; full temporal period derivation remains deferred.
+Decadal and horoscope models are defined as typed facts and overlays. `build_decadal_frame` derives the 12-period 大限 frame from natal chart facts, while `HoroscopeChart` wraps an immutable natal `Chart` and holds zero or more `TemporalLayer`s, each with a non-natal `Scope`, a typed `TemporalContext`, scoped `StarPlacement`s, and `MutagenActivation`s. Temporal overlays are still model-only facts supplied explicitly by the caller; full temporal layer assembly remains deferred.
 
-The current temporal overlay algorithms include yearly/decadal mutagen layers and scope-generic flow-star placement. They are overlays only: no natal mutation, no horoscope palace-name derivation, no age-range derivation, and no interpretation. 四化 stay modeled as `MutagenActivation` facts, not independent stars.
+The current temporal algorithms include decadal-frame derivation, yearly/decadal mutagen layers, and scope-generic flow-star placement. The mutagen and flow-star builders are overlays only: no natal mutation, no horoscope palace-name derivation, no temporal layer attachment from derived frames, and no interpretation. 四化 stay modeled as `MutagenActivation` facts, not independent stars.
 
 Star metadata is intentionally split. `represented_star_metadata_table().len() == 70` covers placed and fixture-covered natal stars, including algorithm-gated Zhongzhou-only 杂曜. `known_star_metadata_table().len() == 170` records upstream `iztro@2.5.8` runtime star-name entries, including represented natal stars, decorative runtime arrays, and horoscope flow-star names. Represented metadata stays natal-only; decorative runtime entries are known untyped runtime facts, while flow stars are known typed temporal facts placed through `TemporalLayer`.
 
@@ -59,12 +60,14 @@ Star metadata is intentionally split. `represented_star_metadata_table().len() =
 - [x] Place scoped flow stars as branch-tagged `ScopedStarPlacement`s.
 - [x] Add solar-to-lunar conversion and leap-month behavior through the internal `lunar-lite` adapter.
 - [x] Add rat-hour variants for upstream `timeIndex` `0..=12`.
+- [x] Derive the birth-year stem-branch through `lunar-lite` 0.3.1 four-pillar APIs and retain it on `Chart`.
+- [x] Add typed decadal-frame derivation from natal chart facts.
 - [ ] Add full BaZi output.
-- [ ] Add full horoscope assembly: 大限 / 流年 / 流月 / 流日 / 流时 period derivation and palace-name layout.
+- [ ] Add full horoscope assembly: attach 大限 frames, derive 流年 / 流月 / 流日 / 流时 periods, and add palace-name layout.
 - [ ] Add temporal decorative arrays such as upstream `yearlyDecStar`.
 - [ ] Add full facade serialization parity.
 
-Current supported chart-generation slice: `by_lunar` accepts explicit lunar inputs plus explicit birth-year stem and branch, builds deterministic natal chart facts, and validates supported fields against selected `iztro@2.5.8` fixtures. `by_solar` adds `lunar-lite`-backed solar-to-lunar conversion and delegates to `by_lunar`. Default/non-Zhongzhou output remains 66 typed natal stars; Zhongzhou output remains 68 typed natal stars. Decorative runtime families and scoped flow stars are separate fact surfaces, so metadata counts and natal star counts stay stable.
+Current supported chart-generation slice: `by_lunar` accepts explicit lunar inputs plus explicit birth-year stem and branch, validates them into a retained `Chart::birth_year()` fact, builds deterministic natal chart facts, and validates supported fields against selected `iztro@2.5.8` fixtures. `by_solar` adds `lunar-lite` 0.3.1-backed solar-to-lunar conversion, derives the birth-year stem-branch through the normal-boundary four-pillar API, and delegates to `by_lunar`. Default/non-Zhongzhou output remains 66 typed natal stars; Zhongzhou output remains 68 typed natal stars. Decorative runtime families, decadal frames, and scoped flow stars are separate fact surfaces, so metadata counts and natal star counts stay stable.
 
 ## Phase 4: Snapshot and rendering
 

@@ -1,8 +1,12 @@
 use iztro_core::{
     BirthContext, CalendarDate, Chart, ChartAlgorithmKind, ChartError, EARTHLY_BRANCHES,
     EarthlyBranch, Gender, HEAVENLY_STEMS, HeavenlyStem, MethodProfile, PALACE_COUNT, PALACE_NAMES,
-    Palace, PalaceName, StarCategory, StarKind, StarName, build_empty_chart,
+    Palace, PalaceName, StarCategory, StarKind, StarName, StemBranch, build_empty_chart,
 };
+
+fn geng_wu() -> StemBranch {
+    StemBranch::try_new(HeavenlyStem::Geng, EarthlyBranch::Wu).expect("valid sexagenary pair")
+}
 
 #[test]
 fn chart_scaffold_can_be_constructed_and_serialized() {
@@ -12,6 +16,7 @@ fn chart_scaffold_can_be_constructed_and_serialized() {
             EarthlyBranch::Chen,
             Gender::Female,
         ),
+        geng_wu(),
         MethodProfile::placeholder("quan_shu_placeholder"),
     )
     .expect("twelve-palace scaffold chart should serialize");
@@ -40,7 +45,7 @@ fn empty_chart_builder_creates_canonical_empty_twelve_palace_chart() {
     );
     let method_profile = MethodProfile::placeholder("empty_chart_profile");
 
-    let chart = build_empty_chart(birth_context.clone(), method_profile.clone())
+    let chart = build_empty_chart(birth_context.clone(), geng_wu(), method_profile.clone())
         .expect("empty chart builder should create a valid chart");
 
     assert_eq!(chart.birth_context(), &birth_context);
@@ -66,6 +71,7 @@ fn empty_chart_builder_output_round_trips_through_json() {
             EarthlyBranch::Chen,
             Gender::Female,
         ),
+        geng_wu(),
         MethodProfile::placeholder("empty_chart_json_profile"),
     )
     .expect("empty chart builder should create a valid chart");
@@ -196,6 +202,7 @@ fn chart_try_new_accepts_exactly_twelve_palaces() {
             EarthlyBranch::Chen,
             Gender::Female,
         ),
+        geng_wu(),
         MethodProfile::placeholder("valid_chart"),
         twelve_palaces(),
         None,
@@ -214,6 +221,7 @@ fn chart_try_new_rejects_non_twelve_palace_counts() {
             EarthlyBranch::Chen,
             Gender::Female,
         ),
+        geng_wu(),
         MethodProfile::placeholder("invalid_chart"),
         Vec::new(),
         None,

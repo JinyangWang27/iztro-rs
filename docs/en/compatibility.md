@@ -42,14 +42,15 @@ The committed fixture JSON files remain the compatibility source of truth.
 The current fixture-backed chart-generation surface includes:
 
 - typed `by_lunar` and `by_solar` request facades;
-- `lunar-lite`-backed solar-to-lunar conversion for `by_solar`;
+- `lunar-lite` 0.3.1-backed solar-to-lunar conversion and normal-boundary four-pillar birth-year derivation for `by_solar`;
 - leap-month / `fix_leap` behavior for the supported slice;
 - upstream `timeIndex` `0..=12` rat-hour modeling through `BirthTime`;
-- twelve palace layout, Life Palace, Body Palace, palace stems, and five-element bureau;
+- retained birth-year `StemBranch`, twelve palace layout, Life Palace, Body Palace, palace stems, and five-element bureau;
 - represented typed natal stars, supported brightness, and birth-year mutagens;
 - untyped decorative runtime star families;
 - branch-tagged typed temporal flow-star placements from explicit temporal contexts;
 - decadal and yearly temporal mutagen activation layers from explicit contexts;
+- typed `DecadalFrame` derivation with 12 ten-year periods, direction, age ranges, and natal palace stem-branch facts;
 - renderer-neutral `ChartStackSnapshot` and a deterministic plain text renderer demo.
 
 The project still does not claim full upstream facade serialization parity, full horoscope assembly, full BaZi output, temporal decorative arrays, or interpretation/narrative parity.
@@ -69,11 +70,11 @@ The upstream locale key `xunzhong` / `旬中` is intentionally excluded because 
 
 `by_lunar` and `by_solar` are the iztro-compatible facade entry points in `iztro-rs`. They mirror iztro's `astro.byLunar(...)` and `astro.bySolar(...)` conceptually, but use typed `LunarChartRequest` and `SolarChartRequest` request objects instead of JavaScript-style positional arguments.
 
-`by_lunar` records the provided lunar date as chart input facts and delegates to the supported-star natal chart builder. It carries explicit leap-month semantics through `is_leap_month` and `fix_leap`; invalid leap requests are normalized against the real calendar rather than blindly echoed. The birth-year stem and branch remain explicit `by_lunar` inputs.
+`by_lunar` records the provided lunar date as chart input facts and delegates to the supported-star natal chart builder. It carries explicit leap-month semantics through `is_leap_month` and `fix_leap`; invalid leap requests are normalized against the real calendar rather than blindly echoed. The birth-year stem and branch remain explicit `by_lunar` inputs and are validated into the chart's retained birth-year `StemBranch`.
 
 Birth time is represented by `BirthTime`, matching upstream `iztro` `timeIndex` values `0..=12`. `EarlyZi` (`0`) and `LateZi` (`12`) both project to `EarthlyBranch::Zi`, while branch-based request setters continue to map `Zi` to early Zi for backward compatibility.
 
-`by_solar` validates the Gregorian/solar date, converts it to Chinese-lunisolar facts through the internal `lunar-lite` adapter, derives the birth-year `StemBranch` from the converted lunar year, sets `is_leap_month` and `fix_leap`, then delegates to `by_lunar`. It performs no chart construction of its own.
+`by_solar` validates the Gregorian/solar date, converts it to Chinese-lunisolar facts through the internal `lunar-lite` adapter, derives the birth-year `StemBranch` through `lunar-lite` 0.3.1's `four_pillars_from_solar_date_with_options` with `YearDivide::Normal` and `MonthDivide::Normal`, sets `is_leap_month` and `fix_leap`, then delegates to `by_lunar`. It performs no chart construction of its own.
 
 `lunar-lite` owns the canonical low-level stem/branch and sexagenary-cycle primitives (`HeavenlyStem`, `EarthlyBranch`, `StemBranch`) that `iztro-core` re-exports. `iztro-core` owns Zi Wei-specific NaYin and five-element bureau logic.
 
@@ -85,7 +86,9 @@ A yearly mutagen overlay builder and a decadal mutagen overlay builder are avail
 
 A scoped flow-star builder (`build_flow_star_layer`) places the horoscope flow stars (流曜) for one explicit `TemporalContext`. The placement is branch-based and does not perform horoscope palace-name derivation.
 
-Full 大限/流年/流月/流日/流时 assembly, age ranges, period derivation, temporal palace names, and temporal decorative arrays remain deferred.
+`build_decadal_frame` derives the typed 12-period 大限 frame from a natal chart: it starts at the natal Life Palace, uses the five-element bureau number as the first start age, walks forward for Yang male or Yin female charts and reverse otherwise, and records each period's natal palace branch/name/stem plus stem-branch pair. It does not create a `TemporalLayer`, attach mutagens or flow stars, derive temporal palace names, or render prose.
+
+Full 大限/流年/流月/流日/流时 assembly, temporal layer attachment, temporal palace names, yearly/monthly/daily/hourly period derivation, and temporal decorative arrays remain deferred.
 
 ## Runtime star-family placement
 
@@ -104,6 +107,7 @@ Flow-star placement is implemented through normalized `FlowStarScope` + `FlowSta
 It preserves:
 
 - chart identity fields such as birth context and method profile;
+- birth-year stem-branch;
 - natal Life/Body Palace branches and five-element bureau;
 - conventional 12-palace visual grid positions;
 - a stacked layer model: natal layer first, then temporal layers;
@@ -137,6 +141,7 @@ Deferred surfaces include:
 - full upstream facade serialization parity;
 - full BaZi output;
 - full horoscope assembly and temporal palace-name derivation;
+- attaching derived decadal frames as temporal layers;
 - upstream yearly decorative arrays such as `yearlyDecStar`;
 - bindings;
 - feature extraction for temporal activation;

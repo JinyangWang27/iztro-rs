@@ -12,7 +12,7 @@ use crate::{
         },
     },
 };
-use lunar_lite::{EarthlyBranch, HeavenlyStem};
+use lunar_lite::{EarthlyBranch, HeavenlyStem, StemBranch};
 use serde::{Deserialize, Deserializer, Serialize};
 
 /// Number of palaces required for a complete chart.
@@ -22,6 +22,7 @@ pub const PALACE_COUNT: usize = 12;
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct Chart {
     birth_context: BirthContext,
+    birth_year: StemBranch,
     method_profile: MethodProfile,
     palaces: Vec<Palace>,
     body_palace_branch: Option<EarthlyBranch>,
@@ -32,6 +33,7 @@ impl Chart {
     /// Creates a chart from typed chart facts after checking core invariants.
     pub fn try_new(
         birth_context: BirthContext,
+        birth_year: StemBranch,
         method_profile: MethodProfile,
         palaces: Vec<Palace>,
         body_palace_branch: Option<EarthlyBranch>,
@@ -46,6 +48,7 @@ impl Chart {
 
         Ok(Self {
             birth_context,
+            birth_year,
             method_profile,
             palaces,
             body_palace_branch,
@@ -56,6 +59,11 @@ impl Chart {
     /// Returns the birth context used by this chart.
     pub const fn birth_context(&self) -> &BirthContext {
         &self.birth_context
+    }
+
+    /// Returns the birth-year stem-branch used for natal chart derivation.
+    pub const fn birth_year(&self) -> StemBranch {
+        self.birth_year
     }
 
     /// Returns the method profile metadata.

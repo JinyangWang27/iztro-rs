@@ -70,9 +70,9 @@ dependencies = [
 
 [[package]]
 name = "lunar-lite"
-version = "0.2.0"
+version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1630ec2ba1dd64a480e1f650453bdca833fc9e2bb322554c8a45804c6d442737"
+checksum = "f0f0eec9bf650a84465b9358332fc373973e159c72e28cb6290abe7e9fe3242e"
 dependencies = [
  "serde",
  "thiserror",

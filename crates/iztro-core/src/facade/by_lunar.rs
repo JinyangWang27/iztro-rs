@@ -8,7 +8,7 @@ use crate::model::profile::MethodProfile;
 use crate::placement::natal::input::NatalChartWithSupportedStarsInput;
 use crate::placement::natal::life_body::{LunarDay, LunarMonth};
 use crate::placement::natal::supported::build_natal_chart_with_supported_stars;
-use lunar_lite::{EarthlyBranch, HeavenlyStem};
+use lunar_lite::{EarthlyBranch, HeavenlyStem, StemBranch};
 
 /// Typed lunar-date request for the iztro-compatible natal chart facade.
 ///
@@ -262,6 +262,12 @@ pub fn by_lunar(request: LunarChartRequest) -> Result<Chart, ChartError> {
     )?;
     let major_lunar_day = major_lunar_day(resolved.lunar_day(), resolved.month_days(), birth_time)?;
     let daily_star_offset = daily_star_offset(resolved.lunar_day(), birth_time);
+    let birth_year = StemBranch::try_new(request.birth_year_stem(), request.birth_year_branch())
+        .map_err(|err| match err {
+            lunar_lite::StemBranchError::InvalidStemBranchPair { stem, branch } => {
+                ChartError::InvalidStemBranchPair { stem, branch }
+            }
+        })?;
 
     let birth_context = BirthContext::new_with_birth_time_variant(
         CalendarDate::lunar(
@@ -280,8 +286,8 @@ pub fn by_lunar(request: LunarChartRequest) -> Result<Chart, ChartError> {
             effective_lunar_month,
             major_lunar_day,
             daily_star_offset,
-            request.birth_year_stem(),
-            request.birth_year_branch(),
+            birth_year.stem(),
+            birth_year.branch(),
         ),
     )
 }

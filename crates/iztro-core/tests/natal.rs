@@ -9,6 +9,7 @@ use iztro_core::{
 // These are local algorithmic test cases, not the iztro golden fixture; the
 // upstream compatibility test lives in `tests/iztro_compatibility.rs`.
 const LOCAL_TEST_YEAR_STEM: HeavenlyStem = HeavenlyStem::Geng;
+const LOCAL_TEST_YEAR_BRANCH: EarthlyBranch = EarthlyBranch::Wu;
 const ALL_MAJOR_STARS: [StarName; 14] = [
     StarName::ZiWei,
     StarName::TianJi,
@@ -65,6 +66,7 @@ fn minimal_natal_chart_preserves_metadata_and_empty_stars() {
         method_profile.clone(),
         LunarMonth::new(1).expect("month 1 should be valid"),
         LOCAL_TEST_YEAR_STEM,
+        LOCAL_TEST_YEAR_BRANCH,
     ))
     .expect("minimal natal chart should build");
 
@@ -99,6 +101,8 @@ fn empty_chart_has_no_five_element_bureau() {
             EarthlyBranch::Chou,
             Gender::Female,
         ),
+        StemBranch::try_new(LOCAL_TEST_YEAR_STEM, LOCAL_TEST_YEAR_BRANCH)
+            .expect("valid sexagenary pair"),
         MethodProfile::placeholder("empty_chart_profile"),
     )
     .expect("empty chart should build");
@@ -240,6 +244,7 @@ fn build_local_natal_test_chart() -> Chart {
         MethodProfile::placeholder("minimal_natal_profile"),
         LunarMonth::new(1).expect("month 1 should be valid"),
         LOCAL_TEST_YEAR_STEM,
+        LOCAL_TEST_YEAR_BRANCH,
     ))
     .expect("minimal natal chart should build")
 }
@@ -255,6 +260,7 @@ fn build_local_major_star_test_chart() -> Chart {
         LunarMonth::new(1).expect("month 1 should be valid"),
         LunarDay::new(23).expect("day 23 should be valid"),
         LOCAL_TEST_YEAR_STEM,
+        LOCAL_TEST_YEAR_BRANCH,
     ))
     .expect("natal chart with major stars should build")
 }

@@ -5,6 +5,7 @@
 // horoscope facts; the repeated path segment is the intentional module layout.
 #[allow(clippy::module_inception)]
 pub mod chart;
+pub mod decadal;
 pub mod horoscope;
 pub mod palace;
 pub mod snapshot;
@@ -13,6 +14,7 @@ pub use chart::{
     Chart, DecorativeStarFamily, DecorativeStarPlacement, DecorativeStarPlacementRef,
     MajorStarPlacementRef, PALACE_COUNT, Palace, StarPlacement, StarPlacementRef,
 };
+pub use decadal::{DecadalDirection, DecadalFrame, DecadalPeriod, build_decadal_frame};
 pub use horoscope::{
     HoroscopeChart, MutagenActivation, ScopedStarPlacement, TemporalContext, TemporalLayer,
 };

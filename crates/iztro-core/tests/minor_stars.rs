@@ -448,6 +448,7 @@ fn place_minor_stars(
                 MethodProfile::placeholder("minor_star_profile"),
                 LunarMonth::new(lunar_month).expect("lunar month should be valid"),
                 birth_year_stem,
+                birth_year_branch,
             ))
             .expect("minimal natal chart should build"),
             MinorStarPlacementInput::new(
@@ -505,6 +506,11 @@ fn minimal_chart_from_fixture(fixture: &Value) -> Chart {
         LunarMonth::new(input["lunar_month"].as_u64().expect("lunar_month") as u8)
             .expect("fixture lunar month should be valid"),
         parse_stem_key(input["birth_year_stem"].as_str().expect("birth_year_stem")),
+        parse_branch_key(
+            input["birth_year_branch"]
+                .as_str()
+                .expect("birth_year_branch"),
+        ),
     ))
     .expect("minimal natal chart should build")
 }

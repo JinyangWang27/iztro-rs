@@ -195,6 +195,7 @@ impl AdjectiveStarPlacer for DeterministicAdjectiveStarPlacer {
 
         Chart::try_new(
             chart.birth_context().clone(),
+            chart.birth_year(),
             chart.method_profile().clone(),
             palaces,
             chart.body_palace_branch(),

@@ -2,19 +2,19 @@
 //!
 //! This module maps `lunar-lite` date values onto the crate's own typed lunar
 //! facts, exposing only in-range month/day domain types to callers. The
-//! birth-year sexagenary pair is derived internally via lunar-lite 0.2's
-//! [`StemBranch::from_lunar_year`] helper; its stem and branch (now lunar-lite's
-//! own canonical [`HeavenlyStem`]/[`EarthlyBranch`]) flow straight through.
+//! birth-year sexagenary pair is derived through lunar-lite's four-pillar API
+//! with the normal lunar-year boundary; its stem and branch (lunar-lite's own
+//! canonical [`HeavenlyStem`]/[`EarthlyBranch`]) flow straight through.
 //!
 //! The result is verified against pinned upstream `iztro@2.5.8`: `lunar-lite`
 //! returns the lunar-new-year-bounded year, month, leap-month flag, and day.
 //! iztro derives the chart year pillar with its default `yearDivide: 'normal'`
-//! (lunar-new-year boundary), so deriving ganzhi from the converted lunar year
-//! agrees with upstream even across the 立春/正月初一 window.
+//! (lunar-new-year boundary), so the four-pillar yearly result agrees with the
+//! converted lunar-year stem-branch even across the 立春/正月初一 window.
 
 use lunar_lite::{
-    EarthlyBranch, HeavenlyStem, LunarError, SolarDate, StemBranch,
-    solar_to_lunar as convert_solar_to_lunar,
+    EarthlyBranch, HeavenlyStem, LunarError, MonthDivide, SolarDate, StemBranchOptions, YearDivide,
+    four_pillars_from_solar_date_with_options, solar_to_lunar as convert_solar_to_lunar,
 };
 
 use crate::error::ChartError;
@@ -88,34 +88,46 @@ pub(crate) fn solar_to_lunar(
         day: day.value(),
     };
 
-    let lunar = convert_solar_to_lunar(SolarDate {
+    let solar = SolarDate {
         year,
         month: month.value(),
         day: day.value(),
-    })
+    };
+
+    let lunar = convert_solar_to_lunar(solar)
+        .map_err(|err| map_solar_conversion_error(err, year, month.value(), day.value()))?;
+    let pillars = four_pillars_from_solar_date_with_options(
+        solar,
+        0,
+        StemBranchOptions {
+            year: YearDivide::Normal,
+            month: MonthDivide::Normal,
+        },
+    )
     .map_err(|err| map_solar_conversion_error(err, year, month.value(), day.value()))?;
 
     let lunar_month = LunarMonth::new(lunar.month).map_err(|_| conversion_failed())?;
     let lunar_day = LunarDay::new(lunar.day).map_err(|_| conversion_failed())?;
-    let birth_year_pair = StemBranch::from_lunar_year(lunar.year);
 
     Ok(LunarConversion {
         lunar_year: lunar.year,
         lunar_month,
         lunar_day,
         is_leap_month: lunar.is_leap_month,
-        birth_year_stem: birth_year_pair.stem(),
-        birth_year_branch: birth_year_pair.branch(),
+        birth_year_stem: pillars.yearly.stem(),
+        birth_year_branch: pillars.yearly.branch(),
     })
 }
 
 fn map_solar_conversion_error(err: LunarError, year: i32, month: u8, day: u8) -> ChartError {
     match err {
         LunarError::InvalidSolarDate { .. } => ChartError::InvalidSolarDate { year, month, day },
-        LunarError::YearOutOfRange { .. } => {
+        LunarError::YearOutOfRange { .. } | LunarError::SolarTermOutOfRange { .. } => {
             ChartError::UnsupportedCalendarDate { year, month, day }
         }
-        LunarError::InvalidLunarDate { .. } | LunarError::InvalidTime { .. } => {
+        LunarError::InvalidLunarDate { .. }
+        | LunarError::InvalidTime { .. }
+        | LunarError::InvalidTimeIndex { .. } => {
             ChartError::CalendarConversionFailed { year, month, day }
         }
     }
@@ -297,8 +309,8 @@ mod tests {
 
     #[test]
     fn cyclic_year_matches_lunar_year_ganzhi() {
-        // The cyclic-derived ganzhi must equal the classical (year - 4) formula
-        // anchored at 1984 = JiaZi, independently of the cyclic index path.
+        // The four-pillar yearly result must equal the converted lunar-year
+        // ganzhi when both use the normal lunar-new-year boundary.
         for case in CASES {
             let conversion = solar_to_lunar(
                 case.year,
@@ -307,13 +319,16 @@ mod tests {
             )
             .expect("conversion should succeed");
 
-            let offset = conversion.lunar_year() - 1984;
-            let stem = HeavenlyStem::from_index((offset.rem_euclid(10)) as usize);
-            let branch = EarthlyBranch::from_index((offset.rem_euclid(12)) as usize);
-            assert_eq!(conversion.birth_year_stem(), stem, "{} stem", case.year);
+            let expected = lunar_lite::StemBranch::from_lunar_year(conversion.lunar_year());
+            assert_eq!(
+                conversion.birth_year_stem(),
+                expected.stem(),
+                "{} stem",
+                case.year
+            );
             assert_eq!(
                 conversion.birth_year_branch(),
-                branch,
+                expected.branch(),
                 "{} branch",
                 case.year
             );
