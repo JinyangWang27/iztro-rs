@@ -1,6 +1,6 @@
 Chart Stack
 birth: Lunar 1990-4-23, time Chen, gender Female
-method: plain_text_renderer_test / QuanShu
+method: readme_demo / QuanShu
 life_palace_branch: Chou
 body_palace_branch: You
 five_element_bureau: Fire6

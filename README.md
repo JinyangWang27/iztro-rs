@@ -9,6 +9,73 @@ A Rust implementation for Zi Wei Dou Shu (紫微斗数) chart generation, featur
 
 中文说明见 [README.zh-CN.md](README.zh-CN.md).
 
+## Quick demo
+
+The current supported natal chart fact surface can flow from a typed solar input through `by_solar` into a
+renderer-neutral stack snapshot, then into the `iztro-render` plain text demo. The excerpt below is from
+fixture-backed supported fields.
+
+```rust
+use iztro_core::{
+    ChartAlgorithmKind, EarthlyBranch, Gender, MethodProfile, SolarChartRequest, SolarDay,
+    SolarMonth, by_solar,
+};
+use iztro_render::render_chart_stack_text;
+
+fn main() -> Result<(), Box<dyn std::error::Error>> {
+    let request = SolarChartRequest::builder()
+        .solar_year(1990)
+        .solar_month(SolarMonth::new(5)?)
+        .solar_day(SolarDay::new(17)?)
+        .birth_time(EarthlyBranch::Chen)
+        .gender(Gender::Female)
+        .method_profile(MethodProfile::new(
+            "readme_demo",
+            ChartAlgorithmKind::QuanShu,
+            "README plain text demo",
+        ))
+        .build()?;
+
+    let chart = by_solar(request)?;
+    let snapshot = chart.stack_snapshot();
+
+    println!("{}", render_chart_stack_text(&snapshot));
+    Ok(())
+}
+```
+
+Run the example with:
+
+```bash
+cargo run -p iztro-render --example plain_text
+```
+
+Abbreviated real output excerpt:
+
+```text
+Chart Stack
+birth: Lunar 1990-4-23, time Chen, gender Female
+method: readme_demo / QuanShu
+life_palace_branch: Chou
+body_palace_branch: You
+five_element_bureau: Fire6
+
+Layer 0: Natal
+[Si] Career / Xin
+roles: NatalPalace(Career)
+typed: TianLiang, HuoXing, SanTai, TianGui, PoSui
+decorative: Jue, XiaoHaoBoshi, BingFuSuiqian, WangShen
+...
+[Chou] Life / Ji
+roles: NatalPalace(Life)
+typed: TaiYang, TaiYin, TianKui
+decorative: MuYu, XiShenBoshi, LongDeSuiqian, TianSha
+...
+```
+
+See the [demo page](docs/en/demo.md) and the
+[full captured output](docs/examples/plain_text_1990_05_17_chen_female.txt).
+
 ## Goals
 
 `iztro-rs` aims to provide:
