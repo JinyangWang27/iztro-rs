@@ -27,6 +27,7 @@ npm run dump:e2e-supported --prefix tools/iztro-reference
 npm run dump:e2e-supported-by-solar --prefix tools/iztro-reference
 npm run dump:leap-month --prefix tools/iztro-reference
 npm run dump:time-index-rat-hour --prefix tools/iztro-reference
+npm run dump:horoscope --prefix tools/iztro-reference
 ```
 
 The dump commands use the canonical lunar fixture case:
@@ -139,3 +140,57 @@ node tools/iztro-reference/scripts/dump-runtime-star-families.mjs --write
 and the scoped flow stars (流耀) from `getHoroscopeStar` for every scope across
 all ten stems and twelve branches. With `--write` it regenerates
 `fixtures/iztro/runtime_decorative_*.json` and `fixtures/iztro/flow_stars.json`.
+
+### Full horoscope fixture
+
+```bash
+# inspect (prints the fixture to stdout)
+npm run dump:horoscope --prefix tools/iztro-reference
+
+# regenerate fixtures/iztro/horoscope.json
+npm run dump:horoscope --prefix tools/iztro-reference -- --write
+```
+
+`dump:horoscope` snapshots upstream `FunctionalAstrolabe#horoscope(targetSolarDate,
+targetTimeIndex)` output as the contract that later iztro-rs horoscope-assembly
+PRs target. The write path resolves relative to the script, so `--write` lands in
+`fixtures/iztro/horoscope.json` whether invoked via `npm run --prefix` or directly
+with `node`. It is a tooling-only reference; it does **not** implement or claim
+Rust horoscope parity.
+
+The fixture covers a small, representative matrix (not exhaustive): the canonical
+lunar female chart (`1990-5-17`, time index `4`, `女`, non-leap, `fix_leap=true`,
+`zh-CN`) under the default algorithm at a mid-decade target year (`2026`) and at
+`2034` (the start of the next 大限, a decade boundary), the same chart under the
+Zhongzhou algorithm at `2026`, and a male chart (`1988-3-14`, time index `0`) at
+`2026`. So it spans both genders, both algorithms, two target years, and a
+decade-boundary crossing.
+
+Per case it records:
+
+- `input` — the chart input plus the `target` solar date / year / time index;
+- `raw_keys` — the exact upstream object keys observed for the top-level
+  horoscope result and each scope, as a contract anchor;
+- `supported_fields` — normalized facts for each temporal frame.
+
+Each temporal scope (`decadal` 大限, `age` 小限, `yearly` 流年, `monthly` 流月,
+`daily` 流日, `hourly` 流时) carries its `index`, period `heavenly_stem` /
+`earthly_branch`, the 12-entry `palace_names` layout (index 0 = 寅), and the
+four-transform (`四化`) `mutagen` block keyed `lu` / `quan` / `ke` / `ji`. The
+flow-bearing scopes additionally carry the flow-star (`流耀`) `matrix` (base +
+branch + upstream type). `age` adds `nominal_age` and has no flow matrix. `yearly`
+adds `nian_jie_branch` (年解) and the `yearly_dec_stars` families `suiqian12`
+(岁前) and `jiangqian12` (将前). Raw upstream Chinese labels are preserved beside
+every normalized key for diagnosis. The dumper fails loudly if a scope exposes an
+unexpected key or an unmapped star/branch/stem so a future iztro bump cannot
+silently drop a field.
+
+Intentionally **not** normalized yet (recorded in the fixture's
+`not_normalized_yet` note): the runtime palace projections (`agePalace`, `palace`,
+`surroundPalaces`), the full natal `astrolabe` re-embedded in the horoscope
+result, the boolean query helpers (`hasHoroscopeStars` and friends), and all
+narrative/interpretation text.
+
+Shared normalization maps/helpers are reused from `scripts/lib/normalize.mjs`;
+only the horoscope-specific flow-base and scope-prefix maps are local to the
+script.
