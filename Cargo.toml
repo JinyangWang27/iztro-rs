@@ -4,6 +4,7 @@ members = [
     "crates/iztro-core",
     "crates/iztro-features",
     "crates/iztro-reading",
+    "crates/iztro-render",
     "crates/iztro-rules",
 ]
 resolver = "3"
