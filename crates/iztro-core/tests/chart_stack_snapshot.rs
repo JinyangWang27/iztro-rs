@@ -1,6 +1,8 @@
 use iztro_core::{
-    ChartLayerKind, ChartStackSnapshot, EarthlyBranch, Gender, MethodProfile, PalaceGridPosition,
-    PalaceRoleKind, Scope, SolarChartRequest, SolarDay, SolarMonth, VISUAL_BRANCH_ORDER, by_solar,
+    Brightness, ChartLayerKind, ChartStackSnapshot, EarthlyBranch, Gender, HeavenlyStem,
+    HoroscopeChart, MethodProfile, Mutagen, MutagenActivation, PalaceGridPosition, PalaceRoleKind,
+    Scope, ScopedStarPlacement, SolarChartRequest, SolarDay, SolarMonth, StarKind, StarName,
+    StarPlacement, StemBranch, TemporalContext, TemporalLayer, VISUAL_BRANCH_ORDER, by_solar,
     palace_grid_position,
 };
 
@@ -171,4 +173,107 @@ fn natal_chart_stack_snapshot_preserves_renderer_ready_natal_facts() {
         serde_json::from_str(&encoded).expect("snapshot should deserialize");
 
     assert_eq!(decoded, snapshot);
+}
+
+#[test]
+fn horoscope_chart_stack_snapshot_groups_temporal_overlays_by_branch_without_duplicating_natal_stars()
+ {
+    let natal = solar_fixture_chart();
+    let context = TemporalContext::Yearly {
+        stem_branch: StemBranch::try_new(HeavenlyStem::Geng, EarthlyBranch::Wu)
+            .expect("valid sexagenary pair"),
+        lunar_year: 1990,
+    };
+    let scoped_star = ScopedStarPlacement::new(
+        EarthlyBranch::Si,
+        StarPlacement::new(
+            StarName::NianJieYearly,
+            StarKind::Helper,
+            Brightness::Unknown,
+            None,
+            Scope::Yearly,
+        ),
+    );
+    let activation = MutagenActivation::new(
+        Scope::Yearly,
+        StarName::TaiYang,
+        EarthlyBranch::Wu,
+        Mutagen::Lu,
+    );
+    let temporal_layer =
+        TemporalLayer::try_new(Scope::Yearly, context, vec![scoped_star], vec![activation])
+            .expect("temporal layer should build");
+    let horoscope = HoroscopeChart::with_layers(natal.clone(), vec![temporal_layer]);
+
+    let snapshot = ChartStackSnapshot::from_horoscope_chart(&horoscope);
+
+    assert_eq!(snapshot.layers().len(), 2);
+    assert_eq!(snapshot.layers()[0].kind(), ChartLayerKind::Natal);
+    assert_eq!(snapshot.layers()[0].z_index(), 0);
+
+    let temporal = &snapshot.layers()[1];
+    assert_eq!(temporal.kind(), ChartLayerKind::Yearly);
+    assert_eq!(temporal.z_index(), 1);
+    assert_eq!(temporal.context(), Some(&context));
+
+    assert!(
+        temporal
+            .cells()
+            .iter()
+            .all(|cell| cell.typed_stars().is_empty())
+    );
+    assert!(
+        temporal
+            .cells()
+            .iter()
+            .all(|cell| cell.decorative_stars().is_empty())
+    );
+    assert!(temporal.cells().iter().all(|cell| cell.roles().is_empty()));
+
+    for cell in temporal.cells() {
+        let natal_palace = natal
+            .palaces()
+            .iter()
+            .find(|palace| palace.branch() == cell.branch())
+            .expect("natal branch should have a palace");
+        assert_eq!(cell.natal_palace_name(), Some(natal_palace.name()));
+        assert_eq!(cell.natal_palace_stem(), Some(natal_palace.stem()));
+    }
+
+    let scoped_cell = temporal
+        .cells()
+        .iter()
+        .find(|cell| cell.branch() == EarthlyBranch::Si)
+        .expect("Si temporal cell should exist");
+    assert_eq!(scoped_cell.scoped_stars().len(), 1);
+    assert_eq!(
+        scoped_cell.scoped_stars()[0].name(),
+        StarName::NianJieYearly
+    );
+    assert_eq!(scoped_cell.scoped_stars()[0].scope(), Scope::Yearly);
+    assert!(scoped_cell.mutagen_activations().is_empty());
+
+    let activation_cell = temporal
+        .cells()
+        .iter()
+        .find(|cell| cell.branch() == EarthlyBranch::Wu)
+        .expect("Wu temporal cell should exist");
+    assert_eq!(activation_cell.mutagen_activations().len(), 1);
+    assert_eq!(
+        activation_cell.mutagen_activations()[0].target_star(),
+        StarName::TaiYang
+    );
+    assert_eq!(
+        activation_cell.mutagen_activations()[0].target_branch(),
+        EarthlyBranch::Wu
+    );
+    assert_eq!(
+        activation_cell.mutagen_activations()[0].source_scope(),
+        Scope::Yearly
+    );
+    assert_eq!(
+        activation_cell.mutagen_activations()[0].mutagen(),
+        Mutagen::Lu
+    );
+    assert!(activation_cell.scoped_stars().is_empty());
 }
