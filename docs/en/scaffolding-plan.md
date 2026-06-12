@@ -60,7 +60,7 @@ crates/
     src/
       lib.rs
       calendar.rs
-      ganzhi.rs
+      nayin.rs
       palace.rs
       star.rs
       mutagen.rs

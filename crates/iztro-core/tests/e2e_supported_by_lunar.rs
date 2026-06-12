@@ -273,7 +273,10 @@ fn assert_temporal_flow_stars_match(fixture_case: &Value, case_label: &str) {
         let scope = scope_for_flow(flow_scope);
         let stem = parse_key::<HeavenlyStem>(temporal_case["stem"].as_str().expect("stem"));
         let branch = parse_key::<EarthlyBranch>(temporal_case["branch"].as_str().expect("branch"));
-        let context = temporal_context_for(flow_scope, StemBranch::new(stem, branch));
+        let context = temporal_context_for(
+            flow_scope,
+            StemBranch::try_new(stem, branch).expect("valid sexagenary pair"),
+        );
         let layer = build_flow_star_layer(context).expect("flow layer should build");
         let actual = collect_temporal_placements(&layer);
         let expected_placements = temporal_case["placements"]

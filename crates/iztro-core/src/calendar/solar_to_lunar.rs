@@ -1,31 +1,30 @@
 //! Gregorian-to-Chinese-lunisolar conversion backed by `lunar-lite`.
 //!
 //! This module maps `lunar-lite` date values onto the crate's own typed lunar
-//! facts and birth-year ganzhi, so callers never see calendar-backend types.
-//! The birth-year sexagenary pair is derived internally via lunar-lite 0.2's
-//! [`StemBranch::from_lunar_year`] helper and then mapped onto the crate's own
-//! [`HeavenlyStem`]/[`EarthlyBranch`] model types; the upstream stem/branch
-//! enums never cross this module's boundary.
+//! facts, exposing only in-range month/day domain types to callers. The
+//! birth-year sexagenary pair is derived internally via lunar-lite 0.2's
+//! [`StemBranch::from_lunar_year`] helper; its stem and branch (now lunar-lite's
+//! own canonical [`HeavenlyStem`]/[`EarthlyBranch`]) flow straight through.
 //!
-//! The mapping is verified against pinned upstream `iztro@2.5.8`: `lunar-lite`
+//! The result is verified against pinned upstream `iztro@2.5.8`: `lunar-lite`
 //! returns the lunar-new-year-bounded year, month, leap-month flag, and day.
 //! iztro derives the chart year pillar with its default `yearDivide: 'normal'`
 //! (lunar-new-year boundary), so deriving ganzhi from the converted lunar year
 //! agrees with upstream even across the 立春/正月初一 window.
 
 use lunar_lite::{
-    EarthlyBranch as LunarLiteBranch, HeavenlyStem as LunarLiteStem, LunarError, SolarDate,
-    StemBranch as LunarLiteStemBranch, solar_to_lunar as convert_solar_to_lunar,
+    EarthlyBranch, HeavenlyStem, LunarError, SolarDate, StemBranch,
+    solar_to_lunar as convert_solar_to_lunar,
 };
 
 use crate::error::ChartError;
 use crate::model::calendar::{SolarDay, SolarMonth};
-use crate::model::ganzhi::{EarthlyBranch, HeavenlyStem};
 use crate::placement::natal::life_body::{LunarDay, LunarMonth};
 
 /// Typed lunar facts produced from a Gregorian/solar date.
 ///
-/// All fields are the crate's own domain types; no calendar-backend types are exposed.
+/// Calendar-backend date/error types stay internal; birth-year stem/branch use
+/// lunar-lite's canonical GanZhi primitives.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) struct LunarConversion {
     lunar_year: i32,
@@ -98,17 +97,15 @@ pub(crate) fn solar_to_lunar(
 
     let lunar_month = LunarMonth::new(lunar.month).map_err(|_| conversion_failed())?;
     let lunar_day = LunarDay::new(lunar.day).map_err(|_| conversion_failed())?;
-    let birth_year_pair = LunarLiteStemBranch::from_lunar_year(lunar.year);
-    let birth_year_stem = map_lunar_lite_stem(birth_year_pair.stem());
-    let birth_year_branch = map_lunar_lite_branch(birth_year_pair.branch());
+    let birth_year_pair = StemBranch::from_lunar_year(lunar.year);
 
     Ok(LunarConversion {
         lunar_year: lunar.year,
         lunar_month,
         lunar_day,
         is_leap_month: lunar.is_leap_month,
-        birth_year_stem,
-        birth_year_branch,
+        birth_year_stem: birth_year_pair.stem(),
+        birth_year_branch: birth_year_pair.branch(),
     })
 }
 
@@ -121,44 +118,6 @@ fn map_solar_conversion_error(err: LunarError, year: i32, month: u8, day: u8) ->
         LunarError::InvalidLunarDate { .. } | LunarError::InvalidTime { .. } => {
             ChartError::CalendarConversionFailed { year, month, day }
         }
-    }
-}
-
-/// Maps a lunar-lite Heavenly Stem onto the crate's own model type.
-///
-/// Keeps lunar-lite's stem enum from leaking past this module's boundary.
-fn map_lunar_lite_stem(stem: LunarLiteStem) -> HeavenlyStem {
-    match stem {
-        LunarLiteStem::Jia => HeavenlyStem::Jia,
-        LunarLiteStem::Yi => HeavenlyStem::Yi,
-        LunarLiteStem::Bing => HeavenlyStem::Bing,
-        LunarLiteStem::Ding => HeavenlyStem::Ding,
-        LunarLiteStem::Wu => HeavenlyStem::Wu,
-        LunarLiteStem::Ji => HeavenlyStem::Ji,
-        LunarLiteStem::Geng => HeavenlyStem::Geng,
-        LunarLiteStem::Xin => HeavenlyStem::Xin,
-        LunarLiteStem::Ren => HeavenlyStem::Ren,
-        LunarLiteStem::Gui => HeavenlyStem::Gui,
-    }
-}
-
-/// Maps a lunar-lite Earthly Branch onto the crate's own model type.
-///
-/// Keeps lunar-lite's branch enum from leaking past this module's boundary.
-fn map_lunar_lite_branch(branch: LunarLiteBranch) -> EarthlyBranch {
-    match branch {
-        LunarLiteBranch::Zi => EarthlyBranch::Zi,
-        LunarLiteBranch::Chou => EarthlyBranch::Chou,
-        LunarLiteBranch::Yin => EarthlyBranch::Yin,
-        LunarLiteBranch::Mao => EarthlyBranch::Mao,
-        LunarLiteBranch::Chen => EarthlyBranch::Chen,
-        LunarLiteBranch::Si => EarthlyBranch::Si,
-        LunarLiteBranch::Wu => EarthlyBranch::Wu,
-        LunarLiteBranch::Wei => EarthlyBranch::Wei,
-        LunarLiteBranch::Shen => EarthlyBranch::Shen,
-        LunarLiteBranch::You => EarthlyBranch::You,
-        LunarLiteBranch::Xu => EarthlyBranch::Xu,
-        LunarLiteBranch::Hai => EarthlyBranch::Hai,
     }
 }
 
@@ -357,25 +316,6 @@ mod tests {
                 branch,
                 "{} branch",
                 case.year
-            );
-        }
-    }
-
-    #[test]
-    fn lunar_year_pair_maps_to_domain_ganzhi() {
-        // Anchor (1984 = JiaZi), a recent dragon year, and a pre-anchor year all
-        // map lunar-lite's sexagenary pair onto the crate's own ganzhi types.
-        for (year, stem, branch) in [
-            (1984, HeavenlyStem::Jia, EarthlyBranch::Zi),
-            (2024, HeavenlyStem::Jia, EarthlyBranch::Chen),
-            (1983, HeavenlyStem::Gui, EarthlyBranch::Hai),
-        ] {
-            let pair = LunarLiteStemBranch::from_lunar_year(year);
-            assert_eq!(map_lunar_lite_stem(pair.stem()), stem, "{year} stem");
-            assert_eq!(
-                map_lunar_lite_branch(pair.branch()),
-                branch,
-                "{year} branch"
             );
         }
     }

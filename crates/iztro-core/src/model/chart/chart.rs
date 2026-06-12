@@ -4,7 +4,6 @@ use crate::{
         bureau::FiveElementBureau,
         calendar::BirthContext,
         chart::palace::PalaceName,
-        ganzhi::{EarthlyBranch, HeavenlyStem},
         profile::MethodProfile,
         star::mutagen::{Mutagen, Scope},
         star::{
@@ -12,6 +11,7 @@ use crate::{
         },
     },
 };
+use lunar_lite::{EarthlyBranch, HeavenlyStem};
 use serde::{Deserialize, Deserializer, Serialize};
 
 /// Number of palaces required for a complete chart.

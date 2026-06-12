@@ -8,9 +8,9 @@
 //! still deferred, so the year stem and branch are supplied explicitly.
 
 use crate::model::calendar::BirthContext;
-use crate::model::ganzhi::{EarthlyBranch, HeavenlyStem};
 use crate::model::profile::MethodProfile;
 use crate::placement::natal::life_body::{LunarDay, LunarMonth};
+use lunar_lite::{EarthlyBranch, HeavenlyStem};
 
 /// Inputs required by the minimal natal chart builder.
 ///

@@ -4,11 +4,11 @@ use crate::calendar::resolve_lunar_date;
 use crate::error::ChartError;
 use crate::model::calendar::{BirthContext, BirthTime, CalendarDate, Gender};
 use crate::model::chart::Chart;
-use crate::model::ganzhi::{EarthlyBranch, HeavenlyStem};
 use crate::model::profile::MethodProfile;
 use crate::placement::natal::input::NatalChartWithSupportedStarsInput;
 use crate::placement::natal::life_body::{LunarDay, LunarMonth};
 use crate::placement::natal::supported::build_natal_chart_with_supported_stars;
+use lunar_lite::{EarthlyBranch, HeavenlyStem};
 
 /// Typed lunar-date request for the iztro-compatible natal chart facade.
 ///

@@ -142,11 +142,10 @@ fn minimal_natal_chart_life_palace_pair_drives_bureau() {
     assert_eq!(life_palace.branch(), EarthlyBranch::Chou);
     assert_eq!(life_palace.stem(), HeavenlyStem::Ji);
 
-    let expected = five_element_bureau_from_life_palace(StemBranch::new(
-        life_palace.stem(),
-        life_palace.branch(),
-    ))
-    .expect("life palace pair should be valid");
+    let expected = five_element_bureau_from_life_palace(
+        StemBranch::try_new(life_palace.stem(), life_palace.branch())
+            .expect("life palace pair should be valid"),
+    );
     assert_eq!(chart.five_element_bureau(), Some(expected));
 }
 
