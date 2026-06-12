@@ -2,24 +2,66 @@
 
 `iztro-rs` uses a layered architecture. Each layer has a clear responsibility and should avoid leaking concerns into adjacent layers.
 
+The current implementation separates chart facts, renderer-friendly read models, rendering, feature extraction, rules, and narrative. This separation is intentional: chart generation should stay deterministic and fixture-backed, while renderers and future GUIs consume read models instead of re-deriving chart layout from core aggregates.
+
 ## 1. Core Chart Layer
 
-The Core Chart Layer contains deterministic chart facts. It should not contain interpretation prose.
+The Core Chart Layer contains deterministic chart facts. It should not contain interpretation prose, report formatting, CLI output formatting, or GUI assumptions.
 
 Examples:
 
 - birth context and calendar options;
-- heavenly stems and earthly branches;
+- low-level stem/branch and sexagenary-cycle primitives re-exported from `lunar-lite`;
+- NaYin and five-element bureau facts owned by `iztro-core`;
 - palaces;
-- stars;
+- typed natal stars;
+- untyped decorative runtime star facts;
 - brightness;
-- mutagens;
-- decadal and yearly structures;
+- natal mutagens;
+- model-only horoscope overlays;
+- scoped temporal star placements;
+- temporal mutagen activations;
 - method profile metadata.
 
-The output of this layer is a structured chart object.
+The output of this layer is a structured chart object, usually `Chart`, or a model-only overlay wrapper such as `HoroscopeChart`.
 
-## 2. Feature Extraction Layer
+### Natal facts and temporal overlays
+
+Natal chart facts are immutable once built. `Chart::stars()` returns typed natal `StarPlacement`s only, while `Palace::decorative_stars()` holds untyped decorative runtime facts such as 长生/博士/岁前/将前十二神. These surfaces must remain separate.
+
+Temporal facts are additive overlays. `HoroscopeChart` wraps a natal `Chart` and zero or more `TemporalLayer`s. A temporal layer records its `Scope`, `TemporalContext`, branch-tagged scoped star placements, and `MutagenActivation`s. It must not duplicate natal placements or mutate natal palace names. 四化 activations remain activation facts, not fake stars.
+
+## 2. Snapshot / Read Model Layer
+
+The Snapshot Layer converts core chart facts into renderer-neutral read models.
+
+The main read model is `ChartStackSnapshot`:
+
+```text
+Chart / HoroscopeChart
+  -> ChartStackSnapshot
+     -> ChartLayerSnapshot[]
+        -> PalaceLayerCellSnapshot[]
+```
+
+It represents the conventional 12-palace grid as x/y coordinates and the selected natal/temporal scopes as stack layers. This keeps future renderers free to show the same data as:
+
+- a plain text list;
+- a 2D palace grid;
+- a 文墨天机-style interactive chart;
+- a future 3D stacked view where the z-axis is 本命 / 大限 / 流年 / 流月 / 流日 / 流时.
+
+A renderer should consume `ChartStackSnapshot` rather than walking `Chart` directly. A future GUI should change the selected temporal view request and re-render from a snapshot; it should not mutate the natal chart.
+
+## 3. Render Layer
+
+The Render Layer turns snapshot/read-model data into human-facing display formats.
+
+The first concrete renderer is `iztro-render`'s plain text chart-stack renderer. It consumes `ChartStackSnapshot` and produces deterministic text output for demos and debugging. It does not generate chart facts, derive temporal periods, localize terminology, evaluate rules, or produce interpretation.
+
+Future renderers may include CLI, TUI, web, GUI, SVG/HTML, or 3D views. They should remain consumers of snapshot/read-model structures.
+
+## 4. Feature Extraction Layer
 
 The Feature Extraction Layer converts a chart into a semantic feature graph.
 
@@ -36,7 +78,7 @@ Important feature dimensions include:
 
 The goal is not to write prose, but to expose features that a rule engine can evaluate.
 
-## 3. Rule Engine Layer
+## 5. Rule Engine Layer
 
 The Rule Engine Layer maps features into structured claims.
 
@@ -52,7 +94,7 @@ Rules should not directly emit final narrative text. A rule should emit:
 
 This makes rule matching testable and allows multiple rules to be aggregated before generating a report.
 
-## 4. Narrative Layer
+## 6. Narrative Layer
 
 The Narrative Layer turns structured claims into human-readable reports.
 
