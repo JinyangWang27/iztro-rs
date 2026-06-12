@@ -153,6 +153,14 @@ pub enum ChartError {
         /// Source scope carried by the rejected activation.
         activation: Scope,
     },
+    /// A requested decadal period index is outside the derived decadal frame.
+    #[error("invalid decadal period index: index {index} is out of range for {len} periods")]
+    InvalidDecadalPeriodIndex {
+        /// Requested zero-based decadal period index.
+        index: usize,
+        /// Number of periods available in the derived decadal frame.
+        len: usize,
+    },
     /// Placeholder error used until chart-generation validation exists.
     #[error("chart generation is not implemented")]
     NotImplemented,
