@@ -52,6 +52,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "iztro-render"
+version = "0.1.0"
+dependencies = [
+ "iztro-core",
+ "serde_json",
+]
+
+[[package]]
 name = "iztro-rules"
 version = "0.1.0"
 dependencies = [
