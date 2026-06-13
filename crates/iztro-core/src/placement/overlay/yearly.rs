@@ -56,7 +56,7 @@ impl YearlyMutagenLayerInput {
 ///
 /// The yearly Heavenly Stem comes from `input`'s stem-branch. For every
 /// represented star placed in `natal`, the shared Heavenly Stem mutagen table
-/// (via [`stem_mutagen_activations`]) decides whether the yearly stem maps that
+/// (via `stem_mutagen_activations`) decides whether the yearly stem maps that
 /// star to a [`Mutagen`](crate::model::star::mutagen::Mutagen); the same 天干四化
 /// table drives both the birth-year (natal) and yearly (流年) transformations, so
 /// it is reused rather than duplicated. Each mapped, present star yields one
