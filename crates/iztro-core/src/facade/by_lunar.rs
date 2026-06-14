@@ -243,7 +243,7 @@ impl LunarChartRequestBuilder {
 /// actually the year's leap month, mirroring upstream `lunar2solar`). The
 /// recorded calendar date keeps the resolved lunar year/month/day, while
 /// month-based star placement uses the effective month derived from
-/// [`effective_lunar_month`] applied to the resolved leap state.
+/// `effective_lunar_month` applied to the resolved leap state.
 pub fn by_lunar(request: LunarChartRequest) -> Result<Chart, ChartError> {
     let resolved = resolve_lunar_date(
         request.lunar_year(),

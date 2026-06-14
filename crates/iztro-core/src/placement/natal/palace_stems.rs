@@ -36,7 +36,7 @@ const fn yin_palace_stem(year_stem: HeavenlyStem) -> HeavenlyStem {
 
 /// Returns the palace Heavenly Stem for a single Earthly Branch.
 ///
-/// The Yin palace takes the [`yin_palace_stem`] anchor; every other branch takes
+/// The Yin palace takes the `yin_palace_stem` anchor; every other branch takes
 /// the stem reached by counting forward from Yin along the month cycle
 /// (`Yin -> Mao -> ... -> Hai -> Zi -> Chou`). The forward distance is measured
 /// over twelve branch steps, so the stem cycle of ten wraps as expected.

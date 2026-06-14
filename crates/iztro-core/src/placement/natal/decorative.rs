@@ -3,7 +3,8 @@
 //! The four "twelve gods" families (长生/博士/岁前/将前十二神) reproduce `iztro`
 //! 2.5.8 (`getchangsheng12`, `getBoShi12`, `getYearly12` in `src/star`, MIT
 //! licensed). Upstream emits these as bare names with no `StarKind`, so they are
-//! placed as untyped [`DecorativeStarPlacement`]s rather than [`StarPlacement`]s
+//! placed as untyped [`DecorativeStarPlacement`]s rather than
+//! [`StarPlacement`](crate::model::chart::StarPlacement)s
 //! and never appear in [`Chart::stars`].
 
 use crate::error::ChartError;
