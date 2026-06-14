@@ -1,8 +1,8 @@
 //! Deterministic renderers for chart snapshot read models.
 //!
-//! This crate consumes renderer-neutral `iztro-core` snapshots. It must not
-//! generate chart facts, evaluate rules, localize terminology, or perform
-//! narrative interpretation.
+//! This module consumes renderer-neutral `ChartStackSnapshot` read models. It
+//! must not generate chart facts, evaluate rules, localize terminology, or
+//! perform narrative interpretation.
 
 pub mod text;
 

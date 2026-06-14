@@ -9,6 +9,29 @@
 
 English version: [README.md](README.md).
 
+## 安装
+
+公开 API 以单个 crate 发布：
+
+```toml
+[dependencies]
+iztro = "0.1"
+```
+
+```rust
+use iztro::{by_solar, Gender, SolarChartRequest};
+```
+
+该 crate 在内部保留清晰的领域边界，并以模块形式实现——`core`、`features`、`rules`、`reading`、`render`——同时把稳定的对外核心 API 也从 crate 根部 re-export。
+
+## 快速演示
+
+可运行的纯文本排盘演示：
+
+```bash
+cargo run -p iztro --example plain_text
+```
+
 ## 项目目标
 
 `iztro-rs` 计划提供：
