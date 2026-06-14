@@ -9,7 +9,7 @@ rust-version.workspace = true
 version.workspace = true
 
 [dependencies]
-iztro-features = { path = "../iztro-features" }
-iztro-rules = { path = "../iztro-rules" }
+iztro-features.workspace = true
+iztro-rules.workspace = true
 serde.workspace = true
 thiserror.workspace = true
