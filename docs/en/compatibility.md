@@ -57,7 +57,7 @@ The project still does not claim full upstream facade serialization parity, full
 
 ## Star-name inventory
 
-`iztro-core` keeps two separate star metadata surfaces:
+`core` keeps two separate star metadata surfaces:
 
 - `represented_star_metadata_table().len() == 70` remains strict: it covers only the stars currently represented by chart facts, placed by Rust code, and validated by fixtures. Four represented adjective stars are algorithm-gated and appear only under `ChartAlgorithmKind::Zhongzhou`.
 - `known_star_metadata_table().len() == 170` inventories the broader upstream `iztro@2.5.8` runtime star-name universe spanning the represented stars, decorative runtime arrays (`changsheng12`, `boshi12`, `suiqian12`, `jiangqian12`), and horoscope flow-star names for decadal, yearly, monthly, daily, and hourly scopes.
@@ -76,11 +76,11 @@ Birth time is represented by `BirthTime`, matching upstream `iztro` `timeIndex` 
 
 `by_solar` validates the Gregorian/solar date, converts it to Chinese-lunisolar facts through the internal `lunar-lite` adapter, derives the birth-year `StemBranch` through `lunar-lite` 0.3.1's `four_pillars_from_solar_date_with_options` with `YearDivide::Normal` and `MonthDivide::Normal`, sets `is_leap_month` and `fix_leap`, then delegates to `by_lunar`. It performs no chart construction of its own.
 
-`lunar-lite` owns the canonical low-level stem/branch and sexagenary-cycle primitives (`HeavenlyStem`, `EarthlyBranch`, `StemBranch`) that `iztro-core` re-exports. `iztro-core` owns Zi Wei-specific NaYin and five-element bureau logic.
+`lunar-lite` owns the canonical low-level stem/branch and sexagenary-cycle primitives (`HeavenlyStem`, `EarthlyBranch`, `StemBranch`) that `core` re-exports. `core` owns Zi Wei-specific NaYin and five-element bureau logic.
 
 ## Horoscope layer models
 
-`iztro-core` defines model-only horoscope overlays: `HoroscopeChart` wraps an immutable natal `Chart` and holds zero or more `TemporalLayer`s, each with a non-natal `Scope`, a typed `TemporalContext`, scoped `StarPlacement`s, and `MutagenActivation`s. These models carry only temporal facts supplied explicitly by the caller, and a layer never duplicates natal placements.
+`core` defines model-only horoscope overlays: `HoroscopeChart` wraps an immutable natal `Chart` and holds zero or more `TemporalLayer`s, each with a non-natal `Scope`, a typed `TemporalContext`, scoped `StarPlacement`s, and `MutagenActivation`s. These models carry only temporal facts supplied explicitly by the caller, and a layer never duplicates natal placements.
 
 A yearly mutagen overlay builder and a decadal mutagen overlay builder are available as model-level temporal activation builders. Given explicit temporal stem-branch/context facts, they produce `TemporalLayer`s whose `MutagenActivation`s apply the relevant Heavenly Stem to represented stars actually present in the natal chart. They derive no calendar facts, place no flow stars, do not mutate natal placements, and do not perform interpretation.
 
@@ -113,7 +113,7 @@ It preserves:
 - a stacked layer model: natal layer first, then temporal layers;
 - separate cell sections for typed natal stars, decorative stars, scoped temporal stars, and mutagen activations.
 
-`iztro-render`'s plain text renderer consumes `ChartStackSnapshot` for demos and debugging. Renderer output is deterministic but not part of chart-generation compatibility with upstream `iztro`.
+`render`'s plain text renderer consumes `ChartStackSnapshot` for demos and debugging. Renderer output is deterministic but not part of chart-generation compatibility with upstream `iztro`.
 
 ## Current fixtures
 

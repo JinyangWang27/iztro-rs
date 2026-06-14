@@ -1,8 +1,8 @@
-use iztro::core::{
+use iztro::render::render_chart_stack_text;
+use iztro::{
     ChartAlgorithmKind, EarthlyBranch, Gender, MethodProfile, SolarChartRequest, SolarDay,
     SolarMonth, by_solar,
 };
-use iztro::render::render_chart_stack_text;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let request = SolarChartRequest::builder()

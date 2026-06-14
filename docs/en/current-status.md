@@ -35,7 +35,7 @@ Default/non-Zhongzhou natal output remains 66 typed natal stars. Zhongzhou natal
 The following boundaries are deliberate:
 
 - `lunar-lite` owns canonical low-level `HeavenlyStem`, `EarthlyBranch`, and `StemBranch` primitives.
-- `iztro-core` owns Zi Wei-specific NaYin and five-element bureau logic.
+- `core` owns Zi Wei-specific NaYin and five-element bureau logic.
 - `Chart` retains birth-year `StemBranch` as a natal identity fact.
 - `Chart::stars()` returns typed natal `StarPlacement`s only.
 - `Palace::decorative_stars()` contains untyped natal decorative runtime facts.
@@ -56,10 +56,10 @@ It preserves:
 - one natal layer plus zero or more temporal layers;
 - separate cell sections for natal typed stars, decorative stars, scoped temporal stars, and mutagen activations.
 
-`iztro-render` currently provides a deterministic plain text renderer over `ChartStackSnapshot`. The top-level README and `docs/en/demo.md` show the current end-to-end flow:
+`render` currently provides a deterministic plain text renderer over `ChartStackSnapshot`. The top-level README and `docs/en/demo.md` show the current end-to-end flow:
 
 ```text
-solar input -> by_solar -> ChartStackSnapshot -> iztro-render plain text output
+solar input -> by_solar -> ChartStackSnapshot -> render module plain text output
 ```
 
 ## Deferred work

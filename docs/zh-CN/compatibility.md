@@ -35,7 +35,7 @@ source of truth。
 
 ## 星曜名称清单
 
-`iztro-core` 现在保留两套相互独立的星曜 metadata surface：
+`core` 现在保留两套相互独立的星曜 metadata surface：
 
 - `represented_star_metadata_table().len() == 70` 仍保持严格边界：只覆盖当前由星盘事实
   表示、由 Rust 代码安放、并由 fixtures 校验的星。其中四颗已表示杂曜受算法门控，
@@ -93,7 +93,7 @@ lunar-lite 历法 normalizer按真实历法解析；公开 API 不暴露 calenda
 适配器将其转换为农历事实，从转换得到的农历年推导出生年天干与地支，依据转换结果设置
 `is_leap_month`、依据请求设置 `fix_leap`，再委托给 `by_lunar`。它自身不做任何排盘，
 因此产出与 `by_lunar` 完全一致的已支持切片。`lunar-lite` 拥有底层天干/地支与六十甲子
-原语（`HeavenlyStem`、`EarthlyBranch`、`StemBranch`），并由 iztro-core 直接 re-export，
+原语（`HeavenlyStem`、`EarthlyBranch`、`StemBranch`），并由 `core` 模块直接 re-export，
 故出生年干支无需逐适配层映射即可直通；仅日历后端日期类型（`SolarDate`、`LunarError`）
 不出现在公开 API。转换以正月初一为年界，与 iztro 默认的 `yearDivide: 'normal'` 一致，
 因此换算出的年干支即便落在立春/正月初一之间的窗口也与上游一致。
@@ -103,7 +103,7 @@ lunar-lite 历法 normalizer按真实历法解析；公开 API 不暴露 calenda
 
 ## 运限层模型
 
-`iztro-core` 定义了仅模型的运限叠加层：`HoroscopeChart` 包裹不可变的本命 `Chart`，
+`core` 定义了仅模型的运限叠加层：`HoroscopeChart` 包裹不可变的本命 `Chart`，
 并持有零个或多个 `TemporalLayer`，每个层带有非本命的 `Scope`、强类型的
 `TemporalContext`、按范围划分的 `StarPlacement` 和 `MutagenActivation`。这些模型
 只承载调用方显式提供的时间事实，且层不会复制本命落点。

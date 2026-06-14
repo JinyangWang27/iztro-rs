@@ -18,16 +18,16 @@ This roadmap is intentionally conservative. The project should first establish s
 
 - [x] Create Rust workspace.
 - [x] Add core crates:
-  - [x] `iztro-core`;
-  - [x] `iztro-features`;
-  - [x] `iztro-rules`;
-  - [x] `iztro-reading`;
+  - [x] `core`;
+  - [x] `features`;
+  - [x] `rules`;
+  - [x] `reading`;
   - [x] `iztro-cli`;
-  - [x] `iztro-render`.
+  - [x] `render`.
 - [x] Add basic CI for formatting, clippy, and tests.
 - [x] Add serialization and fixture-based test infrastructure.
 
-`iztro-core` organizes its source tree into domain modules: `model` (value objects, star facts, immutable chart facts, and renderer-neutral snapshots), `placement` (deterministic 安星 placement and overlay activation builders), and `facade` (public iztro-compatible entry points). Rendering lives outside core in `iztro-render`.
+`core` organizes its source tree into domain modules: `model` (value objects, star facts, immutable chart facts, and renderer-neutral snapshots), `placement` (deterministic 安星 placement and overlay activation builders), and `facade` (public iztro-compatible entry points). Rendering lives outside core in `render`.
 
 ## Phase 2: Core chart models
 
@@ -37,7 +37,7 @@ This roadmap is intentionally conservative. The project should first establish s
 - [x] Ensure implemented models are strongly typed and serializable.
 - [x] Inventory upstream `iztro@2.5.8` runtime star names separately from represented chart facts.
 - [x] Reuse `lunar-lite` for canonical low-level stem/branch and sexagenary-cycle primitives.
-- [x] Isolate Zi Wei-specific NaYin and five-element bureau logic in `iztro-core`.
+- [x] Isolate Zi Wei-specific NaYin and five-element bureau logic in `core`.
 - [x] Retain birth-year `StemBranch` as a reusable natal `Chart` fact.
 - [x] Add renderer-neutral `ChartStackSnapshot` read model.
 
@@ -74,7 +74,7 @@ Current supported chart-generation slice: `by_lunar` accepts explicit lunar inpu
 - [x] Add `ChartStackSnapshot` as a renderer-neutral stacked read model.
 - [x] Preserve conventional 12-palace grid positions in snapshot cells.
 - [x] Preserve natal and temporal fact surfaces as separate layer/cell sections.
-- [x] Add `iztro-render` crate.
+- [x] Add `render` crate.
 - [x] Add deterministic plain text chart-stack renderer.
 - [x] Add runnable plain text demo from real `by_solar` input.
 - [ ] Add richer 2D palace-grid renderer.
@@ -93,7 +93,7 @@ The render layer consumes `ChartStackSnapshot`; it must not generate chart facts
 - [ ] Add strength-score placeholders.
 - [ ] Add temporal activation interfaces.
 
-First slice implemented: `BasicFeatureExtractor` (`iztro-features`) converts deterministic chart facts into structured palace features, star features, natal mutagen flows, and cyclic palace relations. Star features preserve all placed star facts; the palace/domain mapping is optional metadata and is currently limited to five direct palace-domain mappings (Life, Career, Wealth, Spouse, Health), so stars elsewhere carry no domain. This is feature extraction only — no rule matching, no claims, no interpretation, and no narrative. Strength scoring and temporal activation interfaces remain deferred.
+First slice implemented: `BasicFeatureExtractor` (`features`) converts deterministic chart facts into structured palace features, star features, natal mutagen flows, and cyclic palace relations. Star features preserve all placed star facts; the palace/domain mapping is optional metadata and is currently limited to five direct palace-domain mappings (Life, Career, Wealth, Spouse, Health), so stars elsewhere carry no domain. This is feature extraction only — no rule matching, no claims, no interpretation, and no narrative. Strength scoring and temporal activation interfaces remain deferred.
 
 ## Phase 6: Rule engine skeleton
 

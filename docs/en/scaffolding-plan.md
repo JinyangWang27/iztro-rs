@@ -23,15 +23,17 @@ The current workspace now includes:
 
 ```text
 crates/
-  iztro-core/
-  iztro-features/
-  iztro-reading/
-  iztro-render/
-  iztro-rules/
-  iztro-cli/
+  iztro/            # single public library crate
+    src/
+      core/         # deterministic chart facts and facade entry points
+      features/     # feature extraction contracts
+      rules/        # rule and claim contracts
+      reading/      # deterministic report structures
+      render/       # deterministic snapshot renderers
+  iztro-cli/        # private (publish = false) command-line entry point
 ```
 
-The project now has implemented chart-generation slices, fixture-backed compatibility with `iztro@2.5.8`, `lunar-lite`-backed solar-to-lunar conversion, renderer-neutral `ChartStackSnapshot`, and a deterministic plain text renderer demo.
+The domain boundaries that originally lived in separate crates are now modules inside the single `iztro` crate. The project has implemented chart-generation slices, fixture-backed compatibility with `iztro@2.5.8`, `lunar-lite`-backed solar-to-lunar conversion, renderer-neutral `ChartStackSnapshot`, and a deterministic plain text renderer demo.
 
 The original non-goals below remain useful guardrails for incomplete areas: do not present deferred functionality as stable behavior.
 
@@ -72,31 +74,31 @@ The current workspace still follows the same low-dependency direction.
 
 ## Original crate responsibilities
 
-### `iztro-core`
+### `core`
 
 Contains deterministic chart facts and core domain models.
 
 This crate must not contain interpretation prose, rule matching, report rendering, CLI formatting, or UI assumptions. It now also exposes renderer-neutral snapshots, but actual rendering lives outside core.
 
-### `iztro-features`
+### `features`
 
 Contains feature extraction types and traits.
 
-This crate consumes `iztro-core` and emits structured features. It must not render reports.
+This crate consumes `core` and emits structured features. It must not render reports.
 
-### `iztro-rules`
+### `rules`
 
 Contains rule and claim types.
 
 Rules should emit structured claims, not final prose.
 
-### `iztro-reading`
+### `reading`
 
 Contains report structures and deterministic reading interfaces.
 
 This crate consumes structured claims. It should not recalculate chart facts.
 
-### `iztro-render`
+### `render`
 
 Contains renderer utilities for snapshot/read-model data.
 
@@ -121,7 +123,7 @@ cargo test --workspace
 Renderer/demo PRs may additionally run:
 
 ```text
-cargo run -p iztro-render --example plain_text
+cargo run -p iztro --example plain_text
 ```
 
 ## Acceptance criteria that still apply

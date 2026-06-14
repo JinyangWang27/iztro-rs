@@ -12,7 +12,7 @@ Examples:
 
 - birth context and calendar options;
 - low-level stem/branch and sexagenary-cycle primitives re-exported from `lunar-lite`;
-- NaYin and five-element bureau facts owned by `iztro-core`;
+- NaYin and five-element bureau facts owned by `core`;
 - palaces;
 - typed natal stars;
 - untyped decorative runtime star facts;
@@ -57,7 +57,7 @@ A renderer should consume `ChartStackSnapshot` rather than walking `Chart` direc
 
 The Render Layer turns snapshot/read-model data into human-facing display formats.
 
-The first concrete renderer is `iztro-render`'s plain text chart-stack renderer. It consumes `ChartStackSnapshot` and produces deterministic text output for demos and debugging. It does not generate chart facts, derive temporal periods, localize terminology, evaluate rules, or produce interpretation.
+The first concrete renderer is `render`'s plain text chart-stack renderer. It consumes `ChartStackSnapshot` and produces deterministic text output for demos and debugging. It does not generate chart facts, derive temporal periods, localize terminology, evaluate rules, or produce interpretation.
 
 Future renderers may include CLI, TUI, web, GUI, SVG/HTML, or 3D views. They should remain consumers of snapshot/read-model structures.
 

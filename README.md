@@ -9,18 +9,35 @@ A Rust implementation for Zi Wei Dou Shu (紫微斗数) chart generation, featur
 
 中文说明见 [README.zh-CN.md](README.zh-CN.md).
 
+## Installation
+
+The public API ships as a single crate:
+
+```toml
+[dependencies]
+iztro = "0.1"
+```
+
+```rust
+use iztro::{by_solar, Gender, SolarChartRequest};
+```
+
+The crate keeps clear internal domain boundaries as modules — `core`,
+`features`, `rules`, `reading`, and `render` — while the stable user-facing
+core API is also re-exported from the crate root.
+
 ## Quick demo
 
 The current supported natal chart fact surface can flow from a typed solar input through `by_solar` into a
-renderer-neutral stack snapshot, then into the `iztro-render` plain text demo. The excerpt below is from
+renderer-neutral stack snapshot, then into the `iztro::render` plain text demo. The excerpt below is from
 fixture-backed supported fields.
 
 ```rust
-use iztro_core::{
+use iztro::render::render_chart_stack_text;
+use iztro::{
     ChartAlgorithmKind, EarthlyBranch, Gender, MethodProfile, SolarChartRequest, SolarDay,
     SolarMonth, by_solar,
 };
-use iztro_render::render_chart_stack_text;
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let request = SolarChartRequest::builder()
@@ -47,7 +64,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 Run the example with:
 
 ```bash
-cargo run -p iztro-render --example plain_text
+cargo run -p iztro --example plain_text
 ```
 
 Abbreviated real output excerpt:
