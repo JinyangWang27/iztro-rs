@@ -49,7 +49,7 @@ default-algorithm natal adjective/helper-star count.
 # inspect
 npm run dump:e2e-supported --prefix tools/iztro-reference
 
-# regenerate fixtures/iztro/e2e_supported_by_lunar.json from repo root
+# regenerate crates/iztro/fixtures/iztro/e2e_supported_by_lunar.json from repo root
 npm run dump:e2e-supported --prefix tools/iztro-reference -- --write
 ```
 
@@ -70,7 +70,7 @@ decorative arrays, features, rules, or narrative output.
 # inspect
 npm run dump:e2e-supported-by-solar --prefix tools/iztro-reference
 
-# regenerate fixtures/iztro/e2e_supported_by_solar.json from repo root
+# regenerate crates/iztro/fixtures/iztro/e2e_supported_by_solar.json from repo root
 npm run dump:e2e-supported-by-solar --prefix tools/iztro-reference -- --write
 ```
 
@@ -92,7 +92,7 @@ arrays, features, rules, and narrative.
 # inspect
 npm run dump:leap-month --prefix tools/iztro-reference
 
-# regenerate fixtures/iztro/leap_month_by_lunar.json from repo root
+# regenerate crates/iztro/fixtures/iztro/leap_month_by_lunar.json from repo root
 npm run dump:leap-month --prefix tools/iztro-reference -- --write
 ```
 
@@ -112,7 +112,7 @@ Shared normalization maps/helpers for these two generators live in
 # inspect
 npm run dump:time-index-rat-hour --prefix tools/iztro-reference
 
-# regenerate fixtures/iztro/time_index_rat_hour.json from repo root
+# regenerate crates/iztro/fixtures/iztro/time_index_rat_hour.json from repo root
 npm run dump:time-index-rat-hour --prefix tools/iztro-reference -- --write
 ```
 
@@ -130,8 +130,8 @@ narrative.
 # inspect (prints all fixtures to stdout)
 npm run dump:runtime-star-families --prefix tools/iztro-reference
 
-# regenerate fixtures under fixtures/iztro/ (run from the repo root so the
-# relative fixtures/iztro/ path resolves)
+# regenerate fixtures under crates/iztro/fixtures/iztro/ (run from the repo root so the
+# relative crates/iztro/fixtures/iztro/ path resolves)
 node tools/iztro-reference/scripts/dump-runtime-star-families.mjs --write
 ```
 
@@ -139,7 +139,7 @@ node tools/iztro-reference/scripts/dump-runtime-star-families.mjs --write
 (长生/博士/岁前/将前十二神) per palace for the default and Zhongzhou algorithms,
 and the scoped flow stars (流耀) from `getHoroscopeStar` for every scope across
 all ten stems and twelve branches. With `--write` it regenerates
-`fixtures/iztro/runtime_decorative_*.json` and `fixtures/iztro/flow_stars.json`.
+`crates/iztro/fixtures/iztro/runtime_decorative_*.json` and `crates/iztro/fixtures/iztro/flow_stars.json`.
 
 ### Full horoscope fixture
 
@@ -147,14 +147,14 @@ all ten stems and twelve branches. With `--write` it regenerates
 # inspect (prints the fixture to stdout)
 npm run dump:horoscope --prefix tools/iztro-reference
 
-# regenerate fixtures/iztro/horoscope.json
+# regenerate crates/iztro/fixtures/iztro/horoscope.json
 npm run dump:horoscope --prefix tools/iztro-reference -- --write
 ```
 
 `dump:horoscope` snapshots upstream `FunctionalAstrolabe#horoscope(targetSolarDate,
 targetTimeIndex)` output as the contract that later iztro-rs horoscope-assembly
 PRs target. The write path resolves relative to the script, so `--write` lands in
-`fixtures/iztro/horoscope.json` whether invoked via `npm run --prefix` or directly
+`crates/iztro/fixtures/iztro/horoscope.json` whether invoked via `npm run --prefix` or directly
 with `node`. It is a tooling-only reference; it does **not** implement or claim
 Rust horoscope parity.
 

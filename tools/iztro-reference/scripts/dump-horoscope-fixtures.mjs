@@ -23,7 +23,7 @@
 //   node tools/iztro-reference/scripts/dump-horoscope-fixtures.mjs [--write]
 //
 // Without --write the fixture is printed to stdout for inspection. With --write
-// it is written to fixtures/iztro/horoscope.json.
+// it is written to crates/iztro/fixtures/iztro/horoscope.json.
 
 import { astro } from "iztro";
 import { writeFileSync } from "node:fs";
@@ -391,9 +391,9 @@ if (process.argv.includes("--write")) {
   // Resolve relative to this script so the write target is the same whether the
   // dumper runs from the repo root (`node tools/.../dump-horoscope-fixtures.mjs`)
   // or under `npm run --prefix` (cwd = tools/iztro-reference).
-  const outPath = fileURLToPath(new URL("../../../fixtures/iztro/horoscope.json", import.meta.url));
+  const outPath = fileURLToPath(new URL("../../../crates/iztro/fixtures/iztro/horoscope.json", import.meta.url));
   writeFileSync(outPath, `${JSON.stringify(fixture, null, 2)}\n`);
-  console.log("wrote fixtures/iztro/horoscope.json");
+  console.log("wrote crates/iztro/fixtures/iztro/horoscope.json");
 } else {
   console.log(JSON.stringify(fixture, null, 2));
 }

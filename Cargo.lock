@@ -15,14 +15,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682"
 
 [[package]]
-name = "iztro-cli"
-version = "0.1.0"
-dependencies = [
- "anyhow",
-]
-
-[[package]]
-name = "iztro-core"
+name = "iztro"
 version = "0.1.0"
 dependencies = [
  "lunar-lite",
@@ -32,40 +25,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "iztro-features"
+name = "iztro-cli"
 version = "0.1.0"
 dependencies = [
- "iztro-core",
- "serde",
- "serde_json",
- "thiserror",
-]
-
-[[package]]
-name = "iztro-reading"
-version = "0.1.0"
-dependencies = [
- "iztro-features",
- "iztro-rules",
- "serde",
- "thiserror",
-]
-
-[[package]]
-name = "iztro-render"
-version = "0.1.0"
-dependencies = [
- "iztro-core",
- "serde_json",
-]
-
-[[package]]
-name = "iztro-rules"
-version = "0.1.0"
-dependencies = [
- "iztro-features",
- "serde",
- "thiserror",
+ "anyhow",
 ]
 
 [[package]]

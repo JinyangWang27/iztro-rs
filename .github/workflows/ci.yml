@@ -26,6 +26,12 @@ jobs:
       - name: Run tests
         run: cargo test --workspace
 
+      - name: List package contents
+        run: cargo package -p iztro --list
+
+      - name: Verify package builds
+        run: cargo publish --dry-run -p iztro
+
   coverage:
     name: Coverage
     runs-on: ubuntu-latest
