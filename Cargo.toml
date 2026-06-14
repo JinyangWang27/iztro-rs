@@ -19,6 +19,11 @@ version = "0.1.0"
 
 [workspace.dependencies]
 anyhow = "1"
+iztro-core = { path = "crates/iztro-core", version = "0.1.0" }
+iztro-features = { path = "crates/iztro-features", version = "0.1.0" }
+iztro-reading = { path = "crates/iztro-reading", version = "0.1.0" }
+iztro-render = { path = "crates/iztro-render", version = "0.1.0" }
+iztro-rules = { path = "crates/iztro-rules", version = "0.1.0" }
 lunar-lite = "0.3.1"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
