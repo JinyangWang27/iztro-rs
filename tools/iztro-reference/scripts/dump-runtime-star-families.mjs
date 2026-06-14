@@ -10,7 +10,7 @@
 //   node tools/iztro-reference/scripts/dump-runtime-star-families.mjs [--write]
 //
 // Without --write the fixtures are printed to stdout for inspection. With
-// --write they are written under fixtures/iztro/.
+// --write they are written under crates/iztro/fixtures/iztro/.
 
 import { astro } from "iztro";
 import { getHoroscopeStar } from "iztro/lib/star/horoscopeStar.js";
@@ -305,7 +305,7 @@ outputs.push({ name: "flow_stars.json", fixture: flowFixture() });
 
 if (process.argv.includes("--write")) {
   for (const { name, fixture } of outputs) {
-    writeFileSync(join("fixtures", "iztro", name), `${JSON.stringify(fixture, null, 2)}\n`);
+    writeFileSync(join("crates", "iztro", "fixtures", "iztro", name), `${JSON.stringify(fixture, null, 2)}\n`);
   }
   console.log(`wrote ${outputs.length} fixtures`);
 } else {

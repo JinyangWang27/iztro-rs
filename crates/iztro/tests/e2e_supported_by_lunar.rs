@@ -10,7 +10,7 @@ use iztro::core::{
 use serde::de::DeserializeOwned;
 use serde_json::Value;
 
-const FIXTURE: &str = include_str!("../../../fixtures/iztro/e2e_supported_by_lunar.json");
+const FIXTURE: &str = include_str!("../fixtures/iztro/e2e_supported_by_lunar.json");
 
 const DECORATIVE_FAMILIES: [(&str, DecorativeStarFamily); 4] = [
     ("changsheng12", DecorativeStarFamily::Changsheng12),

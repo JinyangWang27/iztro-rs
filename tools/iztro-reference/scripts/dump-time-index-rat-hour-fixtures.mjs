@@ -7,7 +7,7 @@
 //   npm run dump:time-index-rat-hour --prefix tools/iztro-reference [-- --write]
 //
 // Without --write the fixture is printed to stdout. With --write it is written
-// to fixtures/iztro/time_index_rat_hour.json.
+// to crates/iztro/fixtures/iztro/time_index_rat_hour.json.
 
 import { astro } from "iztro";
 import { writeFileSync } from "node:fs";
@@ -199,10 +199,10 @@ const fixture = buildFixture();
 
 if (process.argv.includes("--write")) {
   writeFileSync(
-    join(REPO_ROOT, "fixtures", "iztro", "time_index_rat_hour.json"),
+    join(REPO_ROOT, "crates", "iztro", "fixtures", "iztro", "time_index_rat_hour.json"),
     `${JSON.stringify(fixture, null, 2)}\n`
   );
-  console.log("wrote fixtures/iztro/time_index_rat_hour.json");
+  console.log("wrote crates/iztro/fixtures/iztro/time_index_rat_hour.json");
 } else {
   console.log(JSON.stringify(fixture, null, 2));
 }

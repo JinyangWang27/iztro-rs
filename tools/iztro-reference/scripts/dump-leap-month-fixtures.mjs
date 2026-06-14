@@ -7,7 +7,7 @@
 //   node tools/iztro-reference/scripts/dump-leap-month-fixtures.mjs [--write]
 //
 // Without --write the fixture is printed to stdout. With --write it is written
-// to fixtures/iztro/leap_month_by_lunar.json.
+// to crates/iztro/fixtures/iztro/leap_month_by_lunar.json.
 
 import { astro } from "iztro";
 import { writeFileSync } from "node:fs";
@@ -250,10 +250,10 @@ const fixture = buildFixture();
 
 if (process.argv.includes("--write")) {
   writeFileSync(
-    join(REPO_ROOT, "fixtures", "iztro", "leap_month_by_lunar.json"),
+    join(REPO_ROOT, "crates", "iztro", "fixtures", "iztro", "leap_month_by_lunar.json"),
     `${JSON.stringify(fixture, null, 2)}\n`
   );
-  console.log("wrote fixtures/iztro/leap_month_by_lunar.json");
+  console.log("wrote crates/iztro/fixtures/iztro/leap_month_by_lunar.json");
 } else {
   console.log(JSON.stringify(fixture, null, 2));
 }

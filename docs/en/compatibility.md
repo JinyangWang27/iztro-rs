@@ -132,7 +132,7 @@ Key fixture groups include:
 - leap-month behavior;
 - rat-hour behavior.
 
-The exact fixture files live under `fixtures/iztro/`. Regeneration scripts live under `tools/iztro-reference`.
+The exact fixture files live under `crates/iztro/fixtures/iztro/`. Regeneration scripts live under `tools/iztro-reference`.
 
 ## Deferred compatibility work
 

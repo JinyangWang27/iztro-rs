@@ -15,17 +15,15 @@ use iztro::core::{
 use serde_json::Value;
 
 const DEFAULT_FIXTURES: [&str; 3] = [
-    include_str!("../../../fixtures/iztro/runtime_decorative_default_1990_05_17_chen_female.json"),
-    include_str!("../../../fixtures/iztro/runtime_decorative_default_1988_03_14_zi_male.json"),
-    include_str!("../../../fixtures/iztro/runtime_decorative_default_1991_08_09_hai_female.json"),
+    include_str!("../fixtures/iztro/runtime_decorative_default_1990_05_17_chen_female.json"),
+    include_str!("../fixtures/iztro/runtime_decorative_default_1988_03_14_zi_male.json"),
+    include_str!("../fixtures/iztro/runtime_decorative_default_1991_08_09_hai_female.json"),
 ];
 
 const ZHONGZHOU_FIXTURES: [&str; 3] = [
-    include_str!(
-        "../../../fixtures/iztro/runtime_decorative_zhongzhou_1990_05_17_chen_female.json"
-    ),
-    include_str!("../../../fixtures/iztro/runtime_decorative_zhongzhou_1988_03_14_zi_male.json"),
-    include_str!("../../../fixtures/iztro/runtime_decorative_zhongzhou_1991_08_09_hai_female.json"),
+    include_str!("../fixtures/iztro/runtime_decorative_zhongzhou_1990_05_17_chen_female.json"),
+    include_str!("../fixtures/iztro/runtime_decorative_zhongzhou_1988_03_14_zi_male.json"),
+    include_str!("../fixtures/iztro/runtime_decorative_zhongzhou_1991_08_09_hai_female.json"),
 ];
 
 const DECORATIVE_FAMILIES: [(&str, DecorativeStarFamily); 4] = [

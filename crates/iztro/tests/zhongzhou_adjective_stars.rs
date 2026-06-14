@@ -39,11 +39,11 @@ const FLOW_BASES: [FlowStarBase; 10] = [
 ];
 
 const ZHONGZHOU_1990_FIXTURE: &str =
-    include_str!("../../../fixtures/iztro/zhongzhou_adjective_stars_1990_05_17_chen_female.json");
+    include_str!("../fixtures/iztro/zhongzhou_adjective_stars_1990_05_17_chen_female.json");
 const ZHONGZHOU_1988_FIXTURE: &str =
-    include_str!("../../../fixtures/iztro/zhongzhou_adjective_stars_1988_03_14_zi_male.json");
+    include_str!("../fixtures/iztro/zhongzhou_adjective_stars_1988_03_14_zi_male.json");
 const ZHONGZHOU_1991_FIXTURE: &str =
-    include_str!("../../../fixtures/iztro/zhongzhou_adjective_stars_1991_08_09_hai_female.json");
+    include_str!("../fixtures/iztro/zhongzhou_adjective_stars_1991_08_09_hai_female.json");
 
 #[test]
 fn default_profile_keeps_default_adjective_star_output() {

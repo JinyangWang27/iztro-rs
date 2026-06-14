@@ -16,7 +16,7 @@ use iztro::core::{
 };
 use serde_json::Value;
 
-const FIXTURE: &str = include_str!("../../../fixtures/iztro/e2e_supported_by_solar.json");
+const FIXTURE: &str = include_str!("../fixtures/iztro/e2e_supported_by_solar.json");
 
 #[test]
 fn by_solar_matches_supported_e2e_fixture_cases() {

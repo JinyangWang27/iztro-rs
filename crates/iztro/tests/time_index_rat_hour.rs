@@ -15,7 +15,7 @@ use iztro::core::{
 };
 use serde_json::Value;
 
-const FIXTURE: &str = include_str!("../../../fixtures/iztro/time_index_rat_hour.json");
+const FIXTURE: &str = include_str!("../fixtures/iztro/time_index_rat_hour.json");
 
 #[test]
 fn by_lunar_matches_time_index_rat_hour_fixture_cases() {

@@ -12,7 +12,7 @@ use iztro::core::{
 use serde_json::Value;
 
 const MAJOR_STARS_FIXTURE: &str =
-    include_str!("../../../fixtures/iztro/major_stars_1990_05_17_chen_female.json");
+    include_str!("../fixtures/iztro/major_stars_1990_05_17_chen_female.json");
 
 /// The fourteen major stars (主星) in canonical order.
 const ALL_MAJOR_STARS: [StarName; 14] = [

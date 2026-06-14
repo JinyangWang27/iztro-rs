@@ -174,28 +174,28 @@ decorative arrays（`yearlyDecStar`）、完整 horoscope 组装、bindings、�
 
 fixtures 为：
 
-- `fixtures/iztro/minimal_natal_1990_05_17_chen_female.json`
-- `fixtures/iztro/major_stars_1990_05_17_chen_female.json`
-- `fixtures/iztro/minor_stars_1990_05_17_chen_female.json`
-- `fixtures/iztro/minor_stars_1988_03_14_zi_male.json`
-- `fixtures/iztro/minor_stars_1991_08_09_hai_female.json`
-- `fixtures/iztro/adjective_stars_full_default_1990_05_17_chen_female.json`
-- `fixtures/iztro/adjective_stars_full_default_1988_03_14_zi_male.json`
-- `fixtures/iztro/adjective_stars_full_default_1991_08_09_hai_female.json`
-- `fixtures/iztro/zhongzhou_adjective_stars_1990_05_17_chen_female.json`
-- `fixtures/iztro/zhongzhou_adjective_stars_1988_03_14_zi_male.json`
-- `fixtures/iztro/zhongzhou_adjective_stars_1991_08_09_hai_female.json`
-- `fixtures/iztro/runtime_decorative_default_1990_05_17_chen_female.json`
-- `fixtures/iztro/runtime_decorative_default_1988_03_14_zi_male.json`
-- `fixtures/iztro/runtime_decorative_default_1991_08_09_hai_female.json`
-- `fixtures/iztro/runtime_decorative_zhongzhou_1990_05_17_chen_female.json`
-- `fixtures/iztro/runtime_decorative_zhongzhou_1988_03_14_zi_male.json`
-- `fixtures/iztro/runtime_decorative_zhongzhou_1991_08_09_hai_female.json`
-- `fixtures/iztro/flow_stars.json`
-- `fixtures/iztro/e2e_supported_by_lunar.json`
-- `fixtures/iztro/e2e_supported_by_solar.json`
-- `fixtures/iztro/leap_month_by_lunar.json`
-- `fixtures/iztro/time_index_rat_hour.json`
+- `crates/iztro/fixtures/iztro/minimal_natal_1990_05_17_chen_female.json`
+- `crates/iztro/fixtures/iztro/major_stars_1990_05_17_chen_female.json`
+- `crates/iztro/fixtures/iztro/minor_stars_1990_05_17_chen_female.json`
+- `crates/iztro/fixtures/iztro/minor_stars_1988_03_14_zi_male.json`
+- `crates/iztro/fixtures/iztro/minor_stars_1991_08_09_hai_female.json`
+- `crates/iztro/fixtures/iztro/adjective_stars_full_default_1990_05_17_chen_female.json`
+- `crates/iztro/fixtures/iztro/adjective_stars_full_default_1988_03_14_zi_male.json`
+- `crates/iztro/fixtures/iztro/adjective_stars_full_default_1991_08_09_hai_female.json`
+- `crates/iztro/fixtures/iztro/zhongzhou_adjective_stars_1990_05_17_chen_female.json`
+- `crates/iztro/fixtures/iztro/zhongzhou_adjective_stars_1988_03_14_zi_male.json`
+- `crates/iztro/fixtures/iztro/zhongzhou_adjective_stars_1991_08_09_hai_female.json`
+- `crates/iztro/fixtures/iztro/runtime_decorative_default_1990_05_17_chen_female.json`
+- `crates/iztro/fixtures/iztro/runtime_decorative_default_1988_03_14_zi_male.json`
+- `crates/iztro/fixtures/iztro/runtime_decorative_default_1991_08_09_hai_female.json`
+- `crates/iztro/fixtures/iztro/runtime_decorative_zhongzhou_1990_05_17_chen_female.json`
+- `crates/iztro/fixtures/iztro/runtime_decorative_zhongzhou_1988_03_14_zi_male.json`
+- `crates/iztro/fixtures/iztro/runtime_decorative_zhongzhou_1991_08_09_hai_female.json`
+- `crates/iztro/fixtures/iztro/flow_stars.json`
+- `crates/iztro/fixtures/iztro/e2e_supported_by_lunar.json`
+- `crates/iztro/fixtures/iztro/e2e_supported_by_solar.json`
+- `crates/iztro/fixtures/iztro/leap_month_by_lunar.json`
+- `crates/iztro/fixtures/iztro/time_index_rat_hour.json`
 
 `e2e_supported_by_solar.json` 覆盖已支持 `by_solar` 切片的七个阳历用例（两种算法，
 共十四例），含农历新年分界、普通日期、转换为闰月的日期、闰月之后的日期，以及同一个

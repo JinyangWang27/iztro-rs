@@ -17,7 +17,7 @@ use iztro::core::{
 };
 use serde_json::Value;
 
-const FIXTURE: &str = include_str!("../../../fixtures/iztro/leap_month_by_lunar.json");
+const FIXTURE: &str = include_str!("../fixtures/iztro/leap_month_by_lunar.json");
 
 #[test]
 fn by_lunar_matches_leap_month_fixture_cases() {

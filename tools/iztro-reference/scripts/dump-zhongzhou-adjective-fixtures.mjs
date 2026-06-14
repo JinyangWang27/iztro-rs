@@ -187,7 +187,7 @@ const fixtures = CASES.map((fixtureCase) => ({
 if (process.argv.includes("--write")) {
   for (const { name, fixture } of fixtures) {
     writeFileSync(
-      join("fixtures", "iztro", name),
+      join("crates", "iztro", "fixtures", "iztro", name),
       `${JSON.stringify(fixture, null, 2)}\n`
     );
   }

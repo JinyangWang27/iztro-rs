@@ -12,13 +12,12 @@ use iztro::core::{
 };
 use serde_json::Value;
 
-const ADJECTIVE_STARS_1990_FIXTURE: &str = include_str!(
-    "../../../fixtures/iztro/adjective_stars_full_default_1990_05_17_chen_female.json"
-);
+const ADJECTIVE_STARS_1990_FIXTURE: &str =
+    include_str!("../fixtures/iztro/adjective_stars_full_default_1990_05_17_chen_female.json");
 const ADJECTIVE_STARS_1988_FIXTURE: &str =
-    include_str!("../../../fixtures/iztro/adjective_stars_full_default_1988_03_14_zi_male.json");
+    include_str!("../fixtures/iztro/adjective_stars_full_default_1988_03_14_zi_male.json");
 const ADJECTIVE_STARS_1991_FIXTURE: &str =
-    include_str!("../../../fixtures/iztro/adjective_stars_full_default_1991_08_09_hai_female.json");
+    include_str!("../fixtures/iztro/adjective_stars_full_default_1991_08_09_hai_female.json");
 
 /// The full default-algorithm natal adjective/helper-star (杂曜) set (38).
 const DEFAULT_ADJECTIVE_STARS: [StarName; 38] = [

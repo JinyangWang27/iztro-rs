@@ -13,11 +13,11 @@ use iztro::core::{
 use serde_json::Value;
 
 const MINOR_STARS_1990_FIXTURE: &str =
-    include_str!("../../../fixtures/iztro/minor_stars_1990_05_17_chen_female.json");
+    include_str!("../fixtures/iztro/minor_stars_1990_05_17_chen_female.json");
 const MINOR_STARS_1988_FIXTURE: &str =
-    include_str!("../../../fixtures/iztro/minor_stars_1988_03_14_zi_male.json");
+    include_str!("../fixtures/iztro/minor_stars_1988_03_14_zi_male.json");
 const MINOR_STARS_1991_FIXTURE: &str =
-    include_str!("../../../fixtures/iztro/minor_stars_1991_08_09_hai_female.json");
+    include_str!("../fixtures/iztro/minor_stars_1991_08_09_hai_female.json");
 
 const ALL_MINOR_STARS: [StarName; 14] = [
     StarName::ZuoFu,

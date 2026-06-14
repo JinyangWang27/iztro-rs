@@ -9,7 +9,7 @@ use iztro::core::{
 };
 use serde_json::Value;
 
-const FLOW_FIXTURE: &str = include_str!("../../../fixtures/iztro/flow_stars.json");
+const FLOW_FIXTURE: &str = include_str!("../fixtures/iztro/flow_stars.json");
 
 #[test]
 fn flow_layers_match_upstream_fixtures() {

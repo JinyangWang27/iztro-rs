@@ -5,7 +5,7 @@ use iztro::core::{
 use serde_json::Value;
 
 const MINIMAL_NATAL_FIXTURE: &str =
-    include_str!("../../../fixtures/iztro/minimal_natal_1990_05_17_chen_female.json");
+    include_str!("../fixtures/iztro/minimal_natal_1990_05_17_chen_female.json");
 
 #[test]
 fn minimal_natal_chart_matches_supported_iztro_fixture_fields() {
