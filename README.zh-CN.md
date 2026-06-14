@@ -1,7 +1,11 @@
 # iztro-rs
 
+[![Crates.io Version](https://img.shields.io/crates/v/iztro.svg)](https://crates.io/crates/iztro)
+[![Crates.io Downloads](https://img.shields.io/crates/d/iztro.svg)](https://crates.io/crates/iztro)
+[![Docs.rs](https://img.shields.io/docsrs/iztro.svg)](https://docs.rs/iztro)
 [![CI](https://github.com/JinyangWang27/iztro-rs/actions/workflows/ci.yml/badge.svg)](https://github.com/JinyangWang27/iztro-rs/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/JinyangWang27/iztro-rs/branch/main/graph/badge.svg)](https://codecov.io/gh/JinyangWang27/iztro-rs)
+[![License](https://img.shields.io/crates/l/iztro.svg)](https://crates.io/crates/iztro)
 
 `iztro-rs` 是一个 Rust 版紫微斗数项目，目标是提供排盘、特征提取，以及未来基于规则的解盘能力。
 
