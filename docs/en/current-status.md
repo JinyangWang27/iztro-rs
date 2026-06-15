@@ -26,7 +26,8 @@ The supported natal chart fact surface currently includes:
 - untyped decorative runtime star families in `Palace::decorative_stars()`;
 - branch-tagged typed temporal flow-star placements from explicit temporal contexts;
 - decadal and yearly mutagen activation layers from explicit contexts;
-- typed `DecadalFrame` derivation with 12 ten-year periods, direction, age ranges, and natal palace stem-branch facts.
+- typed `DecadalFrame` derivation with 12 ten-year periods, direction, age ranges, and natal palace stem-branch facts;
+- decadal temporal palace-name layout (`TemporalPalaceLayout`) attached to the selected decadal layer, keyed by `EarthlyBranch` and validated against the upstream horoscope fixture.
 
 Default/non-Zhongzhou natal output remains 66 typed natal stars. Zhongzhou natal output remains 68 typed natal stars. `represented_star_metadata_table().len() == 70` stays natal-only, while `known_star_metadata_table().len() == 170` inventories the broader upstream runtime star-name universe.
 
@@ -54,7 +55,8 @@ It preserves:
 - natal Life/Body Palace branches and five-element bureau;
 - conventional 12-palace visual grid positions;
 - one natal layer plus zero or more temporal layers;
-- separate cell sections for natal typed stars, decorative stars, scoped temporal stars, and mutagen activations.
+- separate cell sections for natal typed stars, decorative stars, scoped temporal stars, and mutagen activations;
+- per-cell decadal temporal palace name, kept separate from the natal palace name so temporal labels never overwrite natal spatial facts.
 
 `render` currently provides a deterministic plain text renderer over `ChartStackSnapshot`. The top-level README and `docs/en/demo.md` show the current end-to-end flow:
 
@@ -70,7 +72,7 @@ The following remain intentionally out of scope for the current supported surfac
 - full horoscope assembly;
 - 流年 / 流月 / 流日 / 流时 period derivation;
 - attaching derived 大限 frames as temporal layers;
-- horoscope palace-name derivation;
+- 流年 / 流月 / 流日 / 流时 / 小限 horoscope palace-name derivation (decadal palace-name layout is implemented);
 - temporal decorative arrays such as upstream `yearlyDecStar`;
 - full upstream facade serialization parity;
 - bindings;
