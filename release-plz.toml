@@ -1,0 +1,42 @@
+[workspace]
+# Only release when release-plz creates/updates a release PR and that PR is merged.
+# This avoids publishing on every normal merge to main.
+release_always = false
+
+# Keep dependency updates in the release PR when relevant.
+dependencies_update = true
+
+# Generate/update changelog in the release PR.
+changelog_update = true
+
+# Keep GitHub releases and git tags enabled.
+git_release_enable = true
+git_tag_enable = true
+
+# Match your manual initial tags: v0.1.0, v0.1.1, ...
+git_tag_name = "v{{ version }}"
+git_release_name = "v{{ version }}"
+
+# Run cargo-semver-checks.
+semver_check = true
+
+# Give crates.io enough time.
+publish_timeout = "30m"
+
+# Nice release PR metadata.
+pr_name = "chore: release {{ package }} {{ version }}"
+pr_labels = ["release"]
+
+[[package]]
+name = "iztro"
+changelog_update = true
+git_release_enable = true
+publish = true
+release = true
+
+[[package]]
+name = "iztro-cli"
+release = false
+publish = false
+changelog_update = false
+git_release_enable = false

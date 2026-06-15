@@ -7,6 +7,12 @@ license.workspace = true
 repository.workspace = true
 rust-version.workspace = true
 version.workspace = true
+readme = "../../README.md"
+exclude = [
+    "fixtures/**",
+    "tests/**"
+]
+
 
 [dependencies]
 lunar-lite = { workspace = true, features = ["serde"] }
