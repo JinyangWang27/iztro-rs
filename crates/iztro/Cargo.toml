@@ -9,7 +9,6 @@ rust-version.workspace = true
 version.workspace = true
 readme = "../../README.md"
 exclude = [
-    "examples",
     "fixtures/**",
     "tests/**"
 ]
