@@ -265,6 +265,7 @@ pub struct PalaceLayerCellSnapshot {
     grid_position: PalaceGridPosition,
     natal_palace_name: Option<PalaceName>,
     natal_palace_stem: Option<HeavenlyStem>,
+    temporal_palace_name: Option<PalaceName>,
     roles: Vec<PalaceRoleSnapshot>,
     typed_stars: Vec<TypedStarSnapshot>,
     decorative_stars: Vec<DecorativeStarSnapshot>,
@@ -293,6 +294,7 @@ impl PalaceLayerCellSnapshot {
             grid_position: palace_grid_position(branch),
             natal_palace_name: palace.map(|palace| palace.name()),
             natal_palace_stem: palace.map(|palace| palace.stem()),
+            temporal_palace_name: None,
             roles,
             typed_stars: palace
                 .map(|palace| {
@@ -328,6 +330,9 @@ impl PalaceLayerCellSnapshot {
             grid_position: palace_grid_position(branch),
             natal_palace_name: palace.map(|palace| palace.name()),
             natal_palace_stem: palace.map(|palace| palace.stem()),
+            temporal_palace_name: layer
+                .palace_layout()
+                .and_then(|layout| layout.name_for_branch(branch)),
             roles: Vec::new(),
             typed_stars: Vec::new(),
             decorative_stars: Vec::new(),
@@ -364,6 +369,15 @@ impl PalaceLayerCellSnapshot {
     /// Returns the natal palace stem joined by branch, if present.
     pub const fn natal_palace_stem(&self) -> Option<HeavenlyStem> {
         self.natal_palace_stem
+    }
+
+    /// Returns the temporal palace name this layer assigns to the branch, if any.
+    ///
+    /// This is an additive overlay fact, kept separate from
+    /// [`natal_palace_name`](Self::natal_palace_name): it is `None` on the natal
+    /// layer and on temporal layers that carry no palace-name layout.
+    pub const fn temporal_palace_name(&self) -> Option<PalaceName> {
+        self.temporal_palace_name
     }
 
     /// Returns role markers for this cell.

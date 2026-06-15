@@ -207,9 +207,14 @@ fn horoscope_chart_stack_snapshot_groups_temporal_overlays_by_branch_without_dup
         EarthlyBranch::Wu,
         Mutagen::Lu,
     );
-    let temporal_layer =
-        TemporalLayer::try_new(Scope::Yearly, context, vec![scoped_star], vec![activation])
-            .expect("temporal layer should build");
+    let temporal_layer = TemporalLayer::try_new(
+        Scope::Yearly,
+        context,
+        vec![scoped_star],
+        vec![activation],
+        None,
+    )
+    .expect("temporal layer should build");
     let horoscope = HoroscopeChart::with_layers(natal.clone(), vec![temporal_layer]);
 
     let snapshot = ChartStackSnapshot::from_horoscope_chart(&horoscope);

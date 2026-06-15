@@ -153,6 +153,14 @@ pub enum ChartError {
         /// Source scope carried by the rejected activation.
         activation: Scope,
     },
+    /// A temporal palace-name layout must carry the layer's scope.
+    #[error("temporal palace layout scope {layout:?} does not match layer scope {layer:?}")]
+    TemporalPalaceLayoutScopeMismatch {
+        /// Scope declared on the layer.
+        layer: Scope,
+        /// Scope carried by the rejected palace layout.
+        layout: Scope,
+    },
     /// A requested decadal period index is outside the derived decadal frame.
     #[error("invalid decadal period index: index {index} is out of range for {len} periods")]
     InvalidDecadalPeriodIndex {

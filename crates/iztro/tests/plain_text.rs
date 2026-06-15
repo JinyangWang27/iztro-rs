@@ -62,9 +62,14 @@ fn yearly_fixture_snapshot() -> ChartStackSnapshot {
         EarthlyBranch::Wu,
         Mutagen::Lu,
     );
-    let temporal_layer =
-        TemporalLayer::try_new(Scope::Yearly, context, vec![scoped_star], vec![activation])
-            .expect("temporal layer should build");
+    let temporal_layer = TemporalLayer::try_new(
+        Scope::Yearly,
+        context,
+        vec![scoped_star],
+        vec![activation],
+        None,
+    )
+    .expect("temporal layer should build");
     let horoscope = HoroscopeChart::with_layers(natal, vec![temporal_layer]);
 
     ChartStackSnapshot::from_horoscope_chart(&horoscope)

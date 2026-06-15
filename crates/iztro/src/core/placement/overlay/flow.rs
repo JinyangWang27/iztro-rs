@@ -55,7 +55,7 @@ pub fn build_flow_star_layer(context: TemporalContext) -> Result<TemporalLayer, 
         ));
     }
 
-    TemporalLayer::try_new(scope, context, placements, Vec::new())
+    TemporalLayer::try_new(scope, context, placements, Vec::new(), None)
 }
 
 /// Returns the branch of each of the ten matrix flow stars for a stem-branch.
