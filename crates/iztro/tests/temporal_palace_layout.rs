@@ -58,6 +58,20 @@ fn canonical_decadal_fixture() -> Value {
     case["supported_fields"]["decadal"].clone()
 }
 
+/// Builds a well-formed set of twelve temporal palace names: each branch on the
+/// ring (starting at 寅) paired with a distinct palace name, so every branch and
+/// every palace name appears exactly once.
+fn full_palace_names() -> Vec<TemporalPalaceName> {
+    (0..12_isize)
+        .map(|offset| {
+            TemporalPalaceName::new(
+                EarthlyBranch::Yin.offset(offset),
+                PalaceName::Life.offset(offset),
+            )
+        })
+        .collect()
+}
+
 /// Selects the decadal period occupying `branch` from the chart's frame.
 fn decadal_period_for_branch(chart: &Chart, branch: EarthlyBranch) -> DecadalPeriod {
     build_decadal_frame(chart)
@@ -253,14 +267,8 @@ fn temporal_layer_rejects_palace_layout_scope_mismatch() {
         start_age: 6,
     };
     // A yearly-scoped layout cannot ride on a decadal layer.
-    let layout = TemporalPalaceLayout::try_new(
-        Scope::Yearly,
-        vec![TemporalPalaceName::new(
-            EarthlyBranch::Hai,
-            PalaceName::Life,
-        )],
-    )
-    .expect("non-natal layout should build");
+    let layout = TemporalPalaceLayout::try_new(Scope::Yearly, full_palace_names())
+        .expect("non-natal layout should build");
 
     let result = TemporalLayer::try_new_with_palace_layout(
         Scope::Decadal,
@@ -290,4 +298,84 @@ fn temporal_palace_layout_rejects_natal_scope() {
     );
 
     assert_eq!(result.unwrap_err(), ChartError::NatalScopeInTemporalLayer);
+}
+
+#[test]
+fn temporal_palace_layout_rejects_wrong_count() {
+    let empty = TemporalPalaceLayout::try_new(Scope::Decadal, Vec::new());
+    assert_eq!(
+        empty.unwrap_err(),
+        ChartError::InvalidTemporalPalaceLayoutCount {
+            expected: 12,
+            actual: 0,
+        }
+    );
+
+    let single = TemporalPalaceLayout::try_new(
+        Scope::Decadal,
+        vec![TemporalPalaceName::new(
+            EarthlyBranch::Hai,
+            PalaceName::Life,
+        )],
+    );
+    assert_eq!(
+        single.unwrap_err(),
+        ChartError::InvalidTemporalPalaceLayoutCount {
+            expected: 12,
+            actual: 1,
+        }
+    );
+}
+
+#[test]
+fn temporal_palace_layout_rejects_duplicate_branch() {
+    let mut names = full_palace_names();
+    // Twelve entries, but reuse the first branch on the second entry.
+    let duplicated = names[0].branch();
+    names[1] = TemporalPalaceName::new(duplicated, names[1].palace_name());
+
+    let result = TemporalPalaceLayout::try_new(Scope::Decadal, names);
+
+    assert_eq!(
+        result.unwrap_err(),
+        ChartError::DuplicateTemporalPalaceLayoutBranch { branch: duplicated }
+    );
+}
+
+#[test]
+fn temporal_palace_layout_rejects_duplicate_palace_name() {
+    let mut names = full_palace_names();
+    // Twelve unique branches, but reuse the first palace name on the second entry.
+    let duplicated = names[0].palace_name();
+    names[1] = TemporalPalaceName::new(names[1].branch(), duplicated);
+
+    let result = TemporalPalaceLayout::try_new(Scope::Decadal, names);
+
+    assert_eq!(
+        result.unwrap_err(),
+        ChartError::DuplicateTemporalPalaceLayoutName {
+            palace_name: duplicated,
+        }
+    );
+}
+
+#[test]
+fn temporal_palace_layout_json_cannot_bypass_invariants() {
+    let layout = TemporalPalaceLayout::try_new(Scope::Decadal, full_palace_names())
+        .expect("valid layout should build");
+
+    // Drop one name so the serialized layout no longer carries twelve.
+    let mut json = serde_json::to_value(&layout).expect("layout should serialize");
+    json["names"]
+        .as_array_mut()
+        .expect("names should be an array")
+        .pop();
+
+    let err = serde_json::from_value::<TemporalPalaceLayout>(json)
+        .expect_err("invalid serialized layout should be rejected");
+    assert!(
+        err.to_string()
+            .contains("invalid temporal palace layout count"),
+        "unexpected deserialization error: {err}"
+    );
 }

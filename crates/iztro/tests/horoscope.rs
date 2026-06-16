@@ -52,13 +52,8 @@ fn sample_yearly_layer() -> TemporalLayer {
         Mutagen::Lu,
     )];
 
-    TemporalLayer::try_new(
-        Scope::Yearly,
-        yearly_context(),
-        placements,
-        activations,
-    )
-    .expect("yearly layer should build")
+    TemporalLayer::try_new(Scope::Yearly, yearly_context(), placements, activations)
+        .expect("yearly layer should build")
 }
 
 #[test]
@@ -148,8 +143,7 @@ fn temporal_layer_round_trips_branch_tagged_placements() {
 
 #[test]
 fn temporal_layer_rejects_natal_scope() {
-    let result =
-        TemporalLayer::try_new(Scope::Natal, yearly_context(), Vec::new(), Vec::new());
+    let result = TemporalLayer::try_new(Scope::Natal, yearly_context(), Vec::new(), Vec::new());
 
     assert_eq!(result.unwrap_err(), ChartError::NatalScopeInTemporalLayer);
 }
@@ -186,12 +180,8 @@ fn temporal_layer_rejects_natal_scoped_placement() {
         ),
     );
 
-    let result = TemporalLayer::try_new(
-        Scope::Yearly,
-        yearly_context(),
-        vec![placement],
-        Vec::new(),
-    );
+    let result =
+        TemporalLayer::try_new(Scope::Yearly, yearly_context(), vec![placement], Vec::new());
 
     assert_eq!(
         result.unwrap_err(),

@@ -17,7 +17,7 @@
 use crate::core::{
     error::ChartError,
     model::{
-        chart::{Chart, PalaceName, StarPlacement},
+        chart::{Chart, PALACE_COUNT, PalaceName, StarPlacement},
         star::StarName,
         star::mutagen::{Mutagen, Scope},
     },
@@ -224,13 +224,41 @@ pub struct TemporalPalaceLayout {
 }
 
 impl TemporalPalaceLayout {
-    /// Creates a temporal palace-name layout after checking the scope invariant.
+    /// Creates a temporal palace-name layout after checking its invariants.
     ///
-    /// Rejects the natal scope: natal palace names are spatial facts of the
-    /// [`Chart`], so a temporal layout always describes a non-natal period.
+    /// Rejects the natal scope (natal palace names are spatial facts of the
+    /// [`Chart`], so a temporal layout always describes a non-natal period),
+    /// requires exactly [`PALACE_COUNT`] names, and requires every
+    /// [`EarthlyBranch`] and every [`PalaceName`] to appear exactly once — a
+    /// well-formed layout relabels each of the twelve branch positions with a
+    /// distinct palace name.
     pub fn try_new(scope: Scope, names: Vec<TemporalPalaceName>) -> Result<Self, ChartError> {
         if scope == Scope::Natal {
             return Err(ChartError::NatalScopeInTemporalLayer);
+        }
+        if names.len() != PALACE_COUNT {
+            return Err(ChartError::InvalidTemporalPalaceLayoutCount {
+                expected: PALACE_COUNT,
+                actual: names.len(),
+            });
+        }
+        for (index, name) in names.iter().enumerate() {
+            if names[..index]
+                .iter()
+                .any(|seen| seen.branch() == name.branch())
+            {
+                return Err(ChartError::DuplicateTemporalPalaceLayoutBranch {
+                    branch: name.branch(),
+                });
+            }
+            if names[..index]
+                .iter()
+                .any(|seen| seen.palace_name() == name.palace_name())
+            {
+                return Err(ChartError::DuplicateTemporalPalaceLayoutName {
+                    palace_name: name.palace_name(),
+                });
+            }
         }
 
         Ok(Self { scope, names })
