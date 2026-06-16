@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0](https://github.com/JinyangWang27/iztro-rs/compare/v0.4.0...v0.5.0) - 2026-06-16
+
+### Added
+
+- *(core)* add horoscope supported-fields snapshot ([#67](https://github.com/JinyangWang27/iztro-rs/pull/67))
+
 ## [0.4.0](https://github.com/JinyangWang27/iztro-rs/compare/v0.3.1...v0.4.0) - 2026-06-16
 
 ### Added
