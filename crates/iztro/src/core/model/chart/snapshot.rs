@@ -274,6 +274,7 @@ pub struct PalaceLayerCellSnapshot {
     typed_stars: Vec<TypedStarSnapshot>,
     decorative_stars: Vec<DecorativeStarSnapshot>,
     scoped_stars: Vec<ScopedStarSnapshot>,
+    temporal_decorative_stars: Vec<DecorativeStarSnapshot>,
     mutagen_activations: Vec<MutagenActivationSnapshot>,
 }
 
@@ -319,6 +320,7 @@ impl PalaceLayerCellSnapshot {
                 })
                 .unwrap_or_default(),
             scoped_stars: Vec::new(),
+            temporal_decorative_stars: Vec::new(),
             mutagen_activations: Vec::new(),
         }
     }
@@ -345,6 +347,14 @@ impl PalaceLayerCellSnapshot {
                 .iter()
                 .filter(|placement| placement.branch() == branch)
                 .map(ScopedStarSnapshot::from_scoped_star_placement)
+                .collect(),
+            temporal_decorative_stars: layer
+                .temporal_decorative_stars()
+                .iter()
+                .filter(|placement| placement.branch() == branch)
+                .map(|placement| {
+                    DecorativeStarSnapshot::from_decorative_star_placement(placement.placement())
+                })
                 .collect(),
             mutagen_activations: layer
                 .activations()
@@ -395,8 +405,21 @@ impl PalaceLayerCellSnapshot {
     }
 
     /// Returns natal decorative stars in this cell.
+    ///
+    /// Natal-only: temporal decorative facts (e.g. yearly `yearlyDecStar`) are
+    /// kept separate under [`temporal_decorative_stars`](Self::temporal_decorative_stars).
     pub fn decorative_stars(&self) -> &[DecorativeStarSnapshot] {
         &self.decorative_stars
+    }
+
+    /// Returns temporal decorative stars grouped into this cell.
+    ///
+    /// These are a temporal layer's untyped decorative facts (e.g. yearly
+    /// `yearlyDecStar`), kept distinct from the natal
+    /// [`decorative_stars`](Self::decorative_stars): empty on the natal layer and
+    /// on temporal layers that add no decorative facts.
+    pub fn temporal_decorative_stars(&self) -> &[DecorativeStarSnapshot] {
+        &self.temporal_decorative_stars
     }
 
     /// Returns temporal scoped stars grouped into this cell.

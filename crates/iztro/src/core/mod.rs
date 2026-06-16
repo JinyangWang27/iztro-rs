@@ -94,6 +94,7 @@ pub use placement::overlay::horoscope_stack::{HoroscopeStackInput, build_full_ho
 pub use placement::overlay::hourly_horoscope::build_hourly_horoscope_layer;
 pub use placement::overlay::monthly_horoscope::build_monthly_horoscope_layer;
 pub use placement::overlay::yearly::{YearlyMutagenLayerInput, build_yearly_mutagen_layer};
+pub use placement::overlay::yearly_decorative::build_yearly_decorative_star_placements;
 pub use placement::overlay::yearly_horoscope::build_yearly_horoscope_layer;
 
 pub use facade::by_lunar::{LunarChartRequest, LunarChartRequestBuilder, by_lunar};

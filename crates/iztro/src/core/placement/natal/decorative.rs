@@ -177,17 +177,37 @@ fn decorative_star_placements(
         DecorativeStarFamily::Boshi12,
     );
 
-    // 岁前十二神: start from the year branch, always forward. iztro renames the
-    // seventh entry 大耗 to 岁破 under the Zhongzhou algorithm.
+    // 岁前/将前十二神 depend only on the year branch and algorithm, so they are
+    // shared with yearly-scope temporal decorative placement.
+    placements.extend(suiqian_jiangqian12_placements(
+        year_branch,
+        chart.method_profile().algorithm_kind(),
+    ));
+
+    Ok(placements)
+}
+
+/// Computes the 岁前/将前十二神 placements anchored on a year branch.
+///
+/// Shared by natal decorative placement and yearly-scope temporal decorative
+/// placement (`yearlyDecStar`): upstream derives both from the same rule, keyed
+/// by the relevant year branch. 岁前 starts on the year branch; 将前 starts on the
+/// year-branch triad anchor; both run forward. The Zhongzhou algorithm renames
+/// the seventh 岁前 entry 大耗 to 岁破.
+pub(crate) fn suiqian_jiangqian12_placements(
+    year_branch: EarthlyBranch,
+    algorithm: ChartAlgorithmKind,
+) -> Vec<(EarthlyBranch, StarName, DecorativeStarFamily)> {
+    let mut placements = Vec::with_capacity(24);
+
     place_twelve(
         &mut placements,
         year_branch,
         true,
-        &suiqian12_names(chart.method_profile().algorithm_kind()),
+        &suiqian12_names(algorithm),
         DecorativeStarFamily::Suiqian12,
     );
 
-    // 将前十二神: start from the year-branch triad anchor, always forward.
     place_twelve(
         &mut placements,
         jiangqian12_start_branch(year_branch),
@@ -196,7 +216,7 @@ fn decorative_star_placements(
         DecorativeStarFamily::Jiangqian12,
     );
 
-    Ok(placements)
+    placements
 }
 
 /// Appends a twelve-entry family, advancing forward or backward from `start`.
