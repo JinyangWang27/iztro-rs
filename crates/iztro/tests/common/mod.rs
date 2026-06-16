@@ -20,6 +20,8 @@ use serde_json::Value;
 pub const HOROSCOPE_FIXTURE: &str = include_str!("../../fixtures/iztro/horoscope.json");
 pub const HOROSCOPE_RUNTIME_FIXTURE: &str =
     include_str!("../../fixtures/iztro/horoscope_runtime.json");
+pub const HOROSCOPE_FACADE_FIXTURE: &str =
+    include_str!("../../fixtures/iztro/horoscope_facade.json");
 
 pub const DECORATIVE_FAMILIES: [(&str, DecorativeStarFamily); 4] = [
     ("changsheng12", DecorativeStarFamily::Changsheng12),
@@ -313,6 +315,17 @@ pub fn horoscope_runtime_fixture_cases() -> Vec<Value> {
     fixture["cases"]
         .as_array()
         .expect("runtime fixture cases should be an array")
+        .to_vec()
+}
+
+/// Returns every horoscope facade fixture case.
+pub fn horoscope_facade_fixture_cases() -> Vec<Value> {
+    let fixture: Value =
+        serde_json::from_str(HOROSCOPE_FACADE_FIXTURE).expect("facade fixture should parse");
+
+    fixture["cases"]
+        .as_array()
+        .expect("facade fixture cases should be an array")
         .to_vec()
 }
 
