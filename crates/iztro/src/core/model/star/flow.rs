@@ -1,7 +1,9 @@
 use crate::core::model::star::name::StarName;
+use serde::{Deserialize, Serialize};
 
 /// Horoscope flow-star scope for normalized runtime identity.
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum FlowStarScope {
     /// Decadal flow-star runtime identity.
     Decadal,
@@ -16,7 +18,8 @@ pub enum FlowStarScope {
 }
 
 /// Base identity shared by upstream horoscope flow-star runtime names.
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum FlowStarBase {
     /// Kui flow star (魁).
     Kui,

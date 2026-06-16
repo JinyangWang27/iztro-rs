@@ -33,7 +33,12 @@ pub use model::calendar::{
 pub use model::chart::{
     AgePeriod, Chart, ChartLayerKind, ChartLayerSnapshot, ChartStackSnapshot, DailyPeriod,
     DecadalDirection, DecadalFrame, DecadalPeriod, DecorativeStarFamily, DecorativeStarPlacement,
-    DecorativeStarPlacementRef, DecorativeStarSnapshot, HoroscopeChart, HourlyPeriod,
+    DecorativeStarPlacementRef, DecorativeStarSnapshot, HoroscopeAgeSupportedFields,
+    HoroscopeChart, HoroscopeFlowScopeSupportedFields, HoroscopeFlowStarSupportedField,
+    HoroscopeMutagenSupportedFields, HoroscopeMutagenTargetSupportedField,
+    HoroscopePalaceNameSupportedField, HoroscopeScopeSupportedFields,
+    HoroscopeSupportedFieldsSnapshot, HoroscopeYearlyDecorativeStarSupportedField,
+    HoroscopeYearlyDecorativeSupportedFields, HoroscopeYearlySupportedFields, HourlyPeriod,
     MajorStarPlacementRef, MonthlyPeriod, MutagenActivation, MutagenActivationSnapshot,
     PALACE_COUNT, PALACE_NAMES, Palace, PalaceGridPosition, PalaceLayerCellSnapshot, PalaceName,
     PalaceRoleKind, PalaceRoleSnapshot, ScopedDecorativeStarPlacement, ScopedStarPlacement,

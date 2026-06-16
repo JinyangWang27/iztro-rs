@@ -1,6 +1,6 @@
 use crate::core::model::chart::PalaceName;
 use crate::core::model::star::StarName;
-use crate::core::model::star::mutagen::Scope;
+use crate::core::model::star::mutagen::{Mutagen, Scope};
 use lunar_lite::{EarthlyBranch, HeavenlyStem};
 use thiserror::Error;
 
@@ -217,6 +217,40 @@ pub enum ChartError {
     NominalAgeOutsideDecadalFrame {
         /// Nominal age that no decadal period covers.
         nominal_age: u8,
+    },
+    /// A supported-fields export requires exactly one layer for each horoscope scope.
+    #[error("missing horoscope layer for scope {scope:?}")]
+    MissingHoroscopeLayer {
+        /// Required scope that is absent.
+        scope: Scope,
+    },
+    /// A supported-fields export cannot choose between repeated horoscope layers.
+    #[error("duplicate horoscope layer for scope {scope:?}")]
+    DuplicateHoroscopeLayer {
+        /// Scope that appears more than once.
+        scope: Scope,
+    },
+    /// A supported-fields export requires temporal palace names for every scope.
+    #[error("missing horoscope palace layout for scope {scope:?}")]
+    MissingHoroscopePalaceLayout {
+        /// Scope with no palace-name layout.
+        scope: Scope,
+    },
+    /// A supported-fields export requires the four modeled mutagen activations.
+    #[error("missing horoscope mutagen activation {mutagen:?} for scope {scope:?}")]
+    MissingHoroscopeMutagenActivation {
+        /// Scope with the missing activation.
+        scope: Scope,
+        /// Transform that has no activation in the layer.
+        mutagen: Mutagen,
+    },
+    /// A temporal placement is not a normalized flow star for its horoscope scope.
+    #[error("invalid horoscope flow star {star:?} for scope {scope:?}")]
+    InvalidHoroscopeFlowStar {
+        /// Scope being exported.
+        scope: Scope,
+        /// Star that cannot be normalized for that scope.
+        star: StarName,
     },
     /// Placeholder error used until chart-generation validation exists.
     #[error("chart generation is not implemented")]

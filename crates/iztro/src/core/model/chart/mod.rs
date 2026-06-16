@@ -13,6 +13,7 @@ pub mod hourly;
 pub mod monthly;
 pub mod palace;
 pub mod snapshot;
+pub mod supported_fields;
 pub mod yearly;
 
 mod temporal_layout;
@@ -40,5 +41,13 @@ pub use snapshot::{
     MutagenActivationSnapshot, PalaceGridPosition, PalaceLayerCellSnapshot, PalaceRoleKind,
     PalaceRoleSnapshot, ScopedStarSnapshot, TypedStarSnapshot, VISUAL_BRANCH_ORDER,
     palace_grid_position,
+};
+pub use supported_fields::{
+    HoroscopeAgeSupportedFields, HoroscopeFlowScopeSupportedFields,
+    HoroscopeFlowStarSupportedField, HoroscopeMutagenSupportedFields,
+    HoroscopeMutagenTargetSupportedField, HoroscopePalaceNameSupportedField,
+    HoroscopeScopeSupportedFields, HoroscopeSupportedFieldsSnapshot,
+    HoroscopeYearlyDecorativeStarSupportedField, HoroscopeYearlyDecorativeSupportedFields,
+    HoroscopeYearlySupportedFields,
 };
 pub use yearly::{YearlyPeriod, build_yearly_period};
