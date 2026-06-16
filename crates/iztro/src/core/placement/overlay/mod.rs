@@ -10,6 +10,7 @@ pub mod daily_horoscope;
 pub mod decadal;
 pub mod decadal_horoscope;
 pub mod flow;
+pub mod horoscope_stack;
 pub mod hourly_horoscope;
 pub mod monthly_horoscope;
 pub mod yearly;

@@ -7,12 +7,17 @@
 use std::collections::{HashMap, HashSet};
 
 use iztro::core::{
-    Brightness, Chart, ChartAlgorithmKind, DecorativeStarFamily, EarthlyBranch, FiveElementBureau,
-    HeavenlyStem, Mutagen, PalaceName, StarKind, StarName, known_star_metadata_table,
-    represented_star_metadata_table,
+    BirthTime, Brightness, Chart, ChartAlgorithmKind, DecorativeStarFamily, EarthlyBranch,
+    FiveElementBureau, FlowStarBase, FlowStarScope, Gender, HeavenlyStem, LunarChartRequest,
+    LunarDay, LunarMonth, MethodProfile, Mutagen, PalaceName, StarKind, StarName, StemBranch,
+    by_lunar, flow_star_name, known_star_metadata_table, represented_star_metadata_table,
 };
 use serde::de::DeserializeOwned;
 use serde_json::Value;
+
+/// Source of truth for the upstream `FunctionalAstrolabe#horoscope` supported
+/// fields, shared by every temporal-layer integration test.
+pub const HOROSCOPE_FIXTURE: &str = include_str!("../../fixtures/iztro/horoscope.json");
 
 pub const DECORATIVE_FAMILIES: [(&str, DecorativeStarFamily); 4] = [
     ("changsheng12", DecorativeStarFamily::Changsheng12),
@@ -269,5 +274,223 @@ pub fn assert_suiqian_algorithm_boundary(
             );
         }
         ChartAlgorithmKind::Placeholder => panic!("unsupported e2e fixture algorithm"),
+    }
+}
+
+// --- Shared horoscope (運限) fixture helpers ------------------------------------
+//
+// The temporal-layer tests all parse the same `horoscope.json` cases the same
+// way: build the natal chart through `by_lunar`, read a per-scope supported
+// block, and assert palace names / mutagens / flow stars against it. These
+// helpers centralize that parsing so each test asserts behavior, not JSON shape.
+
+/// Returns every horoscope fixture case.
+pub fn horoscope_fixture_cases() -> Vec<Value> {
+    let fixture: Value =
+        serde_json::from_str(HOROSCOPE_FIXTURE).expect("horoscope fixture should parse");
+
+    fixture["cases"]
+        .as_array()
+        .expect("fixture cases should be an array")
+        .to_vec()
+}
+
+/// Returns one horoscope fixture case by id.
+pub fn horoscope_fixture_case(case_id: &str) -> Value {
+    horoscope_fixture_cases()
+        .into_iter()
+        .find(|case| case["id"].as_str() == Some(case_id))
+        .unwrap_or_else(|| panic!("missing horoscope fixture case {case_id}"))
+}
+
+/// Builds the natal chart for a horoscope fixture case through `by_lunar`.
+pub fn build_chart_from_horoscope_fixture_case(case: &Value) -> Chart {
+    let input = &case["input"];
+    assert_eq!(
+        input["calendar"].as_str(),
+        Some("lunar"),
+        "horoscope fixtures should build through by_lunar"
+    );
+    let lunar_year = input["year"].as_i64().expect("fixture lunar year") as i32;
+    let birth_year = StemBranch::from_lunar_year(lunar_year);
+    let method_profile = MethodProfile::new(
+        case["id"].as_str().expect("case id"),
+        parse_algorithm(input["algorithm"].as_str().expect("algorithm")),
+        "horoscope fixture test",
+    );
+    let request = LunarChartRequest::builder()
+        .lunar_year(lunar_year)
+        .lunar_month(
+            LunarMonth::new(input["month"].as_u64().expect("fixture lunar month") as u8)
+                .expect("fixture lunar month should be valid"),
+        )
+        .lunar_day(
+            LunarDay::new(input["day"].as_u64().expect("fixture lunar day") as u8)
+                .expect("fixture lunar day should be valid"),
+        )
+        .iztro_time_index(input["time_index"].as_u64().expect("fixture time index") as u8)
+        .expect("fixture time index should be valid")
+        .gender(parse_gender(
+            input["gender"].as_str().expect("fixture gender"),
+        ))
+        .birth_year_stem(birth_year.stem())
+        .birth_year_branch(birth_year.branch())
+        .is_leap_month(
+            input["is_leap_month"]
+                .as_bool()
+                .expect("fixture leap-month flag"),
+        )
+        .fix_leap(input["fix_leap"].as_bool().expect("fixture fix-leap flag"))
+        .method_profile(method_profile)
+        .build()
+        .expect("lunar chart request should build from fixture");
+
+    by_lunar(request).expect("by_lunar should build horoscope fixture chart")
+}
+
+/// Returns the `(year, month, day)` of a case's target solar date.
+pub fn target_solar_date(case: &Value) -> (i32, u8, u8) {
+    let raw = case["input"]["target"]["solar_date"]
+        .as_str()
+        .expect("target solar date");
+    let parts: Vec<_> = raw.split('-').collect();
+    assert_eq!(parts.len(), 3);
+    (
+        parts[0].parse().expect("target solar year"),
+        parts[1].parse().expect("target solar month"),
+        parts[2].parse().expect("target solar day"),
+    )
+}
+
+/// Returns a case's target `timeIndex`.
+pub fn target_time_index(case: &Value) -> u8 {
+    case["input"]["target"]["time_index"]
+        .as_u64()
+        .expect("target time index") as u8
+}
+
+/// Returns a case's target birth time.
+pub fn target_time(case: &Value) -> BirthTime {
+    BirthTime::from_iztro_time_index(target_time_index(case))
+        .expect("target time index should be valid")
+}
+
+/// Returns a case's declared target lunar year.
+pub fn target_year(case: &Value) -> i32 {
+    case["input"]["target"]["year"]
+        .as_i64()
+        .expect("fixture target year") as i32
+}
+
+/// Returns the stem-branch declared on a per-scope supported block.
+pub fn scope_stem_branch(scope: &Value) -> StemBranch {
+    StemBranch::try_new(
+        parse_key::<HeavenlyStem>(scope["heavenly_stem"].as_str().expect("scope stem")),
+        parse_key::<EarthlyBranch>(scope["earthly_branch"].as_str().expect("scope branch")),
+    )
+    .expect("fixture scope stem-branch should be valid")
+}
+
+/// Maps a per-scope `palace_names` array (Yin-first) to branch-keyed names.
+pub fn expected_palace_names_by_branch(scope: &Value) -> HashMap<EarthlyBranch, PalaceName> {
+    scope["palace_names"]
+        .as_array()
+        .expect("scope palace names")
+        .iter()
+        .enumerate()
+        .map(|(index, palace)| {
+            (
+                EarthlyBranch::Yin.offset(index as isize),
+                parse_key::<PalaceName>(palace["name"].as_str().expect("palace name")),
+            )
+        })
+        .collect()
+}
+
+/// Resolves a per-scope `mutagen` block to `(star, natal branch) -> transform`.
+pub fn expected_scope_mutagens(
+    scope: &Value,
+    chart: &Chart,
+) -> HashMap<(StarName, EarthlyBranch), Mutagen> {
+    scope["mutagen"]
+        .as_object()
+        .expect("scope mutagen map")
+        .iter()
+        .filter_map(|(transform, entry)| {
+            let star = parse_key::<StarName>(entry["star"].as_str().expect("mutagen star"));
+            let branch = chart.star(star).map(|fact| fact.palace().branch())?;
+            Some(((star, branch), parse_key::<Mutagen>(transform)))
+        })
+        .collect()
+}
+
+/// Resolves a per-scope `flow_stars` array to `star -> (branch, kind)`, adding
+/// the yearly-only 年解 (`NianJieYearly`) when `nian_jie_branch` is present.
+pub fn expected_scope_flow_stars(
+    scope: &Value,
+    flow_scope: FlowStarScope,
+) -> HashMap<StarName, (EarthlyBranch, StarKind)> {
+    let mut expected: HashMap<StarName, (EarthlyBranch, StarKind)> = scope["flow_stars"]
+        .as_array()
+        .expect("scope flow stars")
+        .iter()
+        .map(|entry| {
+            let base = parse_flow_base(entry["base"].as_str().expect("flow star base"));
+            (
+                flow_star_name(flow_scope, base),
+                (
+                    parse_key::<EarthlyBranch>(entry["branch"].as_str().expect("branch")),
+                    flow_star_kind(entry["type"].as_str().expect("type")),
+                ),
+            )
+        })
+        .collect();
+
+    if let Some(branch) = scope["nian_jie_branch"].as_str() {
+        expected.insert(
+            StarName::NianJieYearly,
+            (parse_key::<EarthlyBranch>(branch), StarKind::Helper),
+        );
+    }
+
+    expected
+}
+
+/// Maps a fixture flow-star `base` label to its `FlowStarBase`.
+pub fn parse_flow_base(value: &str) -> FlowStarBase {
+    match value {
+        "kui" => FlowStarBase::Kui,
+        "yue" => FlowStarBase::Yue,
+        "chang" => FlowStarBase::Chang,
+        "qu" => FlowStarBase::Qu,
+        "lu" => FlowStarBase::Lu,
+        "yang" => FlowStarBase::Yang,
+        "tuo" => FlowStarBase::Tuo,
+        "ma" => FlowStarBase::Ma,
+        "luan" => FlowStarBase::Luan,
+        "xi" => FlowStarBase::Xi,
+        other => panic!("unsupported flow base: {other}"),
+    }
+}
+
+/// Maps a fixture flow-star `type` label to its `StarKind`.
+pub fn flow_star_kind(value: &str) -> StarKind {
+    match value {
+        "soft" => StarKind::Soft,
+        "tough" => StarKind::Tough,
+        "lucun" => StarKind::LuCun,
+        "tianma" => StarKind::TianMa,
+        "flower" => StarKind::Flower,
+        "helper" => StarKind::Helper,
+        other => panic!("unsupported flow star type: {other}"),
+    }
+}
+
+/// Maps a fixture `gender` label to its `Gender`.
+pub fn parse_gender(value: &str) -> Gender {
+    match value {
+        "female" => Gender::Female,
+        "male" => Gender::Male,
+        other => panic!("unsupported fixture gender: {other}"),
     }
 }

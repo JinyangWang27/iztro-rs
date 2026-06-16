@@ -17,6 +17,10 @@ pub mod yearly;
 
 mod temporal_layout;
 
+pub(crate) use temporal_layout::{
+    nominal_age_for_target_year, select_decadal_period_by_age, target_lunar_date,
+};
+
 pub use age::{AgePeriod, build_age_period};
 pub use chart::{
     Chart, DecorativeStarFamily, DecorativeStarPlacement, DecorativeStarPlacementRef,
