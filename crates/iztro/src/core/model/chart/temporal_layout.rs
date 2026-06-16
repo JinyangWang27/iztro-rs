@@ -2,9 +2,10 @@
 //!
 //! These helpers back the period types whose facts are derived with the same
 //! upstream `iztro@2.5.8` rules: the common twelve-palace relabeling used when a
-//! period's Life palace is fixed by a single Earthly Branch, the 流月 palace
-//! index reused by both monthly and daily derivation, and the calendar-error
-//! mapping shared by the target-date conversions.
+//! period's Life palace is fixed by a single Earthly Branch, the 流月 palace index
+//! reused by monthly, daily, and hourly derivation,
+//! the 流日 palace index reused by daily and hourly derivation,
+//! and the calendar-error mapping shared by target-date conversions.
 
 use crate::core::error::ChartError;
 use crate::core::model::calendar::CalendarKind;
