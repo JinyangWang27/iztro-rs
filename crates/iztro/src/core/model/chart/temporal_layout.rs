@@ -64,6 +64,29 @@ pub(super) fn monthly_palace_index(
         .rem_euclid(PALACE_COUNT as isize) as usize
 }
 
+/// Derives the 流日 temporal Life palace index in Yin-first order.
+///
+/// Counts on from the 流月 palace index by the target lunar day. Shared by daily
+/// period derivation and by hourly derivation, which counts on from this index
+/// by the target double-hour.
+pub(super) fn daily_palace_index(
+    natal: &Chart,
+    target_lunar_year: i32,
+    target_lunar_month: u8,
+    target_lunar_day: u8,
+    target_is_leap_month: bool,
+) -> usize {
+    let monthly_index = monthly_palace_index(
+        natal,
+        target_lunar_year,
+        target_lunar_month,
+        target_lunar_day,
+        target_is_leap_month,
+    );
+    (monthly_index as isize + target_lunar_day as isize - 1).rem_euclid(PALACE_COUNT as isize)
+        as usize
+}
+
 /// Maps a target solar-date conversion failure to the matching [`ChartError`].
 ///
 /// Shared by the monthly and daily period builders, which both convert the

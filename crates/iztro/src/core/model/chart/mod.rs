@@ -9,6 +9,7 @@ pub mod chart;
 pub mod daily;
 pub mod decadal;
 pub mod horoscope;
+pub mod hourly;
 pub mod monthly;
 pub mod palace;
 pub mod snapshot;
@@ -27,6 +28,7 @@ pub use horoscope::{
     HoroscopeChart, MutagenActivation, ScopedStarPlacement, TemporalContext, TemporalLayer,
     TemporalPalaceLayout, TemporalPalaceName,
 };
+pub use hourly::{HourlyPeriod, build_hourly_period};
 pub use monthly::{MonthlyPeriod, build_monthly_period};
 pub use palace::{PALACE_NAMES, PalaceName};
 pub use snapshot::{
