@@ -30,6 +30,7 @@ The supported natal chart fact surface currently includes:
 - decadal temporal palace-name layout (`TemporalPalaceLayout`) attached to the selected decadal layer, keyed by `EarthlyBranch` and validated against the upstream horoscope fixture.
 - typed `AgePeriod` / 小限 derivation for nominal age `1..=120`, with age context, branch/stem-branch, palace-name layout, and mutagen activations validated against the upstream horoscope fixture.
 - typed `MonthlyPeriod` / 流月 derivation with independent month pillar and monthly Life palace branch facts, plus composed monthly flow-star, mutagen, and palace-name layer assembly validated against the upstream horoscope fixture.
+- typed `DailyPeriod` / 流日 derivation with independent day pillar and daily Life palace branch facts, plus composed daily flow-star, mutagen, and palace-name layer assembly validated against the upstream horoscope fixture.
 
 Default/non-Zhongzhou natal output remains 66 typed natal stars. Zhongzhou natal output remains 68 typed natal stars. `represented_star_metadata_table().len() == 70` stays natal-only, while `known_star_metadata_table().len() == 170` inventories the broader upstream runtime star-name universe.
 
@@ -72,9 +73,9 @@ The following remain intentionally out of scope for the current supported surfac
 
 - full BaZi output;
 - full horoscope assembly;
-- 流日 / 流时 period derivation;
+- 流时 period derivation;
 - attaching derived 大限 frames as temporal layers;
-- 流日 / 流时 horoscope palace-name derivation (decadal, 小限, and 流月 palace-name layouts are implemented);
+- 流时 horoscope palace-name derivation (decadal, 小限, 流月, and 流日 palace-name layouts are implemented);
 - temporal decorative arrays such as upstream `yearlyDecStar`;
 - full upstream facade serialization parity;
 - bindings;
@@ -90,5 +91,5 @@ The next implementation work should stay incremental:
 
 1. Continue keeping compatibility fixture-backed.
 2. Build richer renderers or CLI demos on top of `ChartStackSnapshot`, not directly on `Chart` internals.
-3. Add full horoscope assembly in small PRs: attach decadal and age periods to temporal stacks, then add yearly, monthly, daily, and hourly derivation.
+3. Add full horoscope assembly in small PRs: attach decadal and age periods to temporal stacks, then add the remaining yearly and hourly derivation.
 4. Only after the fact surface is stable, expand feature extraction, rules, and narrative.
