@@ -17,6 +17,7 @@ pub use chart::{
 pub use decadal::{DecadalDirection, DecadalFrame, DecadalPeriod, build_decadal_frame};
 pub use horoscope::{
     HoroscopeChart, MutagenActivation, ScopedStarPlacement, TemporalContext, TemporalLayer,
+    TemporalPalaceLayout, TemporalPalaceName,
 };
 pub use palace::{PALACE_NAMES, PalaceName};
 pub use snapshot::{

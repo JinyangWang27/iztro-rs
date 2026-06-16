@@ -1,3 +1,4 @@
+use crate::core::model::chart::PalaceName;
 use crate::core::model::star::StarName;
 use crate::core::model::star::mutagen::Scope;
 use lunar_lite::{EarthlyBranch, HeavenlyStem};
@@ -152,6 +153,34 @@ pub enum ChartError {
         layer: Scope,
         /// Source scope carried by the rejected activation.
         activation: Scope,
+    },
+    /// A temporal palace-name layout must carry the layer's scope.
+    #[error("temporal palace layout scope {layout:?} does not match layer scope {layer:?}")]
+    TemporalPalaceLayoutScopeMismatch {
+        /// Scope declared on the layer.
+        layer: Scope,
+        /// Scope carried by the rejected palace layout.
+        layout: Scope,
+    },
+    /// A temporal palace-name layout must contain exactly twelve names.
+    #[error("invalid temporal palace layout count: expected {expected}, got {actual}")]
+    InvalidTemporalPalaceLayoutCount {
+        /// Expected number of temporal palace names.
+        expected: usize,
+        /// Actual number of temporal palace names.
+        actual: usize,
+    },
+    /// Each branch in a temporal palace-name layout must appear exactly once.
+    #[error("temporal palace layout repeats branch {branch:?}")]
+    DuplicateTemporalPalaceLayoutBranch {
+        /// Branch that appears more than once in the layout.
+        branch: EarthlyBranch,
+    },
+    /// Each palace name in a temporal palace-name layout must appear exactly once.
+    #[error("temporal palace layout repeats palace name {palace_name:?}")]
+    DuplicateTemporalPalaceLayoutName {
+        /// Palace name that appears more than once in the layout.
+        palace_name: PalaceName,
     },
     /// A requested decadal period index is outside the derived decadal frame.
     #[error("invalid decadal period index: index {index} is out of range for {len} periods")]

@@ -2,14 +2,15 @@
 //!
 //! This module composes already-deterministic 大限 facts into one model-only
 //! [`TemporalLayer`]: the decadal frame chooses the period, the flow-star
-//! builder contributes scoped 流曜 placements, and the decadal mutagen builder
-//! contributes scoped 四化 activations. It does not mutate natal facts, derive
-//! temporal palace names, render prose, or assemble yearly/monthly/daily/hourly
-//! layers.
+//! builder contributes scoped 流曜 placements, the decadal mutagen builder
+//! contributes scoped 四化 activations, and the period's palace ring contributes
+//! the decadal temporal palace-name layout. It does not mutate natal facts,
+//! render prose, or assemble yearly/monthly/daily/hourly layers.
 
 use crate::core::error::ChartError;
 use crate::core::model::chart::{
-    Chart, DecadalPeriod, HoroscopeChart, TemporalContext, TemporalLayer, build_decadal_frame,
+    Chart, DecadalPeriod, HoroscopeChart, TemporalContext, TemporalLayer, TemporalPalaceLayout,
+    TemporalPalaceName, build_decadal_frame,
 };
 use crate::core::model::star::mutagen::Scope;
 use crate::core::placement::overlay::decadal::{
@@ -40,13 +41,37 @@ pub fn build_decadal_horoscope_layer(
         natal,
         DecadalMutagenLayerInput::new(period.stem_branch(), period.start_age()),
     )?;
+    let palace_layout = build_decadal_palace_layout(natal, period)?;
 
-    TemporalLayer::try_new(
+    TemporalLayer::try_new_with_palace_layout(
         Scope::Decadal,
         context,
         flow_layer.placements().to_vec(),
         mutagen_layer.activations().to_vec(),
+        Some(palace_layout),
     )
+}
+
+/// Derives the decadal temporal palace-name layout for a selected period.
+///
+/// A 大限 relabels the twelve palaces so the period's own natal palace becomes
+/// 命 (Life), shifting every other branch by the same offset around the ring.
+/// The natal palace name at each branch is shifted by minus the period palace's
+/// index, keeping the names keyed by their stable [`EarthlyBranch`].
+///
+/// [`EarthlyBranch`]: lunar_lite::EarthlyBranch
+fn build_decadal_palace_layout(
+    natal: &Chart,
+    period: &DecadalPeriod,
+) -> Result<TemporalPalaceLayout, ChartError> {
+    let shift = period.palace_name().index() as isize;
+    let names = natal
+        .palaces()
+        .iter()
+        .map(|palace| TemporalPalaceName::new(palace.branch(), palace.name().offset(-shift)))
+        .collect();
+
+    TemporalPalaceLayout::try_new(Scope::Decadal, names)
 }
 
 /// Builds a horoscope chart with exactly one decadal overlay layer.

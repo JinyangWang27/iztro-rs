@@ -17,7 +17,7 @@
 use crate::core::{
     error::ChartError,
     model::{
-        chart::{Chart, StarPlacement},
+        chart::{Chart, PALACE_COUNT, PalaceName, StarPlacement},
         star::StarName,
         star::mutagen::{Mutagen, Scope},
     },
@@ -177,10 +177,136 @@ impl ScopedStarPlacement {
     }
 }
 
+/// One temporal palace name assigned to a branch within a horoscope period.
+///
+/// A temporal period (e.g. a 大限) relabels the twelve palaces around the natal
+/// branch ring. The name is keyed by [`EarthlyBranch`] — the stable spatial
+/// reference — because palace *names* shift between scopes. This is an additive
+/// overlay fact: it never replaces the natal [`PalaceName`] at that branch.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+pub struct TemporalPalaceName {
+    branch: EarthlyBranch,
+    palace_name: PalaceName,
+}
+
+impl TemporalPalaceName {
+    /// Creates a branch-keyed temporal palace name.
+    pub const fn new(branch: EarthlyBranch, palace_name: PalaceName) -> Self {
+        Self {
+            branch,
+            palace_name,
+        }
+    }
+
+    /// Returns the branch this temporal palace name occupies.
+    pub const fn branch(&self) -> EarthlyBranch {
+        self.branch
+    }
+
+    /// Returns the temporal palace name assigned to the branch.
+    pub const fn palace_name(&self) -> PalaceName {
+        self.palace_name
+    }
+}
+
+/// The twelve temporal palace names a non-natal period imposes on the branch ring.
+///
+/// The layout carries one [`Scope`] for all of its names; a single layout never
+/// mixes scopes. The [`Scope::Natal`] scope is rejected — natal palace names
+/// belong to the [`Chart`], not to a temporal overlay.
+///
+/// [`Deserialize`] routes through [`TemporalPalaceLayout::try_new`] so the
+/// non-natal scope invariant cannot be bypassed through serialized input.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+pub struct TemporalPalaceLayout {
+    scope: Scope,
+    names: Vec<TemporalPalaceName>,
+}
+
+impl TemporalPalaceLayout {
+    /// Creates a temporal palace-name layout after checking its invariants.
+    ///
+    /// Rejects the natal scope (natal palace names are spatial facts of the
+    /// [`Chart`], so a temporal layout always describes a non-natal period),
+    /// requires exactly [`PALACE_COUNT`] names, and requires every
+    /// [`EarthlyBranch`] and every [`PalaceName`] to appear exactly once — a
+    /// well-formed layout relabels each of the twelve branch positions with a
+    /// distinct palace name.
+    pub fn try_new(scope: Scope, names: Vec<TemporalPalaceName>) -> Result<Self, ChartError> {
+        if scope == Scope::Natal {
+            return Err(ChartError::NatalScopeInTemporalLayer);
+        }
+        if names.len() != PALACE_COUNT {
+            return Err(ChartError::InvalidTemporalPalaceLayoutCount {
+                expected: PALACE_COUNT,
+                actual: names.len(),
+            });
+        }
+        for (index, name) in names.iter().enumerate() {
+            if names[..index]
+                .iter()
+                .any(|seen| seen.branch() == name.branch())
+            {
+                return Err(ChartError::DuplicateTemporalPalaceLayoutBranch {
+                    branch: name.branch(),
+                });
+            }
+            if names[..index]
+                .iter()
+                .any(|seen| seen.palace_name() == name.palace_name())
+            {
+                return Err(ChartError::DuplicateTemporalPalaceLayoutName {
+                    palace_name: name.palace_name(),
+                });
+            }
+        }
+
+        Ok(Self { scope, names })
+    }
+
+    /// Returns the non-natal scope this layout describes.
+    pub const fn scope(&self) -> Scope {
+        self.scope
+    }
+
+    /// Returns the branch-keyed temporal palace names.
+    pub fn names(&self) -> &[TemporalPalaceName] {
+        &self.names
+    }
+
+    /// Returns the temporal palace name assigned to `branch`, if present.
+    pub fn name_for_branch(&self, branch: EarthlyBranch) -> Option<PalaceName> {
+        self.names
+            .iter()
+            .find(|name| name.branch() == branch)
+            .map(TemporalPalaceName::palace_name)
+    }
+}
+
+impl<'de> Deserialize<'de> for TemporalPalaceLayout {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        /// Mirror of [`TemporalPalaceLayout`]'s fields used only to decode raw
+        /// input before the scope invariant is re-checked.
+        #[derive(Deserialize)]
+        struct TemporalPalaceLayoutData {
+            scope: Scope,
+            names: Vec<TemporalPalaceName>,
+        }
+
+        let data = TemporalPalaceLayoutData::deserialize(deserializer)?;
+
+        TemporalPalaceLayout::try_new(data.scope, data.names).map_err(serde::de::Error::custom)
+    }
+}
+
 /// A single temporal overlay on top of a natal chart.
 ///
-/// A layer never restates natal facts: it carries only the star placements and
-/// mutagen activations scoped to one non-natal period.
+/// A layer never restates natal facts: it carries only the star placements,
+/// mutagen activations, and temporal palace-name layout scoped to one non-natal
+/// period.
 ///
 /// [`Deserialize`] is implemented by hand so decoding routes through
 /// [`TemporalLayer::try_new`]; the scope invariants cannot be bypassed through
@@ -191,21 +317,38 @@ pub struct TemporalLayer {
     context: TemporalContext,
     placements: Vec<ScopedStarPlacement>,
     activations: Vec<MutagenActivation>,
+    palace_layout: Option<TemporalPalaceLayout>,
 }
 
 impl TemporalLayer {
-    /// Creates a temporal overlay layer after checking scope invariants.
+    /// Creates a temporal overlay layer with no palace-name layout.
     ///
-    /// Rejects the natal scope (natal facts belong to the [`Chart`]), rejects a
-    /// `scope` that disagrees with `context`, rejects any placement whose scope
-    /// is not the layer scope, and rejects any activation whose source scope is
-    /// not the layer scope, so a layer can never duplicate or restate a natal
-    /// fact.
+    /// This is the common constructor for layers that carry only scoped star
+    /// placements and mutagen activations. Use
+    /// [`TemporalLayer::try_new_with_palace_layout`] to attach a temporal
+    /// palace-name layout. The same scope invariants are checked.
     pub fn try_new(
         scope: Scope,
         context: TemporalContext,
         placements: Vec<ScopedStarPlacement>,
         activations: Vec<MutagenActivation>,
+    ) -> Result<Self, ChartError> {
+        Self::try_new_with_palace_layout(scope, context, placements, activations, None)
+    }
+
+    /// Creates a temporal overlay layer after checking scope invariants.
+    ///
+    /// Rejects the natal scope (natal facts belong to the [`Chart`]), rejects a
+    /// `scope` that disagrees with `context`, rejects any placement whose scope
+    /// is not the layer scope, rejects any activation whose source scope is not
+    /// the layer scope, and rejects a palace layout whose scope is not the layer
+    /// scope, so a layer can never duplicate or restate a natal fact.
+    pub fn try_new_with_palace_layout(
+        scope: Scope,
+        context: TemporalContext,
+        placements: Vec<ScopedStarPlacement>,
+        activations: Vec<MutagenActivation>,
+        palace_layout: Option<TemporalPalaceLayout>,
     ) -> Result<Self, ChartError> {
         if scope == Scope::Natal {
             return Err(ChartError::NatalScopeInTemporalLayer);
@@ -234,12 +377,21 @@ impl TemporalLayer {
                 activation: activation.source_scope(),
             });
         }
+        if let Some(layout) = &palace_layout {
+            if layout.scope() != scope {
+                return Err(ChartError::TemporalPalaceLayoutScopeMismatch {
+                    layer: scope,
+                    layout: layout.scope(),
+                });
+            }
+        }
 
         Ok(Self {
             scope,
             context,
             placements,
             activations,
+            palace_layout,
         })
     }
 
@@ -262,6 +414,11 @@ impl TemporalLayer {
     pub fn activations(&self) -> &[MutagenActivation] {
         &self.activations
     }
+
+    /// Returns the temporal palace-name layout scoped to this layer, if any.
+    pub const fn palace_layout(&self) -> Option<&TemporalPalaceLayout> {
+        self.palace_layout.as_ref()
+    }
 }
 
 impl<'de> Deserialize<'de> for TemporalLayer {
@@ -277,12 +434,20 @@ impl<'de> Deserialize<'de> for TemporalLayer {
             context: TemporalContext,
             placements: Vec<ScopedStarPlacement>,
             activations: Vec<MutagenActivation>,
+            #[serde(default)]
+            palace_layout: Option<TemporalPalaceLayout>,
         }
 
         let data = TemporalLayerData::deserialize(deserializer)?;
 
-        TemporalLayer::try_new(data.scope, data.context, data.placements, data.activations)
-            .map_err(serde::de::Error::custom)
+        TemporalLayer::try_new_with_palace_layout(
+            data.scope,
+            data.context,
+            data.placements,
+            data.activations,
+            data.palace_layout,
+        )
+        .map_err(serde::de::Error::custom)
     }
 }
 
