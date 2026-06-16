@@ -104,7 +104,8 @@ pub(crate) fn target_lunar_date(
         month: month.value(),
         day: day.value(),
     };
-    solar_to_lunar(solar).map_err(|err| map_target_solar_error(err, year, month.value(), day.value()))
+    solar_to_lunar(solar)
+        .map_err(|err| map_target_solar_error(err, year, month.value(), day.value()))
 }
 
 /// Derives the one-based nominal age (虚岁) from natal and target lunar years.
