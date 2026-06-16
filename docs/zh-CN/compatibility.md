@@ -98,15 +98,19 @@ lunar-lite 历法 normalizer按真实历法解析；公开 API 不暴露 calenda
 不出现在公开 API。转换以正月初一为年界，与 iztro 默认的 `yearDivide: 'normal'` 一致，
 因此换算出的年干支即便落在立春/正月初一之间的窗口也与上游一致。
 
-完整八字输出、上游 runtime 查询助手、runtime 宫位投影、完整 facade 序列化对齐、bindings、特征提取、规则与叙事仍延期实现。`build_full_horoscope_chart`
+完整八字输出、完整 facade 序列化对齐、bindings、特征提取、规则与叙事仍延期实现。`build_full_horoscope_chart`
 已将大限、小限、流年、流月、流日、流时层组装为一个 `HoroscopeChart`，但仅是已支持事实面的
 模型级组装，并非上游 `FunctionalAstrolabe#horoscope` 载荷形状。流年层现已附带
 `yearlyDecStar`（岁前/将前十二神），作为流年范围的时间性装饰事实。
 `HoroscopeSupportedFieldsSnapshot` 现在可从 `HoroscopeChart` 导出规范化的 supported-fields
 快照，用于和 `crates/iztro/fixtures/iztro/horoscope.json` 中已实现的大限、小限、流年、
 流月、流日、流时事实面做确定性兼容校验。该 DTO 使用 snake_case 字段和寅宫起序的宫名数组，
-不包含原始中文标签、上游 runtime 查询助手、runtime 宫位投影、嵌入的本命 astrolabe，
-也不表示完整上游 facade JSON 对齐。
+不包含原始中文标签、嵌入的本命 astrolabe，也不表示完整上游 facade JSON 对齐。
+`HoroscopeRuntime` 现在提供已类型化的上游 runtime helper 切片：`age_palace`、`palace`、
+`surround_palaces`、`has_horoscope_stars`、`not_have_horoscope_stars`、
+`has_one_of_horoscope_stars` 与 `has_horoscope_mutagen`，并以
+`crates/iztro/fixtures/iztro/horoscope_runtime.json` 对齐 `iztro@2.5.8`。
+这些 helper 只查询/投影已有模型事实，不修改本命盘、不复制本命星曜到时间层，也不改变安星语义。
 
 ## 运限层模型
 
@@ -163,13 +167,19 @@ decorative arrays。
 流年 → 流月 → 流日 → 流时）组装为一个 `HoroscopeChart`（输入 `HoroscopeStackInput`）。它推导
 目标农历日期与虚岁（目标农历年 − 本命农历年 + 1），并按虚岁选取覆盖的大限 period（不写死索引）。
 流年层还会附带 `yearlyDecStar`，作为流年范围的时间性装饰事实。这是已支持字段的模型级组装：不复刻上游
-`FunctionalAstrolabe#horoscope` 载荷形状、也不暴露 runtime 查询助手。
+`FunctionalAstrolabe#horoscope` 载荷形状。
 
 `HoroscopeSupportedFieldsSnapshot` 是独立的兼容性导出 DTO，而不是 renderer model。它从
 `HoroscopeChart` 和各 `TemporalLayer` 导出已实现的 supported fields：各 scope 的 index、
 干支、寅宫起序宫名、四化目标、已实现的流曜、小限虚岁、流年年解地支，以及流年
 `yearlyDecStar`。渲染仍应使用 `ChartStackSnapshot`；fixture 兼容校验可使用
 `HoroscopeSupportedFieldsSnapshot`。
+
+`HoroscopeRuntime` 是模型级 runtime helper facade。`age_palace`、`palace` 与
+`surround_palaces` 以地支为空间 identity 做投影：本命宫名、宫干和本命星曜仍保留，
+时间宫名只是额外标签，不会覆盖本命事实。查询 helper 与上游 `iztro@2.5.8` 行为对齐：
+星曜查询检查大限与流年流曜矩阵的合并结果，`has_horoscope_mutagen` 检查所选 scope 的四化目标
+是否落在投影后的本命宫位中。它们都不生成新落点、不更改本命盘，也不代表完整 facade payload。
 
 ## Runtime 星曜家族安放
 
@@ -216,7 +226,7 @@ scope-generic 算法为大限、流年、流月、流日、流时安放十颗 ma
 四化仍是 `Mutagen` / `MutagenActivation` 事实，永远不是 `StarName` variants。
 最小 `by_solar`（`lunar-lite` 支持的阳历转农历）、已支持 `by_lunar`/`by_solar` 切片的
 fixture 支持闰月行为，以及 `BirthTime`/`timeIndex` `0..=12` 早晚子时变体现已实现
-（见[公开 facade 兼容性](#公开-facade-兼容性)）。完整八字输出、上游 runtime 查询助手、runtime 宫位投影、完整 facade 载荷对齐、bindings、特征提取、规则与叙事仍然延期。完整 horoscope stack 组装现已实现（`build_full_horoscope_chart`），流年层并附带 `yearlyDecStar`，并可通过 `HoroscopeSupportedFieldsSnapshot` 导出规范化 supported-fields 快照；这些仍仅覆盖已支持事实面。
+（见[公开 facade 兼容性](#公开-facade-兼容性)）。完整八字输出、完整 facade 载荷对齐、bindings、特征提取、规则与叙事仍然延期。完整 horoscope stack 组装现已实现（`build_full_horoscope_chart`），流年层并附带 `yearlyDecStar`，可通过 `HoroscopeSupportedFieldsSnapshot` 导出规范化 supported-fields 快照，并可通过 `HoroscopeRuntime` 使用已类型化的 runtime helper；这些仍仅覆盖已支持事实面。
 
 ## 当前 fixtures
 

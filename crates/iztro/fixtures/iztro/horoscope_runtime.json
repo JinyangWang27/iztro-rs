@@ -1,0 +1,2864 @@
+{
+  "target": "iztro@2.5.8",
+  "description": "Upstream iztro@2.5.8 horoscope runtime-helper fixture. Projections preserve branch-based natal palace identity while adding temporal labels and already-modeled temporal facts. Query helper cases encode upstream behavior: star helpers search only merged decadal+yearly flow-star matrices, while hasHoroscopeMutagen checks the selected scope's mutagen target against natal major/minor stars in the projected palace.",
+  "generated_at": "2026-06-16T00:00:00Z",
+  "generation_command": "npm ci --prefix tools/iztro-reference && node tools/iztro-reference/scripts/dump-horoscope-runtime-fixtures.mjs --write",
+  "cases": [
+    {
+      "id": "canonical_female_default_2026",
+      "input": {
+        "calendar": "lunar",
+        "year": 1990,
+        "month": 5,
+        "day": 17,
+        "time_index": 4,
+        "gender": "female",
+        "is_leap_month": false,
+        "fix_leap": true,
+        "language": "zh-CN",
+        "algorithm": "default",
+        "target": {
+          "solar_date": "2026-7-1",
+          "year": 2026,
+          "time_index": 2
+        }
+      },
+      "runtime": {
+        "age_palace": {
+          "scope": "age",
+          "requested_palace_name": "life",
+          "branch": "chen",
+          "natal_palace_name": "spirit",
+          "temporal_palace_name": "life",
+          "natal_palace_stem": "geng",
+          "natal_typed_stars": [
+            "tan_lang",
+            "feng_ge",
+            "tian_shou",
+            "gua_su",
+            "nian_jie"
+          ],
+          "natal_decorative_stars": [
+            "di_wang",
+            "jiang_jun",
+            "diao_ke",
+            "yue_sha"
+          ],
+          "temporal_stars": [],
+          "temporal_decorative_stars": [],
+          "temporal_mutagen_activations": []
+        },
+        "palace_projections": [
+          {
+            "scope": "origin",
+            "requested_palace_name": "life",
+            "branch": "yin",
+            "natal_palace_name": "life",
+            "temporal_palace_name": null,
+            "natal_palace_stem": "wu",
+            "natal_typed_stars": [
+              "zi_wei",
+              "tian_fu",
+              "ba_zuo",
+              "tian_chu",
+              "fei_lian"
+            ],
+            "natal_decorative_stars": [
+              "bing",
+              "fay_lian_boshi",
+              "bai_hu",
+              "zhi_bei"
+            ],
+            "temporal_stars": [],
+            "temporal_decorative_stars": [],
+            "temporal_mutagen_activations": []
+          },
+          {
+            "scope": "decadal",
+            "requested_palace_name": "life",
+            "branch": "hai",
+            "natal_palace_name": "children",
+            "temporal_palace_name": "life",
+            "natal_palace_stem": "ding",
+            "natal_typed_stars": [
+              "tai_yang",
+              "tian_gui",
+              "tian_guan",
+              "yue_de"
+            ],
+            "natal_decorative_stars": [
+              "jue",
+              "da_hao_boshi",
+              "xiao_hao_suiqian",
+              "jie_sha"
+            ],
+            "temporal_stars": [
+              "yun_kui"
+            ],
+            "temporal_decorative_stars": [],
+            "temporal_mutagen_activations": []
+          },
+          {
+            "scope": "yearly",
+            "requested_palace_name": "career",
+            "branch": "xu",
+            "natal_palace_name": "wealth",
+            "temporal_palace_name": "career",
+            "natal_palace_stem": "bing",
+            "natal_typed_stars": [
+              "wu_qu",
+              "long_chi",
+              "tai_fu",
+              "hua_gai",
+              "xun_kong"
+            ],
+            "natal_decorative_stars": [
+              "tai",
+              "fu_bing",
+              "guan_fu_suiqian",
+              "hua_gai_jiangqian"
+            ],
+            "temporal_stars": [],
+            "temporal_decorative_stars": [
+              "guan_fu_suiqian",
+              "hua_gai_jiangqian"
+            ],
+            "temporal_mutagen_activations": []
+          },
+          {
+            "scope": "monthly",
+            "requested_palace_name": "life",
+            "branch": "xu",
+            "natal_palace_name": "wealth",
+            "temporal_palace_name": "life",
+            "natal_palace_stem": "bing",
+            "natal_typed_stars": [
+              "wu_qu",
+              "long_chi",
+              "tai_fu",
+              "hua_gai",
+              "xun_kong"
+            ],
+            "natal_decorative_stars": [
+              "tai",
+              "fu_bing",
+              "guan_fu_suiqian",
+              "hua_gai_jiangqian"
+            ],
+            "temporal_stars": [],
+            "temporal_decorative_stars": [],
+            "temporal_mutagen_activations": [
+              {
+                "target_star": "wu_qu",
+                "mutagen": "ke"
+              }
+            ]
+          },
+          {
+            "scope": "daily",
+            "requested_palace_name": "wealth",
+            "branch": "xu",
+            "natal_palace_name": "wealth",
+            "temporal_palace_name": "wealth",
+            "natal_palace_stem": "bing",
+            "natal_typed_stars": [
+              "wu_qu",
+              "long_chi",
+              "tai_fu",
+              "hua_gai",
+              "xun_kong"
+            ],
+            "natal_decorative_stars": [
+              "tai",
+              "fu_bing",
+              "guan_fu_suiqian",
+              "hua_gai_jiangqian"
+            ],
+            "temporal_stars": [],
+            "temporal_decorative_stars": [],
+            "temporal_mutagen_activations": []
+          },
+          {
+            "scope": "hourly",
+            "requested_palace_name": "parents",
+            "branch": "si",
+            "natal_palace_name": "property",
+            "temporal_palace_name": "parents",
+            "natal_palace_stem": "xin",
+            "natal_typed_stars": [
+              "ju_men",
+              "huo_xing",
+              "tian_yao",
+              "tian_wu",
+              "po_sui"
+            ],
+            "natal_decorative_stars": [
+              "lin_guan",
+              "xiao_hao_boshi",
+              "bing_fu_suiqian",
+              "wang_shen"
+            ],
+            "temporal_stars": [],
+            "temporal_decorative_stars": [],
+            "temporal_mutagen_activations": []
+          }
+        ],
+        "surround_palaces": [
+          {
+            "scope": "origin",
+            "requested_palace_name": "life",
+            "target": {
+              "scope": "origin",
+              "requested_palace_name": "life",
+              "branch": "yin",
+              "natal_palace_name": "life",
+              "temporal_palace_name": null,
+              "natal_palace_stem": "wu",
+              "natal_typed_stars": [
+                "zi_wei",
+                "tian_fu",
+                "ba_zuo",
+                "tian_chu",
+                "fei_lian"
+              ],
+              "natal_decorative_stars": [
+                "bing",
+                "fay_lian_boshi",
+                "bai_hu",
+                "zhi_bei"
+              ],
+              "temporal_stars": [],
+              "temporal_decorative_stars": [],
+              "temporal_mutagen_activations": []
+            },
+            "opposite": {
+              "scope": "origin",
+              "requested_palace_name": "life",
+              "branch": "shen",
+              "natal_palace_name": "migration",
+              "temporal_palace_name": null,
+              "natal_palace_stem": "jia",
+              "natal_typed_stars": [
+                "qi_sha",
+                "zuo_fu",
+                "wen_qu",
+                "lu_cun",
+                "tian_ma",
+                "tian_cai",
+                "gu_chen"
+              ],
+              "natal_decorative_stars": [
+                "chang_sheng",
+                "bo_shi",
+                "sang_men",
+                "sui_yi"
+              ],
+              "temporal_stars": [],
+              "temporal_decorative_stars": [],
+              "temporal_mutagen_activations": []
+            },
+            "wealth": {
+              "scope": "origin",
+              "requested_palace_name": "life",
+              "branch": "xu",
+              "natal_palace_name": "wealth",
+              "temporal_palace_name": null,
+              "natal_palace_stem": "bing",
+              "natal_typed_stars": [
+                "wu_qu",
+                "long_chi",
+                "tai_fu",
+                "hua_gai",
+                "xun_kong"
+              ],
+              "natal_decorative_stars": [
+                "tai",
+                "fu_bing",
+                "guan_fu_suiqian",
+                "hua_gai_jiangqian"
+              ],
+              "temporal_stars": [],
+              "temporal_decorative_stars": [],
+              "temporal_mutagen_activations": []
+            },
+            "career": {
+              "scope": "origin",
+              "requested_palace_name": "life",
+              "branch": "wu",
+              "natal_palace_name": "career",
+              "temporal_palace_name": null,
+              "natal_palace_stem": "ren",
+              "natal_typed_stars": [
+                "lian_zhen",
+                "tian_xiang",
+                "you_bi",
+                "wen_chang",
+                "feng_gao",
+                "tian_fu_adj",
+                "jie_lu",
+                "yin_sha"
+              ],
+              "natal_decorative_stars": [
+                "guan_dai",
+                "qing_long",
+                "sui_jian",
+                "jiang_xing"
+              ],
+              "temporal_stars": [],
+              "temporal_decorative_stars": [],
+              "temporal_mutagen_activations": []
+            }
+          },
+          {
+            "scope": "decadal",
+            "requested_palace_name": "life",
+            "target": {
+              "scope": "decadal",
+              "requested_palace_name": "life",
+              "branch": "hai",
+              "natal_palace_name": "children",
+              "temporal_palace_name": "life",
+              "natal_palace_stem": "ding",
+              "natal_typed_stars": [
+                "tai_yang",
+                "tian_gui",
+                "tian_guan",
+                "yue_de"
+              ],
+              "natal_decorative_stars": [
+                "jue",
+                "da_hao_boshi",
+                "xiao_hao_suiqian",
+                "jie_sha"
+              ],
+              "temporal_stars": [
+                "yun_kui"
+              ],
+              "temporal_decorative_stars": [],
+              "temporal_mutagen_activations": []
+            },
+            "opposite": {
+              "scope": "decadal",
+              "requested_palace_name": "life",
+              "branch": "si",
+              "natal_palace_name": "property",
+              "temporal_palace_name": "migration",
+              "natal_palace_stem": "xin",
+              "natal_typed_stars": [
+                "ju_men",
+                "huo_xing",
+                "tian_yao",
+                "tian_wu",
+                "po_sui"
+              ],
+              "natal_decorative_stars": [
+                "lin_guan",
+                "xiao_hao_boshi",
+                "bing_fu_suiqian",
+                "wang_shen"
+              ],
+              "temporal_stars": [
+                "yun_qu",
+                "yun_tuo",
+                "yun_ma"
+              ],
+              "temporal_decorative_stars": [],
+              "temporal_mutagen_activations": [
+                {
+                  "target_star": "ju_men",
+                  "mutagen": "ji"
+                }
+              ]
+            },
+            "wealth": {
+              "scope": "decadal",
+              "requested_palace_name": "life",
+              "branch": "wei",
+              "natal_palace_name": "friends",
+              "temporal_palace_name": "wealth",
+              "natal_palace_stem": "gui",
+              "natal_typed_stars": [
+                "tian_liang",
+                "tian_yue",
+                "di_kong",
+                "ling_xing",
+                "tuo_luo",
+                "tian_yue_adj",
+                "tian_kong",
+                "kong_wang",
+                "tian_shang"
+              ],
+              "natal_decorative_stars": [
+                "mu_yu",
+                "li_shi",
+                "hui_qi",
+                "pan_an"
+              ],
+              "temporal_stars": [
+                "yun_yang"
+              ],
+              "temporal_decorative_stars": [],
+              "temporal_mutagen_activations": []
+            },
+            "career": {
+              "scope": "decadal",
+              "requested_palace_name": "life",
+              "branch": "mao",
+              "natal_palace_name": "parents",
+              "temporal_palace_name": "career",
+              "natal_palace_stem": "ji",
+              "natal_typed_stars": [
+                "tai_yin",
+                "di_jie",
+                "tian_xi",
+                "xian_chi",
+                "tian_de"
+              ],
+              "natal_decorative_stars": [
+                "shuai",
+                "zhou_shu",
+                "tian_de_suiqian",
+                "xian_chi_jiangqian"
+              ],
+              "temporal_stars": [],
+              "temporal_decorative_stars": [],
+              "temporal_mutagen_activations": [
+                {
+                  "target_star": "tai_yin",
+                  "mutagen": "lu"
+                }
+              ]
+            }
+          },
+          {
+            "scope": "yearly",
+            "requested_palace_name": "career",
+            "target": {
+              "scope": "yearly",
+              "requested_palace_name": "career",
+              "branch": "xu",
+              "natal_palace_name": "wealth",
+              "temporal_palace_name": "career",
+              "natal_palace_stem": "bing",
+              "natal_typed_stars": [
+                "wu_qu",
+                "long_chi",
+                "tai_fu",
+                "hua_gai",
+                "xun_kong"
+              ],
+              "natal_decorative_stars": [
+                "tai",
+                "fu_bing",
+                "guan_fu_suiqian",
+                "hua_gai_jiangqian"
+              ],
+              "temporal_stars": [],
+              "temporal_decorative_stars": [
+                "guan_fu_suiqian",
+                "hua_gai_jiangqian"
+              ],
+              "temporal_mutagen_activations": []
+            },
+            "opposite": {
+              "scope": "yearly",
+              "requested_palace_name": "career",
+              "branch": "chen",
+              "natal_palace_name": "spirit",
+              "temporal_palace_name": "spouse",
+              "natal_palace_stem": "geng",
+              "natal_typed_stars": [
+                "tan_lang",
+                "feng_ge",
+                "tian_shou",
+                "gua_su",
+                "nian_jie"
+              ],
+              "natal_decorative_stars": [
+                "di_wang",
+                "jiang_jun",
+                "diao_ke",
+                "yue_sha"
+              ],
+              "temporal_stars": [
+                "nian_jie_yearly",
+                "liu_tuo"
+              ],
+              "temporal_decorative_stars": [
+                "diao_ke",
+                "yue_sha"
+              ],
+              "temporal_mutagen_activations": []
+            },
+            "wealth": {
+              "scope": "yearly",
+              "requested_palace_name": "career",
+              "branch": "wu",
+              "natal_palace_name": "career",
+              "temporal_palace_name": "life",
+              "natal_palace_stem": "ren",
+              "natal_typed_stars": [
+                "lian_zhen",
+                "tian_xiang",
+                "you_bi",
+                "wen_chang",
+                "feng_gao",
+                "tian_fu_adj",
+                "jie_lu",
+                "yin_sha"
+              ],
+              "natal_decorative_stars": [
+                "guan_dai",
+                "qing_long",
+                "sui_jian",
+                "jiang_xing"
+              ],
+              "temporal_stars": [
+                "liu_qu",
+                "liu_yang"
+              ],
+              "temporal_decorative_stars": [
+                "sui_jian",
+                "jiang_xing"
+              ],
+              "temporal_mutagen_activations": [
+                {
+                  "target_star": "wen_chang",
+                  "mutagen": "ke"
+                },
+                {
+                  "target_star": "lian_zhen",
+                  "mutagen": "ji"
+                }
+              ]
+            },
+            "career": {
+              "scope": "yearly",
+              "requested_palace_name": "career",
+              "branch": "yin",
+              "natal_palace_name": "life",
+              "temporal_palace_name": "wealth",
+              "natal_palace_stem": "wu",
+              "natal_typed_stars": [
+                "zi_wei",
+                "tian_fu",
+                "ba_zuo",
+                "tian_chu",
+                "fei_lian"
+              ],
+              "natal_decorative_stars": [
+                "bing",
+                "fay_lian_boshi",
+                "bai_hu",
+                "zhi_bei"
+              ],
+              "temporal_stars": [],
+              "temporal_decorative_stars": [
+                "bai_hu",
+                "zhi_bei"
+              ],
+              "temporal_mutagen_activations": []
+            }
+          }
+        ],
+        "star_queries": [
+          {
+            "helper": "hasHoroscopeStars",
+            "scope": "decadal",
+            "palace_name": "career",
+            "stars": [
+              "liu_xi"
+            ],
+            "expected": true
+          },
+          {
+            "helper": "hasHoroscopeStars",
+            "scope": "decadal",
+            "palace_name": "career",
+            "stars": [
+              "liu_xi",
+              "yun_lu"
+            ],
+            "expected": false
+          },
+          {
+            "helper": "notHaveHoroscopeStars",
+            "scope": "decadal",
+            "palace_name": "career",
+            "stars": [
+              "yun_lu"
+            ],
+            "expected": true
+          },
+          {
+            "helper": "notHaveHoroscopeStars",
+            "scope": "decadal",
+            "palace_name": "career",
+            "stars": [
+              "liu_xi",
+              "yun_lu"
+            ],
+            "expected": false
+          },
+          {
+            "helper": "hasOneOfHoroscopeStars",
+            "scope": "decadal",
+            "palace_name": "career",
+            "stars": [
+              "liu_xi",
+              "yun_lu"
+            ],
+            "expected": true
+          },
+          {
+            "helper": "hasOneOfHoroscopeStars",
+            "scope": "decadal",
+            "palace_name": "career",
+            "stars": [
+              "yun_lu"
+            ],
+            "expected": false
+          },
+          {
+            "helper": "hasHoroscopeStars",
+            "scope": "decadal",
+            "palace_name": "career",
+            "stars": [],
+            "expected": true
+          },
+          {
+            "helper": "notHaveHoroscopeStars",
+            "scope": "decadal",
+            "palace_name": "career",
+            "stars": [],
+            "expected": true
+          },
+          {
+            "helper": "hasOneOfHoroscopeStars",
+            "scope": "decadal",
+            "palace_name": "career",
+            "stars": [],
+            "expected": false
+          },
+          {
+            "helper": "hasHoroscopeStars",
+            "scope": "monthly",
+            "palace_name": "career",
+            "stars": [
+              "yue_lu"
+            ],
+            "expected": false
+          },
+          {
+            "helper": "hasHoroscopeStars",
+            "scope": "yearly",
+            "palace_name": "wealth",
+            "stars": [
+              "sui_jian"
+            ],
+            "expected": false
+          }
+        ],
+        "mutagen_queries": [
+          {
+            "scope": "origin",
+            "palace_name": "life",
+            "mutagen": "lu",
+            "expected": false
+          },
+          {
+            "scope": "age",
+            "palace_name": "spouse",
+            "mutagen": "lu",
+            "expected": false
+          },
+          {
+            "scope": "age",
+            "palace_name": "siblings",
+            "mutagen": "ke",
+            "expected": true
+          },
+          {
+            "scope": "decadal",
+            "palace_name": "property",
+            "mutagen": "lu",
+            "expected": false
+          },
+          {
+            "scope": "yearly",
+            "palace_name": "wealth",
+            "mutagen": "lu",
+            "expected": false
+          },
+          {
+            "scope": "monthly",
+            "palace_name": "career",
+            "mutagen": "lu",
+            "expected": false
+          },
+          {
+            "scope": "daily",
+            "palace_name": "life",
+            "mutagen": "lu",
+            "expected": false
+          },
+          {
+            "scope": "hourly",
+            "palace_name": "spouse",
+            "mutagen": "lu",
+            "expected": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "canonical_female_default_2034_decade_boundary",
+      "input": {
+        "calendar": "lunar",
+        "year": 1990,
+        "month": 5,
+        "day": 17,
+        "time_index": 4,
+        "gender": "female",
+        "is_leap_month": false,
+        "fix_leap": true,
+        "language": "zh-CN",
+        "algorithm": "default",
+        "target": {
+          "solar_date": "2034-7-1",
+          "year": 2034,
+          "time_index": 2
+        }
+      },
+      "runtime": {
+        "age_palace": {
+          "scope": "age",
+          "requested_palace_name": "life",
+          "branch": "shen",
+          "natal_palace_name": "migration",
+          "temporal_palace_name": "life",
+          "natal_palace_stem": "jia",
+          "natal_typed_stars": [
+            "qi_sha",
+            "zuo_fu",
+            "wen_qu",
+            "lu_cun",
+            "tian_ma",
+            "tian_cai",
+            "gu_chen"
+          ],
+          "natal_decorative_stars": [
+            "chang_sheng",
+            "bo_shi",
+            "sang_men",
+            "sui_yi"
+          ],
+          "temporal_stars": [],
+          "temporal_decorative_stars": [],
+          "temporal_mutagen_activations": []
+        },
+        "palace_projections": [
+          {
+            "scope": "origin",
+            "requested_palace_name": "life",
+            "branch": "yin",
+            "natal_palace_name": "life",
+            "temporal_palace_name": null,
+            "natal_palace_stem": "wu",
+            "natal_typed_stars": [
+              "zi_wei",
+              "tian_fu",
+              "ba_zuo",
+              "tian_chu",
+              "fei_lian"
+            ],
+            "natal_decorative_stars": [
+              "bing",
+              "fay_lian_boshi",
+              "bai_hu",
+              "zhi_bei"
+            ],
+            "temporal_stars": [],
+            "temporal_decorative_stars": [],
+            "temporal_mutagen_activations": []
+          },
+          {
+            "scope": "decadal",
+            "requested_palace_name": "life",
+            "branch": "xu",
+            "natal_palace_name": "wealth",
+            "temporal_palace_name": "life",
+            "natal_palace_stem": "bing",
+            "natal_typed_stars": [
+              "wu_qu",
+              "long_chi",
+              "tai_fu",
+              "hua_gai",
+              "xun_kong"
+            ],
+            "natal_decorative_stars": [
+              "tai",
+              "fu_bing",
+              "guan_fu_suiqian",
+              "hua_gai_jiangqian"
+            ],
+            "temporal_stars": [],
+            "temporal_decorative_stars": [],
+            "temporal_mutagen_activations": []
+          },
+          {
+            "scope": "yearly",
+            "requested_palace_name": "career",
+            "branch": "wu",
+            "natal_palace_name": "career",
+            "temporal_palace_name": "career",
+            "natal_palace_stem": "ren",
+            "natal_typed_stars": [
+              "lian_zhen",
+              "tian_xiang",
+              "you_bi",
+              "wen_chang",
+              "feng_gao",
+              "tian_fu_adj",
+              "jie_lu",
+              "yin_sha"
+            ],
+            "natal_decorative_stars": [
+              "guan_dai",
+              "qing_long",
+              "sui_jian",
+              "jiang_xing"
+            ],
+            "temporal_stars": [],
+            "temporal_decorative_stars": [
+              "guan_fu_suiqian",
+              "jiang_xing"
+            ],
+            "temporal_mutagen_activations": [
+              {
+                "target_star": "lian_zhen",
+                "mutagen": "lu"
+              }
+            ]
+          },
+          {
+            "scope": "monthly",
+            "requested_palace_name": "life",
+            "branch": "wu",
+            "natal_palace_name": "career",
+            "temporal_palace_name": "life",
+            "natal_palace_stem": "ren",
+            "natal_typed_stars": [
+              "lian_zhen",
+              "tian_xiang",
+              "you_bi",
+              "wen_chang",
+              "feng_gao",
+              "tian_fu_adj",
+              "jie_lu",
+              "yin_sha"
+            ],
+            "natal_decorative_stars": [
+              "guan_dai",
+              "qing_long",
+              "sui_jian",
+              "jiang_xing"
+            ],
+            "temporal_stars": [],
+            "temporal_decorative_stars": [],
+            "temporal_mutagen_activations": []
+          },
+          {
+            "scope": "daily",
+            "requested_palace_name": "wealth",
+            "branch": "si",
+            "natal_palace_name": "property",
+            "temporal_palace_name": "wealth",
+            "natal_palace_stem": "xin",
+            "natal_typed_stars": [
+              "ju_men",
+              "huo_xing",
+              "tian_yao",
+              "tian_wu",
+              "po_sui"
+            ],
+            "natal_decorative_stars": [
+              "lin_guan",
+              "xiao_hao_boshi",
+              "bing_fu_suiqian",
+              "wang_shen"
+            ],
+            "temporal_stars": [
+              "ri_lu"
+            ],
+            "temporal_decorative_stars": [],
+            "temporal_mutagen_activations": []
+          },
+          {
+            "scope": "hourly",
+            "requested_palace_name": "parents",
+            "branch": "zi",
+            "natal_palace_name": "spouse",
+            "temporal_palace_name": "parents",
+            "natal_palace_stem": "wu",
+            "natal_typed_stars": [
+              "po_jun",
+              "jie_shen",
+              "san_tai",
+              "tian_ku",
+              "tian_xu"
+            ],
+            "natal_decorative_stars": [
+              "mu",
+              "bing_fu_boshi",
+              "da_hao_suiqian",
+              "zai_sha"
+            ],
+            "temporal_stars": [],
+            "temporal_decorative_stars": [],
+            "temporal_mutagen_activations": [
+              {
+                "target_star": "po_jun",
+                "mutagen": "quan"
+              }
+            ]
+          }
+        ],
+        "surround_palaces": [
+          {
+            "scope": "origin",
+            "requested_palace_name": "life",
+            "target": {
+              "scope": "origin",
+              "requested_palace_name": "life",
+              "branch": "yin",
+              "natal_palace_name": "life",
+              "temporal_palace_name": null,
+              "natal_palace_stem": "wu",
+              "natal_typed_stars": [
+                "zi_wei",
+                "tian_fu",
+                "ba_zuo",
+                "tian_chu",
+                "fei_lian"
+              ],
+              "natal_decorative_stars": [
+                "bing",
+                "fay_lian_boshi",
+                "bai_hu",
+                "zhi_bei"
+              ],
+              "temporal_stars": [],
+              "temporal_decorative_stars": [],
+              "temporal_mutagen_activations": []
+            },
+            "opposite": {
+              "scope": "origin",
+              "requested_palace_name": "life",
+              "branch": "shen",
+              "natal_palace_name": "migration",
+              "temporal_palace_name": null,
+              "natal_palace_stem": "jia",
+              "natal_typed_stars": [
+                "qi_sha",
+                "zuo_fu",
+                "wen_qu",
+                "lu_cun",
+                "tian_ma",
+                "tian_cai",
+                "gu_chen"
+              ],
+              "natal_decorative_stars": [
+                "chang_sheng",
+                "bo_shi",
+                "sang_men",
+                "sui_yi"
+              ],
+              "temporal_stars": [],
+              "temporal_decorative_stars": [],
+              "temporal_mutagen_activations": []
+            },
+            "wealth": {
+              "scope": "origin",
+              "requested_palace_name": "life",
+              "branch": "xu",
+              "natal_palace_name": "wealth",
+              "temporal_palace_name": null,
+              "natal_palace_stem": "bing",
+              "natal_typed_stars": [
+                "wu_qu",
+                "long_chi",
+                "tai_fu",
+                "hua_gai",
+                "xun_kong"
+              ],
+              "natal_decorative_stars": [
+                "tai",
+                "fu_bing",
+                "guan_fu_suiqian",
+                "hua_gai_jiangqian"
+              ],
+              "temporal_stars": [],
+              "temporal_decorative_stars": [],
+              "temporal_mutagen_activations": []
+            },
+            "career": {
+              "scope": "origin",
+              "requested_palace_name": "life",
+              "branch": "wu",
+              "natal_palace_name": "career",
+              "temporal_palace_name": null,
+              "natal_palace_stem": "ren",
+              "natal_typed_stars": [
+                "lian_zhen",
+                "tian_xiang",
+                "you_bi",
+                "wen_chang",
+                "feng_gao",
+                "tian_fu_adj",
+                "jie_lu",
+                "yin_sha"
+              ],
+              "natal_decorative_stars": [
+                "guan_dai",
+                "qing_long",
+                "sui_jian",
+                "jiang_xing"
+              ],
+              "temporal_stars": [],
+              "temporal_decorative_stars": [],
+              "temporal_mutagen_activations": []
+            }
+          },
+          {
+            "scope": "decadal",
+            "requested_palace_name": "life",
+            "target": {
+              "scope": "decadal",
+              "requested_palace_name": "life",
+              "branch": "xu",
+              "natal_palace_name": "wealth",
+              "temporal_palace_name": "life",
+              "natal_palace_stem": "bing",
+              "natal_typed_stars": [
+                "wu_qu",
+                "long_chi",
+                "tai_fu",
+                "hua_gai",
+                "xun_kong"
+              ],
+              "natal_decorative_stars": [
+                "tai",
+                "fu_bing",
+                "guan_fu_suiqian",
+                "hua_gai_jiangqian"
+              ],
+              "temporal_stars": [],
+              "temporal_decorative_stars": [],
+              "temporal_mutagen_activations": []
+            },
+            "opposite": {
+              "scope": "decadal",
+              "requested_palace_name": "life",
+              "branch": "chen",
+              "natal_palace_name": "spirit",
+              "temporal_palace_name": "migration",
+              "natal_palace_stem": "geng",
+              "natal_typed_stars": [
+                "tan_lang",
+                "feng_ge",
+                "tian_shou",
+                "gua_su",
+                "nian_jie"
+              ],
+              "natal_decorative_stars": [
+                "di_wang",
+                "jiang_jun",
+                "diao_ke",
+                "yue_sha"
+              ],
+              "temporal_stars": [
+                "yun_tuo"
+              ],
+              "temporal_decorative_stars": [],
+              "temporal_mutagen_activations": []
+            },
+            "wealth": {
+              "scope": "decadal",
+              "requested_palace_name": "life",
+              "branch": "wu",
+              "natal_palace_name": "career",
+              "temporal_palace_name": "wealth",
+              "natal_palace_stem": "ren",
+              "natal_typed_stars": [
+                "lian_zhen",
+                "tian_xiang",
+                "you_bi",
+                "wen_chang",
+                "feng_gao",
+                "tian_fu_adj",
+                "jie_lu",
+                "yin_sha"
+              ],
+              "natal_decorative_stars": [
+                "guan_dai",
+                "qing_long",
+                "sui_jian",
+                "jiang_xing"
+              ],
+              "temporal_stars": [
+                "yun_qu",
+                "yun_yang"
+              ],
+              "temporal_decorative_stars": [],
+              "temporal_mutagen_activations": [
+                {
+                  "target_star": "wen_chang",
+                  "mutagen": "ke"
+                },
+                {
+                  "target_star": "lian_zhen",
+                  "mutagen": "ji"
+                }
+              ]
+            },
+            "career": {
+              "scope": "decadal",
+              "requested_palace_name": "life",
+              "branch": "yin",
+              "natal_palace_name": "life",
+              "temporal_palace_name": "career",
+              "natal_palace_stem": "wu",
+              "natal_typed_stars": [
+                "zi_wei",
+                "tian_fu",
+                "ba_zuo",
+                "tian_chu",
+                "fei_lian"
+              ],
+              "natal_decorative_stars": [
+                "bing",
+                "fay_lian_boshi",
+                "bai_hu",
+                "zhi_bei"
+              ],
+              "temporal_stars": [],
+              "temporal_decorative_stars": [],
+              "temporal_mutagen_activations": []
+            }
+          },
+          {
+            "scope": "yearly",
+            "requested_palace_name": "career",
+            "target": {
+              "scope": "yearly",
+              "requested_palace_name": "career",
+              "branch": "wu",
+              "natal_palace_name": "career",
+              "temporal_palace_name": "career",
+              "natal_palace_stem": "ren",
+              "natal_typed_stars": [
+                "lian_zhen",
+                "tian_xiang",
+                "you_bi",
+                "wen_chang",
+                "feng_gao",
+                "tian_fu_adj",
+                "jie_lu",
+                "yin_sha"
+              ],
+              "natal_decorative_stars": [
+                "guan_dai",
+                "qing_long",
+                "sui_jian",
+                "jiang_xing"
+              ],
+              "temporal_stars": [],
+              "temporal_decorative_stars": [
+                "guan_fu_suiqian",
+                "jiang_xing"
+              ],
+              "temporal_mutagen_activations": [
+                {
+                  "target_star": "lian_zhen",
+                  "mutagen": "lu"
+                }
+              ]
+            },
+            "opposite": {
+              "scope": "yearly",
+              "requested_palace_name": "career",
+              "branch": "zi",
+              "natal_palace_name": "spouse",
+              "temporal_palace_name": "spouse",
+              "natal_palace_stem": "wu",
+              "natal_typed_stars": [
+                "po_jun",
+                "jie_shen",
+                "san_tai",
+                "tian_ku",
+                "tian_xu"
+              ],
+              "natal_decorative_stars": [
+                "mu",
+                "bing_fu_boshi",
+                "da_hao_suiqian",
+                "zai_sha"
+              ],
+              "temporal_stars": [],
+              "temporal_decorative_stars": [
+                "diao_ke",
+                "zai_sha"
+              ],
+              "temporal_mutagen_activations": [
+                {
+                  "target_star": "po_jun",
+                  "mutagen": "quan"
+                }
+              ]
+            },
+            "wealth": {
+              "scope": "yearly",
+              "requested_palace_name": "career",
+              "branch": "yin",
+              "natal_palace_name": "life",
+              "temporal_palace_name": "life",
+              "natal_palace_stem": "wu",
+              "natal_typed_stars": [
+                "zi_wei",
+                "tian_fu",
+                "ba_zuo",
+                "tian_chu",
+                "fei_lian"
+              ],
+              "natal_decorative_stars": [
+                "bing",
+                "fay_lian_boshi",
+                "bai_hu",
+                "zhi_bei"
+              ],
+              "temporal_stars": [
+                "liu_lu"
+              ],
+              "temporal_decorative_stars": [
+                "sui_jian",
+                "zhi_bei"
+              ],
+              "temporal_mutagen_activations": []
+            },
+            "career": {
+              "scope": "yearly",
+              "requested_palace_name": "career",
+              "branch": "xu",
+              "natal_palace_name": "wealth",
+              "temporal_palace_name": "wealth",
+              "natal_palace_stem": "bing",
+              "natal_typed_stars": [
+                "wu_qu",
+                "long_chi",
+                "tai_fu",
+                "hua_gai",
+                "xun_kong"
+              ],
+              "natal_decorative_stars": [
+                "tai",
+                "fu_bing",
+                "guan_fu_suiqian",
+                "hua_gai_jiangqian"
+              ],
+              "temporal_stars": [],
+              "temporal_decorative_stars": [
+                "bai_hu",
+                "hua_gai_jiangqian"
+              ],
+              "temporal_mutagen_activations": [
+                {
+                  "target_star": "wu_qu",
+                  "mutagen": "ke"
+                }
+              ]
+            }
+          }
+        ],
+        "star_queries": [
+          {
+            "helper": "hasHoroscopeStars",
+            "scope": "decadal",
+            "palace_name": "career",
+            "stars": [
+              "liu_lu"
+            ],
+            "expected": true
+          },
+          {
+            "helper": "hasHoroscopeStars",
+            "scope": "decadal",
+            "palace_name": "career",
+            "stars": [
+              "liu_lu",
+              "yun_lu"
+            ],
+            "expected": false
+          },
+          {
+            "helper": "notHaveHoroscopeStars",
+            "scope": "decadal",
+            "palace_name": "career",
+            "stars": [
+              "yun_lu"
+            ],
+            "expected": true
+          },
+          {
+            "helper": "notHaveHoroscopeStars",
+            "scope": "decadal",
+            "palace_name": "career",
+            "stars": [
+              "liu_lu",
+              "yun_lu"
+            ],
+            "expected": false
+          },
+          {
+            "helper": "hasOneOfHoroscopeStars",
+            "scope": "decadal",
+            "palace_name": "career",
+            "stars": [
+              "liu_lu",
+              "yun_lu"
+            ],
+            "expected": true
+          },
+          {
+            "helper": "hasOneOfHoroscopeStars",
+            "scope": "decadal",
+            "palace_name": "career",
+            "stars": [
+              "yun_lu"
+            ],
+            "expected": false
+          },
+          {
+            "helper": "hasHoroscopeStars",
+            "scope": "decadal",
+            "palace_name": "career",
+            "stars": [],
+            "expected": true
+          },
+          {
+            "helper": "notHaveHoroscopeStars",
+            "scope": "decadal",
+            "palace_name": "career",
+            "stars": [],
+            "expected": true
+          },
+          {
+            "helper": "hasOneOfHoroscopeStars",
+            "scope": "decadal",
+            "palace_name": "career",
+            "stars": [],
+            "expected": false
+          },
+          {
+            "helper": "hasHoroscopeStars",
+            "scope": "monthly",
+            "palace_name": "wealth",
+            "stars": [
+              "yue_lu"
+            ],
+            "expected": false
+          },
+          {
+            "helper": "hasHoroscopeStars",
+            "scope": "yearly",
+            "palace_name": "life",
+            "stars": [
+              "sui_jian"
+            ],
+            "expected": false
+          }
+        ],
+        "mutagen_queries": [
+          {
+            "scope": "origin",
+            "palace_name": "life",
+            "mutagen": "lu",
+            "expected": false
+          },
+          {
+            "scope": "age",
+            "palace_name": "migration",
+            "mutagen": "lu",
+            "expected": false
+          },
+          {
+            "scope": "age",
+            "palace_name": "spouse",
+            "mutagen": "lu",
+            "expected": true
+          },
+          {
+            "scope": "decadal",
+            "palace_name": "career",
+            "mutagen": "lu",
+            "expected": false
+          },
+          {
+            "scope": "yearly",
+            "palace_name": "life",
+            "mutagen": "lu",
+            "expected": false
+          },
+          {
+            "scope": "monthly",
+            "palace_name": "wealth",
+            "mutagen": "lu",
+            "expected": false
+          },
+          {
+            "scope": "daily",
+            "palace_name": "friends",
+            "mutagen": "lu",
+            "expected": false
+          },
+          {
+            "scope": "hourly",
+            "palace_name": "property",
+            "mutagen": "lu",
+            "expected": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "canonical_female_zhongzhou_2026",
+      "input": {
+        "calendar": "lunar",
+        "year": 1990,
+        "month": 5,
+        "day": 17,
+        "time_index": 4,
+        "gender": "female",
+        "is_leap_month": false,
+        "fix_leap": true,
+        "language": "zh-CN",
+        "algorithm": "zhongzhou",
+        "target": {
+          "solar_date": "2026-7-1",
+          "year": 2026,
+          "time_index": 2
+        }
+      },
+      "runtime": {
+        "age_palace": {
+          "scope": "age",
+          "requested_palace_name": "life",
+          "branch": "chen",
+          "natal_palace_name": "spirit",
+          "temporal_palace_name": "life",
+          "natal_palace_stem": "geng",
+          "natal_typed_stars": [
+            "tan_lang",
+            "feng_ge",
+            "tian_shou",
+            "gua_su",
+            "nian_jie"
+          ],
+          "natal_decorative_stars": [
+            "di_wang",
+            "jiang_jun",
+            "diao_ke",
+            "yue_sha"
+          ],
+          "temporal_stars": [],
+          "temporal_decorative_stars": [],
+          "temporal_mutagen_activations": []
+        },
+        "palace_projections": [
+          {
+            "scope": "origin",
+            "requested_palace_name": "life",
+            "branch": "yin",
+            "natal_palace_name": "life",
+            "temporal_palace_name": null,
+            "natal_palace_stem": "wu",
+            "natal_typed_stars": [
+              "zi_wei",
+              "tian_fu",
+              "ba_zuo",
+              "tian_chu",
+              "fei_lian"
+            ],
+            "natal_decorative_stars": [
+              "bing",
+              "fay_lian_boshi",
+              "bai_hu",
+              "zhi_bei"
+            ],
+            "temporal_stars": [],
+            "temporal_decorative_stars": [],
+            "temporal_mutagen_activations": []
+          },
+          {
+            "scope": "decadal",
+            "requested_palace_name": "life",
+            "branch": "hai",
+            "natal_palace_name": "children",
+            "temporal_palace_name": "life",
+            "natal_palace_stem": "ding",
+            "natal_typed_stars": [
+              "tai_yang",
+              "tian_gui",
+              "tian_guan",
+              "yue_de",
+              "jie_sha_adj"
+            ],
+            "natal_decorative_stars": [
+              "jue",
+              "da_hao_boshi",
+              "xiao_hao_suiqian",
+              "jie_sha"
+            ],
+            "temporal_stars": [
+              "yun_kui"
+            ],
+            "temporal_decorative_stars": [],
+            "temporal_mutagen_activations": []
+          },
+          {
+            "scope": "yearly",
+            "requested_palace_name": "career",
+            "branch": "xu",
+            "natal_palace_name": "wealth",
+            "temporal_palace_name": "career",
+            "natal_palace_stem": "bing",
+            "natal_typed_stars": [
+              "wu_qu",
+              "long_chi",
+              "tai_fu",
+              "hua_gai",
+              "xun_kong"
+            ],
+            "natal_decorative_stars": [
+              "tai",
+              "fu_bing",
+              "guan_fu_suiqian",
+              "hua_gai_jiangqian"
+            ],
+            "temporal_stars": [],
+            "temporal_decorative_stars": [
+              "guan_fu_suiqian",
+              "hua_gai_jiangqian"
+            ],
+            "temporal_mutagen_activations": []
+          },
+          {
+            "scope": "monthly",
+            "requested_palace_name": "life",
+            "branch": "xu",
+            "natal_palace_name": "wealth",
+            "temporal_palace_name": "life",
+            "natal_palace_stem": "bing",
+            "natal_typed_stars": [
+              "wu_qu",
+              "long_chi",
+              "tai_fu",
+              "hua_gai",
+              "xun_kong"
+            ],
+            "natal_decorative_stars": [
+              "tai",
+              "fu_bing",
+              "guan_fu_suiqian",
+              "hua_gai_jiangqian"
+            ],
+            "temporal_stars": [],
+            "temporal_decorative_stars": [],
+            "temporal_mutagen_activations": [
+              {
+                "target_star": "wu_qu",
+                "mutagen": "ke"
+              }
+            ]
+          },
+          {
+            "scope": "daily",
+            "requested_palace_name": "wealth",
+            "branch": "xu",
+            "natal_palace_name": "wealth",
+            "temporal_palace_name": "wealth",
+            "natal_palace_stem": "bing",
+            "natal_typed_stars": [
+              "wu_qu",
+              "long_chi",
+              "tai_fu",
+              "hua_gai",
+              "xun_kong"
+            ],
+            "natal_decorative_stars": [
+              "tai",
+              "fu_bing",
+              "guan_fu_suiqian",
+              "hua_gai_jiangqian"
+            ],
+            "temporal_stars": [],
+            "temporal_decorative_stars": [],
+            "temporal_mutagen_activations": []
+          },
+          {
+            "scope": "hourly",
+            "requested_palace_name": "parents",
+            "branch": "si",
+            "natal_palace_name": "property",
+            "temporal_palace_name": "parents",
+            "natal_palace_stem": "xin",
+            "natal_typed_stars": [
+              "ju_men",
+              "huo_xing",
+              "tian_yao",
+              "tian_wu",
+              "po_sui"
+            ],
+            "natal_decorative_stars": [
+              "lin_guan",
+              "xiao_hao_boshi",
+              "bing_fu_suiqian",
+              "wang_shen"
+            ],
+            "temporal_stars": [],
+            "temporal_decorative_stars": [],
+            "temporal_mutagen_activations": []
+          }
+        ],
+        "surround_palaces": [
+          {
+            "scope": "origin",
+            "requested_palace_name": "life",
+            "target": {
+              "scope": "origin",
+              "requested_palace_name": "life",
+              "branch": "yin",
+              "natal_palace_name": "life",
+              "temporal_palace_name": null,
+              "natal_palace_stem": "wu",
+              "natal_typed_stars": [
+                "zi_wei",
+                "tian_fu",
+                "ba_zuo",
+                "tian_chu",
+                "fei_lian"
+              ],
+              "natal_decorative_stars": [
+                "bing",
+                "fay_lian_boshi",
+                "bai_hu",
+                "zhi_bei"
+              ],
+              "temporal_stars": [],
+              "temporal_decorative_stars": [],
+              "temporal_mutagen_activations": []
+            },
+            "opposite": {
+              "scope": "origin",
+              "requested_palace_name": "life",
+              "branch": "shen",
+              "natal_palace_name": "migration",
+              "temporal_palace_name": null,
+              "natal_palace_stem": "jia",
+              "natal_typed_stars": [
+                "qi_sha",
+                "zuo_fu",
+                "wen_qu",
+                "lu_cun",
+                "tian_ma",
+                "tian_cai",
+                "gu_chen"
+              ],
+              "natal_decorative_stars": [
+                "chang_sheng",
+                "bo_shi",
+                "sang_men",
+                "sui_yi"
+              ],
+              "temporal_stars": [],
+              "temporal_decorative_stars": [],
+              "temporal_mutagen_activations": []
+            },
+            "wealth": {
+              "scope": "origin",
+              "requested_palace_name": "life",
+              "branch": "xu",
+              "natal_palace_name": "wealth",
+              "temporal_palace_name": null,
+              "natal_palace_stem": "bing",
+              "natal_typed_stars": [
+                "wu_qu",
+                "long_chi",
+                "tai_fu",
+                "hua_gai",
+                "xun_kong"
+              ],
+              "natal_decorative_stars": [
+                "tai",
+                "fu_bing",
+                "guan_fu_suiqian",
+                "hua_gai_jiangqian"
+              ],
+              "temporal_stars": [],
+              "temporal_decorative_stars": [],
+              "temporal_mutagen_activations": []
+            },
+            "career": {
+              "scope": "origin",
+              "requested_palace_name": "life",
+              "branch": "wu",
+              "natal_palace_name": "career",
+              "temporal_palace_name": null,
+              "natal_palace_stem": "ren",
+              "natal_typed_stars": [
+                "lian_zhen",
+                "tian_xiang",
+                "you_bi",
+                "wen_chang",
+                "feng_gao",
+                "tian_fu_adj",
+                "jie_kong",
+                "yin_sha"
+              ],
+              "natal_decorative_stars": [
+                "guan_dai",
+                "qing_long",
+                "sui_jian",
+                "jiang_xing"
+              ],
+              "temporal_stars": [],
+              "temporal_decorative_stars": [],
+              "temporal_mutagen_activations": []
+            }
+          },
+          {
+            "scope": "decadal",
+            "requested_palace_name": "life",
+            "target": {
+              "scope": "decadal",
+              "requested_palace_name": "life",
+              "branch": "hai",
+              "natal_palace_name": "children",
+              "temporal_palace_name": "life",
+              "natal_palace_stem": "ding",
+              "natal_typed_stars": [
+                "tai_yang",
+                "tian_gui",
+                "tian_guan",
+                "yue_de",
+                "jie_sha_adj"
+              ],
+              "natal_decorative_stars": [
+                "jue",
+                "da_hao_boshi",
+                "xiao_hao_suiqian",
+                "jie_sha"
+              ],
+              "temporal_stars": [
+                "yun_kui"
+              ],
+              "temporal_decorative_stars": [],
+              "temporal_mutagen_activations": []
+            },
+            "opposite": {
+              "scope": "decadal",
+              "requested_palace_name": "life",
+              "branch": "si",
+              "natal_palace_name": "property",
+              "temporal_palace_name": "migration",
+              "natal_palace_stem": "xin",
+              "natal_typed_stars": [
+                "ju_men",
+                "huo_xing",
+                "tian_yao",
+                "tian_wu",
+                "po_sui"
+              ],
+              "natal_decorative_stars": [
+                "lin_guan",
+                "xiao_hao_boshi",
+                "bing_fu_suiqian",
+                "wang_shen"
+              ],
+              "temporal_stars": [
+                "yun_qu",
+                "yun_tuo",
+                "yun_ma"
+              ],
+              "temporal_decorative_stars": [],
+              "temporal_mutagen_activations": [
+                {
+                  "target_star": "ju_men",
+                  "mutagen": "ji"
+                }
+              ]
+            },
+            "wealth": {
+              "scope": "decadal",
+              "requested_palace_name": "life",
+              "branch": "wei",
+              "natal_palace_name": "friends",
+              "temporal_palace_name": "wealth",
+              "natal_palace_stem": "gui",
+              "natal_typed_stars": [
+                "tian_liang",
+                "tian_yue",
+                "di_kong",
+                "ling_xing",
+                "tuo_luo",
+                "tian_yue_adj",
+                "tian_kong",
+                "tian_shi"
+              ],
+              "natal_decorative_stars": [
+                "mu_yu",
+                "li_shi",
+                "hui_qi",
+                "pan_an"
+              ],
+              "temporal_stars": [
+                "yun_yang"
+              ],
+              "temporal_decorative_stars": [],
+              "temporal_mutagen_activations": []
+            },
+            "career": {
+              "scope": "decadal",
+              "requested_palace_name": "life",
+              "branch": "mao",
+              "natal_palace_name": "parents",
+              "temporal_palace_name": "career",
+              "natal_palace_stem": "ji",
+              "natal_typed_stars": [
+                "tai_yin",
+                "di_jie",
+                "tian_xi",
+                "xian_chi",
+                "tian_de"
+              ],
+              "natal_decorative_stars": [
+                "shuai",
+                "zhou_shu",
+                "tian_de_suiqian",
+                "xian_chi_jiangqian"
+              ],
+              "temporal_stars": [],
+              "temporal_decorative_stars": [],
+              "temporal_mutagen_activations": [
+                {
+                  "target_star": "tai_yin",
+                  "mutagen": "lu"
+                }
+              ]
+            }
+          },
+          {
+            "scope": "yearly",
+            "requested_palace_name": "career",
+            "target": {
+              "scope": "yearly",
+              "requested_palace_name": "career",
+              "branch": "xu",
+              "natal_palace_name": "wealth",
+              "temporal_palace_name": "career",
+              "natal_palace_stem": "bing",
+              "natal_typed_stars": [
+                "wu_qu",
+                "long_chi",
+                "tai_fu",
+                "hua_gai",
+                "xun_kong"
+              ],
+              "natal_decorative_stars": [
+                "tai",
+                "fu_bing",
+                "guan_fu_suiqian",
+                "hua_gai_jiangqian"
+              ],
+              "temporal_stars": [],
+              "temporal_decorative_stars": [
+                "guan_fu_suiqian",
+                "hua_gai_jiangqian"
+              ],
+              "temporal_mutagen_activations": []
+            },
+            "opposite": {
+              "scope": "yearly",
+              "requested_palace_name": "career",
+              "branch": "chen",
+              "natal_palace_name": "spirit",
+              "temporal_palace_name": "spouse",
+              "natal_palace_stem": "geng",
+              "natal_typed_stars": [
+                "tan_lang",
+                "feng_ge",
+                "tian_shou",
+                "gua_su",
+                "nian_jie"
+              ],
+              "natal_decorative_stars": [
+                "di_wang",
+                "jiang_jun",
+                "diao_ke",
+                "yue_sha"
+              ],
+              "temporal_stars": [
+                "nian_jie_yearly",
+                "liu_tuo"
+              ],
+              "temporal_decorative_stars": [
+                "diao_ke",
+                "yue_sha"
+              ],
+              "temporal_mutagen_activations": []
+            },
+            "wealth": {
+              "scope": "yearly",
+              "requested_palace_name": "career",
+              "branch": "wu",
+              "natal_palace_name": "career",
+              "temporal_palace_name": "life",
+              "natal_palace_stem": "ren",
+              "natal_typed_stars": [
+                "lian_zhen",
+                "tian_xiang",
+                "you_bi",
+                "wen_chang",
+                "feng_gao",
+                "tian_fu_adj",
+                "jie_kong",
+                "yin_sha"
+              ],
+              "natal_decorative_stars": [
+                "guan_dai",
+                "qing_long",
+                "sui_jian",
+                "jiang_xing"
+              ],
+              "temporal_stars": [
+                "liu_qu",
+                "liu_yang"
+              ],
+              "temporal_decorative_stars": [
+                "sui_jian",
+                "jiang_xing"
+              ],
+              "temporal_mutagen_activations": [
+                {
+                  "target_star": "wen_chang",
+                  "mutagen": "ke"
+                },
+                {
+                  "target_star": "lian_zhen",
+                  "mutagen": "ji"
+                }
+              ]
+            },
+            "career": {
+              "scope": "yearly",
+              "requested_palace_name": "career",
+              "branch": "yin",
+              "natal_palace_name": "life",
+              "temporal_palace_name": "wealth",
+              "natal_palace_stem": "wu",
+              "natal_typed_stars": [
+                "zi_wei",
+                "tian_fu",
+                "ba_zuo",
+                "tian_chu",
+                "fei_lian"
+              ],
+              "natal_decorative_stars": [
+                "bing",
+                "fay_lian_boshi",
+                "bai_hu",
+                "zhi_bei"
+              ],
+              "temporal_stars": [],
+              "temporal_decorative_stars": [
+                "bai_hu",
+                "zhi_bei"
+              ],
+              "temporal_mutagen_activations": []
+            }
+          }
+        ],
+        "star_queries": [
+          {
+            "helper": "hasHoroscopeStars",
+            "scope": "decadal",
+            "palace_name": "career",
+            "stars": [
+              "liu_xi"
+            ],
+            "expected": true
+          },
+          {
+            "helper": "hasHoroscopeStars",
+            "scope": "decadal",
+            "palace_name": "career",
+            "stars": [
+              "liu_xi",
+              "yun_lu"
+            ],
+            "expected": false
+          },
+          {
+            "helper": "notHaveHoroscopeStars",
+            "scope": "decadal",
+            "palace_name": "career",
+            "stars": [
+              "yun_lu"
+            ],
+            "expected": true
+          },
+          {
+            "helper": "notHaveHoroscopeStars",
+            "scope": "decadal",
+            "palace_name": "career",
+            "stars": [
+              "liu_xi",
+              "yun_lu"
+            ],
+            "expected": false
+          },
+          {
+            "helper": "hasOneOfHoroscopeStars",
+            "scope": "decadal",
+            "palace_name": "career",
+            "stars": [
+              "liu_xi",
+              "yun_lu"
+            ],
+            "expected": true
+          },
+          {
+            "helper": "hasOneOfHoroscopeStars",
+            "scope": "decadal",
+            "palace_name": "career",
+            "stars": [
+              "yun_lu"
+            ],
+            "expected": false
+          },
+          {
+            "helper": "hasHoroscopeStars",
+            "scope": "decadal",
+            "palace_name": "career",
+            "stars": [],
+            "expected": true
+          },
+          {
+            "helper": "notHaveHoroscopeStars",
+            "scope": "decadal",
+            "palace_name": "career",
+            "stars": [],
+            "expected": true
+          },
+          {
+            "helper": "hasOneOfHoroscopeStars",
+            "scope": "decadal",
+            "palace_name": "career",
+            "stars": [],
+            "expected": false
+          },
+          {
+            "helper": "hasHoroscopeStars",
+            "scope": "monthly",
+            "palace_name": "career",
+            "stars": [
+              "yue_lu"
+            ],
+            "expected": false
+          },
+          {
+            "helper": "hasHoroscopeStars",
+            "scope": "yearly",
+            "palace_name": "wealth",
+            "stars": [
+              "sui_jian"
+            ],
+            "expected": false
+          }
+        ],
+        "mutagen_queries": [
+          {
+            "scope": "origin",
+            "palace_name": "life",
+            "mutagen": "lu",
+            "expected": false
+          },
+          {
+            "scope": "age",
+            "palace_name": "spouse",
+            "mutagen": "lu",
+            "expected": false
+          },
+          {
+            "scope": "age",
+            "palace_name": "siblings",
+            "mutagen": "ke",
+            "expected": true
+          },
+          {
+            "scope": "decadal",
+            "palace_name": "property",
+            "mutagen": "lu",
+            "expected": false
+          },
+          {
+            "scope": "yearly",
+            "palace_name": "wealth",
+            "mutagen": "lu",
+            "expected": false
+          },
+          {
+            "scope": "monthly",
+            "palace_name": "career",
+            "mutagen": "lu",
+            "expected": false
+          },
+          {
+            "scope": "daily",
+            "palace_name": "life",
+            "mutagen": "lu",
+            "expected": false
+          },
+          {
+            "scope": "hourly",
+            "palace_name": "spouse",
+            "mutagen": "lu",
+            "expected": false
+          }
+        ]
+      }
+    },
+    {
+      "id": "male_1988_default_2026",
+      "input": {
+        "calendar": "lunar",
+        "year": 1988,
+        "month": 3,
+        "day": 14,
+        "time_index": 0,
+        "gender": "male",
+        "is_leap_month": false,
+        "fix_leap": true,
+        "language": "zh-CN",
+        "algorithm": "default",
+        "target": {
+          "solar_date": "2026-7-1",
+          "year": 2026,
+          "time_index": 2
+        }
+      },
+      "runtime": {
+        "age_palace": {
+          "scope": "age",
+          "requested_palace_name": "life",
+          "branch": "zi",
+          "natal_palace_name": "wealth",
+          "temporal_palace_name": "life",
+          "natal_palace_stem": "jia",
+          "natal_typed_stars": [
+            "tai_yang",
+            "jie_lu"
+          ],
+          "natal_decorative_stars": [
+            "di_wang",
+            "xi_shen_boshi",
+            "bai_hu",
+            "jiang_xing"
+          ],
+          "temporal_stars": [],
+          "temporal_decorative_stars": [],
+          "temporal_mutagen_activations": [
+            {
+              "target_star": "tai_yang",
+              "mutagen": "ji"
+            }
+          ]
+        },
+        "palace_projections": [
+          {
+            "scope": "origin",
+            "requested_palace_name": "life",
+            "branch": "chen",
+            "natal_palace_name": "life",
+            "temporal_palace_name": null,
+            "natal_palace_stem": "bing",
+            "natal_typed_stars": [
+              "ju_men",
+              "wen_qu",
+              "tuo_luo",
+              "tian_gui",
+              "hua_gai",
+              "tian_yue_adj"
+            ],
+            "natal_decorative_stars": [
+              "mu",
+              "guan_fu_boshi",
+              "sui_jian",
+              "hua_gai_jiangqian"
+            ],
+            "temporal_stars": [],
+            "temporal_decorative_stars": [],
+            "temporal_mutagen_activations": []
+          },
+          {
+            "scope": "decadal",
+            "requested_palace_name": "life",
+            "branch": "wei",
+            "natal_palace_name": "property",
+            "temporal_palace_name": "life",
+            "natal_palace_stem": "ji",
+            "natal_typed_stars": [
+              "lian_zhen",
+              "qi_sha",
+              "tian_yue",
+              "san_tai",
+              "ba_zuo"
+            ],
+            "natal_decorative_stars": [
+              "yang",
+              "qing_long",
+              "guan_suo",
+              "tian_sha"
+            ],
+            "temporal_stars": [
+              "yun_yang"
+            ],
+            "temporal_decorative_stars": [],
+            "temporal_mutagen_activations": []
+          },
+          {
+            "scope": "yearly",
+            "requested_palace_name": "career",
+            "branch": "xu",
+            "natal_palace_name": "migration",
+            "temporal_palace_name": "career",
+            "natal_palace_stem": "ren",
+            "natal_typed_stars": [
+              "tian_tong",
+              "wen_chang",
+              "ling_xing",
+              "jie_shen",
+              "en_guang",
+              "xun_kong",
+              "yin_sha",
+              "tian_xu"
+            ],
+            "natal_decorative_stars": [
+              "guan_dai",
+              "zhou_shu",
+              "da_hao_suiqian",
+              "yue_sha"
+            ],
+            "temporal_stars": [],
+            "temporal_decorative_stars": [
+              "guan_fu_suiqian",
+              "hua_gai_jiangqian"
+            ],
+            "temporal_mutagen_activations": [
+              {
+                "target_star": "tian_tong",
+                "mutagen": "lu"
+              },
+              {
+                "target_star": "wen_chang",
+                "mutagen": "ke"
+              }
+            ]
+          },
+          {
+            "scope": "monthly",
+            "requested_palace_name": "life",
+            "branch": "shen",
+            "natal_palace_name": "career",
+            "temporal_palace_name": "life",
+            "natal_palace_stem": "geng",
+            "natal_typed_stars": [
+              "you_bi",
+              "long_chi",
+              "tian_cai",
+              "tian_shou"
+            ],
+            "natal_decorative_stars": [
+              "chang_sheng",
+              "xiao_hao_boshi",
+              "guan_fu_suiqian",
+              "zhi_bei"
+            ],
+            "temporal_stars": [
+              "yue_ma"
+            ],
+            "temporal_decorative_stars": [],
+            "temporal_mutagen_activations": []
+          },
+          {
+            "scope": "daily",
+            "requested_palace_name": "wealth",
+            "branch": "shen",
+            "natal_palace_name": "career",
+            "temporal_palace_name": "wealth",
+            "natal_palace_stem": "geng",
+            "natal_typed_stars": [
+              "you_bi",
+              "long_chi",
+              "tian_cai",
+              "tian_shou"
+            ],
+            "natal_decorative_stars": [
+              "chang_sheng",
+              "xiao_hao_boshi",
+              "guan_fu_suiqian",
+              "zhi_bei"
+            ],
+            "temporal_stars": [
+              "ri_chang"
+            ],
+            "temporal_decorative_stars": [],
+            "temporal_mutagen_activations": []
+          },
+          {
+            "scope": "hourly",
+            "requested_palace_name": "parents",
+            "branch": "mao",
+            "natal_palace_name": "siblings",
+            "temporal_palace_name": "parents",
+            "natal_palace_stem": "yi",
+            "natal_typed_stars": [
+              "zi_wei",
+              "tan_lang",
+              "tian_yao",
+              "tian_guan",
+              "tian_fu_adj"
+            ],
+            "natal_decorative_stars": [
+              "si",
+              "fu_bing",
+              "bing_fu_suiqian",
+              "xi_shen_jiangqian"
+            ],
+            "temporal_stars": [
+              "shi_qu"
+            ],
+            "temporal_decorative_stars": [],
+            "temporal_mutagen_activations": []
+          }
+        ],
+        "surround_palaces": [
+          {
+            "scope": "origin",
+            "requested_palace_name": "life",
+            "target": {
+              "scope": "origin",
+              "requested_palace_name": "life",
+              "branch": "chen",
+              "natal_palace_name": "life",
+              "temporal_palace_name": null,
+              "natal_palace_stem": "bing",
+              "natal_typed_stars": [
+                "ju_men",
+                "wen_qu",
+                "tuo_luo",
+                "tian_gui",
+                "hua_gai",
+                "tian_yue_adj"
+              ],
+              "natal_decorative_stars": [
+                "mu",
+                "guan_fu_boshi",
+                "sui_jian",
+                "hua_gai_jiangqian"
+              ],
+              "temporal_stars": [],
+              "temporal_decorative_stars": [],
+              "temporal_mutagen_activations": []
+            },
+            "opposite": {
+              "scope": "origin",
+              "requested_palace_name": "life",
+              "branch": "xu",
+              "natal_palace_name": "migration",
+              "temporal_palace_name": null,
+              "natal_palace_stem": "ren",
+              "natal_typed_stars": [
+                "tian_tong",
+                "wen_chang",
+                "ling_xing",
+                "jie_shen",
+                "en_guang",
+                "xun_kong",
+                "yin_sha",
+                "tian_xu"
+              ],
+              "natal_decorative_stars": [
+                "guan_dai",
+                "zhou_shu",
+                "da_hao_suiqian",
+                "yue_sha"
+              ],
+              "temporal_stars": [],
+              "temporal_decorative_stars": [],
+              "temporal_mutagen_activations": []
+            },
+            "wealth": {
+              "scope": "origin",
+              "requested_palace_name": "life",
+              "branch": "zi",
+              "natal_palace_name": "wealth",
+              "temporal_palace_name": null,
+              "natal_palace_stem": "jia",
+              "natal_typed_stars": [
+                "tai_yang",
+                "jie_lu"
+              ],
+              "natal_decorative_stars": [
+                "di_wang",
+                "xi_shen_boshi",
+                "bai_hu",
+                "jiang_xing"
+              ],
+              "temporal_stars": [],
+              "temporal_decorative_stars": [],
+              "temporal_mutagen_activations": []
+            },
+            "career": {
+              "scope": "origin",
+              "requested_palace_name": "life",
+              "branch": "shen",
+              "natal_palace_name": "career",
+              "temporal_palace_name": null,
+              "natal_palace_stem": "geng",
+              "natal_typed_stars": [
+                "you_bi",
+                "long_chi",
+                "tian_cai",
+                "tian_shou"
+              ],
+              "natal_decorative_stars": [
+                "chang_sheng",
+                "xiao_hao_boshi",
+                "guan_fu_suiqian",
+                "zhi_bei"
+              ],
+              "temporal_stars": [],
+              "temporal_decorative_stars": [],
+              "temporal_mutagen_activations": []
+            }
+          },
+          {
+            "scope": "decadal",
+            "requested_palace_name": "life",
+            "target": {
+              "scope": "decadal",
+              "requested_palace_name": "life",
+              "branch": "wei",
+              "natal_palace_name": "property",
+              "temporal_palace_name": "life",
+              "natal_palace_stem": "ji",
+              "natal_typed_stars": [
+                "lian_zhen",
+                "qi_sha",
+                "tian_yue",
+                "san_tai",
+                "ba_zuo"
+              ],
+              "natal_decorative_stars": [
+                "yang",
+                "qing_long",
+                "guan_suo",
+                "tian_sha"
+              ],
+              "temporal_stars": [
+                "yun_yang"
+              ],
+              "temporal_decorative_stars": [],
+              "temporal_mutagen_activations": []
+            },
+            "opposite": {
+              "scope": "decadal",
+              "requested_palace_name": "life",
+              "branch": "chou",
+              "natal_palace_name": "children",
+              "temporal_palace_name": "migration",
+              "natal_palace_stem": "yi",
+              "natal_typed_stars": [
+                "tian_fu",
+                "tian_kui",
+                "tian_de",
+                "kong_wang",
+                "gua_su",
+                "po_sui"
+              ],
+              "natal_decorative_stars": [
+                "shuai",
+                "bing_fu_boshi",
+                "tian_de_suiqian",
+                "pan_an"
+              ],
+              "temporal_stars": [],
+              "temporal_decorative_stars": [],
+              "temporal_mutagen_activations": []
+            },
+            "wealth": {
+              "scope": "decadal",
+              "requested_palace_name": "life",
+              "branch": "mao",
+              "natal_palace_name": "siblings",
+              "temporal_palace_name": "wealth",
+              "natal_palace_stem": "yi",
+              "natal_typed_stars": [
+                "zi_wei",
+                "tan_lang",
+                "tian_yao",
+                "tian_guan",
+                "tian_fu_adj"
+              ],
+              "natal_decorative_stars": [
+                "si",
+                "fu_bing",
+                "bing_fu_suiqian",
+                "xi_shen_jiangqian"
+              ],
+              "temporal_stars": [],
+              "temporal_decorative_stars": [],
+              "temporal_mutagen_activations": [
+                {
+                  "target_star": "tan_lang",
+                  "mutagen": "quan"
+                }
+              ]
+            },
+            "career": {
+              "scope": "decadal",
+              "requested_palace_name": "life",
+              "branch": "hai",
+              "natal_palace_name": "health",
+              "temporal_palace_name": "career",
+              "natal_palace_stem": "gui",
+              "natal_typed_stars": [
+                "wu_qu",
+                "po_jun",
+                "di_kong",
+                "di_jie",
+                "hong_luan",
+                "tian_xing",
+                "tian_shi"
+              ],
+              "natal_decorative_stars": [
+                "lin_guan",
+                "fay_lian_boshi",
+                "long_de_suiqian",
+                "wang_shen"
+              ],
+              "temporal_stars": [],
+              "temporal_decorative_stars": [],
+              "temporal_mutagen_activations": [
+                {
+                  "target_star": "wu_qu",
+                  "mutagen": "lu"
+                }
+              ]
+            }
+          },
+          {
+            "scope": "yearly",
+            "requested_palace_name": "career",
+            "target": {
+              "scope": "yearly",
+              "requested_palace_name": "career",
+              "branch": "xu",
+              "natal_palace_name": "migration",
+              "temporal_palace_name": "career",
+              "natal_palace_stem": "ren",
+              "natal_typed_stars": [
+                "tian_tong",
+                "wen_chang",
+                "ling_xing",
+                "jie_shen",
+                "en_guang",
+                "xun_kong",
+                "yin_sha",
+                "tian_xu"
+              ],
+              "natal_decorative_stars": [
+                "guan_dai",
+                "zhou_shu",
+                "da_hao_suiqian",
+                "yue_sha"
+              ],
+              "temporal_stars": [],
+              "temporal_decorative_stars": [
+                "guan_fu_suiqian",
+                "hua_gai_jiangqian"
+              ],
+              "temporal_mutagen_activations": [
+                {
+                  "target_star": "tian_tong",
+                  "mutagen": "lu"
+                },
+                {
+                  "target_star": "wen_chang",
+                  "mutagen": "ke"
+                }
+              ]
+            },
+            "opposite": {
+              "scope": "yearly",
+              "requested_palace_name": "career",
+              "branch": "chen",
+              "natal_palace_name": "life",
+              "temporal_palace_name": "spouse",
+              "natal_palace_stem": "bing",
+              "natal_typed_stars": [
+                "ju_men",
+                "wen_qu",
+                "tuo_luo",
+                "tian_gui",
+                "hua_gai",
+                "tian_yue_adj"
+              ],
+              "natal_decorative_stars": [
+                "mu",
+                "guan_fu_boshi",
+                "sui_jian",
+                "hua_gai_jiangqian"
+              ],
+              "temporal_stars": [
+                "nian_jie_yearly",
+                "liu_tuo"
+              ],
+              "temporal_decorative_stars": [
+                "diao_ke",
+                "yue_sha"
+              ],
+              "temporal_mutagen_activations": []
+            },
+            "wealth": {
+              "scope": "yearly",
+              "requested_palace_name": "career",
+              "branch": "wu",
+              "natal_palace_name": "spirit",
+              "temporal_palace_name": "life",
+              "natal_palace_stem": "wu",
+              "natal_typed_stars": [
+                "tian_liang",
+                "zuo_fu",
+                "qing_yang",
+                "feng_ge",
+                "tai_fu",
+                "tian_chu",
+                "fei_lian",
+                "nian_jie"
+              ],
+              "natal_decorative_stars": [
+                "tai",
+                "li_shi",
+                "sang_men",
+                "zai_sha"
+              ],
+              "temporal_stars": [
+                "liu_qu",
+                "liu_yang"
+              ],
+              "temporal_decorative_stars": [
+                "sui_jian",
+                "jiang_xing"
+              ],
+              "temporal_mutagen_activations": []
+            },
+            "career": {
+              "scope": "yearly",
+              "requested_palace_name": "career",
+              "branch": "yin",
+              "natal_palace_name": "spouse",
+              "temporal_palace_name": "wealth",
+              "natal_palace_stem": "jia",
+              "natal_typed_stars": [
+                "tian_ji",
+                "tai_yin",
+                "tian_ma",
+                "huo_xing",
+                "feng_gao",
+                "tian_wu",
+                "tian_ku"
+              ],
+              "natal_decorative_stars": [
+                "bing",
+                "da_hao_boshi",
+                "diao_ke",
+                "sui_yi"
+              ],
+              "temporal_stars": [],
+              "temporal_decorative_stars": [
+                "bai_hu",
+                "zhi_bei"
+              ],
+              "temporal_mutagen_activations": [
+                {
+                  "target_star": "tian_ji",
+                  "mutagen": "quan"
+                }
+              ]
+            }
+          }
+        ],
+        "star_queries": [
+          {
+            "helper": "hasHoroscopeStars",
+            "scope": "decadal",
+            "palace_name": "health",
+            "stars": [
+              "yun_xi"
+            ],
+            "expected": true
+          },
+          {
+            "helper": "hasHoroscopeStars",
+            "scope": "decadal",
+            "palace_name": "health",
+            "stars": [
+              "yun_xi",
+              "yun_lu"
+            ],
+            "expected": false
+          },
+          {
+            "helper": "notHaveHoroscopeStars",
+            "scope": "decadal",
+            "palace_name": "health",
+            "stars": [
+              "yun_lu"
+            ],
+            "expected": true
+          },
+          {
+            "helper": "notHaveHoroscopeStars",
+            "scope": "decadal",
+            "palace_name": "health",
+            "stars": [
+              "yun_xi",
+              "yun_lu"
+            ],
+            "expected": false
+          },
+          {
+            "helper": "hasOneOfHoroscopeStars",
+            "scope": "decadal",
+            "palace_name": "health",
+            "stars": [
+              "yun_xi",
+              "yun_lu"
+            ],
+            "expected": true
+          },
+          {
+            "helper": "hasOneOfHoroscopeStars",
+            "scope": "decadal",
+            "palace_name": "health",
+            "stars": [
+              "yun_lu"
+            ],
+            "expected": false
+          },
+          {
+            "helper": "hasHoroscopeStars",
+            "scope": "decadal",
+            "palace_name": "health",
+            "stars": [],
+            "expected": true
+          },
+          {
+            "helper": "notHaveHoroscopeStars",
+            "scope": "decadal",
+            "palace_name": "health",
+            "stars": [],
+            "expected": true
+          },
+          {
+            "helper": "hasOneOfHoroscopeStars",
+            "scope": "decadal",
+            "palace_name": "health",
+            "stars": [],
+            "expected": false
+          },
+          {
+            "helper": "hasHoroscopeStars",
+            "scope": "monthly",
+            "palace_name": "migration",
+            "stars": [
+              "yue_lu"
+            ],
+            "expected": false
+          },
+          {
+            "helper": "hasHoroscopeStars",
+            "scope": "yearly",
+            "palace_name": "wealth",
+            "stars": [
+              "sui_jian"
+            ],
+            "expected": false
+          }
+        ],
+        "mutagen_queries": [
+          {
+            "scope": "origin",
+            "palace_name": "life",
+            "mutagen": "lu",
+            "expected": false
+          },
+          {
+            "scope": "age",
+            "palace_name": "spirit",
+            "mutagen": "lu",
+            "expected": false
+          },
+          {
+            "scope": "age",
+            "palace_name": "health",
+            "mutagen": "lu",
+            "expected": true
+          },
+          {
+            "scope": "decadal",
+            "palace_name": "health",
+            "mutagen": "lu",
+            "expected": false
+          },
+          {
+            "scope": "yearly",
+            "palace_name": "wealth",
+            "mutagen": "lu",
+            "expected": false
+          },
+          {
+            "scope": "monthly",
+            "palace_name": "migration",
+            "mutagen": "lu",
+            "expected": false
+          },
+          {
+            "scope": "daily",
+            "palace_name": "spirit",
+            "mutagen": "lu",
+            "expected": false
+          },
+          {
+            "scope": "hourly",
+            "palace_name": "life",
+            "mutagen": "lu",
+            "expected": false
+          }
+        ]
+      }
+    }
+  ]
+}

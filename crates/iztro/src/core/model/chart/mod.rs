@@ -12,6 +12,7 @@ pub mod horoscope;
 pub mod hourly;
 pub mod monthly;
 pub mod palace;
+pub mod runtime;
 pub mod snapshot;
 pub mod supported_fields;
 pub mod yearly;
@@ -36,6 +37,10 @@ pub use horoscope::{
 pub use hourly::{HourlyPeriod, build_hourly_period};
 pub use monthly::{MonthlyPeriod, build_monthly_period};
 pub use palace::{PALACE_NAMES, PalaceName};
+pub use runtime::{
+    HoroscopePalaceProjection, HoroscopeProjectionMutagenActivation, HoroscopeRuntime,
+    HoroscopeSurroundPalaces,
+};
 pub use snapshot::{
     ChartLayerKind, ChartLayerSnapshot, ChartStackSnapshot, DecorativeStarSnapshot,
     MutagenActivationSnapshot, PalaceGridPosition, PalaceLayerCellSnapshot, PalaceRoleKind,
