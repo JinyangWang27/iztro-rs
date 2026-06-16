@@ -1,11 +1,11 @@
 # iztro-rs
 
-[![Crates.io Version](https://img.shields.io/crates/v/iztro.svg)](https://crates.io/crates/iztro)
-[![Crates.io Downloads](https://img.shields.io/crates/d/iztro.svg)](https://crates.io/crates/iztro)
-[![Docs.rs](https://img.shields.io/docsrs/iztro.svg)](https://docs.rs/iztro)
+[![Crates.io Version](https://img.shields.io/crates/v/iztro)](https://crates.io/crates/iztro)
+[![Crates.io Downloads](https://img.shields.io/crates/d/iztro)](https://crates.io/crates/iztro)
+[![docs.rs](https://docs.rs/iztro/badge.svg)](https://docs.rs/iztro)
 [![CI](https://github.com/JinyangWang27/iztro-rs/actions/workflows/ci.yml/badge.svg)](https://github.com/JinyangWang27/iztro-rs/actions/workflows/ci.yml)
 [![codecov](https://codecov.io/gh/JinyangWang27/iztro-rs/branch/main/graph/badge.svg)](https://codecov.io/gh/JinyangWang27/iztro-rs)
-[![License](https://img.shields.io/crates/l/iztro.svg)](https://crates.io/crates/iztro)
+[![License](https://img.shields.io/crates/l/iztro)](https://crates.io/crates/iztro)
 
 A Rust implementation for Zi Wei Dou Shu (紫微斗数) chart generation, feature extraction, and eventually rule-based interpretation.
 
@@ -17,13 +17,8 @@ A Rust implementation for Zi Wei Dou Shu (紫微斗数) chart generation, featur
 
 The public API ships as a single crate:
 
-```toml
-[dependencies]
-iztro = "0.1"
 ```
-
-```rust
-use iztro::{by_solar, Gender, SolarChartRequest};
+cargo add iztro
 ```
 
 The crate keeps clear internal domain boundaries as modules — `core`,

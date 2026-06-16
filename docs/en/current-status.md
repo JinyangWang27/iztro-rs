@@ -61,7 +61,7 @@ It preserves:
 - natal Life/Body Palace branches and five-element bureau;
 - conventional 12-palace visual grid positions;
 - one natal layer plus zero or more temporal layers;
-- separate cell sections for natal typed stars, decorative stars, scoped temporal stars, and mutagen activations;
+- separate cell sections for natal typed stars, natal decorative stars, scoped temporal stars, temporal decorative stars, and mutagen activations;
 - per-cell temporal palace names for implemented temporal layers, kept separate from the natal palace name so temporal labels never overwrite natal spatial facts.
 
 `render` currently provides a deterministic plain text renderer over `ChartStackSnapshot`. The top-level README and `docs/en/demo.md` show the current end-to-end flow:

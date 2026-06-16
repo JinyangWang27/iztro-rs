@@ -515,7 +515,7 @@ impl TypedStarSnapshot {
     }
 }
 
-/// Snapshot of an untyped decorative natal star placement.
+/// Snapshot of an untyped decorative star placement.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct DecorativeStarSnapshot {
     name: StarName,

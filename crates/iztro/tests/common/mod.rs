@@ -460,7 +460,7 @@ pub fn expected_scope_flow_stars(
 ///
 /// Reads both `suiqian12` and `jiangqian12` families; each entry's normalized
 /// `name`/`branch` keys are parsed to their typed values. The `(branch, family)`
-/// key is unique because the two families never share a branch slot.
+/// The `(branch, family)` key is unique even when both families occupy the same branch.
 pub fn expected_yearly_dec_stars(
     yearly: &Value,
 ) -> HashMap<(EarthlyBranch, DecorativeStarFamily), StarName> {
