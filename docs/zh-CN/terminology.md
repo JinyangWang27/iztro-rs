@@ -33,6 +33,7 @@
 | `surrounded_palaces` | Surrounding Palaces | 三方四正 | 本宫、对宫与三方相关宫位。 |
 | `decadal` | Decadal Period | 大限 | 十年运限。 |
 | `yearly` | Yearly Period | 流年 | 年度激活。 |
+| `monthly` | Monthly Period | 流月 | 月度激活。 |
 | `feature` | Feature | 特征 | 从星盘中提取的结构化语义属性。 |
 | `claim` | Claim | 判断 | 规则输出，包含领域、主题、强度和证据。 |
 | `evidence` | Evidence | 证据 | 支撑判断的星盘事实。 |

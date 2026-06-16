@@ -29,6 +29,7 @@ The supported natal chart fact surface currently includes:
 - typed `DecadalFrame` derivation with 12 ten-year periods, direction, age ranges, and natal palace stem-branch facts;
 - decadal temporal palace-name layout (`TemporalPalaceLayout`) attached to the selected decadal layer, keyed by `EarthlyBranch` and validated against the upstream horoscope fixture.
 - typed `AgePeriod` / 小限 derivation for nominal age `1..=120`, with age context, branch/stem-branch, palace-name layout, and mutagen activations validated against the upstream horoscope fixture.
+- typed `MonthlyPeriod` / 流月 derivation with independent month pillar and monthly Life palace branch facts, plus composed monthly flow-star, mutagen, and palace-name layer assembly validated against the upstream horoscope fixture.
 
 Default/non-Zhongzhou natal output remains 66 typed natal stars. Zhongzhou natal output remains 68 typed natal stars. `represented_star_metadata_table().len() == 70` stays natal-only, while `known_star_metadata_table().len() == 170` inventories the broader upstream runtime star-name universe.
 
@@ -71,9 +72,9 @@ The following remain intentionally out of scope for the current supported surfac
 
 - full BaZi output;
 - full horoscope assembly;
-- 流年 / 流月 / 流日 / 流时 period derivation;
+- 流日 / 流时 period derivation;
 - attaching derived 大限 frames as temporal layers;
-- 流年 / 流月 / 流日 / 流时 horoscope palace-name derivation (decadal and 小限 palace-name layouts are implemented);
+- 流日 / 流时 horoscope palace-name derivation (decadal, 小限, and 流月 palace-name layouts are implemented);
 - temporal decorative arrays such as upstream `yearlyDecStar`;
 - full upstream facade serialization parity;
 - bindings;

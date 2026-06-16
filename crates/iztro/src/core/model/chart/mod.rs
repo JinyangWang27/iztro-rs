@@ -8,6 +8,7 @@ pub mod age;
 pub mod chart;
 pub mod decadal;
 pub mod horoscope;
+pub mod monthly;
 pub mod palace;
 pub mod snapshot;
 pub mod yearly;
@@ -24,6 +25,7 @@ pub use horoscope::{
     HoroscopeChart, MutagenActivation, ScopedStarPlacement, TemporalContext, TemporalLayer,
     TemporalPalaceLayout, TemporalPalaceName,
 };
+pub use monthly::{MonthlyPeriod, build_monthly_period};
 pub use palace::{PALACE_NAMES, PalaceName};
 pub use snapshot::{
     ChartLayerKind, ChartLayerSnapshot, ChartStackSnapshot, DecorativeStarSnapshot,
