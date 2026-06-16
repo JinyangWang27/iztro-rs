@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1](https://github.com/JinyangWang27/iztro-rs/compare/v0.3.0...v0.3.1) - 2026-06-16
+
+### Added
+
+- *(core)* add daily horoscope layer ([#60](https://github.com/JinyangWang27/iztro-rs/pull/60))
+
 ## [0.3.0](https://github.com/JinyangWang27/iztro-rs/compare/v0.2.0...v0.3.0) - 2026-06-16
 
 ### Added
