@@ -56,6 +56,7 @@ The current fixture-backed chart-generation surface includes:
 - typed `HourlyPeriod` derivation and composed hourly layer assembly, including independent hour pillar and hourly temporal Life palace layout facts;
 - full horoscope stack assembly (`build_full_horoscope_chart`) composing the decadal, age, yearly, monthly, daily, and hourly layers into one `HoroscopeChart` for the supported fact surface;
 - yearly `yearlyDecStar` (岁前/将前十二神) modeled as yearly-scope temporal decorative facts on the yearly layer;
+- normalized `HoroscopeSupportedFieldsSnapshot` export for the implemented full horoscope supported-field fact surface, fixture-backed against `crates/iztro/fixtures/iztro/horoscope.json`;
 - renderer-neutral `ChartStackSnapshot` and a deterministic plain text renderer demo.
 
 The project still does not claim full upstream facade serialization parity (the upstream `FunctionalAstrolabe#horoscope` payload shape), upstream runtime query helpers, full BaZi output, or interpretation/narrative parity. The implemented full horoscope stack is supported model-level assembly for the implemented fields only.
@@ -101,6 +102,8 @@ A scoped flow-star builder (`build_flow_star_layer`) places the horoscope flow s
 
 `build_full_horoscope_chart` composes the decadal, age, yearly, monthly, daily, and hourly layers into one `HoroscopeChart` for a target solar date/time (`HoroscopeStackInput`). It derives the target lunar date, derives the nominal age (虚岁 = target lunar year − natal birth lunar year + 1), selects the covering decadal period by that nominal age (never a hard-coded index), and pushes the six layers in the deterministic order decadal → age → yearly → monthly → daily → hourly. The yearly layer additionally carries `yearlyDecStar` as yearly-scope temporal decorative facts. This is supported model-level stack assembly for the implemented fields only: it does not reproduce the upstream `FunctionalAstrolabe#horoscope` payload shape or expose runtime query helpers.
 
+`HoroscopeSupportedFieldsSnapshot` exports the implemented full horoscope fact surface from a `HoroscopeChart` in the normalized snake_case supported-field shape used by `horoscope.json`: decadal, age, yearly, monthly, daily, and hourly blocks with period index, stem/branch, Yin-first palace names, four-transform targets, flow stars where implemented, nominal age, yearly 年解 branch, and yearly `yearlyDecStar`. It is intended for deterministic compatibility validation. It omits raw Chinese labels, upstream runtime query helpers, runtime palace projections, embedded natal astrolabe payloads, and full upstream facade JSON parity.
+
 Upstream query helpers, runtime palace projections, and full facade payload parity remain deferred.
 
 ## Runtime star-family placement
@@ -130,6 +133,8 @@ It preserves:
 
 `render`'s plain text renderer consumes `ChartStackSnapshot` for demos and debugging. Renderer output is deterministic but not part of chart-generation compatibility with upstream `iztro`.
 
+`HoroscopeSupportedFieldsSnapshot` is a separate compatibility/export DTO, not a renderer model. Use it when comparing the implemented horoscope supported fields against fixtures; use `ChartStackSnapshot` when rendering natal and temporal layers.
+
 ## Current fixtures
 
 The fixtures are intentionally supported-field-only. They cover the current natal, decorative, flow-star, solar/lunar conversion, leap-month, and rat-hour slices against `iztro@2.5.8` where applicable.
@@ -146,6 +151,7 @@ Key fixture groups include:
 - horoscope daily period/layer cases;
 - horoscope hourly period/layer cases;
 - full horoscope stack assembly cases;
+- normalized full-horoscope supported-fields snapshot cases;
 - e2e supported `by_lunar` cases;
 - e2e supported `by_solar` cases;
 - leap-month behavior;
