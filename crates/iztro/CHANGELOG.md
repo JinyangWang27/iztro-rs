@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.2](https://github.com/JinyangWang27/iztro-rs/compare/v0.3.1...v0.3.2) - 2026-06-16
+
+### Added
+
+- *(core)* add hourly horoscope layer
+
+### Other
+
+- update comments for clarity on temporal palace derivation
+- Merge branch 'main' into feat/hourly-horoscope-layer
+
 ## [0.3.1](https://github.com/JinyangWang27/iztro-rs/compare/v0.3.0...v0.3.1) - 2026-06-16
 
 ### Added
