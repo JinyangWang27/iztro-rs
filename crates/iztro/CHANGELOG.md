@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0](https://github.com/JinyangWang27/iztro-rs/compare/v0.3.1...v0.4.0) - 2026-06-16
+
+### Added
+
+- *(core)* add yearly decorative star facts ([#66](https://github.com/JinyangWang27/iztro-rs/pull/66))
+- *(core)* add hourly horoscope layer
+
+### Other
+
+- Merge pull request #64 from JinyangWang27/feat/full-horoscope-stack-assembly
+- update comments for clarity on temporal palace derivation
+- Merge branch 'main' into feat/hourly-horoscope-layer
+
 ## [0.3.1](https://github.com/JinyangWang27/iztro-rs/compare/v0.3.0...v0.3.1) - 2026-06-16
 
 ### Added
