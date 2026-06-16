@@ -59,7 +59,7 @@ It preserves:
 - conventional 12-palace visual grid positions;
 - one natal layer plus zero or more temporal layers;
 - separate cell sections for natal typed stars, decorative stars, scoped temporal stars, and mutagen activations;
-- per-cell decadal and age temporal palace names, kept separate from the natal palace name so temporal labels never overwrite natal spatial facts.
+- - per-cell temporal palace names for implemented temporal layers, kept separate from the natal palace name so temporal labels never overwrite natal spatial facts.
 
 `render` currently provides a deterministic plain text renderer over `ChartStackSnapshot`. The top-level README and `docs/en/demo.md` show the current end-to-end flow:
 
@@ -91,5 +91,5 @@ The next implementation work should stay incremental:
 
 1. Continue keeping compatibility fixture-backed.
 2. Build richer renderers or CLI demos on top of `ChartStackSnapshot`, not directly on `Chart` internals.
-3. Add full horoscope assembly in small PRs: attach decadal and age periods to temporal stacks, then add the remaining yearly and hourly derivation.
+3. Add full horoscope assembly in small PRs: add hourly derivation, then compose decadal, age, yearly, monthly, daily, and hourly into one full horoscope stack.
 4. Only after the fact surface is stable, expand feature extraction, rules, and narrative.
