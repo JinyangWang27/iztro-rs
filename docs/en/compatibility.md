@@ -58,9 +58,10 @@ The current fixture-backed chart-generation surface includes:
 - yearly `yearlyDecStar` (岁前/将前十二神) modeled as yearly-scope temporal decorative facts on the yearly layer;
 - normalized `HoroscopeSupportedFieldsSnapshot` export for the implemented full horoscope supported-field fact surface, fixture-backed against `crates/iztro/fixtures/iztro/horoscope.json`;
 - model-level `HoroscopeRuntime` helpers for typed palace projections (`age_palace`, `palace`, `surround_palaces`) and typed runtime queries (`has_horoscope_stars`, `not_have_horoscope_stars`, `has_one_of_horoscope_stars`, `has_horoscope_mutagen`), fixture-backed against `crates/iztro/fixtures/iztro/horoscope_runtime.json`;
+- serializable `HoroscopeFacadeSnapshot` export that combines the modeled full horoscope surface — the `HoroscopeSupportedFieldsSnapshot` blocks, the `HoroscopeRuntime` Life-palace projections, and the retained target lunar-date context — into one upstream-like payload, fixture-backed against `crates/iztro/fixtures/iztro/horoscope_facade.json`;
 - renderer-neutral `ChartStackSnapshot` and a deterministic plain text renderer demo.
 
-The project still does not claim full upstream facade serialization parity (the upstream `FunctionalAstrolabe#horoscope` payload shape), full BaZi output, or interpretation/narrative parity. The implemented full horoscope stack and runtime helpers are supported model-level APIs for the implemented fields only.
+The project now provides an upstream-like horoscope facade snapshot for the modeled full horoscope surface, built from `HoroscopeChart`, `HoroscopeSupportedFieldsSnapshot`, and `HoroscopeRuntime`. It is closer to the TS `FunctionalAstrolabe#horoscope` payload shape but is still **not** full package parity: the full natal astrolabe embedding remains deferred (the facade omits it rather than shipping a partial astrolabe), full BaZi output remains deferred, and bindings, renderers, rules, and narrative remain deferred.
 
 ## Star-name inventory
 
@@ -106,6 +107,8 @@ A scoped flow-star builder (`build_flow_star_layer`) places the horoscope flow s
 `HoroscopeSupportedFieldsSnapshot` exports the implemented full horoscope fact surface from a `HoroscopeChart` in the normalized snake_case supported-field shape used by `horoscope.json`: decadal, age, yearly, monthly, daily, and hourly blocks with period index, stem/branch, Yin-first palace names, four-transform targets, flow stars where implemented, nominal age, yearly 年解 branch, and yearly `yearlyDecStar`. It is intended for deterministic compatibility validation. It omits raw Chinese labels, upstream runtime query helpers, runtime palace projections, embedded natal astrolabe payloads, and full upstream facade JSON parity.
 
 `HoroscopeRuntime` provides typed Rust equivalents for the upstream runtime helper slice. `age_palace`, `palace`, and `surround_palaces` project by branch: natal palace name/stem/star facts remain available, and temporal palace labels are additive instead of overwriting natal identity. `has_horoscope_stars`, `not_have_horoscope_stars`, `has_one_of_horoscope_stars`, and `has_horoscope_mutagen` are fixture-backed against upstream `iztro@2.5.8`. They query existing model facts only; they do not duplicate natal stars into temporal layers, attach new placements, mutate natal chart facts, or change placement semantics. Full facade payload parity remains deferred.
+
+`HoroscopeFacadeSnapshot` is the serializable facade/export layer, not a new engine layer: `HoroscopeFacadeSnapshot::from_horoscope_chart` wraps the already-modeled facts into one deterministic payload that moves toward the upstream `FunctionalAstrolabe#horoscope` shape. It reuses the `HoroscopeSupportedFieldsSnapshot` decadal/age/yearly/monthly/daily/hourly blocks verbatim (flattened to the top level), adds the target lunar-date `context` retained by the yearly/monthly/daily temporal layers, and reuses `HoroscopeRuntime` for the `age_palace`, `palace_projections`, and `surround_palaces` Life-palace projections — each preserving the natal-versus-temporal split (natal palace name/stem/stars stay separate from the period's temporal palace name, temporal stars, and temporal mutagen activations). It is fixture-backed against `horoscope_facade.json`. It adds no placement logic, and it stays explicit about deferred fields: the localized upstream `lunarDate` string, the `solarDate` string, and the target time index are not retained on `HoroscopeChart`, so they are omitted rather than recomputed; the re-embedded full natal astrolabe payload, the runtime query helpers, and full upstream package parity also remain deferred.
 
 ## Runtime star-family placement
 
@@ -153,6 +156,7 @@ Key fixture groups include:
 - horoscope hourly period/layer cases;
 - full horoscope stack assembly cases;
 - normalized full-horoscope supported-fields snapshot cases;
+- horoscope facade payload snapshot cases;
 - e2e supported `by_lunar` cases;
 - e2e supported `by_solar` cases;
 - leap-month behavior;
