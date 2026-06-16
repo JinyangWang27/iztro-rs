@@ -6,6 +6,7 @@
 //! [`decadal`].
 
 pub mod age;
+pub mod daily_horoscope;
 pub mod decadal;
 pub mod decadal_horoscope;
 pub mod flow;

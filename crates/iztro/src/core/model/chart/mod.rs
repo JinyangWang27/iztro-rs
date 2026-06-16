@@ -6,6 +6,7 @@
 pub mod age;
 #[allow(clippy::module_inception)]
 pub mod chart;
+pub mod daily;
 pub mod decadal;
 pub mod horoscope;
 pub mod monthly;
@@ -20,6 +21,7 @@ pub use chart::{
     Chart, DecorativeStarFamily, DecorativeStarPlacement, DecorativeStarPlacementRef,
     MajorStarPlacementRef, PALACE_COUNT, Palace, StarPlacement, StarPlacementRef,
 };
+pub use daily::{DailyPeriod, build_daily_period};
 pub use decadal::{DecadalDirection, DecadalFrame, DecadalPeriod, build_decadal_frame};
 pub use horoscope::{
     HoroscopeChart, MutagenActivation, ScopedStarPlacement, TemporalContext, TemporalLayer,

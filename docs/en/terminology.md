@@ -34,6 +34,7 @@ This glossary keeps engineering terms and Zi Wei Dou Shu terms aligned across la
 | `decadal` | Decadal Period | 大限 | Ten-year period. |
 | `yearly` | Yearly Period | 流年 | Annual activation. |
 | `monthly` | Monthly Period | 流月 | Monthly activation. |
+| `daily` | Daily Period | 流日 | Daily activation. |
 | `feature` | Feature | 特征 | Structured semantic property derived from a chart. |
 | `claim` | Claim | 判断 | Rule output with domain, theme, strength, and evidence. |
 | `evidence` | Evidence | 证据 | Chart fact supporting a claim. |
