@@ -38,10 +38,9 @@ pub use model::chart::{
     PALACE_COUNT, PALACE_NAMES, Palace, PalaceGridPosition, PalaceLayerCellSnapshot, PalaceName,
     PalaceRoleKind, PalaceRoleSnapshot, ScopedDecorativeStarPlacement, ScopedStarPlacement,
     ScopedStarSnapshot, StarPlacement, StarPlacementRef, TemporalContext, TemporalLayer,
-    TemporalPalaceLayout, TemporalPalaceName,
-    TypedStarSnapshot, VISUAL_BRANCH_ORDER, YearlyPeriod, build_age_period, build_daily_period,
-    build_decadal_frame, build_hourly_period, build_monthly_period, build_yearly_period,
-    palace_grid_position,
+    TemporalPalaceLayout, TemporalPalaceName, TypedStarSnapshot, VISUAL_BRANCH_ORDER, YearlyPeriod,
+    build_age_period, build_daily_period, build_decadal_frame, build_hourly_period,
+    build_monthly_period, build_yearly_period, palace_grid_position,
 };
 pub use model::nayin::{NaYinElement, nayin_element};
 pub use model::profile::{ChartAlgorithmKind, MethodProfile};

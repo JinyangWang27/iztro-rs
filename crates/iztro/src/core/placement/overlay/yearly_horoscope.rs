@@ -30,10 +30,8 @@ pub fn build_yearly_horoscope_layer(
         natal,
         YearlyMutagenLayerInput::new(period.stem_branch(), period.lunar_year()),
     )?;
-    let decorative_placements = build_yearly_decorative_star_placements(
-        period,
-        natal.method_profile().algorithm_kind(),
-    )?;
+    let decorative_placements =
+        build_yearly_decorative_star_placements(period, natal.method_profile().algorithm_kind())?;
 
     TemporalLayer::try_new_with_palace_layout_and_decorative_stars(
         Scope::Yearly,
