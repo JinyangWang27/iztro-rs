@@ -130,6 +130,18 @@ pub enum ChartError {
     /// A temporal layer cannot use the natal scope; natal facts live in the chart.
     #[error("temporal layer cannot use the natal scope")]
     NatalScopeInTemporalLayer,
+    /// Nominal-age periods support only a bounded human-age range.
+    #[error("invalid nominal age: expected 1..=120, got {value}")]
+    InvalidNominalAge {
+        /// Unsupported nominal age value.
+        value: u8,
+    },
+    /// Flow-star placement is unavailable for the requested temporal scope.
+    #[error("flow-star placement is unavailable for scope {scope:?}")]
+    FlowStarsUnavailableForScope {
+        /// Scope that does not have flow-star placement support.
+        scope: Scope,
+    },
     /// A temporal layer's scope must match its temporal context.
     #[error("temporal layer scope {layer:?} does not match context scope {context:?}")]
     TemporalScopeMismatch {

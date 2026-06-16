@@ -3,6 +3,7 @@
 
 // `chart::chart` keeps the assembled `Chart` aggregate beside its palace and
 // horoscope facts; the repeated path segment is the intentional module layout.
+pub mod age;
 #[allow(clippy::module_inception)]
 pub mod chart;
 pub mod decadal;
@@ -10,6 +11,7 @@ pub mod horoscope;
 pub mod palace;
 pub mod snapshot;
 
+pub use age::{AgePeriod, build_age_period};
 pub use chart::{
     Chart, DecorativeStarFamily, DecorativeStarPlacement, DecorativeStarPlacementRef,
     MajorStarPlacementRef, PALACE_COUNT, Palace, StarPlacement, StarPlacementRef,

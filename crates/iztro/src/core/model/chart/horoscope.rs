@@ -33,6 +33,13 @@ use serde::{Deserialize, Deserializer, Serialize};
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum TemporalContext {
+    /// Nominal-age period (小限).
+    Age {
+        /// Stem-branch of the nominal-age palace.
+        stem_branch: StemBranch,
+        /// One-based nominal age.
+        nominal_age: u8,
+    },
     /// Decadal period (大限).
     Decadal {
         /// Stem-branch of the decadal period.
@@ -72,6 +79,7 @@ impl TemporalContext {
     /// Returns the non-natal scope this context describes.
     pub const fn scope(&self) -> Scope {
         match self {
+            Self::Age { .. } => Scope::Age,
             Self::Decadal { .. } => Scope::Decadal,
             Self::Yearly { .. } => Scope::Yearly,
             Self::Monthly { .. } => Scope::Monthly,
@@ -83,7 +91,8 @@ impl TemporalContext {
     /// Returns the stem-branch of the period.
     pub const fn stem_branch(&self) -> StemBranch {
         match self {
-            Self::Decadal { stem_branch, .. }
+            Self::Age { stem_branch, .. }
+            | Self::Decadal { stem_branch, .. }
             | Self::Yearly { stem_branch, .. }
             | Self::Monthly { stem_branch, .. }
             | Self::Daily { stem_branch, .. }

@@ -31,14 +31,14 @@ pub use model::calendar::{
     BirthContext, BirthTime, CalendarDate, CalendarKind, Gender, SolarDay, SolarMonth,
 };
 pub use model::chart::{
-    Chart, ChartLayerKind, ChartLayerSnapshot, ChartStackSnapshot, DecadalDirection, DecadalFrame,
-    DecadalPeriod, DecorativeStarFamily, DecorativeStarPlacement, DecorativeStarPlacementRef,
-    DecorativeStarSnapshot, HoroscopeChart, MajorStarPlacementRef, MutagenActivation,
-    MutagenActivationSnapshot, PALACE_COUNT, PALACE_NAMES, Palace, PalaceGridPosition,
-    PalaceLayerCellSnapshot, PalaceName, PalaceRoleKind, PalaceRoleSnapshot, ScopedStarPlacement,
-    ScopedStarSnapshot, StarPlacement, StarPlacementRef, TemporalContext, TemporalLayer,
-    TemporalPalaceLayout, TemporalPalaceName, TypedStarSnapshot, VISUAL_BRANCH_ORDER,
-    build_decadal_frame, palace_grid_position,
+    AgePeriod, Chart, ChartLayerKind, ChartLayerSnapshot, ChartStackSnapshot, DecadalDirection,
+    DecadalFrame, DecadalPeriod, DecorativeStarFamily, DecorativeStarPlacement,
+    DecorativeStarPlacementRef, DecorativeStarSnapshot, HoroscopeChart, MajorStarPlacementRef,
+    MutagenActivation, MutagenActivationSnapshot, PALACE_COUNT, PALACE_NAMES, Palace,
+    PalaceGridPosition, PalaceLayerCellSnapshot, PalaceName, PalaceRoleKind, PalaceRoleSnapshot,
+    ScopedStarPlacement, ScopedStarSnapshot, StarPlacement, StarPlacementRef, TemporalContext,
+    TemporalLayer, TemporalPalaceLayout, TemporalPalaceName, TypedStarSnapshot,
+    VISUAL_BRANCH_ORDER, build_age_period, build_decadal_frame, palace_grid_position,
 };
 pub use model::nayin::{NaYinElement, nayin_element};
 pub use model::profile::{ChartAlgorithmKind, MethodProfile};
@@ -80,6 +80,7 @@ pub use placement::natal::palace_stems::{palace_stem_for_branch, palace_stems_fr
 pub use placement::natal::supported::{
     build_natal_chart_with_major_stars, build_natal_chart_with_supported_stars,
 };
+pub use placement::overlay::age::build_age_horoscope_layer;
 pub use placement::overlay::decadal::{DecadalMutagenLayerInput, build_decadal_mutagen_layer};
 pub use placement::overlay::decadal_horoscope::{
     DecadalHoroscopeInput, build_decadal_horoscope_chart, build_decadal_horoscope_layer,

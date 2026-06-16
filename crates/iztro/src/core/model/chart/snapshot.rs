@@ -209,6 +209,8 @@ impl ChartLayerSnapshot {
 pub enum ChartLayerKind {
     /// Natal chart layer.
     Natal,
+    /// Nominal-age temporal overlay.
+    Age,
     /// Decadal temporal overlay.
     Decadal,
     /// Yearly temporal overlay.
@@ -222,9 +224,11 @@ pub enum ChartLayerKind {
 }
 
 impl ChartLayerKind {
-    const fn from_scope(scope: Scope) -> Self {
+    /// Maps a fact scope to the corresponding snapshot layer kind.
+    pub const fn from_scope(scope: Scope) -> Self {
         match scope {
             Scope::Natal => Self::Natal,
+            Scope::Age => Self::Age,
             Scope::Decadal => Self::Decadal,
             Scope::Yearly => Self::Yearly,
             Scope::Monthly => Self::Monthly,
