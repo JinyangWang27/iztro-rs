@@ -131,6 +131,13 @@ scoped flow-star builder（`build_flow_star_layer`）用于安放一个时间范
 标签的 `ScopedStarPlacement`。上面的四化 builder 仍不安放流曜；流曜安放由这个独立
 builder 负责。大限/流年推导、年份到干支转换和历法推导仍不在范围内。
 
+`build_monthly_period` 现在从本命事实、目标阳历日期和目标 `BirthTime` 推导一个流月
+period。它对齐上游 `FunctionalAstrolabe#horoscope`：流月 `StemBranch` 来自目标日期的
+normal 分界月柱；流月命宫索引则另由目标流年地支、本命农历月、本命出生时支和目标农历月
+推导。两者是独立事实，不能把流月干支的地支当作流月命宫。`build_monthly_horoscope_layer`
+会把该 period 组装为 `Scope::Monthly` 的 `TemporalLayer`，包含流月流曜、流月四化激活和
+流月 `TemporalPalaceLayout`。它不组装流日/流时层，也不附加时间性 decorative arrays。
+
 ## Runtime 星曜家族安放
 
 有类型星曜和装饰性 runtime 条目是**分离的事实 surface**，`Chart::stars()` 只返回
@@ -161,14 +168,15 @@ placed。由于装饰性条目是独立事实，默认/非中州派 `Chart::star
 scope-generic 算法为大限、流年、流月、流日、流时安放十颗 matrix 星
 （魁钺昌曲禄羊陀马鸾喜），落点来自该 period 的干支。流文昌/流文曲使用基于天干的
 规则（不同于本命的时辰规则）。流年 scope 还会安放年解（`NianJieYearly`），它有意
-保持在 `FlowStarBase` 之外。目前不做 horoscope 宫名推导；安放是地支层面的。
+保持在 `FlowStarBase` 之外。流月 layer 现在会附带 fixture-backed 的流月宫名布局；其他
+尚未实现的 horoscope scope 仍不做宫名推导。流曜安放本身仍是地支层面的。
 
 四化仍是 `Mutagen` / `MutagenActivation` 事实，永远不是 `StarName` variants。
 最小 `by_solar`（`lunar-lite` 支持的阳历转农历）、已支持 `by_lunar`/`by_solar` 切片的
 fixture 支持闰月行为，以及 `BirthTime`/`timeIndex` `0..=12` 早晚子时变体现已实现
 （见[公开 facade 兼容性](#公开-facade-兼容性)）。完整八字输出、上游 yearly
-decorative arrays（`yearlyDecStar`）、完整 horoscope 组装、bindings、特征提取、规则与
-叙事仍然延期。
+decorative arrays（`yearlyDecStar`）、完整 horoscope 组装、流日/流时 period 与宫名布局、
+bindings、特征提取、规则与叙事仍然延期。
 
 ## 当前 fixtures
 

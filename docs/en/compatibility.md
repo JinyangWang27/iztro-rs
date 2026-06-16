@@ -51,6 +51,7 @@ The current fixture-backed chart-generation surface includes:
 - branch-tagged typed temporal flow-star placements from explicit temporal contexts;
 - decadal and yearly temporal mutagen activation layers from explicit contexts;
 - typed `DecadalFrame` derivation with 12 ten-year periods, direction, age ranges, and natal palace stem-branch facts;
+- typed `MonthlyPeriod` derivation and composed monthly layer assembly, including independent month pillar and monthly temporal Life palace layout facts;
 - renderer-neutral `ChartStackSnapshot` and a deterministic plain text renderer demo.
 
 The project still does not claim full upstream facade serialization parity, full horoscope assembly, full BaZi output, temporal decorative arrays, or interpretation/narrative parity.
@@ -88,7 +89,9 @@ A scoped flow-star builder (`build_flow_star_layer`) places the horoscope flow s
 
 `build_decadal_frame` derives the typed 12-period 大限 frame from a natal chart: it starts at the natal Life Palace, uses the five-element bureau number as the first start age, walks forward for Yang male or Yin female charts and reverse otherwise, and records each period's natal palace branch/name/stem plus stem-branch pair. It does not create a `TemporalLayer`, attach mutagens or flow stars, derive temporal palace names, or render prose.
 
-Full 大限/流年/流月/流日/流时 assembly, temporal layer attachment, temporal palace names, yearly/monthly/daily/hourly period derivation, and temporal decorative arrays remain deferred.
+`build_monthly_period` derives one 流月 period from natal facts plus an explicit target solar date and target `BirthTime`. It follows upstream `FunctionalAstrolabe#horoscope`: the monthly `StemBranch` comes from the target date's normal-boundary month pillar, while the monthly temporal Life palace index is derived separately from the target yearly branch, natal lunar month, natal birth-hour branch, and target lunar month. `build_monthly_horoscope_layer` composes that period into a `Scope::Monthly` layer with monthly flow stars, monthly mutagen activations, and the monthly `TemporalPalaceLayout`. It does not assemble daily/hourly layers or attach temporal decorative arrays.
+
+Full 大限/流年/流日/流时 assembly, temporal layer attachment beyond the selected builders, daily/hourly period derivation, and temporal decorative arrays remain deferred.
 
 ## Runtime star-family placement
 
@@ -127,6 +130,7 @@ Key fixture groups include:
 - default and Zhongzhou adjective/helper stars;
 - runtime decorative families;
 - flow stars;
+- horoscope monthly period/layer cases;
 - e2e supported `by_lunar` cases;
 - e2e supported `by_solar` cases;
 - leap-month behavior;
@@ -140,7 +144,7 @@ Deferred surfaces include:
 
 - full upstream facade serialization parity;
 - full BaZi output;
-- full horoscope assembly and temporal palace-name derivation;
+- full horoscope assembly and daily/hourly temporal palace-name derivation;
 - attaching derived decadal frames as temporal layers;
 - upstream yearly decorative arrays such as `yearlyDecStar`;
 - bindings;

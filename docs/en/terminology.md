@@ -33,6 +33,7 @@ This glossary keeps engineering terms and Zi Wei Dou Shu terms aligned across la
 | `surrounded_palaces` | Surrounding Palaces | 三方四正 | Target palace, opposite palace, and triadic support. |
 | `decadal` | Decadal Period | 大限 | Ten-year period. |
 | `yearly` | Yearly Period | 流年 | Annual activation. |
+| `monthly` | Monthly Period | 流月 | Monthly activation. |
 | `feature` | Feature | 特征 | Structured semantic property derived from a chart. |
 | `claim` | Claim | 判断 | Rule output with domain, theme, strength, and evidence. |
 | `evidence` | Evidence | 证据 | Chart fact supporting a claim. |
