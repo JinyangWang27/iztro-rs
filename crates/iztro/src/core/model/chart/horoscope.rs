@@ -293,6 +293,21 @@ pub struct TemporalLayer {
 }
 
 impl TemporalLayer {
+    /// Creates a temporal overlay layer with no palace-name layout.
+    ///
+    /// This is the common constructor for layers that carry only scoped star
+    /// placements and mutagen activations. Use
+    /// [`TemporalLayer::try_new_with_palace_layout`] to attach a temporal
+    /// palace-name layout. The same scope invariants are checked.
+    pub fn try_new(
+        scope: Scope,
+        context: TemporalContext,
+        placements: Vec<ScopedStarPlacement>,
+        activations: Vec<MutagenActivation>,
+    ) -> Result<Self, ChartError> {
+        Self::try_new_with_palace_layout(scope, context, placements, activations, None)
+    }
+
     /// Creates a temporal overlay layer after checking scope invariants.
     ///
     /// Rejects the natal scope (natal facts belong to the [`Chart`]), rejects a
@@ -300,7 +315,7 @@ impl TemporalLayer {
     /// is not the layer scope, rejects any activation whose source scope is not
     /// the layer scope, and rejects a palace layout whose scope is not the layer
     /// scope, so a layer can never duplicate or restate a natal fact.
-    pub fn try_new(
+    pub fn try_new_with_palace_layout(
         scope: Scope,
         context: TemporalContext,
         placements: Vec<ScopedStarPlacement>,
@@ -397,7 +412,7 @@ impl<'de> Deserialize<'de> for TemporalLayer {
 
         let data = TemporalLayerData::deserialize(deserializer)?;
 
-        TemporalLayer::try_new(
+        TemporalLayer::try_new_with_palace_layout(
             data.scope,
             data.context,
             data.placements,

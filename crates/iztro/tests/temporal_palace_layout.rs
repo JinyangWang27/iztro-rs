@@ -262,7 +262,7 @@ fn temporal_layer_rejects_palace_layout_scope_mismatch() {
     )
     .expect("non-natal layout should build");
 
-    let result = TemporalLayer::try_new(
+    let result = TemporalLayer::try_new_with_palace_layout(
         Scope::Decadal,
         context,
         Vec::new(),

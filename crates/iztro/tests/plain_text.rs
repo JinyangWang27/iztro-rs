@@ -67,7 +67,6 @@ fn yearly_fixture_snapshot() -> ChartStackSnapshot {
         context,
         vec![scoped_star],
         vec![activation],
-        None,
     )
     .expect("temporal layer should build");
     let horoscope = HoroscopeChart::with_layers(natal, vec![temporal_layer]);

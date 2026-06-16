@@ -43,7 +43,7 @@ pub fn build_decadal_horoscope_layer(
     )?;
     let palace_layout = build_decadal_palace_layout(natal, period)?;
 
-    TemporalLayer::try_new(
+    TemporalLayer::try_new_with_palace_layout(
         Scope::Decadal,
         context,
         flow_layer.placements().to_vec(),

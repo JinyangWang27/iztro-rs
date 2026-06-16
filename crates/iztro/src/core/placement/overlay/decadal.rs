@@ -89,6 +89,5 @@ pub fn build_decadal_mutagen_layer(
         },
         Vec::new(),
         activations,
-        None,
     )
 }

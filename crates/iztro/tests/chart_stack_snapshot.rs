@@ -212,7 +212,6 @@ fn horoscope_chart_stack_snapshot_groups_temporal_overlays_by_branch_without_dup
         context,
         vec![scoped_star],
         vec![activation],
-        None,
     )
     .expect("temporal layer should build");
     let horoscope = HoroscopeChart::with_layers(natal.clone(), vec![temporal_layer]);
