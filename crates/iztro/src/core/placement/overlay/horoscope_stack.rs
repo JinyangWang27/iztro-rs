@@ -1,0 +1,140 @@
+//! Full horoscope stack assembly for the supported temporal fact surface.
+//!
+//! This module composes the already-implemented temporal period/layer builders
+//! into one [`HoroscopeChart`] holding a deterministic six-layer overlay stack:
+//! decadal (大限), nominal-age (小限), yearly (流年), monthly (流月), daily (流日),
+//! and hourly (流时). It only composes existing supported facts: it does not
+//! derive new star placements, attach `yearlyDecStar`, project runtime palaces,
+//! expose query helpers, render prose, or reproduce the upstream
+//! `FunctionalAstrolabe#horoscope` payload shape.
+
+use crate::core::error::ChartError;
+use crate::core::model::calendar::{BirthTime, SolarDay, SolarMonth};
+use crate::core::model::chart::{
+    Chart, HoroscopeChart, TemporalLayer, build_age_period, build_daily_period,
+    build_decadal_frame, build_hourly_period, build_monthly_period, build_yearly_period,
+    nominal_age_for_target_year, select_decadal_period_by_age, target_lunar_date,
+};
+use crate::core::placement::overlay::age::build_age_horoscope_layer;
+use crate::core::placement::overlay::daily_horoscope::build_daily_horoscope_layer;
+use crate::core::placement::overlay::decadal_horoscope::build_decadal_horoscope_layer;
+use crate::core::placement::overlay::hourly_horoscope::build_hourly_horoscope_layer;
+use crate::core::placement::overlay::monthly_horoscope::build_monthly_horoscope_layer;
+use crate::core::placement::overlay::yearly_horoscope::build_yearly_horoscope_layer;
+
+/// The target solar date/time a full horoscope stack is assembled for.
+///
+/// Mirrors the `targetSolarDate` and `targetTimeIndex` upstream
+/// `FunctionalAstrolabe#horoscope` consumes. It carries only the target instant:
+/// no language, rendering, query-helper, or facade JSON fields.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
+pub struct HoroscopeStackInput {
+    target_solar_year: i32,
+    target_solar_month: SolarMonth,
+    target_solar_day: SolarDay,
+    target_time: BirthTime,
+}
+
+impl HoroscopeStackInput {
+    /// Creates a full horoscope stack input from a target solar date and time.
+    pub const fn new(
+        target_solar_year: i32,
+        target_solar_month: SolarMonth,
+        target_solar_day: SolarDay,
+        target_time: BirthTime,
+    ) -> Self {
+        Self {
+            target_solar_year,
+            target_solar_month,
+            target_solar_day,
+            target_time,
+        }
+    }
+
+    /// Returns the target solar year.
+    pub const fn target_solar_year(&self) -> i32 {
+        self.target_solar_year
+    }
+
+    /// Returns the target solar month.
+    pub const fn target_solar_month(&self) -> SolarMonth {
+        self.target_solar_month
+    }
+
+    /// Returns the target solar day.
+    pub const fn target_solar_day(&self) -> SolarDay {
+        self.target_solar_day
+    }
+
+    /// Returns the target double-hour birth time.
+    pub const fn target_time(&self) -> BirthTime {
+        self.target_time
+    }
+}
+
+/// Assembles the full six-layer horoscope stack for a target date/time.
+///
+/// Derives the target lunar date and nominal age from the target solar date,
+/// selects the covering decadal period by nominal age (never a hard-coded index),
+/// and composes one layer per scope in the fixed order decadal → age → yearly →
+/// monthly → daily → hourly. The natal chart is moved in unchanged; every
+/// temporal fact is an additive overlay.
+pub fn build_full_horoscope_chart(
+    natal: Chart,
+    input: HoroscopeStackInput,
+) -> Result<HoroscopeChart, ChartError> {
+    let target_lunar = target_lunar_date(
+        input.target_solar_year,
+        input.target_solar_month,
+        input.target_solar_day,
+    )?;
+    let nominal_age = nominal_age_for_target_year(&natal, target_lunar.year)?;
+
+    let decadal_frame = build_decadal_frame(&natal)?;
+    let decadal_period = select_decadal_period_by_age(&decadal_frame, nominal_age)?;
+    let decadal_layer = build_decadal_horoscope_layer(&natal, decadal_period)?;
+
+    let age_period = build_age_period(&natal, nominal_age)?;
+    let age_layer = build_age_horoscope_layer(&natal, &age_period)?;
+
+    let yearly_period = build_yearly_period(target_lunar.year)?;
+    let yearly_layer = build_yearly_horoscope_layer(&natal, &yearly_period)?;
+
+    let monthly_period = build_monthly_period(
+        &natal,
+        input.target_solar_year,
+        input.target_solar_month,
+        input.target_solar_day,
+        input.target_time,
+    )?;
+    let monthly_layer = build_monthly_horoscope_layer(&natal, &monthly_period)?;
+
+    let daily_period = build_daily_period(
+        &natal,
+        input.target_solar_year,
+        input.target_solar_month,
+        input.target_solar_day,
+        input.target_time,
+    )?;
+    let daily_layer = build_daily_horoscope_layer(&natal, &daily_period)?;
+
+    let hourly_period = build_hourly_period(
+        &natal,
+        input.target_solar_year,
+        input.target_solar_month,
+        input.target_solar_day,
+        input.target_time,
+    )?;
+    let hourly_layer = build_hourly_horoscope_layer(&natal, &hourly_period)?;
+
+    let layers: Vec<TemporalLayer> = vec![
+        decadal_layer,
+        age_layer,
+        yearly_layer,
+        monthly_layer,
+        daily_layer,
+        hourly_layer,
+    ];
+
+    Ok(HoroscopeChart::with_layers(natal, layers))
+}

@@ -89,6 +89,7 @@ pub use placement::overlay::decadal_horoscope::{
     DecadalHoroscopeInput, build_decadal_horoscope_chart, build_decadal_horoscope_layer,
 };
 pub use placement::overlay::flow::build_flow_star_layer;
+pub use placement::overlay::horoscope_stack::{HoroscopeStackInput, build_full_horoscope_chart};
 pub use placement::overlay::hourly_horoscope::build_hourly_horoscope_layer;
 pub use placement::overlay::monthly_horoscope::build_monthly_horoscope_layer;
 pub use placement::overlay::yearly::{YearlyMutagenLayerInput, build_yearly_mutagen_layer};

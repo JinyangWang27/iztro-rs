@@ -202,6 +202,12 @@ pub enum ChartError {
         /// Number of periods available in the derived decadal frame.
         len: usize,
     },
+    /// A nominal age has no covering period in the derived decadal frame.
+    #[error("nominal age {nominal_age} is outside the derived decadal frame")]
+    NominalAgeOutsideDecadalFrame {
+        /// Nominal age that no decadal period covers.
+        nominal_age: u8,
+    },
     /// Placeholder error used until chart-generation validation exists.
     #[error("chart generation is not implemented")]
     NotImplemented,

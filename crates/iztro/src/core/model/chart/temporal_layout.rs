@@ -8,12 +8,13 @@
 //! and the calendar-error mapping shared by target-date conversions.
 
 use crate::core::error::ChartError;
-use crate::core::model::calendar::CalendarKind;
+use crate::core::model::calendar::{CalendarKind, SolarDay, SolarMonth};
 use crate::core::model::chart::{
-    Chart, PALACE_COUNT, PalaceName, TemporalPalaceLayout, TemporalPalaceName,
+    Chart, DecadalFrame, DecadalPeriod, PALACE_COUNT, PalaceName, TemporalPalaceLayout,
+    TemporalPalaceName,
 };
 use crate::core::model::star::mutagen::Scope;
-use lunar_lite::{EarthlyBranch, LunarError, StemBranch};
+use lunar_lite::{EarthlyBranch, LunarDate, LunarError, SolarDate, StemBranch, solar_to_lunar};
 
 pub(super) fn build_life_branch_palace_layout(
     scope: Scope,
@@ -86,6 +87,60 @@ pub(super) fn daily_palace_index(
     );
     (monthly_index as isize + target_lunar_day as isize - 1).rem_euclid(PALACE_COUNT as isize)
         as usize
+}
+
+/// Converts a caller-supplied target solar date to its lunar date.
+///
+/// Shared by the full-horoscope stack builder, which needs the target lunar year
+/// to derive the flowing year and nominal age. Reuses the same target-date error
+/// mapping as the monthly/daily/hourly period builders.
+pub(crate) fn target_lunar_date(
+    year: i32,
+    month: SolarMonth,
+    day: SolarDay,
+) -> Result<LunarDate, ChartError> {
+    let solar = SolarDate {
+        year,
+        month: month.value(),
+        day: day.value(),
+    };
+    solar_to_lunar(solar).map_err(|err| map_target_solar_error(err, year, month.value(), day.value()))
+}
+
+/// Derives the one-based nominal age (虚岁) from natal and target lunar years.
+///
+/// The nominal age is `target_lunar_year - natal_birth_lunar_year + 1`. Ages
+/// outside the supported `1..=120` human range are rejected with the same
+/// [`ChartError::InvalidNominalAge`] used by the 小限 period builder.
+pub(crate) fn nominal_age_for_target_year(
+    natal: &Chart,
+    target_lunar_year: i32,
+) -> Result<u8, ChartError> {
+    let birth_lunar_year = natal.birth_context().date().year();
+    let raw = target_lunar_year - birth_lunar_year + 1;
+
+    u8::try_from(raw)
+        .ok()
+        .filter(|age| (1..=120).contains(age))
+        .ok_or(ChartError::InvalidNominalAge {
+            value: raw.clamp(0, u8::MAX as i32) as u8,
+        })
+}
+
+/// Selects the decadal period whose inclusive age range covers a nominal age.
+///
+/// The twelve decadal periods are consecutive, non-overlapping ten-year ranges,
+/// so at most one period covers any nominal age. An age below the first period
+/// or above the last is rejected with [`ChartError::NominalAgeOutsideDecadalFrame`].
+pub(crate) fn select_decadal_period_by_age(
+    frame: &DecadalFrame,
+    nominal_age: u8,
+) -> Result<&DecadalPeriod, ChartError> {
+    frame
+        .periods()
+        .iter()
+        .find(|period| (period.start_age()..=period.end_age()).contains(&nominal_age))
+        .ok_or(ChartError::NominalAgeOutsideDecadalFrame { nominal_age })
 }
 
 /// Maps a target solar-date conversion failure to the matching [`ChartError`].
