@@ -7,7 +7,8 @@
 use crate::core::error::ChartError;
 use crate::core::model::calendar::Gender;
 use crate::core::model::chart::{
-    Chart, PALACE_COUNT, PalaceName, TemporalPalaceLayout, TemporalPalaceName,
+    Chart, PALACE_COUNT, TemporalPalaceLayout,
+    temporal_layout::{build_life_branch_palace_layout, yin_first_branch_index},
 };
 use crate::core::model::star::mutagen::Scope;
 use lunar_lite::{EarthlyBranch, StemBranch};
@@ -116,19 +117,9 @@ const fn age_direction_step(gender: Gender) -> isize {
 }
 
 fn build_age_palace_layout(age_branch: EarthlyBranch) -> Result<TemporalPalaceLayout, ChartError> {
-    let age_index = age_index(age_branch);
-    let names = (0..PALACE_COUNT)
-        .map(|index| {
-            TemporalPalaceName::new(
-                EarthlyBranch::Yin.offset(index as isize),
-                PalaceName::Life.offset(age_index as isize - index as isize),
-            )
-        })
-        .collect();
-
-    TemporalPalaceLayout::try_new(Scope::Age, names)
+    build_life_branch_palace_layout(Scope::Age, age_branch)
 }
 
 fn age_index(branch: EarthlyBranch) -> usize {
-    (branch.index() + PALACE_COUNT - EarthlyBranch::Yin.index()) % PALACE_COUNT
+    yin_first_branch_index(branch)
 }

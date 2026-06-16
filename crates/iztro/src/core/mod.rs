@@ -38,7 +38,8 @@ pub use model::chart::{
     PalaceGridPosition, PalaceLayerCellSnapshot, PalaceName, PalaceRoleKind, PalaceRoleSnapshot,
     ScopedStarPlacement, ScopedStarSnapshot, StarPlacement, StarPlacementRef, TemporalContext,
     TemporalLayer, TemporalPalaceLayout, TemporalPalaceName, TypedStarSnapshot,
-    VISUAL_BRANCH_ORDER, build_age_period, build_decadal_frame, palace_grid_position,
+    VISUAL_BRANCH_ORDER, YearlyPeriod, build_age_period, build_decadal_frame, build_yearly_period,
+    palace_grid_position,
 };
 pub use model::nayin::{NaYinElement, nayin_element};
 pub use model::profile::{ChartAlgorithmKind, MethodProfile};
@@ -87,6 +88,7 @@ pub use placement::overlay::decadal_horoscope::{
 };
 pub use placement::overlay::flow::build_flow_star_layer;
 pub use placement::overlay::yearly::{YearlyMutagenLayerInput, build_yearly_mutagen_layer};
+pub use placement::overlay::yearly_horoscope::build_yearly_horoscope_layer;
 
 pub use facade::by_lunar::{LunarChartRequest, LunarChartRequestBuilder, by_lunar};
 pub use facade::by_solar::{SolarChartRequest, SolarChartRequestBuilder, by_solar};

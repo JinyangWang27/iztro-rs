@@ -10,5 +10,6 @@ pub mod decadal;
 pub mod decadal_horoscope;
 pub mod flow;
 pub mod yearly;
+pub mod yearly_horoscope;
 
 pub(crate) mod mutagen;
