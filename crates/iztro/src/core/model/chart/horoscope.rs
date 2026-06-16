@@ -17,7 +17,10 @@
 use crate::core::{
     error::ChartError,
     model::{
-        chart::{Chart, PALACE_COUNT, PalaceName, StarPlacement},
+        chart::{
+            Chart, DecorativeStarFamily, DecorativeStarPlacement, PALACE_COUNT, PalaceName,
+            StarPlacement,
+        },
         star::StarName,
         star::mutagen::{Mutagen, Scope},
     },
@@ -186,6 +189,91 @@ impl ScopedStarPlacement {
     }
 }
 
+/// A branch-keyed untyped decorative star placement scoped to a temporal period.
+///
+/// Mirrors how upstream emits `yearlyDecStar` (岁前/将前十二神): bare decorative
+/// names with no [`StarKind`], keyed by branch and owned by a non-natal period. It
+/// reuses [`DecorativeStarPlacement`] for the name/family/scope fact and records
+/// the [`EarthlyBranch`] directly, because a [`TemporalLayer`] is not
+/// palace-structured — the same stable spatial reference [`ScopedStarPlacement`]
+/// uses.
+///
+/// The [`Scope::Natal`] scope is rejected: natal decorative facts belong to
+/// [`Palace::decorative_stars`], never to a temporal overlay. [`Deserialize`]
+/// routes through [`ScopedDecorativeStarPlacement::try_new`] so that invariant
+/// cannot be bypassed through serialized input.
+///
+/// [`StarKind`]: crate::core::model::star::StarKind
+/// [`Palace`]: crate::core::model::chart::Palace
+/// [`Palace::decorative_stars`]: crate::core::model::chart::Palace::decorative_stars
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
+pub struct ScopedDecorativeStarPlacement {
+    branch: EarthlyBranch,
+    placement: DecorativeStarPlacement,
+}
+
+impl ScopedDecorativeStarPlacement {
+    /// Creates a branch-keyed temporal decorative placement after checking that it
+    /// does not carry the natal scope.
+    ///
+    /// Returns [`ChartError::NatalScopeInTemporalLayer`] when `placement` carries
+    /// [`Scope::Natal`]; temporal decorative facts are always non-natal.
+    pub fn try_new(
+        branch: EarthlyBranch,
+        placement: DecorativeStarPlacement,
+    ) -> Result<Self, ChartError> {
+        if placement.scope() == Scope::Natal {
+            return Err(ChartError::NatalScopeInTemporalLayer);
+        }
+        Ok(Self { branch, placement })
+    }
+
+    /// Returns the branch this decorative placement occupies.
+    pub const fn branch(&self) -> EarthlyBranch {
+        self.branch
+    }
+
+    /// Returns the underlying untyped decorative placement.
+    pub const fn placement(&self) -> &DecorativeStarPlacement {
+        &self.placement
+    }
+
+    /// Returns the scope of the underlying decorative placement.
+    pub const fn scope(&self) -> Scope {
+        self.placement.scope()
+    }
+
+    /// Returns the decorative star name.
+    pub const fn name(&self) -> StarName {
+        self.placement.name()
+    }
+
+    /// Returns the decorative star family.
+    pub const fn family(&self) -> DecorativeStarFamily {
+        self.placement.family()
+    }
+}
+
+impl<'de> Deserialize<'de> for ScopedDecorativeStarPlacement {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        /// Mirror of [`ScopedDecorativeStarPlacement`]'s fields used only to decode
+        /// raw input before the non-natal scope invariant is re-checked.
+        #[derive(Deserialize)]
+        struct ScopedDecorativeStarPlacementData {
+            branch: EarthlyBranch,
+            placement: DecorativeStarPlacement,
+        }
+
+        let data = ScopedDecorativeStarPlacementData::deserialize(deserializer)?;
+
+        ScopedDecorativeStarPlacement::try_new(data.branch, data.placement)
+            .map_err(serde::de::Error::custom)
+    }
+}
+
 /// One temporal palace name assigned to a branch within a horoscope period.
 ///
 /// A temporal period (e.g. a 大限) relabels the twelve palaces around the natal
@@ -327,6 +415,12 @@ pub struct TemporalLayer {
     placements: Vec<ScopedStarPlacement>,
     activations: Vec<MutagenActivation>,
     palace_layout: Option<TemporalPalaceLayout>,
+    /// Branch-keyed untyped decorative facts this period adds (e.g. yearly
+    /// `yearlyDecStar`). Skipped when empty so layers without temporal decorative
+    /// facts serialize unchanged. Kept separate from natal
+    /// [`Palace::decorative_stars`](crate::core::model::chart::Palace::decorative_stars).
+    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    decorative_placements: Vec<ScopedDecorativeStarPlacement>,
 }
 
 impl TemporalLayer {
@@ -345,19 +439,47 @@ impl TemporalLayer {
         Self::try_new_with_palace_layout(scope, context, placements, activations, None)
     }
 
-    /// Creates a temporal overlay layer after checking scope invariants.
+    /// Creates a temporal overlay layer with a palace-name layout but no temporal
+    /// decorative placements.
     ///
-    /// Rejects the natal scope (natal facts belong to the [`Chart`]), rejects a
-    /// `scope` that disagrees with `context`, rejects any placement whose scope
-    /// is not the layer scope, rejects any activation whose source scope is not
-    /// the layer scope, and rejects a palace layout whose scope is not the layer
-    /// scope, so a layer can never duplicate or restate a natal fact.
+    /// Convenience constructor for layers that carry scoped star placements,
+    /// mutagen activations, and an optional palace-name layout. The temporal
+    /// decorative list defaults to empty. Use
+    /// [`TemporalLayer::try_new_with_palace_layout_and_decorative_stars`] to attach
+    /// temporal decorative facts (e.g. yearly `yearlyDecStar`). The same scope
+    /// invariants are checked.
     pub fn try_new_with_palace_layout(
         scope: Scope,
         context: TemporalContext,
         placements: Vec<ScopedStarPlacement>,
         activations: Vec<MutagenActivation>,
         palace_layout: Option<TemporalPalaceLayout>,
+    ) -> Result<Self, ChartError> {
+        Self::try_new_with_palace_layout_and_decorative_stars(
+            scope,
+            context,
+            placements,
+            activations,
+            palace_layout,
+            Vec::new(),
+        )
+    }
+
+    /// Creates a temporal overlay layer after checking scope invariants.
+    ///
+    /// Rejects the natal scope (natal facts belong to the [`Chart`]), rejects a
+    /// `scope` that disagrees with `context`, rejects any placement whose scope
+    /// is not the layer scope, rejects any activation whose source scope is not
+    /// the layer scope, rejects a palace layout whose scope is not the layer
+    /// scope, and rejects any temporal decorative placement whose scope is not the
+    /// layer scope, so a layer can never duplicate or restate a natal fact.
+    pub fn try_new_with_palace_layout_and_decorative_stars(
+        scope: Scope,
+        context: TemporalContext,
+        placements: Vec<ScopedStarPlacement>,
+        activations: Vec<MutagenActivation>,
+        palace_layout: Option<TemporalPalaceLayout>,
+        decorative_placements: Vec<ScopedDecorativeStarPlacement>,
     ) -> Result<Self, ChartError> {
         if scope == Scope::Natal {
             return Err(ChartError::NatalScopeInTemporalLayer);
@@ -394,6 +516,15 @@ impl TemporalLayer {
                 });
             }
         }
+        if let Some(decorative) = decorative_placements
+            .iter()
+            .find(|decorative| decorative.scope() != scope)
+        {
+            return Err(ChartError::TemporalDecorativeScopeMismatch {
+                layer: scope,
+                decorative: decorative.scope(),
+            });
+        }
 
         Ok(Self {
             scope,
@@ -401,6 +532,7 @@ impl TemporalLayer {
             placements,
             activations,
             palace_layout,
+            decorative_placements,
         })
     }
 
@@ -428,6 +560,15 @@ impl TemporalLayer {
     pub const fn palace_layout(&self) -> Option<&TemporalPalaceLayout> {
         self.palace_layout.as_ref()
     }
+
+    /// Returns the branch-keyed temporal decorative placements scoped to this layer.
+    ///
+    /// These are untyped decorative facts a period adds (e.g. yearly
+    /// `yearlyDecStar`), kept distinct from natal
+    /// [`Palace::decorative_stars`](crate::core::model::chart::Palace::decorative_stars).
+    pub fn temporal_decorative_stars(&self) -> &[ScopedDecorativeStarPlacement] {
+        &self.decorative_placements
+    }
 }
 
 impl<'de> Deserialize<'de> for TemporalLayer {
@@ -445,16 +586,19 @@ impl<'de> Deserialize<'de> for TemporalLayer {
             activations: Vec<MutagenActivation>,
             #[serde(default)]
             palace_layout: Option<TemporalPalaceLayout>,
+            #[serde(default)]
+            decorative_placements: Vec<ScopedDecorativeStarPlacement>,
         }
 
         let data = TemporalLayerData::deserialize(deserializer)?;
 
-        TemporalLayer::try_new_with_palace_layout(
+        TemporalLayer::try_new_with_palace_layout_and_decorative_stars(
             data.scope,
             data.context,
             data.placements,
             data.activations,
             data.palace_layout,
+            data.decorative_placements,
         )
         .map_err(serde::de::Error::custom)
     }

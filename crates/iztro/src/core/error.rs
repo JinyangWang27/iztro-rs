@@ -174,6 +174,16 @@ pub enum ChartError {
         /// Scope carried by the rejected palace layout.
         layout: Scope,
     },
+    /// A scoped decorative placement in a temporal layer must carry the layer's scope.
+    #[error(
+        "temporal decorative placement scope {decorative:?} does not match layer scope {layer:?}"
+    )]
+    TemporalDecorativeScopeMismatch {
+        /// Scope declared on the layer.
+        layer: Scope,
+        /// Scope carried by the rejected decorative placement.
+        decorative: Scope,
+    },
     /// A temporal palace-name layout must contain exactly twelve names.
     #[error("invalid temporal palace layout count: expected {expected}, got {actual}")]
     InvalidTemporalPalaceLayoutCount {

@@ -29,8 +29,8 @@ pub use chart::{
 pub use daily::{DailyPeriod, build_daily_period};
 pub use decadal::{DecadalDirection, DecadalFrame, DecadalPeriod, build_decadal_frame};
 pub use horoscope::{
-    HoroscopeChart, MutagenActivation, ScopedStarPlacement, TemporalContext, TemporalLayer,
-    TemporalPalaceLayout, TemporalPalaceName,
+    HoroscopeChart, MutagenActivation, ScopedDecorativeStarPlacement, ScopedStarPlacement,
+    TemporalContext, TemporalLayer, TemporalPalaceLayout, TemporalPalaceName,
 };
 pub use hourly::{HourlyPeriod, build_hourly_period};
 pub use monthly::{MonthlyPeriod, build_monthly_period};
