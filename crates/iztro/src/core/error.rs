@@ -236,6 +236,20 @@ pub enum ChartError {
         /// Scope with no palace-name layout.
         scope: Scope,
     },
+    /// A runtime projection needs the natal palace occupying a branch.
+    #[error("missing natal palace at branch {branch:?}")]
+    MissingNatalPalaceForBranch {
+        /// Branch with no natal palace.
+        branch: EarthlyBranch,
+    },
+    /// A runtime projection needs a palace name in the selected scope.
+    #[error("missing horoscope palace {palace_name:?} for scope {scope:?}")]
+    MissingHoroscopePalaceName {
+        /// Scope being projected.
+        scope: Scope,
+        /// Palace name that could not be found.
+        palace_name: PalaceName,
+    },
     /// A supported-fields export requires the four modeled mutagen activations.
     #[error("missing horoscope mutagen activation {mutagen:?} for scope {scope:?}")]
     MissingHoroscopeMutagenActivation {

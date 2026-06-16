@@ -18,6 +18,8 @@ use serde_json::Value;
 /// Source of truth for the upstream `FunctionalAstrolabe#horoscope` supported
 /// fields, shared by every temporal-layer integration test.
 pub const HOROSCOPE_FIXTURE: &str = include_str!("../../fixtures/iztro/horoscope.json");
+pub const HOROSCOPE_RUNTIME_FIXTURE: &str =
+    include_str!("../../fixtures/iztro/horoscope_runtime.json");
 
 pub const DECORATIVE_FAMILIES: [(&str, DecorativeStarFamily); 4] = [
     ("changsheng12", DecorativeStarFamily::Changsheng12),
@@ -301,6 +303,17 @@ pub fn horoscope_fixture_case(case_id: &str) -> Value {
         .into_iter()
         .find(|case| case["id"].as_str() == Some(case_id))
         .unwrap_or_else(|| panic!("missing horoscope fixture case {case_id}"))
+}
+
+/// Returns every horoscope runtime-helper fixture case.
+pub fn horoscope_runtime_fixture_cases() -> Vec<Value> {
+    let fixture: Value =
+        serde_json::from_str(HOROSCOPE_RUNTIME_FIXTURE).expect("runtime fixture should parse");
+
+    fixture["cases"]
+        .as_array()
+        .expect("runtime fixture cases should be an array")
+        .to_vec()
 }
 
 /// Builds the natal chart for a horoscope fixture case through `by_lunar`.
