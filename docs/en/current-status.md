@@ -13,7 +13,7 @@ Compatibility is fixture-driven and scoped to the supported fact surface. The pr
 The supported natal chart fact surface currently includes:
 
 - typed request facades: `by_lunar` and `by_solar`;
-- `lunar-lite` 0.3.1-backed solar-to-lunar conversion and normal-boundary four-pillar birth-year derivation for `by_solar`;
+- `lunar-lite` 1.0.0-backed solar-to-lunar conversion and normal-boundary four-pillar birth-year derivation for `by_solar`;
 - leap-month and `fix_leap` handling for the supported slice;
 - `BirthTime` / upstream `timeIndex` `0..=12`, including early Zi and late Zi;
 - retained `Chart::birth_year()` stem-branch fact;

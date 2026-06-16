@@ -16,6 +16,7 @@ use serde::{Deserialize, Serialize};
 /// One 小限 period aligned to a natal palace branch.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct AgePeriod {
+    index: usize,
     nominal_age: u8,
     palace_branch: EarthlyBranch,
     stem_branch: StemBranch,
@@ -24,17 +25,24 @@ pub struct AgePeriod {
 
 impl AgePeriod {
     fn new(
+        index: usize,
         nominal_age: u8,
         palace_branch: EarthlyBranch,
         stem_branch: StemBranch,
         palace_layout: TemporalPalaceLayout,
     ) -> Self {
         Self {
+            index,
             nominal_age,
             palace_branch,
             stem_branch,
             palace_layout,
         }
+    }
+
+    /// Returns the zero-based upstream age frame index in Yin-first order.
+    pub const fn index(&self) -> usize {
+        self.index
     }
 
     /// Returns the one-based nominal age this period describes.
@@ -68,6 +76,7 @@ pub fn build_age_period(natal: &Chart, nominal_age: u8) -> Result<AgePeriod, Cha
     let step = age_direction_step(natal.birth_context().gender());
     let offset = ((nominal_age - 1) % PALACE_COUNT as u8) as isize;
     let palace_branch = start_branch.offset(offset * step);
+    let index = age_index(palace_branch);
     let palace = natal
         .palaces()
         .iter()
@@ -82,6 +91,7 @@ pub fn build_age_period(natal: &Chart, nominal_age: u8) -> Result<AgePeriod, Cha
     let palace_layout = build_age_palace_layout(palace_branch)?;
 
     Ok(AgePeriod::new(
+        index,
         nominal_age,
         palace_branch,
         stem_branch,
@@ -106,7 +116,7 @@ const fn age_direction_step(gender: Gender) -> isize {
 }
 
 fn build_age_palace_layout(age_branch: EarthlyBranch) -> Result<TemporalPalaceLayout, ChartError> {
-    let age_index = (age_branch.index() + PALACE_COUNT - EarthlyBranch::Yin.index()) % PALACE_COUNT;
+    let age_index = age_index(age_branch);
     let names = (0..PALACE_COUNT)
         .map(|index| {
             TemporalPalaceName::new(
@@ -117,4 +127,8 @@ fn build_age_palace_layout(age_branch: EarthlyBranch) -> Result<TemporalPalaceLa
         .collect();
 
     TemporalPalaceLayout::try_new(Scope::Age, names)
+}
+
+fn age_index(branch: EarthlyBranch) -> usize {
+    (branch.index() + PALACE_COUNT - EarthlyBranch::Yin.index()) % PALACE_COUNT
 }
