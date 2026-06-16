@@ -15,6 +15,33 @@ const HOROSCOPE_FIXTURE: &str = include_str!("../fixtures/iztro/horoscope.json")
 const CANONICAL_CASE_ID: &str = "canonical_female_default_2026";
 
 #[test]
+fn yearly_period_and_layer_match_all_fixture_cases() {
+    for case in horoscope_fixture_cases() {
+        let chart = build_chart_from_horoscope_fixture_case(&case);
+        let yearly = yearly_fixture(&case);
+        let period = build_fixture_yearly_period(&case, yearly);
+        let layer = build_yearly_horoscope_layer(&chart, &period)
+            .expect("yearly horoscope layer should build");
+
+        assert_yearly_period_matches_fixture(&period, yearly);
+        assert_yearly_palace_layout_matches_fixture(
+            layer
+                .palace_layout()
+                .expect("yearly layer should carry palace layout"),
+            yearly,
+        );
+        assert_eq!(
+            actual_yearly_mutagens(&layer),
+            expected_yearly_mutagens(yearly, &chart)
+        );
+        assert_eq!(
+            actual_yearly_flow_stars(&layer),
+            expected_yearly_flow_stars(yearly)
+        );
+    }
+}
+
+#[test]
 fn yearly_period_matches_canonical_fixture() {
     let case = horoscope_fixture_case(CANONICAL_CASE_ID);
     let yearly = yearly_fixture(&case);
@@ -201,6 +228,16 @@ fn horoscope_fixture_case(case_id: &str) -> Value {
         .find(|case| case["id"].as_str() == Some(case_id))
         .unwrap_or_else(|| panic!("missing horoscope fixture case {case_id}"))
         .clone()
+}
+
+fn horoscope_fixture_cases() -> Vec<Value> {
+    let fixture: Value =
+        serde_json::from_str(HOROSCOPE_FIXTURE).expect("horoscope fixture should parse");
+
+    fixture["cases"]
+        .as_array()
+        .expect("fixture cases should be an array")
+        .to_vec()
 }
 
 fn build_chart_from_horoscope_fixture_case(case: &Value) -> Chart {
