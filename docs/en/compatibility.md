@@ -54,9 +54,10 @@ The current fixture-backed chart-generation surface includes:
 - typed `MonthlyPeriod` derivation and composed monthly layer assembly, including independent month pillar and monthly temporal Life palace layout facts;
 - typed `DailyPeriod` derivation and composed daily layer assembly, including independent day pillar and daily temporal Life palace layout facts;
 - typed `HourlyPeriod` derivation and composed hourly layer assembly, including independent hour pillar and hourly temporal Life palace layout facts;
+- full horoscope stack assembly (`build_full_horoscope_chart`) composing the decadal, age, yearly, monthly, daily, and hourly layers into one `HoroscopeChart` for the supported fact surface;
 - renderer-neutral `ChartStackSnapshot` and a deterministic plain text renderer demo.
 
-The project still does not claim full upstream facade serialization parity, full horoscope assembly, full BaZi output, temporal decorative arrays, or interpretation/narrative parity.
+The project still does not claim full upstream facade serialization parity (the upstream `FunctionalAstrolabe#horoscope` payload shape), upstream runtime query helpers, `yearlyDecStar`, full BaZi output, or interpretation/narrative parity. The implemented full horoscope stack is supported model-level assembly for the implemented fields only.
 
 ## Star-name inventory
 
@@ -95,9 +96,11 @@ A scoped flow-star builder (`build_flow_star_layer`) places the horoscope flow s
 
 `build_daily_period` derives one 流日 period from natal facts plus an explicit target solar date and target `BirthTime`. It follows upstream `FunctionalAstrolabe#horoscope`: the daily `StemBranch` comes from the target date's normal-boundary day pillar, while the daily temporal Life palace index is derived separately by counting on from the 流月 palace index by the target lunar day. The daily stem-branch branch is therefore independent from the daily Life palace branch. `build_daily_horoscope_layer` composes that period into a `Scope::Daily` layer with daily flow stars, daily mutagen activations, and the daily `TemporalPalaceLayout`. It does not assemble the full horoscope stack or attach temporal decorative arrays.
 
-`build_hourly_period` derives one 流时 period from natal facts plus an explicit target solar date and target `BirthTime`. It follows upstream `FunctionalAstrolabe#horoscope`: the hourly `StemBranch` comes from the target date/time's normal-boundary hour pillar, while the hourly temporal Life palace index is derived separately by counting on from the 流日 palace index by the target double-hour. The hourly stem-branch branch is therefore independent from the hourly Life palace branch. `build_hourly_horoscope_layer` composes that period into a `Scope::Hourly` layer with hourly flow stars, hourly mutagen activations, and the hourly `TemporalPalaceLayout`. It does not assemble the full horoscope stack or attach temporal decorative arrays.
+`build_hourly_period` derives one 流时 period from natal facts plus an explicit target solar date and target `BirthTime`. It follows upstream `FunctionalAstrolabe#horoscope`: the hourly `StemBranch` comes from the target date/time's normal-boundary hour pillar, while the hourly temporal Life palace index is derived separately by counting on from the 流日 palace index by the target double-hour. The hourly stem-branch branch is therefore independent from the hourly Life palace branch. `build_hourly_horoscope_layer` composes that period into a `Scope::Hourly` layer with hourly flow stars, hourly mutagen activations, and the hourly `TemporalPalaceLayout`. It does not attach temporal decorative arrays.
 
-Full horoscope stack assembly, temporal layer attachment beyond the selected builders, and temporal decorative arrays remain deferred.
+`build_full_horoscope_chart` composes the decadal, age, yearly, monthly, daily, and hourly layers into one `HoroscopeChart` for a target solar date/time (`HoroscopeStackInput`). It derives the target lunar date, derives the nominal age (虚岁 = target lunar year − natal birth lunar year + 1), selects the covering decadal period by that nominal age (never a hard-coded index), and pushes the six layers in the deterministic order decadal → age → yearly → monthly → daily → hourly. This is supported model-level stack assembly for the implemented fields only: it does not reproduce the upstream `FunctionalAstrolabe#horoscope` payload shape, expose runtime query helpers, or attach `yearlyDecStar`.
+
+Upstream query helpers, runtime palace projections, `yearlyDecStar`, and full facade payload parity remain deferred.
 
 ## Runtime star-family placement
 
@@ -139,6 +142,7 @@ Key fixture groups include:
 - horoscope monthly period/layer cases;
 - horoscope daily period/layer cases;
 - horoscope hourly period/layer cases;
+- full horoscope stack assembly cases;
 - e2e supported `by_lunar` cases;
 - e2e supported `by_solar` cases;
 - leap-month behavior;
@@ -151,9 +155,8 @@ The exact fixture files live under `crates/iztro/fixtures/iztro/`. Regeneration 
 Deferred surfaces include:
 
 - full upstream facade serialization parity;
+- upstream runtime query helpers (`hasHoroscopeStars`, `notHaveHoroscopeStars`, `hasOneOfHoroscopeStars`, `hasHoroscopeMutagen`) and runtime palace projections (`agePalace`, `palace`, `surroundPalaces`);
 - full BaZi output;
-- full horoscope stack assembly;
-- attaching derived decadal frames as temporal layers;
 - upstream yearly decorative arrays such as `yearlyDecStar`;
 - bindings;
 - feature extraction for temporal activation;
