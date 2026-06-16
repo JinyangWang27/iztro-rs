@@ -12,6 +12,7 @@ use iztro::core::{
     HoroscopeStackInput, Scope, SolarDay, SolarMonth, StarName, TemporalContext, TemporalLayer,
     TemporalPalaceLayout, build_decadal_frame, build_full_horoscope_chart,
 };
+use lunar_lite::{SolarDate, solar_to_lunar};
 use serde_json::Value;
 
 const CANONICAL_CASE_ID: &str = "canonical_female_default_2026";
@@ -336,6 +337,11 @@ fn full_stack_round_trips_through_json() {
 
 // --- helpers -------------------------------------------------------------------
 
+fn target_lunar_date(case: &Value) -> lunar_lite::LunarDate {
+    let (year, month, day) = target_solar_date(case);
+    solar_to_lunar(SolarDate { year, month, day })
+        .expect("fixture target solar date should convert")
+}
 fn stack_input(case: &Value) -> HoroscopeStackInput {
     let (year, month, day) = target_solar_date(case);
     HoroscopeStackInput::new(
@@ -389,6 +395,11 @@ fn assert_layer_context(case_id: &str, layer: &TemporalLayer, case: &Value, fixt
             stem_branch: sb,
             lunar_month,
         } => {
+            let target_lunar = target_lunar_date(case);
+            assert_eq!(
+                *lunar_month, target_lunar.month,
+                "{case_id}: monthly lunar month"
+            );
             assert_eq!(*sb, stem_branch, "{case_id}: monthly stem-branch");
             assert!(
                 (1..=12).contains(lunar_month),
@@ -399,6 +410,8 @@ fn assert_layer_context(case_id: &str, layer: &TemporalLayer, case: &Value, fixt
             stem_branch: sb,
             lunar_day,
         } => {
+            let target_lunar = target_lunar_date(case);
+            assert_eq!(*lunar_day, target_lunar.day, "{case_id}: daily lunar day");
             assert_eq!(*sb, stem_branch, "{case_id}: daily stem-branch");
             assert!((1..=30).contains(lunar_day), "{case_id}: daily lunar day");
         }
