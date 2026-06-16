@@ -51,7 +51,7 @@
 仅本命；装饰性 runtime 条目是 known 的无类型 runtime 事实，流曜则是通过
 `TemporalLayer` 安放的 known 有类型时间事实。`xunzhong` / `旬中` 因只属于 locale 而
 被排除；已支持本命 `getAdjectiveStar` 切片以外的神煞安星、yearly-scope 装饰性数组、
-完整 horoscope 宫名推导（流月、流日已由独立 fixture-backed layer 覆盖）、亮度扩展，以及把四化建模为星曜，仍然延期。
+完整 horoscope 组装（流月、流日、流时已由独立 fixture-backed layer 覆盖）、亮度扩展，以及把四化建模为星曜，仍然延期。
 
 ## Phase 3：排盘兼容性
 
@@ -68,9 +68,10 @@
 - [x] 添加早晚子时变体。`BirthTime` 建模上游 `iztro` `timeIndex` `0..=12`，保留早子时（`0`）与晚子时（`12`），同时让按地支传入的 request API 保持向后兼容。
 - [x] 添加 fixture-backed 流月 period 与 layer 组装。`build_monthly_period` 保留流月干支和流月命宫为独立事实，`build_monthly_horoscope_layer` 组装流月流曜、流月四化和流月宫名布局。
 - [x] 添加 fixture-backed 流日 period 与 layer 组装。`build_daily_period` 保留流日干支和流日命宫为独立事实，`build_daily_horoscope_layer` 组装流日流曜、流日四化和流日宫名布局。
+- [x] 添加 fixture-backed 流时 period 与 layer 组装。`build_hourly_period` 保留流时干支和流时命宫为独立事实，`build_hourly_horoscope_layer` 组装流时流曜、流时四化和流时宫名布局。
 - [ ] 添加完整八字输出、完整 horoscope 组装、bindings、特征提取、规则与叙事。
 
-当前核心切片：`by_lunar` 接受显式农历输入以及显式出生年干、年支，生成确定性的本命星盘事实，并用选定的 `iztro` 2.5.8 fixtures 校验 minimal chart 字段、十四主星、十四颗已支持辅星、完整默认算法的 38 颗本命杂曜/辅助星，以及中州派 40 颗本命杂曜/辅助星输出。默认/非中州派输出保持 14 主星 + 14 辅星 + 38 杂曜/辅助星 = 66 颗本命星；中州派输出为 14 主星 + 14 辅星 + 40 杂曜/辅助星 = 68 颗本命星。已表示 metadata table 为 70 颗，因为默认专属与中州派专属本命杂曜都属于已表示星曜。装饰性 runtime 家族（长生/博士/岁前/将前十二神）与 scoped 流曜现在作为独立事实安放（见下文）。`by_solar` 增加了最小的 `lunar-lite` 阳历转农历转换并委托给 `by_lunar`，后者现在为已支持切片建模 fixture 支持的闰月行为（`is_leap_month`/`fix_leap`）与早晚子时变体（`BirthTime` / `timeIndex` `0..=12`）。流月与流日 period 与 layer 组装已有 fixture-backed 覆盖；完整八字输出、完整 horoscope 组装（其余 period 推导与宫名布局）、上游 yearly decorative arrays（`yearlyDecStar`）、bindings、特征提取、规则与叙事仍然推迟。四化仍作为安星上的 `Mutagen` 事实，而非独立星曜。
+当前核心切片：`by_lunar` 接受显式农历输入以及显式出生年干、年支，生成确定性的本命星盘事实，并用选定的 `iztro` 2.5.8 fixtures 校验 minimal chart 字段、十四主星、十四颗已支持辅星、完整默认算法的 38 颗本命杂曜/辅助星，以及中州派 40 颗本命杂曜/辅助星输出。默认/非中州派输出保持 14 主星 + 14 辅星 + 38 杂曜/辅助星 = 66 颗本命星；中州派输出为 14 主星 + 14 辅星 + 40 杂曜/辅助星 = 68 颗本命星。已表示 metadata table 为 70 颗，因为默认专属与中州派专属本命杂曜都属于已表示星曜。装饰性 runtime 家族（长生/博士/岁前/将前十二神）与 scoped 流曜现在作为独立事实安放（见下文）。`by_solar` 增加了最小的 `lunar-lite` 阳历转农历转换并委托给 `by_lunar`，后者现在为已支持切片建模 fixture 支持的闰月行为（`is_leap_month`/`fix_leap`）与早晚子时变体（`BirthTime` / `timeIndex` `0..=12`）。流月、流日与流时 period 与 layer 组装已有 fixture-backed 覆盖；完整八字输出、完整 horoscope 组装、上游 yearly decorative arrays（`yearlyDecStar`）、bindings、特征提取、规则与叙事仍然推迟。四化仍作为安星上的 `Mutagen` 事实，而非独立星曜。
 
 四组装饰性 runtime 家族由 `by_lunar` 作为无类型 `DecorativeStarPlacement` 安放到独立
 的 `Palace::decorative_stars()` collection 中，因此 `Chart::stars()` 仍只包含有类型

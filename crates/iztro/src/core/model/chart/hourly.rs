@@ -1,16 +1,16 @@
-//! Deterministic daily-period (流日) facts derived from natal and target facts.
+//! Deterministic hourly-period (流时) facts derived from natal and target facts.
 //!
-//! This module derives one 流日 period using the upstream `iztro@2.5.8`
-//! horoscope rule: the flowing day stem-branch is the target solar date's
-//! normal-boundary day pillar, while the temporal Life palace index is derived
-//! independently by counting on from the 流月 palace index by the target lunar
-//! day. It does not assemble hourly layers, attach temporal decorative arrays,
-//! or render narrative text.
+//! This module derives one 流时 period using the upstream `iztro@2.5.8`
+//! horoscope rule: the flowing double-hour stem-branch is the target solar
+//! date/time's normal-boundary hour pillar, while the temporal Life palace index
+//! is derived independently by counting on from the 流日 palace index by the
+//! target double-hour. It does not assemble the full horoscope stack, attach
+//! temporal decorative arrays, or render narrative text.
 
 use crate::core::error::ChartError;
 use crate::core::model::calendar::{BirthTime, SolarDay, SolarMonth};
 use crate::core::model::chart::{
-    Chart, TemporalPalaceLayout,
+    Chart, PALACE_COUNT, TemporalPalaceLayout,
     temporal_layout::{
         build_life_branch_palace_layout, daily_palace_index, map_target_solar_error,
     },
@@ -22,72 +22,73 @@ use lunar_lite::{
 };
 use serde::{Deserialize, Serialize};
 
-/// One 流日 period with independent day pillar and temporal Life palace facts.
+/// One 流时 period with independent hour pillar and temporal Life palace facts.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct DailyPeriod {
+pub struct HourlyPeriod {
     index: usize,
-    lunar_day: u8,
+    time_index: u8,
     stem_branch: StemBranch,
     palace_branch: EarthlyBranch,
     palace_layout: TemporalPalaceLayout,
 }
 
-impl DailyPeriod {
+impl HourlyPeriod {
     fn new(
         index: usize,
-        lunar_day: u8,
+        time_index: u8,
         stem_branch: StemBranch,
         palace_branch: EarthlyBranch,
         palace_layout: TemporalPalaceLayout,
     ) -> Self {
         Self {
             index,
-            lunar_day,
+            time_index,
             stem_branch,
             palace_branch,
             palace_layout,
         }
     }
 
-    /// Returns the zero-based upstream daily index in Yin-first order.
+    /// Returns the zero-based upstream hourly index in Yin-first order.
     pub const fn index(&self) -> usize {
         self.index
     }
 
-    /// Returns the one-based target lunar day this period describes.
-    pub const fn lunar_day(&self) -> u8 {
-        self.lunar_day
+    /// Returns the upstream `timeIndex` (0..=12) this period describes.
+    pub const fn time_index(&self) -> u8 {
+        self.time_index
     }
 
-    /// Returns the target day stem-branch pair used for flow stars and mutagens.
+    /// Returns the target hour stem-branch pair used for flow stars and mutagens.
     pub const fn stem_branch(&self) -> StemBranch {
         self.stem_branch
     }
 
-    /// Returns the branch selected as the daily temporal Life palace.
+    /// Returns the branch selected as the hourly temporal Life palace.
     pub const fn palace_branch(&self) -> EarthlyBranch {
         self.palace_branch
     }
 
-    /// Returns the temporal palace-name layout for this daily period.
+    /// Returns the temporal palace-name layout for this hourly period.
     pub const fn palace_layout(&self) -> &TemporalPalaceLayout {
         &self.palace_layout
     }
 }
 
-/// Builds one 流日 period from natal chart facts and a target solar date/time.
-pub fn build_daily_period(
+/// Builds one 流时 period from natal chart facts and a target solar date/time.
+pub fn build_hourly_period(
     natal: &Chart,
     target_solar_year: i32,
     target_solar_month: SolarMonth,
     target_solar_day: SolarDay,
     target_time: BirthTime,
-) -> Result<DailyPeriod, ChartError> {
+) -> Result<HourlyPeriod, ChartError> {
     let solar = SolarDate {
         year: target_solar_year,
         month: target_solar_month.value(),
         day: target_solar_day.value(),
     };
+    let time_index = target_time.iztro_time_index();
     let target_lunar = solar_to_lunar(solar).map_err(|err| {
         map_target_solar_error(
             err,
@@ -98,7 +99,7 @@ pub fn build_daily_period(
     })?;
     let pillars = four_pillars_from_solar_date_with_options(
         solar,
-        target_time.iztro_time_index(),
+        time_index,
         StemBranchOptions {
             year: YearDivide::Normal,
             month: MonthDivide::Normal,
@@ -113,20 +114,22 @@ pub fn build_daily_period(
         )
     })?;
 
-    let index = daily_palace_index(
+    let daily_index = daily_palace_index(
         natal,
         target_lunar.year,
         target_lunar.month,
         target_lunar.day,
         target_lunar.is_leap_month,
     );
+    let index =
+        (daily_index as isize + time_index as isize).rem_euclid(PALACE_COUNT as isize) as usize;
     let palace_branch = EarthlyBranch::Yin.offset(index as isize);
-    let palace_layout = build_life_branch_palace_layout(Scope::Daily, palace_branch)?;
+    let palace_layout = build_life_branch_palace_layout(Scope::Hourly, palace_branch)?;
 
-    Ok(DailyPeriod::new(
+    Ok(HourlyPeriod::new(
         index,
-        target_lunar.day,
-        pillars.daily,
+        time_index,
+        pillars.hourly,
         palace_branch,
         palace_layout,
     ))
