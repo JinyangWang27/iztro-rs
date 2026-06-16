@@ -456,6 +456,37 @@ pub fn expected_scope_flow_stars(
     expected
 }
 
+/// Resolves the yearly `yearly_dec_stars` block to `(branch, family) -> name`.
+///
+/// Reads both `suiqian12` and `jiangqian12` families; each entry's normalized
+/// `name`/`branch` keys are parsed to their typed values. The `(branch, family)`
+/// The `(branch, family)` key is unique even when both families occupy the same branch.
+pub fn expected_yearly_dec_stars(
+    yearly: &Value,
+) -> HashMap<(EarthlyBranch, DecorativeStarFamily), StarName> {
+    let block = &yearly["yearly_dec_stars"];
+    let mut expected = HashMap::new();
+    for (key, family) in [
+        ("suiqian12", DecorativeStarFamily::Suiqian12),
+        ("jiangqian12", DecorativeStarFamily::Jiangqian12),
+    ] {
+        for entry in block[key]
+            .as_array()
+            .unwrap_or_else(|| panic!("yearly_dec_stars.{key} array"))
+        {
+            let branch = parse_key::<EarthlyBranch>(
+                entry["branch"].as_str().expect("yearly dec star branch"),
+            );
+            let name = parse_key::<StarName>(entry["name"].as_str().expect("yearly dec star name"));
+            assert!(
+                expected.insert((branch, family), name).is_none(),
+                "duplicate yearly dec star at {branch:?}/{family:?}"
+            );
+        }
+    }
+    expected
+}
+
 /// Maps a fixture flow-star `base` label to its `FlowStarBase`.
 pub fn parse_flow_base(value: &str) -> FlowStarBase {
     match value {

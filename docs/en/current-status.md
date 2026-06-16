@@ -32,7 +32,8 @@ The supported natal chart fact surface currently includes:
 - typed `MonthlyPeriod` / 流月 derivation with independent month pillar and monthly Life palace branch facts, plus composed monthly flow-star, mutagen, and palace-name layer assembly validated against the upstream horoscope fixture.
 - typed `DailyPeriod` / 流日 derivation with independent day pillar and daily Life palace branch facts, plus composed daily flow-star, mutagen, and palace-name layer assembly validated against the upstream horoscope fixture.
 - typed `HourlyPeriod` / 流时 derivation with independent hour pillar and hourly Life palace branch facts, plus composed hourly flow-star, mutagen, and palace-name layer assembly validated against the upstream horoscope fixture.
-- full horoscope stack assembly (`build_full_horoscope_chart` / `HoroscopeStackInput`): composes the decadal, age, yearly, monthly, daily, and hourly layers into one `HoroscopeChart` in a deterministic order, selecting the decadal period by the derived nominal age. This is supported model-level stack assembly for the implemented fields only — it is **not** identical to the upstream `FunctionalAstrolabe#horoscope` payload shape, does **not** include upstream runtime query helpers (`hasHoroscopeStars`, `hasHoroscopeMutagen`, …), and does **not** include `yearlyDecStar`.
+- full horoscope stack assembly (`build_full_horoscope_chart` / `HoroscopeStackInput`): composes the decadal, age, yearly, monthly, daily, and hourly layers into one `HoroscopeChart` in a deterministic order, selecting the decadal period by the derived nominal age. This is supported model-level stack assembly for the implemented fields only — it is **not** identical to the upstream `FunctionalAstrolabe#horoscope` payload shape and does **not** include upstream runtime query helpers (`hasHoroscopeStars`, `hasHoroscopeMutagen`, …).
+- yearly `yearlyDecStar` (岁前/将前十二神) as yearly-scope temporal decorative facts on the yearly layer, read through `TemporalLayer::temporal_decorative_stars()`. These are untyped: they do **not** appear in `Chart::stars()` or natal `Palace::decorative_stars()`.
 
 Default/non-Zhongzhou natal output remains 66 typed natal stars. Zhongzhou natal output remains 68 typed natal stars. `represented_star_metadata_table().len() == 70` stays natal-only, while `known_star_metadata_table().len() == 170` inventories the broader upstream runtime star-name universe.
 
@@ -60,7 +61,7 @@ It preserves:
 - natal Life/Body Palace branches and five-element bureau;
 - conventional 12-palace visual grid positions;
 - one natal layer plus zero or more temporal layers;
-- separate cell sections for natal typed stars, decorative stars, scoped temporal stars, and mutagen activations;
+- separate cell sections for natal typed stars, natal decorative stars, scoped temporal stars, temporal decorative stars, and mutagen activations;
 - per-cell temporal palace names for implemented temporal layers, kept separate from the natal palace name so temporal labels never overwrite natal spatial facts.
 
 `render` currently provides a deterministic plain text renderer over `ChartStackSnapshot`. The top-level README and `docs/en/demo.md` show the current end-to-end flow:
@@ -74,7 +75,7 @@ solar input -> by_solar -> ChartStackSnapshot -> render module plain text output
 The following remain intentionally out of scope for the current supported surface:
 
 - full BaZi output;
-- temporal decorative arrays such as upstream `yearlyDecStar` (岁前/将前);
+- temporal decorative arrays beyond yearly `yearlyDecStar` (e.g. decadal/monthly/daily/hourly decorative arrays);
 - upstream runtime query helpers (`hasHoroscopeStars`, `notHaveHoroscopeStars`, `hasOneOfHoroscopeStars`, `hasHoroscopeMutagen`) and runtime palace projections (`agePalace`, `palace`, `surroundPalaces`);
 - full upstream facade serialization parity (the upstream `FunctionalAstrolabe#horoscope` payload shape);
 - bindings;
@@ -90,5 +91,5 @@ The next implementation work should stay incremental:
 
 1. Continue keeping compatibility fixture-backed.
 2. Build richer renderers or CLI demos on top of `ChartStackSnapshot`, not directly on `Chart` internals.
-3. Full horoscope stack assembly now composes decadal, age, yearly, monthly, daily, and hourly into one stack; remaining horoscope work (`yearlyDecStar`, runtime query helpers, upstream facade payload parity) stays incremental and fixture-backed.
+3. Full horoscope stack assembly now composes decadal, age, yearly, monthly, daily, and hourly into one stack, and the yearly layer carries `yearlyDecStar` as temporal decorative facts; remaining horoscope work (runtime query helpers, upstream facade payload parity) stays incremental and fixture-backed.
 4. Only after the fact surface is stable, expand feature extraction, rules, and narrative.

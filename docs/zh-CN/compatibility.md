@@ -98,10 +98,10 @@ lunar-lite 历法 normalizer按真实历法解析；公开 API 不暴露 calenda
 不出现在公开 API。转换以正月初一为年界，与 iztro 默认的 `yearDivide: 'normal'` 一致，
 因此换算出的年干支即便落在立春/正月初一之间的窗口也与上游一致。
 
-完整八字输出、上游 yearly decorative arrays（`yearlyDecStar`）、上游 runtime 查询助手、
-完整 facade 序列化对齐、bindings、特征提取、规则与叙事仍延期实现。`build_full_horoscope_chart`
+完整八字输出、上游 runtime 查询助手、完整 facade 序列化对齐、bindings、特征提取、规则与叙事仍延期实现。`build_full_horoscope_chart`
 已将大限、小限、流年、流月、流日、流时层组装为一个 `HoroscopeChart`，但仅是已支持事实面的
-模型级组装，并非上游 `FunctionalAstrolabe#horoscope` 载荷形状。
+模型级组装，并非上游 `FunctionalAstrolabe#horoscope` 载荷形状。流年层现已附带
+`yearlyDecStar`（岁前/将前十二神），作为流年范围的时间性装饰事实。
 
 ## 运限层模型
 
@@ -157,8 +157,8 @@ decorative arrays。
 `build_full_horoscope_chart` 把大限、小限、流年、流月、流日、流时层按确定顺序（大限 → 小限 →
 流年 → 流月 → 流日 → 流时）组装为一个 `HoroscopeChart`（输入 `HoroscopeStackInput`）。它推导
 目标农历日期与虚岁（目标农历年 − 本命农历年 + 1），并按虚岁选取覆盖的大限 period（不写死索引）。
-这是已支持字段的模型级组装：不复刻上游 `FunctionalAstrolabe#horoscope` 载荷形状、不暴露 runtime
-查询助手、也不附加 `yearlyDecStar`。
+流年层还会附带 `yearlyDecStar`，作为流年范围的时间性装饰事实。这是已支持字段的模型级组装：不复刻上游
+`FunctionalAstrolabe#horoscope` 载荷形状、也不暴露 runtime 查询助手。
 
 ## Runtime 星曜家族安放
 
@@ -193,11 +193,19 @@ scope-generic 算法为大限、流年、流月、流日、流时安放十颗 ma
 保持在 `FlowStarBase` 之外。大限、小限、流月、流日、流时 layer 现在都会附带 fixture-backed
 的宫名布局。流曜安放本身仍是地支层面的。
 
+**流年装饰性数组（`yearlyDecStar`）。** 流年的岁前/将前十二神建模为流年范围的时间性
+装饰事实。`build_yearly_decorative_star_placements` 复用本命岁前/将前规则，但锚定在流年
+地支上，输出 `Scope::Yearly`、按地支标记的 `ScopedDecorativeStarPlacement`。它们是无类型
+装饰事实：**不是**有类型星曜，永不出现在 `Chart::stars()`，也与本命
+`Palace::decorative_stars()` 分离。`build_yearly_horoscope_layer`（因此也包括
+`build_full_horoscope_chart`）会把它们附加到流年 `TemporalLayer`，通过
+`TemporalLayer::temporal_decorative_stars()` 读取；快照在流年层通过
+`PalaceLayerCellSnapshot::temporal_decorative_stars()` 暴露，与本命装饰事实分离。
+
 四化仍是 `Mutagen` / `MutagenActivation` 事实，永远不是 `StarName` variants。
 最小 `by_solar`（`lunar-lite` 支持的阳历转农历）、已支持 `by_lunar`/`by_solar` 切片的
 fixture 支持闰月行为，以及 `BirthTime`/`timeIndex` `0..=12` 早晚子时变体现已实现
-（见[公开 facade 兼容性](#公开-facade-兼容性)）。完整八字输出、上游 yearly
-decorative arrays（`yearlyDecStar`）、上游 runtime 查询助手、完整 facade 载荷对齐、bindings、特征提取、规则与叙事仍然延期。完整 horoscope stack 组装现已实现（`build_full_horoscope_chart`），但仅为已支持事实面的模型级组装。
+（见[公开 facade 兼容性](#公开-facade-兼容性)）。完整八字输出、上游 runtime 查询助手、完整 facade 载荷对齐、bindings、特征提取、规则与叙事仍然延期。完整 horoscope stack 组装现已实现（`build_full_horoscope_chart`），流年层并附带 `yearlyDecStar`，但仅为已支持事实面的模型级组装。
 
 ## 当前 fixtures
 
@@ -412,9 +420,9 @@ iztro 2.5.8 `getAdjectiveStar` 在默认（非中州派）算法下输出 **38**
 输入推出——农历月、农历日、出生时辰、出生年干、出生年支，以及命宫/身宫地支。它们
 都不需要时间范围层、阳历转农历、闰月或早晚子时变体。
 
-中州派变体 `algorithm: 'zhongzhou'` 现在已支持四颗中州派特有本命杂曜。本已支持的
-`getAdjectiveStar` 切片以外的神煞、yearly-scope 装饰性数组和完整 horoscope 组装仍然
-延期；scoped 流曜安放已由独立 fixture 覆盖。
+中州派变体 `algorithm: 'zhongzhou'` 现在已支持四颗中州派特有本命杂曜。完整 horoscope
+组装与流年 yearly-scope 装饰性数组（`yearlyDecStar`）现已实现；本已支持的
+`getAdjectiveStar` 切片以外的其余神煞仍然延期；scoped 流曜安放已由独立 fixture 覆盖。
 四化仍作为 `mutagen: Option<Mutagen>` 事实附于安星，而非独立星曜。
 
 ## Golden tests
