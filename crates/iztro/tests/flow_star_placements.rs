@@ -4,8 +4,9 @@
 use std::collections::HashMap;
 
 use iztro::core::{
-    EarthlyBranch, FlowStarBase, FlowStarScope, HeavenlyStem, Scope, StarKind, StarName,
-    StemBranch, TemporalContext, build_flow_star_layer, flow_star_name, try_flow_star_parts,
+    ChartError, EarthlyBranch, FlowStarBase, FlowStarScope, HeavenlyStem, Scope, StarKind,
+    StarName, StemBranch, TemporalContext, build_flow_star_layer, flow_star_name,
+    try_flow_star_parts,
 };
 use serde_json::Value;
 
@@ -95,6 +96,23 @@ fn flow_layers_match_upstream_fixtures() {
             "layer should hold exactly the expected placements"
         );
     }
+}
+
+#[test]
+fn flow_stars_are_unavailable_for_age_scope() {
+    let stem_branch = StemBranch::try_new(HeavenlyStem::Geng, EarthlyBranch::Chen)
+        .expect("valid sexagenary pair");
+    let context = TemporalContext::Age {
+        stem_branch,
+        nominal_age: 37,
+    };
+
+    let error = build_flow_star_layer(context).expect_err("age flow stars should be unavailable");
+
+    assert_eq!(
+        error,
+        ChartError::FlowStarsUnavailableForScope { scope: Scope::Age }
+    );
 }
 
 fn context_for(scope: FlowStarScope, stem_branch: StemBranch) -> TemporalContext {

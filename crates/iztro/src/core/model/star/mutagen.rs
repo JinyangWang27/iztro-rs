@@ -22,6 +22,8 @@ pub enum Mutagen {
 pub enum Scope {
     /// Natal chart (本命盘).
     Natal,
+    /// Nominal-age period (小限).
+    Age,
     /// Decadal period (大限).
     Decadal,
     /// Yearly period (流年).

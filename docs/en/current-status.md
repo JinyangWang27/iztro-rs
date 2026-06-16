@@ -1,6 +1,6 @@
 # Current Project Status
 
-This document summarizes the current implemented surface after the recent `lunar-lite`, snapshot, renderer, decadal-frame, and demo work.
+This document summarizes the current implemented surface after the recent `lunar-lite`, snapshot, renderer, decadal-frame, age-period, and demo work.
 
 ## Compatibility target
 
@@ -28,6 +28,7 @@ The supported natal chart fact surface currently includes:
 - decadal and yearly mutagen activation layers from explicit contexts;
 - typed `DecadalFrame` derivation with 12 ten-year periods, direction, age ranges, and natal palace stem-branch facts;
 - decadal temporal palace-name layout (`TemporalPalaceLayout`) attached to the selected decadal layer, keyed by `EarthlyBranch` and validated against the upstream horoscope fixture.
+- typed `AgePeriod` / 小限 derivation for nominal age `1..=120`, with age context, branch/stem-branch, palace-name layout, and mutagen activations validated against the upstream horoscope fixture.
 
 Default/non-Zhongzhou natal output remains 66 typed natal stars. Zhongzhou natal output remains 68 typed natal stars. `represented_star_metadata_table().len() == 70` stays natal-only, while `known_star_metadata_table().len() == 170` inventories the broader upstream runtime star-name universe.
 
@@ -56,7 +57,7 @@ It preserves:
 - conventional 12-palace visual grid positions;
 - one natal layer plus zero or more temporal layers;
 - separate cell sections for natal typed stars, decorative stars, scoped temporal stars, and mutagen activations;
-- per-cell decadal temporal palace name, kept separate from the natal palace name so temporal labels never overwrite natal spatial facts.
+- per-cell decadal and age temporal palace names, kept separate from the natal palace name so temporal labels never overwrite natal spatial facts.
 
 `render` currently provides a deterministic plain text renderer over `ChartStackSnapshot`. The top-level README and `docs/en/demo.md` show the current end-to-end flow:
 
@@ -72,7 +73,7 @@ The following remain intentionally out of scope for the current supported surfac
 - full horoscope assembly;
 - 流年 / 流月 / 流日 / 流时 period derivation;
 - attaching derived 大限 frames as temporal layers;
-- 流年 / 流月 / 流日 / 流时 / 小限 horoscope palace-name derivation (decadal palace-name layout is implemented);
+- 流年 / 流月 / 流日 / 流时 horoscope palace-name derivation (decadal and 小限 palace-name layouts are implemented);
 - temporal decorative arrays such as upstream `yearlyDecStar`;
 - full upstream facade serialization parity;
 - bindings;
@@ -88,5 +89,5 @@ The next implementation work should stay incremental:
 
 1. Continue keeping compatibility fixture-backed.
 2. Build richer renderers or CLI demos on top of `ChartStackSnapshot`, not directly on `Chart` internals.
-3. Add full horoscope assembly in small PRs: attach decadal frames to temporal layers, then add yearly, monthly, daily, and hourly derivation.
+3. Add full horoscope assembly in small PRs: attach decadal and age periods to temporal stacks, then add yearly, monthly, daily, and hourly derivation.
 4. Only after the fact surface is stable, expand feature extraction, rules, and narrative.

@@ -4,7 +4,7 @@
 //! ([`calendar`], [`nayin`], [`bureau`], [`profile`]), star facts ([`star`]),
 //! and chart facts ([`chart`]). Low-level stem/branch and sexagenary-cycle
 //! primitives are owned by `lunar-lite`. Deterministic placement algorithms
-//! live in [`crate::placement`]; these modules carry only data.
+//! live in [`crate::core::placement`]; these modules carry only data.
 
 pub mod bureau;
 pub mod calendar;

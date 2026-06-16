@@ -29,6 +29,10 @@ use lunar_lite::{EarthlyBranch, HeavenlyStem};
 /// Returns a [`TemporalLayer`] holding only the period's flow-star placements
 /// (no mutagen activations). The layer scope is taken from `context`.
 pub fn build_flow_star_layer(context: TemporalContext) -> Result<TemporalLayer, ChartError> {
+    if context.scope() == Scope::Age {
+        return Err(ChartError::FlowStarsUnavailableForScope { scope: Scope::Age });
+    }
+
     let flow_scope = flow_scope_of(&context);
     let scope = context.scope();
     let stem_branch = context.stem_branch();
@@ -97,8 +101,9 @@ fn scoped_placement(name: StarName, branch: EarthlyBranch, scope: Scope) -> Scop
 
 /// Maps a temporal context to its flow-star scope. Total because
 /// [`TemporalContext`] has no natal variant.
-const fn flow_scope_of(context: &TemporalContext) -> FlowStarScope {
+fn flow_scope_of(context: &TemporalContext) -> FlowStarScope {
     match context {
+        TemporalContext::Age { .. } => unreachable!("age scope has no flow-star mapping"),
         TemporalContext::Decadal { .. } => FlowStarScope::Decadal,
         TemporalContext::Yearly { .. } => FlowStarScope::Yearly,
         TemporalContext::Monthly { .. } => FlowStarScope::Monthly,
