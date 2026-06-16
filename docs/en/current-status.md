@@ -72,9 +72,9 @@ The following remain intentionally out of scope for the current supported surfac
 
 - full BaZi output;
 - full horoscope assembly;
-- 流年 / 流日 / 流时 period derivation;
+- 流日 / 流时 period derivation;
 - attaching derived 大限 frames as temporal layers;
-- 流年 / 流日 / 流时 horoscope palace-name derivation (decadal, 小限, and 流月 palace-name layouts are implemented);
+- 流日 / 流时 horoscope palace-name derivation (decadal, 小限, and 流月 palace-name layouts are implemented);
 - temporal decorative arrays such as upstream `yearlyDecStar`;
 - full upstream facade serialization parity;
 - bindings;
