@@ -146,7 +146,7 @@ pub(crate) fn select_decadal_period_by_age(
 
 /// Maps a target solar-date conversion failure to the matching [`ChartError`].
 ///
-/// Shared by the monthly, daily, hourly, and full-stack builders, which both convert the
+/// Shared by the monthly, daily, hourly, and full-stack builders, which convert the
 /// caller-supplied target solar date through the lunar backend.
 pub(super) fn map_target_solar_error(err: LunarError, year: i32, month: u8, day: u8) -> ChartError {
     match err {
