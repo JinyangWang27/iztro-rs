@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.0](https://github.com/JinyangWang27/iztro-rs/compare/v0.2.0...v0.3.0) - 2026-06-16
+
+### Added
+
+- *(core)* add monthly horoscope layer ([#58](https://github.com/JinyangWang27/iztro-rs/pull/58))
+- *(core)* add yearly horoscope layer ([#56](https://github.com/JinyangWang27/iztro-rs/pull/56))
+
+### Other
+
+- Add age horoscope scope ([#54](https://github.com/JinyangWang27/iztro-rs/pull/54))
+
 ## [0.2.0](https://github.com/JinyangWang27/iztro-rs/compare/v0.1.2...v0.2.0) - 2026-06-16
 
 ### Added
