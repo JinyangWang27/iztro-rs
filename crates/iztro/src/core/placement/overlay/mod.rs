@@ -9,6 +9,7 @@ pub mod age;
 pub mod decadal;
 pub mod decadal_horoscope;
 pub mod flow;
+pub mod monthly_horoscope;
 pub mod yearly;
 pub mod yearly_horoscope;
 
