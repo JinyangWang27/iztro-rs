@@ -6,7 +6,7 @@ This document summarizes the current implemented surface after the recent `lunar
 
 The current chart-generation compatibility target is `iztro@2.5.8`.
 
-Compatibility is fixture-driven and scoped to the supported fact surface. The project does not yet claim full upstream API parity, full horoscope assembly, full serialization parity, or interpretation parity.
+Compatibility is fixture-driven and scoped to the supported fact surface. The project does not yet claim full upstream API parity, full upstream horoscope facade payload parity, full serialization parity, or interpretation parity.
 
 ## Implemented chart-generation surface
 
@@ -34,6 +34,7 @@ The supported natal chart fact surface currently includes:
 - typed `HourlyPeriod` / 流时 derivation with independent hour pillar and hourly Life palace branch facts, plus composed hourly flow-star, mutagen, and palace-name layer assembly validated against the upstream horoscope fixture.
 - full horoscope stack assembly (`build_full_horoscope_chart` / `HoroscopeStackInput`): composes the decadal, age, yearly, monthly, daily, and hourly layers into one `HoroscopeChart` in a deterministic order, selecting the decadal period by the derived nominal age. This is supported model-level stack assembly for the implemented fields only — it is **not** identical to the upstream `FunctionalAstrolabe#horoscope` payload shape and does **not** include upstream runtime query helpers (`hasHoroscopeStars`, `hasHoroscopeMutagen`, …).
 - yearly `yearlyDecStar` (岁前/将前十二神) as yearly-scope temporal decorative facts on the yearly layer, read through `TemporalLayer::temporal_decorative_stars()`. These are untyped: they do **not** appear in `Chart::stars()` or natal `Palace::decorative_stars()`.
+- normalized `HoroscopeSupportedFieldsSnapshot` export from `HoroscopeChart`, fixture-backed against `crates/iztro/fixtures/iztro/horoscope.json` for the implemented decadal, age, yearly, monthly, daily, and hourly supported fields.
 
 Default/non-Zhongzhou natal output remains 66 typed natal stars. Zhongzhou natal output remains 68 typed natal stars. `represented_star_metadata_table().len() == 70` stays natal-only, while `known_star_metadata_table().len() == 170` inventories the broader upstream runtime star-name universe.
 
@@ -70,6 +71,8 @@ It preserves:
 solar input -> by_solar -> ChartStackSnapshot -> render module plain text output
 ```
 
+`HoroscopeSupportedFieldsSnapshot` is separate from `ChartStackSnapshot`: it is a compatibility/export DTO for normalized supported-field validation, not a renderer model and not the raw upstream `FunctionalAstrolabe#horoscope` JSON payload.
+
 ## Deferred work
 
 The following remain intentionally out of scope for the current supported surface:
@@ -91,5 +94,5 @@ The next implementation work should stay incremental:
 
 1. Continue keeping compatibility fixture-backed.
 2. Build richer renderers or CLI demos on top of `ChartStackSnapshot`, not directly on `Chart` internals.
-3. Full horoscope stack assembly now composes decadal, age, yearly, monthly, daily, and hourly into one stack, and the yearly layer carries `yearlyDecStar` as temporal decorative facts; remaining horoscope work (runtime query helpers, upstream facade payload parity) stays incremental and fixture-backed.
+3. Full horoscope stack assembly now composes decadal, age, yearly, monthly, daily, and hourly into one stack, the yearly layer carries `yearlyDecStar` as temporal decorative facts, and `HoroscopeSupportedFieldsSnapshot` exports the implemented supported-field surface; remaining horoscope work (runtime query helpers, runtime palace projections, upstream facade payload parity) stays incremental and fixture-backed.
 4. Only after the fact surface is stable, expand feature extraction, rules, and narrative.

@@ -98,10 +98,15 @@ lunar-lite 历法 normalizer按真实历法解析；公开 API 不暴露 calenda
 不出现在公开 API。转换以正月初一为年界，与 iztro 默认的 `yearDivide: 'normal'` 一致，
 因此换算出的年干支即便落在立春/正月初一之间的窗口也与上游一致。
 
-完整八字输出、上游 runtime 查询助手、完整 facade 序列化对齐、bindings、特征提取、规则与叙事仍延期实现。`build_full_horoscope_chart`
+完整八字输出、上游 runtime 查询助手、runtime 宫位投影、完整 facade 序列化对齐、bindings、特征提取、规则与叙事仍延期实现。`build_full_horoscope_chart`
 已将大限、小限、流年、流月、流日、流时层组装为一个 `HoroscopeChart`，但仅是已支持事实面的
 模型级组装，并非上游 `FunctionalAstrolabe#horoscope` 载荷形状。流年层现已附带
 `yearlyDecStar`（岁前/将前十二神），作为流年范围的时间性装饰事实。
+`HoroscopeSupportedFieldsSnapshot` 现在可从 `HoroscopeChart` 导出规范化的 supported-fields
+快照，用于和 `crates/iztro/fixtures/iztro/horoscope.json` 中已实现的大限、小限、流年、
+流月、流日、流时事实面做确定性兼容校验。该 DTO 使用 snake_case 字段和寅宫起序的宫名数组，
+不包含原始中文标签、上游 runtime 查询助手、runtime 宫位投影、嵌入的本命 astrolabe，
+也不表示完整上游 facade JSON 对齐。
 
 ## 运限层模型
 
@@ -160,6 +165,12 @@ decorative arrays。
 流年层还会附带 `yearlyDecStar`，作为流年范围的时间性装饰事实。这是已支持字段的模型级组装：不复刻上游
 `FunctionalAstrolabe#horoscope` 载荷形状、也不暴露 runtime 查询助手。
 
+`HoroscopeSupportedFieldsSnapshot` 是独立的兼容性导出 DTO，而不是 renderer model。它从
+`HoroscopeChart` 和各 `TemporalLayer` 导出已实现的 supported fields：各 scope 的 index、
+干支、寅宫起序宫名、四化目标、已实现的流曜、小限虚岁、流年年解地支，以及流年
+`yearlyDecStar`。渲染仍应使用 `ChartStackSnapshot`；fixture 兼容校验可使用
+`HoroscopeSupportedFieldsSnapshot`。
+
 ## Runtime 星曜家族安放
 
 有类型星曜和装饰性 runtime 条目是**分离的事实 surface**，`Chart::stars()` 只返回
@@ -205,7 +216,7 @@ scope-generic 算法为大限、流年、流月、流日、流时安放十颗 ma
 四化仍是 `Mutagen` / `MutagenActivation` 事实，永远不是 `StarName` variants。
 最小 `by_solar`（`lunar-lite` 支持的阳历转农历）、已支持 `by_lunar`/`by_solar` 切片的
 fixture 支持闰月行为，以及 `BirthTime`/`timeIndex` `0..=12` 早晚子时变体现已实现
-（见[公开 facade 兼容性](#公开-facade-兼容性)）。完整八字输出、上游 runtime 查询助手、完整 facade 载荷对齐、bindings、特征提取、规则与叙事仍然延期。完整 horoscope stack 组装现已实现（`build_full_horoscope_chart`），流年层并附带 `yearlyDecStar`，但仅为已支持事实面的模型级组装。
+（见[公开 facade 兼容性](#公开-facade-兼容性)）。完整八字输出、上游 runtime 查询助手、runtime 宫位投影、完整 facade 载荷对齐、bindings、特征提取、规则与叙事仍然延期。完整 horoscope stack 组装现已实现（`build_full_horoscope_chart`），流年层并附带 `yearlyDecStar`，并可通过 `HoroscopeSupportedFieldsSnapshot` 导出规范化 supported-fields 快照；这些仍仅覆盖已支持事实面。
 
 ## 当前 fixtures
 
@@ -229,6 +240,7 @@ fixtures 为：
 - `crates/iztro/fixtures/iztro/runtime_decorative_zhongzhou_1988_03_14_zi_male.json`
 - `crates/iztro/fixtures/iztro/runtime_decorative_zhongzhou_1991_08_09_hai_female.json`
 - `crates/iztro/fixtures/iztro/flow_stars.json`
+- `crates/iztro/fixtures/iztro/horoscope.json`
 - `crates/iztro/fixtures/iztro/e2e_supported_by_lunar.json`
 - `crates/iztro/fixtures/iztro/e2e_supported_by_solar.json`
 - `crates/iztro/fixtures/iztro/leap_month_by_lunar.json`
