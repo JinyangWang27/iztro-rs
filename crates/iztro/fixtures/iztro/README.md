@@ -225,7 +225,7 @@ Each case records the lunar facade inputs (including `is_leap_month`, `fix_leap`
 and the upstream-derived `birth_year_stem`/`birth_year_branch` fed back to Rust),
 a `resolved_lunar` block (the lunar date upstream resolved to via `lunar2solar`),
 and the supported chart fields. The Rust E2E test
-(`crates/iztro-core/tests/leap_month_by_lunar.rs`) builds each case through
+(`crates/iztro/tests/boundary_leap_month_by_lunar.rs`) builds each case through
 `iztro_core::by_lunar(...)` with the leap flags set, compares the supported
 fields, and asserts the chart's recorded lunar date reproduces the upstream
 `resolved_lunar` block. The resolved leap flag remains covered by internal
@@ -247,7 +247,7 @@ pair under `fix_leap=true` proving late Zi does not advance the effective month.
 Each case records the lunar facade inputs, the upstream-derived
 `birth_year_stem`/`birth_year_branch` fed back to Rust, the `resolved_lunar`
 block, and the supported chart fields. The Rust E2E test
-(`crates/iztro-core/tests/time_index_rat_hour.rs`) builds each case through
+(`crates/iztro/tests/boundary_time_index_rat_hour.rs`) builds each case through
 `iztro_core::by_lunar(...)` using `iztro_time_index`, asserts the recorded
 `BirthTime` variant, compares the supported fields, and verifies the chart's
 recorded lunar date reproduces upstream `resolved_lunar`.
