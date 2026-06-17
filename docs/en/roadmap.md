@@ -37,6 +37,7 @@ This roadmap is intentionally conservative. The project should first establish s
 - [x] Ensure implemented models are strongly typed and serializable.
 - [x] Inventory upstream `iztro@2.5.8` runtime star names separately from represented chart facts.
 - [x] Reuse `lunar-lite` for canonical low-level stem/branch and sexagenary-cycle primitives.
+- [x] Reuse `lunar-lite::FourPillars` for factual natal four-pillar facts.
 - [x] Isolate Zi Wei-specific NaYin and five-element bureau logic in `core`.
 - [x] Retain birth-year `StemBranch` as a reusable natal `Chart` fact.
 - [x] Add renderer-neutral `ChartStackSnapshot` read model.
@@ -61,6 +62,7 @@ Star metadata is intentionally split. `represented_star_metadata_table().len() =
 - [x] Add solar-to-lunar conversion and leap-month behavior through the internal `lunar-lite` adapter.
 - [x] Add rat-hour variants for upstream `timeIndex` `0..=12`.
 - [x] Derive the birth-year stem-branch through `lunar-lite` 1.0.0 four-pillar APIs and retain it on `Chart`.
+- [x] Retain full factual natal four pillars on `by_solar` charts as optional `Chart::four_pillars()`, with `by_lunar` left explicit and unsupported for full pillars.
 - [x] Add typed decadal-frame derivation from natal chart facts.
 - [x] Add decadal temporal palace-name layout on the selected decadal layer.
 - [x] Add fixture-backed 小限 / age period context, palace-name layout, and mutagen overlay.
@@ -70,14 +72,14 @@ Star metadata is intentionally split. `represented_star_metadata_table().len() =
 - [x] Add full horoscope stack assembly: compose the 大限 / 小限 / 流年 / 流月 / 流日 / 流时 layers into one `HoroscopeChart` (`build_full_horoscope_chart`), selecting the decadal period by derived nominal age. Supported model-level assembly only; not upstream `FunctionalAstrolabe#horoscope` payload parity.
 - [x] Add yearly `yearlyDecStar` (岁前/将前十二神) as yearly-scope temporal decorative facts on the yearly layer (`build_yearly_decorative_star_placements`). Untyped: not in `Chart::stars()` or natal `Palace::decorative_stars()`.
 - [x] Add normalized `HoroscopeSupportedFieldsSnapshot` export for the implemented full horoscope supported-field fact surface. Fixture-backed against `horoscope.json`; not the raw upstream `FunctionalAstrolabe#horoscope` payload.
-- [ ] Add full BaZi output.
+- [ ] Add full BaZi interpretation/output beyond factual `by_solar` natal four pillars.
 - [ ] Add temporal decorative arrays beyond yearly `yearlyDecStar`.
 - [x] Add typed upstream runtime query helpers and runtime palace projections. `HoroscopeRuntime` covers `agePalace`, `palace`, `surroundPalaces`, `hasHoroscopeStars`, `notHaveHoroscopeStars`, `hasOneOfHoroscopeStars`, and `hasHoroscopeMutagen` as typed Rust APIs backed by `horoscope_runtime.json`.
 - [x] Add an upstream-like horoscope facade payload snapshot. `HoroscopeFacadeSnapshot` combines the `HoroscopeSupportedFieldsSnapshot` blocks, retained numeric target context, a minimal natal `astrolabe`, and the `HoroscopeRuntime` Life-palace projections into one serializable payload backed by `horoscope_facade.json`. The context includes numeric solar date, numeric lunar date with leap-month flag, and target time index when built through `build_full_horoscope_chart`. Closer to the upstream `FunctionalAstrolabe#horoscope` shape, but not full package parity.
 - [x] Add a minimal natal astrolabe facade snapshot. `NatalFacadeSnapshot` is embedded as `astrolabe` in `HoroscopeFacadeSnapshot`, derives only from `HoroscopeChart::natal()` / `Chart`, and exposes modeled natal facts without temporal overlays or new placement logic.
 - [ ] Add full facade serialization parity. Add complete upstream astrolabe helper/query methods, localized natal labels, localized `lunarDate`/`solarDate` strings, BaZi strings, decadal ranges, age arrays, and the runtime query helpers — all currently deferred from `HoroscopeFacadeSnapshot`.
 
-Current supported chart-generation slice: `by_lunar` accepts explicit lunar inputs plus explicit birth-year stem and branch, validates them into a retained `Chart::birth_year()` fact, builds deterministic natal chart facts, and validates supported fields against selected `iztro@2.5.8` fixtures. `by_solar` adds `lunar-lite` 1.0.0-backed solar-to-lunar conversion, derives the birth-year stem-branch through the normal-boundary four-pillar API, and delegates to `by_lunar`. Default/non-Zhongzhou output remains 66 typed natal stars; Zhongzhou output remains 68 typed natal stars. Decorative runtime families, decadal frames, 小限 / age periods, 流月 / monthly periods, 流日 / daily periods, 流时 / hourly periods, scoped flow stars, yearly `yearlyDecStar` temporal decorative facts, and the normalized full-horoscope supported-fields snapshot are separate fact/export surfaces, so metadata counts and natal star counts stay stable.
+Current supported chart-generation slice: `by_lunar` accepts explicit lunar inputs plus explicit birth-year stem and branch, validates them into a retained `Chart::birth_year()` fact, builds deterministic natal chart facts, and validates supported fields against selected `iztro@2.5.8` fixtures. `by_lunar` does not fake unsupported full four pillars, so `Chart::four_pillars()` is `None` there. `by_solar` adds `lunar-lite` 1.0.0-backed solar-to-lunar conversion, derives the birth-year stem-branch through the normal-boundary four-pillar API, retains the full factual `lunar_lite::FourPillars` on `Chart`, and delegates placement to `by_lunar`. Default/non-Zhongzhou output remains 66 typed natal stars; Zhongzhou output remains 68 typed natal stars. Decorative runtime families, decadal frames, 小限 / age periods, 流月 / monthly periods, 流日 / daily periods, 流时 / hourly periods, scoped flow stars, yearly `yearlyDecStar` temporal decorative facts, and the normalized full-horoscope supported-fields snapshot are separate fact/export surfaces, so metadata counts and natal star counts stay stable.
 
 ## Phase 4: Snapshot and rendering
 

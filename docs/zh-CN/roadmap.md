@@ -33,6 +33,7 @@
 - [x] 定义大限与运限模型。
 - [x] 确保已实现模型强类型且可序列化。
 - [x] 将上游 `iztro@2.5.8` runtime 星曜名称清单与已表示星盘事实分开维护。
+- [x] 直接复用 `lunar_lite::FourPillars` 保留事实性的本命四柱。
 
 大限与运限模型以叠加层形式定义：`HoroscopeChart` 包裹不可变的本命 `Chart`，并持有
 零个或多个 `TemporalLayer`，每个层带有非本命的 `Scope`、强类型的 `TemporalContext`、
@@ -75,6 +76,7 @@
 - [x] 安放装饰性 runtime 星曜家族。`by_lunar` 将长生/博士/岁前/将前十二神作为每宫无类型的 `DecorativeStarPlacement` 安放，并与 `Chart::stars()` 分离。岁破 known，且在中州派下可替代第七个岁前位置，但不是额外的第十三个岁前 placement。
 - [x] 安放 scoped flow stars。`build_flow_star_layer` 通过规范化的 `FlowStarScope` + `FlowStarBase` identity，将大限/流年/流月/流日/流时流曜（以及流年年解）安放为带地支标签的 `ScopedStarPlacement`。
 - [x] 添加阳历转农历与闰月行为。`by_solar` 通过内部 `lunar-lite` 适配器将公历日期转换为农历事实并委托给 `by_lunar`；`by_lunar` 为已支持切片携带显式的 `is_leap_month`/`fix_leap` 语义。两者均以 `iztro@2.5.8` fixtures 校验。日历后端类型不出现在公开 API 中。
+- [x] 在 `by_solar` 星盘上保留事实性的本命四柱。`Chart::four_pillars()` 返回可选的 `lunar_lite::FourPillars`；`by_lunar` 目前不伪造未支持的完整四柱，因此保持 `None`。
 - [x] 添加早晚子时变体。`BirthTime` 建模上游 `iztro` `timeIndex` `0..=12`，保留早子时（`0`）与晚子时（`12`），同时让按地支传入的 request API 保持向后兼容。
 - [x] 添加 fixture-backed 流月 period 与 layer 组装。`build_monthly_period` 保留流月干支和流月命宫为独立事实，`build_monthly_horoscope_layer` 组装流月流曜、流月四化和流月宫名布局。
 - [x] 添加 fixture-backed 流日 period 与 layer 组装。`build_daily_period` 保留流日干支和流日命宫为独立事实，`build_daily_horoscope_layer` 组装流日流曜、流日四化和流日宫名布局。
@@ -86,9 +88,9 @@
 - [x] 添加上游风格的 horoscope facade 载荷快照。`HoroscopeFacadeSnapshot` 把 `HoroscopeSupportedFieldsSnapshot` 分块、保留的数字化目标 context、最小本命 `astrolabe` 与 `HoroscopeRuntime` 命宫投影组合为一个可序列化载荷，并以 `horoscope_facade.json` fixture 校验。通过 `build_full_horoscope_chart` 构建时，context 包含数字化阳历日期、带闰月标志的数字化农历日期，以及目标 `timeIndex`。更接近上游 `FunctionalAstrolabe#horoscope` 形状，但非完整 package 对齐。
 - [x] 添加最小本命 astrolabe facade 快照。`NatalFacadeSnapshot` 作为 `astrolabe` 嵌入 `HoroscopeFacadeSnapshot`，只从 `HoroscopeChart::natal()` / `Chart` 派生，并只暴露已建模本命事实，不包含时间叠加层或新增安星逻辑。
 - [ ] 添加完整 facade 序列化对齐：补齐完整上游 astrolabe helper/query 方法、本命本地化标签、本地化 `lunarDate`/`solarDate` 字符串、八字字符串、大限 ranges、ages 数组与 runtime 查询助手——这些目前都从 `HoroscopeFacadeSnapshot` 延期。
-- [ ] 添加完整八字输出、bindings、特征提取、规则与叙事。
+- [ ] 添加事实性 `by_solar` 本命四柱之外的完整八字解读/输出、bindings、特征提取、规则与叙事。
 
-当前核心切片：`by_lunar` 接受显式农历输入以及显式出生年干、年支，生成确定性的本命星盘事实，并用选定的 `iztro` 2.5.8 fixtures 校验 minimal chart 字段、十四主星、十四颗已支持辅星、完整默认算法的 38 颗本命杂曜/辅助星，以及中州派 40 颗本命杂曜/辅助星输出。默认/非中州派输出保持 14 主星 + 14 辅星 + 38 杂曜/辅助星 = 66 颗本命星；中州派输出为 14 主星 + 14 辅星 + 40 杂曜/辅助星 = 68 颗本命星。已表示 metadata table 为 70 颗，因为默认专属与中州派专属本命杂曜都属于已表示星曜。装饰性 runtime 家族（长生/博士/岁前/将前十二神）与 scoped 流曜现在作为独立事实安放（见下文）。`by_solar` 增加了最小的 `lunar-lite` 阳历转农历转换并委托给 `by_lunar`，后者现在为已支持切片建模 fixture 支持的闰月行为（`is_leap_month`/`fix_leap`）与早晚子时变体（`BirthTime` / `timeIndex` `0..=12`）。流月、流日与流时 period 与 layer 组装已有 fixture-backed 覆盖，完整 horoscope 组装、流年 `yearlyDecStar` 时间性装饰事实、规范化 supported-fields 快照导出，以及 `HoroscopeRuntime` helper 已实现；完整八字输出、完整 facade 载荷对齐、bindings、特征提取、规则与叙事仍然推迟。四化仍作为安星上的 `Mutagen` 事实，而非独立星曜。
+当前核心切片：`by_lunar` 接受显式农历输入以及显式出生年干、年支，生成确定性的本命星盘事实，并用选定的 `iztro` 2.5.8 fixtures 校验 minimal chart 字段、十四主星、十四颗已支持辅星、完整默认算法的 38 颗本命杂曜/辅助星，以及中州派 40 颗本命杂曜/辅助星输出。`by_lunar` 不伪造未支持的完整四柱，因此 `Chart::four_pillars()` 为 `None`。默认/非中州派输出保持 14 主星 + 14 辅星 + 38 杂曜/辅助星 = 66 颗本命星；中州派输出为 14 主星 + 14 辅星 + 40 颗本命杂曜/辅助星 = 68 颗本命星。已表示 metadata table 为 70 颗，因为默认专属与中州派专属本命杂曜都属于已表示星曜。装饰性 runtime 家族（长生/博士/岁前/将前十二神）与 scoped 流曜现在作为独立事实安放（见下文）。`by_solar` 增加了 `lunar-lite` 1.0.0 阳历转农历转换，按 normal 年/月分界推导本命四柱，直接把 `lunar_lite::FourPillars` 保留在 `Chart`，并委托 `by_lunar` 安星；`by_lunar` 为已支持切片建模 fixture 支持的闰月行为（`is_leap_month`/`fix_leap`）与早晚子时变体（`BirthTime` / `timeIndex` `0..=12`）。流月、流日与流时 period 与 layer 组装已有 fixture-backed 覆盖，完整 horoscope 组装、流年 `yearlyDecStar` 时间性装饰事实、规范化 supported-fields 快照导出，以及 `HoroscopeRuntime` helper 已实现；完整八字解读/输出、完整 facade 载荷对齐、bindings、特征提取、规则与叙事仍然推迟。四化仍作为安星上的 `Mutagen` 事实，而非独立星曜。
 
 四组装饰性 runtime 家族由 `by_lunar` 作为无类型 `DecorativeStarPlacement` 安放到独立
 的 `Palace::decorative_stars()` collection 中，因此 `Chart::stars()` 仍只包含有类型

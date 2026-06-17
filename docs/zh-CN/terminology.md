@@ -6,6 +6,7 @@
 |---|---|---|---|
 | `heavenly_stem` | Heavenly Stem | 天干 | 十天干之一。 |
 | `earthly_branch` | Earthly Branch | 地支 | 十二地支之一。 |
+| `four_pillars` | Four Pillars | 四柱 | 年、月、日、时四组干支事实；本身不等于八字解读。 |
 | `palace` | Palace | 宫位 | 星盘中的生活领域。 |
 | `life_palace` | Life Palace | 命宫 | 自我、命格、核心身份。 |
 | `body_palace` | Body Palace | 身宫 | 行动路径、后天体现、身体化方向。 |
