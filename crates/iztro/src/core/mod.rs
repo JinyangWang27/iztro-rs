@@ -18,6 +18,7 @@ pub mod feature;
 pub mod labels;
 pub mod model;
 pub mod placement;
+pub mod view;
 
 // Internal calendar-conversion and normalization adapters. Calendar-backend
 // types are isolated here and never exposed in the public API; public callers
@@ -111,3 +112,9 @@ pub use placement::overlay::yearly_horoscope::build_yearly_horoscope_layer;
 
 pub use facade::by_lunar::{LunarChartRequest, LunarChartRequestBuilder, by_lunar};
 pub use facade::by_solar::{SolarChartRequest, SolarChartRequestBuilder, by_solar};
+
+pub use view::static_chart::{
+    HighlightView, StaticChartCenterView, StaticChartSelectorView, StaticChartViewRequest,
+    StaticChartViewSnapshot, StaticDecorativeStarView, StaticOverlayMutagenView, StaticPalaceRole,
+    StaticPalaceView, StaticTemporalOverlayView, StaticTypedStarView,
+};
