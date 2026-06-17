@@ -203,6 +203,25 @@ decorative arrays。
 星曜查询检查大限与流年流曜矩阵的合并结果，`has_horoscope_mutagen` 检查所选 scope 的四化目标
 是否落在投影后的本命宫位中。它们都不生成新落点、不更改本命盘，也不代表完整 facade payload。
 
+### Facade/导出星曜排序
+
+核心引擎的落点事实是**与顺序无关的**。一个宫位就是落入其中的星曜*集合*，
+因此核心落点兼容性测试比较的是星曜集合，而非数组顺序——Rust 与上游 TS `iztro`
+不一定以相同的 `Vec` 顺序输出某宫位的星曜，这种偶然顺序没有语义含义。
+
+facade/导出层不应依赖该偶然顺序。因此 `NatalFacadePalaceSnapshot` 对每个导出宫位的
+星曜数组施加一个稳定、确定性的 Rust 侧排序：
+
+- 有类型本命星按 `(kind, name, brightness, mutagen)` 排序；
+- 装饰性本命星按 `(family, name)` 排序。
+
+排序键使用 `StarKind`、`StarName`、`Brightness`、`Mutagen` 与 `DecorativeStarFamily`
+按声明顺序派生的 `Ord`；这些派生仅作排序键，不含任何星曜强弱排名含义。重复构造同一
+facade 快照在字节层面一致，该策略由 `facade_star_ordering.rs` 固定。
+
+这是 Rust 侧的规范顺序，**并非**对上游 TS `iztro` 宫位星曜数组顺序对齐的声明，
+后者仍被推迟。
+
 ## Runtime 星曜家族安放
 
 有类型星曜和装饰性 runtime 条目是**分离的事实 surface**，`Chart::stars()` 只返回

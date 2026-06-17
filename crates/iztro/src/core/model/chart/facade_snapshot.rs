@@ -235,21 +235,27 @@ impl NatalFacadePalaceSnapshot {
             roles.push(NatalFacadePalaceRole::NatalBodyPalace);
         }
 
+        let mut typed_stars: Vec<NatalFacadeTypedStarSnapshot> = palace
+            .stars()
+            .iter()
+            .map(NatalFacadeTypedStarSnapshot::from_star_placement)
+            .collect();
+        order_facade_typed_stars(&mut typed_stars);
+
+        let mut decorative_stars: Vec<NatalFacadeDecorativeStarSnapshot> = palace
+            .decorative_stars()
+            .iter()
+            .map(NatalFacadeDecorativeStarSnapshot::from_decorative_star_placement)
+            .collect();
+        order_facade_decorative_stars(&mut decorative_stars);
+
         Self {
             branch: palace.branch(),
             name: palace.name(),
             stem: palace.stem(),
             roles,
-            typed_stars: palace
-                .stars()
-                .iter()
-                .map(NatalFacadeTypedStarSnapshot::from_star_placement)
-                .collect(),
-            decorative_stars: palace
-                .decorative_stars()
-                .iter()
-                .map(NatalFacadeDecorativeStarSnapshot::from_decorative_star_placement)
-                .collect(),
+            typed_stars,
+            decorative_stars,
         }
     }
 
@@ -379,6 +385,38 @@ impl NatalFacadeDecorativeStarSnapshot {
     pub const fn scope(&self) -> Scope {
         self.scope
     }
+}
+
+/// Deterministic facade ordering policy for exported palace star arrays.
+///
+/// Core engine placement facts are **order-independent**: a palace is the set of
+/// stars placed in it, and the core compatibility tests compare those sets
+/// without regard to `Vec` order (Rust and upstream TS `iztro` do not
+/// necessarily emit stars in the same order). The facade/export layer, however,
+/// must not depend on accidental `Vec` order, so this helper imposes one stable,
+/// deterministic ordering for typed natal stars in a serialized palace:
+///
+/// * sort by `(kind, name, brightness, mutagen)`, using the canonical
+///   declaration-order [`Ord`] of each typed enum.
+///
+/// This is a stable Rust-side canonical order. It is **not** a claim of byte
+/// parity with the upstream TS `iztro` palace-star array order; full upstream
+/// order parity is deferred unless separately targeted.
+fn order_facade_typed_stars(stars: &mut [NatalFacadeTypedStarSnapshot]) {
+    stars.sort_by_key(|star| (star.kind, star.name, star.brightness, star.mutagen));
+}
+
+/// Deterministic facade ordering policy for exported decorative palace stars.
+///
+/// Like [`order_facade_typed_stars`], this imposes a stable Rust-side canonical
+/// order on the facade/export array without changing which stars are present:
+///
+/// * sort by `(family, name)`, using the canonical declaration-order [`Ord`] of
+///   [`DecorativeStarFamily`] and [`StarName`].
+///
+/// It is not a claim of upstream TS array-order parity.
+fn order_facade_decorative_stars(stars: &mut [NatalFacadeDecorativeStarSnapshot]) {
+    stars.sort_by_key(|star| (star.family, star.name));
 }
 
 /// Target date/context fields exposed by the facade.

@@ -1,7 +1,12 @@
 use serde::{Deserialize, Serialize};
 
 /// Stable identifiers for represented stars and inventoried upstream runtime names.
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+///
+/// The derived [`Ord`]/[`PartialOrd`] follow the variant declaration order and
+/// exist only to give facade/export snapshots a stable, deterministic star
+/// ordering key (see [`crate::core::model::chart::facade_snapshot`]). They are a
+/// canonical sort key, not an astrological ranking, and do not affect placement.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum StarName {
     /// Zi Wei star (紫微).

@@ -1,7 +1,12 @@
 use serde::{Deserialize, Serialize};
 
 /// A star's brightness or strength state.
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+///
+/// The derived [`Ord`]/[`PartialOrd`] follow the variant declaration order
+/// (brightest first) and exist only to give facade/export snapshots a stable,
+/// deterministic star ordering key (see
+/// [`crate::core::model::chart::facade_snapshot`]). They do not affect placement.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Brightness {
     /// Temple brightness (庙).

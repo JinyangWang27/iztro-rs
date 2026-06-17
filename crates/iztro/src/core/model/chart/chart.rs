@@ -422,7 +422,12 @@ impl StarPlacement {
 ///
 /// These families have no concrete [`StarKind`] upstream, so their entries are
 /// modelled as [`DecorativeStarPlacement`]s rather than typed [`StarPlacement`]s.
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+///
+/// The derived [`Ord`]/[`PartialOrd`] follow the variant declaration order and
+/// exist only to give facade/export snapshots a stable, deterministic
+/// decorative-star ordering key (see
+/// [`crate::core::model::chart::facade_snapshot`]). They do not affect placement.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum DecorativeStarFamily {
     /// 长生十二神 (Changsheng twelve phases).
