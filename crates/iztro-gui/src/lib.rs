@@ -10,9 +10,11 @@ pub mod static_chart_screen;
 
 use app::{Message, StaticChartApp};
 
+const WINDOW_TITLE: &str = "iztro Static Chart";
+
 /// Launches the local Iced desktop window rendering the static chart.
 pub fn run() -> iced::Result {
-    iced::application("iztro · 静态命盘", update, static_chart_screen::view)
+    iced::application(WINDOW_TITLE, update, static_chart_screen::view)
         .font(fonts::CJK_FONT_BYTES)
         .default_font(fonts::CJK_FONT)
         .window(iced::window::Settings {
@@ -27,4 +29,14 @@ pub fn run() -> iced::Result {
 fn update(app: &mut StaticChartApp, message: Message) -> iced::Task<Message> {
     app.update(message);
     iced::Task::none()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn window_title_uses_only_ascii_window_chrome_text() {
+        assert!(WINDOW_TITLE.is_ascii());
+    }
 }
