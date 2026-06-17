@@ -385,6 +385,15 @@ mod tests {
         assert_eq!(app.form(), &BirthForm::from_input(&SAMPLE_INPUT));
         assert_eq!(app.palaces().len(), 12);
         assert!(!app.center().birth_year_stem_zh.is_empty());
+        let pillars = app
+            .center()
+            .four_pillars
+            .as_ref()
+            .expect("default by_solar chart should expose factual four pillars");
+        assert!(!pillars.yearly_zh.is_empty());
+        assert!(!pillars.monthly_zh.is_empty());
+        assert!(!pillars.daily_zh.is_empty());
+        assert!(!pillars.hourly_zh.is_empty());
         assert!(app.error().is_none());
     }
 
