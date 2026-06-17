@@ -15,6 +15,7 @@
 pub mod error;
 pub mod facade;
 pub mod feature;
+pub mod labels;
 pub mod model;
 pub mod placement;
 
