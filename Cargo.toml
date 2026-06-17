@@ -2,6 +2,7 @@
 members = [
     "crates/iztro",
     "crates/iztro-cli",
+    "crates/iztro-gui",
 ]
 resolver = "3"
 
