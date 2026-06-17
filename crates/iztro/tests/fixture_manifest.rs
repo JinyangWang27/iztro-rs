@@ -38,6 +38,44 @@ fn manifest_entries(manifest: &Value) -> &Vec<Value> {
 }
 
 #[test]
+fn manifest_entries_are_unique() {
+    let manifest = manifest();
+    let mut seen = BTreeSet::new();
+
+    for entry in manifest_entries(&manifest) {
+        let file = entry["file"].as_str().expect("entry should have a `file`");
+        assert!(
+            seen.insert(file.to_owned()),
+            "duplicate MANIFEST.json entry for fixture `{file}`"
+        );
+    }
+}
+
+#[test]
+fn manifest_categories_are_declared() {
+    let manifest = manifest();
+
+    let declared: BTreeSet<_> = manifest["categories"]
+        .as_array()
+        .expect("manifest should have categories")
+        .iter()
+        .map(|value| value.as_str().expect("category should be string"))
+        .collect();
+
+    for entry in manifest_entries(&manifest) {
+        let file = entry["file"].as_str().expect("entry should have a `file`");
+        let category = entry["category"]
+            .as_str()
+            .unwrap_or_else(|| panic!("{file}: entry should have a `category`"));
+
+        assert!(
+            declared.contains(category),
+            "{file}: category `{category}` is not declared in MANIFEST.json categories"
+        );
+    }
+}
+
+#[test]
 fn every_manifest_entry_points_to_an_existing_fixture() {
     let manifest = manifest();
     for entry in manifest_entries(&manifest) {
