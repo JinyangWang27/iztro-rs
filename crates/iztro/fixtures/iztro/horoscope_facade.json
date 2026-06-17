@@ -1,11 +1,11 @@
 {
   "target": "iztro@2.5.8",
-  "description": "Upstream iztro@2.5.8 horoscope facade reference. Captures the serializable HoroscopeFacadeSnapshot surface: the numeric target solar/lunar/time context retained by the modeled full horoscope stack, plus the Life-palace (命宫) runtime projections (agePalace, palace, surroundPalaces) across each modeled scope. The decadal/age/yearly/monthly/daily/hourly supported-field blocks are reused from horoscope.json and are not duplicated here. The localized lunarDate and solarDate strings, plus the re-embedded natal astrolabe remain deferred.",
+  "description": "Upstream iztro@2.5.8 horoscope facade reference. Captures the serializable HoroscopeFacadeSnapshot surface: the numeric target solar/lunar/time context retained by the modeled full horoscope stack, plus the Life-palace (命宫) runtime projections (agePalace, palace, surroundPalaces) across each modeled scope, plus the minimal natal astrolabe facts already represented by Rust. The decadal/age/yearly/monthly/daily/hourly supported-field blocks are reused from horoscope.json and are not duplicated here. The localized lunarDate and solarDate strings remain deferred.",
   "generated_at": "2026-06-17T00:00:00Z",
   "generation_command": "npm ci --prefix tools/iztro-reference && node tools/iztro-reference/scripts/dump-horoscope-facade-fixtures.mjs --write",
   "deferred": [
     "lunarDate (localized string) / solarDate (localized/string facade field)",
-    "astrolabe (the full natal chart re-embedded in the horoscope result)",
+    "complete upstream astrolabe helper/query methods, localized labels, BaZi strings, decadal ranges, and age arrays",
     "hasHoroscopeStars / notHaveHoroscopeStars / hasOneOfHoroscopeStars / hasHoroscopeMutagen (query helpers)"
   ],
   "cases": [
@@ -42,6 +42,967 @@
             "is_leap_month": false
           },
           "time_index": 2
+        },
+        "astrolabe": {
+          "gender": "female",
+          "birth_year_stem": "geng",
+          "birth_year_branch": "wu",
+          "five_element_bureau": "earth5",
+          "life_palace_branch": "yin",
+          "body_palace_branch": "xu",
+          "palaces": [
+            {
+              "branch": "zi",
+              "name": "spouse",
+              "stem": "wu",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "spouse"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "po_jun",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "temple",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "jie_shen",
+                  "kind": "helper",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "san_tai",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_ku",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_xu",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "mu",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "bing_fu_boshi",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "da_hao_suiqian",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "zai_sha",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "chou",
+              "name": "siblings",
+              "stem": "ji",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "siblings"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "tian_ji",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "trapped",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_kui",
+                  "kind": "soft",
+                  "category": "minor",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_xing",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "si",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "xi_shen_boshi",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "long_de_suiqian",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_sha",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "yin",
+              "name": "life",
+              "stem": "wu",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "life"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "zi_wei",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "prosperous",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_fu",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "temple",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "ba_zuo",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_chu",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "fei_lian",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "bing",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "fay_lian_boshi",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "bai_hu",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "zhi_bei",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "mao",
+              "name": "parents",
+              "stem": "ji",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "parents"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "tai_yin",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "trapped",
+                  "mutagen": "ke",
+                  "scope": "natal"
+                },
+                {
+                  "name": "di_jie",
+                  "kind": "tough",
+                  "category": "minor",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_xi",
+                  "kind": "flower",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "xian_chi",
+                  "kind": "flower",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_de",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "shuai",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "zhou_shu",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_de_suiqian",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "xian_chi_jiangqian",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "chen",
+              "name": "spirit",
+              "stem": "geng",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "spirit"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "tan_lang",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "temple",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "feng_ge",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_shou",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "gua_su",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "nian_jie",
+                  "kind": "helper",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "di_wang",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "jiang_jun",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "diao_ke",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "yue_sha",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "si",
+              "name": "property",
+              "stem": "xin",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "property"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "ju_men",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "prosperous",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "huo_xing",
+                  "kind": "tough",
+                  "category": "minor",
+                  "brightness": "advantage",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_yao",
+                  "kind": "flower",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_wu",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "po_sui",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "lin_guan",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "xiao_hao_boshi",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "bing_fu_suiqian",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "wang_shen",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "wu",
+              "name": "career",
+              "stem": "ren",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "career"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "lian_zhen",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "flat",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_xiang",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "temple",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "you_bi",
+                  "kind": "soft",
+                  "category": "minor",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "wen_chang",
+                  "kind": "soft",
+                  "category": "minor",
+                  "brightness": "trapped",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "feng_gao",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_fu_adj",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "jie_lu",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "yin_sha",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "guan_dai",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "qing_long",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "sui_jian",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "jiang_xing",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "wei",
+              "name": "friends",
+              "stem": "gui",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "friends"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "tian_liang",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "prosperous",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_yue",
+                  "kind": "soft",
+                  "category": "minor",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "di_kong",
+                  "kind": "tough",
+                  "category": "minor",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "ling_xing",
+                  "kind": "tough",
+                  "category": "minor",
+                  "brightness": "favourable",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tuo_luo",
+                  "kind": "tough",
+                  "category": "minor",
+                  "brightness": "temple",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_yue_adj",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_kong",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "kong_wang",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_shang",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "mu_yu",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "li_shi",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "hui_qi",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "pan_an",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "shen",
+              "name": "migration",
+              "stem": "jia",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "migration"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "qi_sha",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "temple",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "zuo_fu",
+                  "kind": "soft",
+                  "category": "minor",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "wen_qu",
+                  "kind": "soft",
+                  "category": "minor",
+                  "brightness": "advantage",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "lu_cun",
+                  "kind": "lucun",
+                  "category": "minor",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_ma",
+                  "kind": "tianma",
+                  "category": "minor",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_cai",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "gu_chen",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "chang_sheng",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "bo_shi",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "sang_men",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "sui_yi",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "you",
+              "name": "health",
+              "stem": "yi",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "health"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "tian_tong",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "flat",
+                  "mutagen": "ji",
+                  "scope": "natal"
+                },
+                {
+                  "name": "qing_yang",
+                  "kind": "tough",
+                  "category": "minor",
+                  "brightness": "trapped",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "hong_luan",
+                  "kind": "flower",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "en_guang",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_shi",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "yang",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "guan_fu_boshi",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "guan_suo",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "xi_shen_jiangqian",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "xu",
+              "name": "wealth",
+              "stem": "bing",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "wealth"
+                },
+                {
+                  "kind": "natal_body_palace"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "wu_qu",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "temple",
+                  "mutagen": "quan",
+                  "scope": "natal"
+                },
+                {
+                  "name": "long_chi",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tai_fu",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "hua_gai",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "xun_kong",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "tai",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "fu_bing",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "guan_fu_suiqian",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "hua_gai_jiangqian",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "hai",
+              "name": "children",
+              "stem": "ding",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "children"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "tai_yang",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "trapped",
+                  "mutagen": "lu",
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_gui",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_guan",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "yue_de",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "jue",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "da_hao_boshi",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "xiao_hao_suiqian",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "jie_sha",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            }
+          ]
         },
         "age_palace": {
           "scope": "age",
@@ -976,6 +1937,967 @@
           },
           "time_index": 2
         },
+        "astrolabe": {
+          "gender": "female",
+          "birth_year_stem": "geng",
+          "birth_year_branch": "wu",
+          "five_element_bureau": "earth5",
+          "life_palace_branch": "yin",
+          "body_palace_branch": "xu",
+          "palaces": [
+            {
+              "branch": "zi",
+              "name": "spouse",
+              "stem": "wu",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "spouse"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "po_jun",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "temple",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "jie_shen",
+                  "kind": "helper",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "san_tai",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_ku",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_xu",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "mu",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "bing_fu_boshi",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "da_hao_suiqian",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "zai_sha",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "chou",
+              "name": "siblings",
+              "stem": "ji",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "siblings"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "tian_ji",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "trapped",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_kui",
+                  "kind": "soft",
+                  "category": "minor",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_xing",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "si",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "xi_shen_boshi",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "long_de_suiqian",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_sha",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "yin",
+              "name": "life",
+              "stem": "wu",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "life"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "zi_wei",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "prosperous",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_fu",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "temple",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "ba_zuo",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_chu",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "fei_lian",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "bing",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "fay_lian_boshi",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "bai_hu",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "zhi_bei",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "mao",
+              "name": "parents",
+              "stem": "ji",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "parents"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "tai_yin",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "trapped",
+                  "mutagen": "ke",
+                  "scope": "natal"
+                },
+                {
+                  "name": "di_jie",
+                  "kind": "tough",
+                  "category": "minor",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_xi",
+                  "kind": "flower",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "xian_chi",
+                  "kind": "flower",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_de",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "shuai",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "zhou_shu",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_de_suiqian",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "xian_chi_jiangqian",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "chen",
+              "name": "spirit",
+              "stem": "geng",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "spirit"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "tan_lang",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "temple",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "feng_ge",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_shou",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "gua_su",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "nian_jie",
+                  "kind": "helper",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "di_wang",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "jiang_jun",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "diao_ke",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "yue_sha",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "si",
+              "name": "property",
+              "stem": "xin",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "property"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "ju_men",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "prosperous",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "huo_xing",
+                  "kind": "tough",
+                  "category": "minor",
+                  "brightness": "advantage",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_yao",
+                  "kind": "flower",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_wu",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "po_sui",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "lin_guan",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "xiao_hao_boshi",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "bing_fu_suiqian",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "wang_shen",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "wu",
+              "name": "career",
+              "stem": "ren",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "career"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "lian_zhen",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "flat",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_xiang",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "temple",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "you_bi",
+                  "kind": "soft",
+                  "category": "minor",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "wen_chang",
+                  "kind": "soft",
+                  "category": "minor",
+                  "brightness": "trapped",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "feng_gao",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_fu_adj",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "jie_lu",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "yin_sha",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "guan_dai",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "qing_long",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "sui_jian",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "jiang_xing",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "wei",
+              "name": "friends",
+              "stem": "gui",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "friends"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "tian_liang",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "prosperous",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_yue",
+                  "kind": "soft",
+                  "category": "minor",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "di_kong",
+                  "kind": "tough",
+                  "category": "minor",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "ling_xing",
+                  "kind": "tough",
+                  "category": "minor",
+                  "brightness": "favourable",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tuo_luo",
+                  "kind": "tough",
+                  "category": "minor",
+                  "brightness": "temple",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_yue_adj",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_kong",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "kong_wang",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_shang",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "mu_yu",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "li_shi",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "hui_qi",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "pan_an",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "shen",
+              "name": "migration",
+              "stem": "jia",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "migration"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "qi_sha",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "temple",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "zuo_fu",
+                  "kind": "soft",
+                  "category": "minor",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "wen_qu",
+                  "kind": "soft",
+                  "category": "minor",
+                  "brightness": "advantage",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "lu_cun",
+                  "kind": "lucun",
+                  "category": "minor",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_ma",
+                  "kind": "tianma",
+                  "category": "minor",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_cai",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "gu_chen",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "chang_sheng",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "bo_shi",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "sang_men",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "sui_yi",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "you",
+              "name": "health",
+              "stem": "yi",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "health"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "tian_tong",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "flat",
+                  "mutagen": "ji",
+                  "scope": "natal"
+                },
+                {
+                  "name": "qing_yang",
+                  "kind": "tough",
+                  "category": "minor",
+                  "brightness": "trapped",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "hong_luan",
+                  "kind": "flower",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "en_guang",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_shi",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "yang",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "guan_fu_boshi",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "guan_suo",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "xi_shen_jiangqian",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "xu",
+              "name": "wealth",
+              "stem": "bing",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "wealth"
+                },
+                {
+                  "kind": "natal_body_palace"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "wu_qu",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "temple",
+                  "mutagen": "quan",
+                  "scope": "natal"
+                },
+                {
+                  "name": "long_chi",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tai_fu",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "hua_gai",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "xun_kong",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "tai",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "fu_bing",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "guan_fu_suiqian",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "hua_gai_jiangqian",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "hai",
+              "name": "children",
+              "stem": "ding",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "children"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "tai_yang",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "trapped",
+                  "mutagen": "lu",
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_gui",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_guan",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "yue_de",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "jue",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "da_hao_boshi",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "xiao_hao_suiqian",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "jie_sha",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            }
+          ]
+        },
         "age_palace": {
           "scope": "age",
           "requested_palace_name": "life",
@@ -1892,6 +3814,983 @@
             "is_leap_month": false
           },
           "time_index": 2
+        },
+        "astrolabe": {
+          "gender": "female",
+          "birth_year_stem": "geng",
+          "birth_year_branch": "wu",
+          "five_element_bureau": "earth5",
+          "life_palace_branch": "yin",
+          "body_palace_branch": "xu",
+          "palaces": [
+            {
+              "branch": "zi",
+              "name": "spouse",
+              "stem": "wu",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "spouse"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "po_jun",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "temple",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "jie_shen",
+                  "kind": "helper",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "san_tai",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_ku",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_xu",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "mu",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "bing_fu_boshi",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "sui_po",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "zai_sha",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "chou",
+              "name": "siblings",
+              "stem": "ji",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "siblings"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "tian_ji",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "trapped",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_kui",
+                  "kind": "soft",
+                  "category": "minor",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "long_de_adj",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "da_hao_adj",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_xing",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "si",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "xi_shen_boshi",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "long_de_suiqian",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_sha",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "yin",
+              "name": "life",
+              "stem": "wu",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "life"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "zi_wei",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "prosperous",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_fu",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "temple",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "ba_zuo",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_chu",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "fei_lian",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "bing",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "fay_lian_boshi",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "bai_hu",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "zhi_bei",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "mao",
+              "name": "parents",
+              "stem": "ji",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "parents"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "tai_yin",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "trapped",
+                  "mutagen": "ke",
+                  "scope": "natal"
+                },
+                {
+                  "name": "di_jie",
+                  "kind": "tough",
+                  "category": "minor",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_xi",
+                  "kind": "flower",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "xian_chi",
+                  "kind": "flower",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_de",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "shuai",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "zhou_shu",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_de_suiqian",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "xian_chi_jiangqian",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "chen",
+              "name": "spirit",
+              "stem": "geng",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "spirit"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "tan_lang",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "temple",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "feng_ge",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_shou",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "gua_su",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "nian_jie",
+                  "kind": "helper",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "di_wang",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "jiang_jun",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "diao_ke",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "yue_sha",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "si",
+              "name": "property",
+              "stem": "xin",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "property"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "ju_men",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "prosperous",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "huo_xing",
+                  "kind": "tough",
+                  "category": "minor",
+                  "brightness": "advantage",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_yao",
+                  "kind": "flower",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_wu",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "po_sui",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "lin_guan",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "xiao_hao_boshi",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "bing_fu_suiqian",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "wang_shen",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "wu",
+              "name": "career",
+              "stem": "ren",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "career"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "lian_zhen",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "flat",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_xiang",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "temple",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "you_bi",
+                  "kind": "soft",
+                  "category": "minor",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "wen_chang",
+                  "kind": "soft",
+                  "category": "minor",
+                  "brightness": "trapped",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "feng_gao",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_fu_adj",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "jie_kong",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "yin_sha",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "guan_dai",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "qing_long",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "sui_jian",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "jiang_xing",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "wei",
+              "name": "friends",
+              "stem": "gui",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "friends"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "tian_liang",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "prosperous",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_yue",
+                  "kind": "soft",
+                  "category": "minor",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "di_kong",
+                  "kind": "tough",
+                  "category": "minor",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "ling_xing",
+                  "kind": "tough",
+                  "category": "minor",
+                  "brightness": "favourable",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tuo_luo",
+                  "kind": "tough",
+                  "category": "minor",
+                  "brightness": "temple",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_yue_adj",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_kong",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_shi",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "mu_yu",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "li_shi",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "hui_qi",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "pan_an",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "shen",
+              "name": "migration",
+              "stem": "jia",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "migration"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "qi_sha",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "temple",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "zuo_fu",
+                  "kind": "soft",
+                  "category": "minor",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "wen_qu",
+                  "kind": "soft",
+                  "category": "minor",
+                  "brightness": "advantage",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "lu_cun",
+                  "kind": "lucun",
+                  "category": "minor",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_ma",
+                  "kind": "tianma",
+                  "category": "minor",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_cai",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "gu_chen",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "chang_sheng",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "bo_shi",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "sang_men",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "sui_yi",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "you",
+              "name": "health",
+              "stem": "yi",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "health"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "tian_tong",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "flat",
+                  "mutagen": "ji",
+                  "scope": "natal"
+                },
+                {
+                  "name": "qing_yang",
+                  "kind": "tough",
+                  "category": "minor",
+                  "brightness": "trapped",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "hong_luan",
+                  "kind": "flower",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "en_guang",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_shang",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "yang",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "guan_fu_boshi",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "guan_suo",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "xi_shen_jiangqian",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "xu",
+              "name": "wealth",
+              "stem": "bing",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "wealth"
+                },
+                {
+                  "kind": "natal_body_palace"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "wu_qu",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "temple",
+                  "mutagen": "quan",
+                  "scope": "natal"
+                },
+                {
+                  "name": "long_chi",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tai_fu",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "hua_gai",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "xun_kong",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "tai",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "fu_bing",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "guan_fu_suiqian",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "hua_gai_jiangqian",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "hai",
+              "name": "children",
+              "stem": "ding",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "children"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "tai_yang",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "trapped",
+                  "mutagen": "lu",
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_gui",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_guan",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "yue_de",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "jie_sha_adj",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "jue",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "da_hao_boshi",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "xiao_hao_suiqian",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "jie_sha",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            }
+          ]
         },
         "age_palace": {
           "scope": "age",
@@ -2826,6 +5725,967 @@
             "is_leap_month": false
           },
           "time_index": 2
+        },
+        "astrolabe": {
+          "gender": "male",
+          "birth_year_stem": "wu",
+          "birth_year_branch": "chen",
+          "five_element_bureau": "earth5",
+          "life_palace_branch": "chen",
+          "body_palace_branch": "chen",
+          "palaces": [
+            {
+              "branch": "zi",
+              "name": "wealth",
+              "stem": "jia",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "wealth"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "tai_yang",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "trapped",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "jie_lu",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "di_wang",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "xi_shen_boshi",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "bai_hu",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "jiang_xing",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "chou",
+              "name": "children",
+              "stem": "yi",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "children"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "tian_fu",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "temple",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_kui",
+                  "kind": "soft",
+                  "category": "minor",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_de",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "kong_wang",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "gua_su",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "po_sui",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "shuai",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "bing_fu_boshi",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_de_suiqian",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "pan_an",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "yin",
+              "name": "spouse",
+              "stem": "jia",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "spouse"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "tian_ji",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "advantage",
+                  "mutagen": "ji",
+                  "scope": "natal"
+                },
+                {
+                  "name": "tai_yin",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "prosperous",
+                  "mutagen": "quan",
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_ma",
+                  "kind": "tianma",
+                  "category": "minor",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "huo_xing",
+                  "kind": "tough",
+                  "category": "minor",
+                  "brightness": "temple",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "feng_gao",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_wu",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_ku",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "bing",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "da_hao_boshi",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "diao_ke",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "sui_yi",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "mao",
+              "name": "siblings",
+              "stem": "yi",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "siblings"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "zi_wei",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "prosperous",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tan_lang",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "favourable",
+                  "mutagen": "lu",
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_yao",
+                  "kind": "flower",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_guan",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_fu_adj",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "si",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "fu_bing",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "bing_fu_suiqian",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "xi_shen_jiangqian",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "chen",
+              "name": "life",
+              "stem": "bing",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "life"
+                },
+                {
+                  "kind": "natal_body_palace"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "ju_men",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "trapped",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "wen_qu",
+                  "kind": "soft",
+                  "category": "minor",
+                  "brightness": "advantage",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tuo_luo",
+                  "kind": "tough",
+                  "category": "minor",
+                  "brightness": "temple",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_gui",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "hua_gai",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_yue_adj",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "mu",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "guan_fu_boshi",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "sui_jian",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "hua_gai_jiangqian",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "si",
+              "name": "parents",
+              "stem": "ding",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "parents"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "tian_xiang",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "advantage",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "lu_cun",
+                  "kind": "lucun",
+                  "category": "minor",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_xi",
+                  "kind": "flower",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_kong",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "gu_chen",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "jue",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "bo_shi",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "hui_qi",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "jie_sha",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "wu",
+              "name": "spirit",
+              "stem": "wu",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "spirit"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "tian_liang",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "temple",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "zuo_fu",
+                  "kind": "soft",
+                  "category": "minor",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "qing_yang",
+                  "kind": "tough",
+                  "category": "minor",
+                  "brightness": "trapped",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "feng_ge",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tai_fu",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_chu",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "fei_lian",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "nian_jie",
+                  "kind": "helper",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "tai",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "li_shi",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "sang_men",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "zai_sha",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "wei",
+              "name": "property",
+              "stem": "ji",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "property"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "lian_zhen",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "favourable",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "qi_sha",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "temple",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_yue",
+                  "kind": "soft",
+                  "category": "minor",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "san_tai",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "ba_zuo",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "yang",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "qing_long",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "guan_suo",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_sha",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "shen",
+              "name": "career",
+              "stem": "geng",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "career"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "you_bi",
+                  "kind": "soft",
+                  "category": "minor",
+                  "brightness": "unknown",
+                  "mutagen": "ke",
+                  "scope": "natal"
+                },
+                {
+                  "name": "long_chi",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_cai",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_shou",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "chang_sheng",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "xiao_hao_boshi",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "guan_fu_suiqian",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "zhi_bei",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "you",
+              "name": "friends",
+              "stem": "xin",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "friends"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "xian_chi",
+                  "kind": "flower",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "yue_de",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_shang",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "mu_yu",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "jiang_jun",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "xiao_hao_suiqian",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "xian_chi_jiangqian",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "xu",
+              "name": "migration",
+              "stem": "ren",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "migration"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "tian_tong",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "flat",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "wen_chang",
+                  "kind": "soft",
+                  "category": "minor",
+                  "brightness": "trapped",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "ling_xing",
+                  "kind": "tough",
+                  "category": "minor",
+                  "brightness": "temple",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "jie_shen",
+                  "kind": "helper",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "en_guang",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "xun_kong",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "yin_sha",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_xu",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "guan_dai",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "zhou_shu",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "da_hao_suiqian",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "yue_sha",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            },
+            {
+              "branch": "hai",
+              "name": "health",
+              "stem": "gui",
+              "roles": [
+                {
+                  "kind": "natal_palace",
+                  "palace_name": "health"
+                }
+              ],
+              "typed_stars": [
+                {
+                  "name": "wu_qu",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "flat",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "po_jun",
+                  "kind": "major",
+                  "category": "major",
+                  "brightness": "flat",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "di_kong",
+                  "kind": "tough",
+                  "category": "minor",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "di_jie",
+                  "kind": "tough",
+                  "category": "minor",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "hong_luan",
+                  "kind": "flower",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_xing",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                },
+                {
+                  "name": "tian_shi",
+                  "kind": "adjective",
+                  "category": "adjective",
+                  "brightness": "unknown",
+                  "mutagen": null,
+                  "scope": "natal"
+                }
+              ],
+              "decorative_stars": [
+                {
+                  "name": "lin_guan",
+                  "family": "changsheng12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "fay_lian_boshi",
+                  "family": "boshi12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "long_de_suiqian",
+                  "family": "suiqian12",
+                  "scope": "natal"
+                },
+                {
+                  "name": "wang_shen",
+                  "family": "jiangqian12",
+                  "scope": "natal"
+                }
+              ]
+            }
+          ]
         },
         "age_palace": {
           "scope": "age",

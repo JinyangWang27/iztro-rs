@@ -12,6 +12,7 @@
 //!   (decadal/age/yearly/monthly/daily/hourly), reused verbatim;
 //! * the target numeric solar/lunar/time context retained by full stack assembly,
 //!   with a lunar-only fallback for manually assembled full-layer charts;
+//! * a minimal natal astrolabe snapshot derived from [`HoroscopeChart::natal`];
 //! * the runtime palace projections of [`HoroscopeRuntime`] for the Life palace
 //!   across each modeled scope.
 //!
@@ -22,7 +23,8 @@
 //! Deferred, and intentionally absent from this payload:
 //!
 //! * the upstream localized `lunarDate` and `solarDate` strings;
-//! * the re-embedded full natal astrolabe payload;
+//! * the complete upstream natal astrolabe payload with helper/query methods,
+//!   localized labels, BaZi strings, decadal ranges, or age arrays;
 //! * the runtime query helpers (`hasHoroscopeStars` and friends), which remain
 //!   [`HoroscopeRuntime`] methods rather than precomputed DTO fields;
 //! * full BaZi output, bindings, renderers, rules, and narrative.
@@ -30,14 +32,16 @@
 use crate::core::{
     error::ChartError,
     model::{
+        bureau::FiveElementBureau,
+        calendar::Gender,
         chart::{
-            HoroscopeChart, HoroscopeLunarDate, HoroscopePalaceProjection,
-            HoroscopeProjectionMutagenActivation, HoroscopeRuntime, HoroscopeSolarDate,
-            HoroscopeSupportedFieldsSnapshot, HoroscopeSurroundPalaces, PalaceName,
-            TemporalContext,
+            Chart, DecorativeStarFamily, DecorativeStarPlacement, HoroscopeChart,
+            HoroscopeLunarDate, HoroscopePalaceProjection, HoroscopeProjectionMutagenActivation,
+            HoroscopeRuntime, HoroscopeSolarDate, HoroscopeSupportedFieldsSnapshot,
+            HoroscopeSurroundPalaces, Palace, PalaceName, StarPlacement, TemporalContext,
         },
         star::{
-            StarName,
+            Brightness, StarCategory, StarKind, StarName,
             mutagen::{Mutagen, Scope},
         },
     },
@@ -68,6 +72,7 @@ pub struct HoroscopeFacadeSnapshot {
     #[serde(flatten)]
     supported_fields: HoroscopeSupportedFieldsSnapshot,
     context: HoroscopeFacadeContext,
+    astrolabe: NatalFacadeSnapshot,
     age_palace: HoroscopePalaceProjectionSnapshot,
     palace_projections: Vec<HoroscopePalaceProjectionSnapshot>,
     surround_palaces: Vec<HoroscopeSurroundPalacesSnapshot>,
@@ -84,6 +89,7 @@ impl HoroscopeFacadeSnapshot {
     pub fn from_horoscope_chart(chart: &HoroscopeChart) -> Result<Self, ChartError> {
         let supported_fields = HoroscopeSupportedFieldsSnapshot::from_horoscope_chart(chart)?;
         let context = HoroscopeFacadeContext::from_horoscope_chart(chart)?;
+        let astrolabe = NatalFacadeSnapshot::from_chart(chart.natal());
         let runtime = HoroscopeRuntime::new(chart)?;
 
         let age_palace = HoroscopePalaceProjectionSnapshot::from_projection(&runtime.age_palace()?);
@@ -102,6 +108,7 @@ impl HoroscopeFacadeSnapshot {
         Ok(Self {
             supported_fields,
             context,
+            astrolabe,
             age_palace,
             palace_projections,
             surround_palaces,
@@ -118,6 +125,11 @@ impl HoroscopeFacadeSnapshot {
         &self.context
     }
 
+    /// Returns the minimal natal astrolabe snapshot derived from the natal chart.
+    pub const fn astrolabe(&self) -> &NatalFacadeSnapshot {
+        &self.astrolabe
+    }
+
     /// Returns the nominal-age Life palace projection (`agePalace`).
     pub const fn age_palace(&self) -> &HoroscopePalaceProjectionSnapshot {
         &self.age_palace
@@ -131,6 +143,241 @@ impl HoroscopeFacadeSnapshot {
     /// Returns the Life palace 三方四正 projections across each modeled scope.
     pub fn surround_palaces(&self) -> &[HoroscopeSurroundPalacesSnapshot] {
         &self.surround_palaces
+    }
+}
+
+/// Minimal serializable natal astrolabe snapshot embedded in the horoscope facade.
+///
+/// This is not the full upstream `astrolabe` object. It contains only stable
+/// natal facts already modeled by [`Chart`] and deliberately excludes temporal
+/// overlays, BaZi strings, runtime query helpers, decadal ranges, age arrays,
+/// render data, rules, and readings.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct NatalFacadeSnapshot {
+    gender: Gender,
+    birth_year_stem: HeavenlyStem,
+    birth_year_branch: EarthlyBranch,
+    five_element_bureau: Option<FiveElementBureau>,
+    life_palace_branch: Option<EarthlyBranch>,
+    body_palace_branch: Option<EarthlyBranch>,
+    palaces: Vec<NatalFacadePalaceSnapshot>,
+}
+
+impl NatalFacadeSnapshot {
+    /// Builds the natal facade snapshot from an already-assembled natal chart.
+    pub fn from_chart(chart: &Chart) -> Self {
+        Self {
+            gender: chart.birth_context().gender(),
+            birth_year_stem: chart.birth_year().stem(),
+            birth_year_branch: chart.birth_year().branch(),
+            five_element_bureau: chart.five_element_bureau(),
+            life_palace_branch: chart.life_palace().map(Palace::branch),
+            body_palace_branch: chart.body_palace_branch(),
+            palaces: chart
+                .palaces()
+                .iter()
+                .map(|palace| NatalFacadePalaceSnapshot::from_palace(chart, palace))
+                .collect(),
+        }
+    }
+
+    /// Returns the retained gender marker.
+    pub const fn gender(&self) -> Gender {
+        self.gender
+    }
+
+    /// Returns the birth-year Heavenly Stem.
+    pub const fn birth_year_stem(&self) -> HeavenlyStem {
+        self.birth_year_stem
+    }
+
+    /// Returns the birth-year Earthly Branch.
+    pub const fn birth_year_branch(&self) -> EarthlyBranch {
+        self.birth_year_branch
+    }
+
+    /// Returns the five-element bureau, if modeled.
+    pub const fn five_element_bureau(&self) -> Option<FiveElementBureau> {
+        self.five_element_bureau
+    }
+
+    /// Returns the Life Palace branch, if modeled.
+    pub const fn life_palace_branch(&self) -> Option<EarthlyBranch> {
+        self.life_palace_branch
+    }
+
+    /// Returns the Body Palace branch, if modeled.
+    pub const fn body_palace_branch(&self) -> Option<EarthlyBranch> {
+        self.body_palace_branch
+    }
+
+    /// Returns the natal palace snapshots in chart order.
+    pub fn palaces(&self) -> &[NatalFacadePalaceSnapshot] {
+        &self.palaces
+    }
+}
+
+/// Minimal natal palace snapshot for the facade astrolabe.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct NatalFacadePalaceSnapshot {
+    branch: EarthlyBranch,
+    name: PalaceName,
+    stem: HeavenlyStem,
+    roles: Vec<NatalFacadePalaceRole>,
+    typed_stars: Vec<NatalFacadeTypedStarSnapshot>,
+    decorative_stars: Vec<NatalFacadeDecorativeStarSnapshot>,
+}
+
+impl NatalFacadePalaceSnapshot {
+    fn from_palace(chart: &Chart, palace: &Palace) -> Self {
+        let mut roles = vec![NatalFacadePalaceRole::NatalPalace(palace.name())];
+        if chart.is_body_palace_branch(palace.branch()) {
+            roles.push(NatalFacadePalaceRole::NatalBodyPalace);
+        }
+
+        Self {
+            branch: palace.branch(),
+            name: palace.name(),
+            stem: palace.stem(),
+            roles,
+            typed_stars: palace
+                .stars()
+                .iter()
+                .map(NatalFacadeTypedStarSnapshot::from_star_placement)
+                .collect(),
+            decorative_stars: palace
+                .decorative_stars()
+                .iter()
+                .map(NatalFacadeDecorativeStarSnapshot::from_decorative_star_placement)
+                .collect(),
+        }
+    }
+
+    /// Returns the palace branch.
+    pub const fn branch(&self) -> EarthlyBranch {
+        self.branch
+    }
+
+    /// Returns the natal palace name.
+    pub const fn name(&self) -> PalaceName {
+        self.name
+    }
+
+    /// Returns the natal palace stem.
+    pub const fn stem(&self) -> HeavenlyStem {
+        self.stem
+    }
+
+    /// Returns role markers for this natal palace.
+    pub fn roles(&self) -> &[NatalFacadePalaceRole] {
+        &self.roles
+    }
+
+    /// Returns typed natal stars in this palace.
+    pub fn typed_stars(&self) -> &[NatalFacadeTypedStarSnapshot] {
+        &self.typed_stars
+    }
+
+    /// Returns decorative natal stars in this palace.
+    pub fn decorative_stars(&self) -> &[NatalFacadeDecorativeStarSnapshot] {
+        &self.decorative_stars
+    }
+}
+
+/// Role markers attached to a natal facade palace.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[serde(tag = "kind", content = "palace_name", rename_all = "snake_case")]
+pub enum NatalFacadePalaceRole {
+    /// The cell contains this natal palace.
+    NatalPalace(PalaceName),
+    /// The cell is the Body Palace branch.
+    NatalBodyPalace,
+}
+
+/// Typed natal star DTO for the facade astrolabe.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct NatalFacadeTypedStarSnapshot {
+    name: StarName,
+    kind: StarKind,
+    category: StarCategory,
+    brightness: Brightness,
+    mutagen: Option<Mutagen>,
+    scope: Scope,
+}
+
+impl NatalFacadeTypedStarSnapshot {
+    fn from_star_placement(placement: &StarPlacement) -> Self {
+        Self {
+            name: placement.name(),
+            kind: placement.kind(),
+            category: placement.category(),
+            brightness: placement.brightness(),
+            mutagen: placement.mutagen(),
+            scope: placement.scope(),
+        }
+    }
+
+    /// Returns the star name.
+    pub const fn name(&self) -> StarName {
+        self.name
+    }
+
+    /// Returns the fine star kind.
+    pub const fn kind(&self) -> StarKind {
+        self.kind
+    }
+
+    /// Returns the coarse star category.
+    pub const fn category(&self) -> StarCategory {
+        self.category
+    }
+
+    /// Returns the brightness state.
+    pub const fn brightness(&self) -> Brightness {
+        self.brightness
+    }
+
+    /// Returns the natal mutagen attached to the placement, if present.
+    pub const fn mutagen(&self) -> Option<Mutagen> {
+        self.mutagen
+    }
+
+    /// Returns the placement scope.
+    pub const fn scope(&self) -> Scope {
+        self.scope
+    }
+}
+
+/// Decorative natal star DTO for the facade astrolabe.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct NatalFacadeDecorativeStarSnapshot {
+    name: StarName,
+    family: DecorativeStarFamily,
+    scope: Scope,
+}
+
+impl NatalFacadeDecorativeStarSnapshot {
+    fn from_decorative_star_placement(placement: &DecorativeStarPlacement) -> Self {
+        Self {
+            name: placement.name(),
+            family: placement.family(),
+            scope: placement.scope(),
+        }
+    }
+
+    /// Returns the decorative star name.
+    pub const fn name(&self) -> StarName {
+        self.name
+    }
+
+    /// Returns the decorative star family.
+    pub const fn family(&self) -> DecorativeStarFamily {
+        self.family
+    }
+
+    /// Returns the placement scope.
+    pub const fn scope(&self) -> Scope {
+        self.scope
     }
 }
 

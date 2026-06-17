@@ -17,7 +17,7 @@ use common::{
 };
 use iztro::core::{
     HoroscopeChart, HoroscopeFacadeSnapshot, HoroscopeRuntime, HoroscopeStackInput,
-    HoroscopeSupportedFieldsSnapshot, PalaceName, Scope, SolarDay, SolarMonth,
+    HoroscopeSupportedFieldsSnapshot, NatalFacadeSnapshot, PalaceName, Scope, SolarDay, SolarMonth,
     build_full_horoscope_chart,
 };
 use serde_json::{Value, json};
@@ -43,6 +43,11 @@ fn facade_snapshot_matches_upstream_fixture() {
             "{case_id}: facade context"
         );
         assert_rich_context_shape(case_id, &actual["context"], &case);
+        assert_eq!(
+            normalize_astrolabe(&actual["astrolabe"]),
+            normalize_astrolabe(&expected["astrolabe"]),
+            "{case_id}: facade astrolabe snapshot"
+        );
 
         assert_eq!(
             normalize_projection(&actual["age_palace"]),
@@ -61,6 +66,104 @@ fn facade_snapshot_matches_upstream_fixture() {
             projections_by_scope(&expected["surround_palaces"], normalize_surround),
             "{case_id}: facade surround palaces"
         );
+    }
+}
+
+#[test]
+fn facade_embeds_astrolabe_derived_from_natal_chart() {
+    for case in horoscope_facade_fixture_cases() {
+        let case_id = case["id"].as_str().expect("case id");
+        let chart = build_chart_from_horoscope_fixture_case(&case);
+        let horoscope = build_full_horoscope_chart(chart, stack_input(&case))
+            .expect("full horoscope stack should build");
+
+        let facade = HoroscopeFacadeSnapshot::from_horoscope_chart(&horoscope)
+            .expect("facade snapshot should build");
+        let natal = NatalFacadeSnapshot::from_chart(horoscope.natal());
+
+        assert_eq!(
+            facade.astrolabe(),
+            &natal,
+            "{case_id}: facade astrolabe must derive only from horoscope.natal()"
+        );
+    }
+}
+
+#[test]
+fn facade_astrolabe_keeps_complete_unique_natal_palace_identity() {
+    use std::collections::HashSet;
+
+    for case in horoscope_facade_fixture_cases() {
+        let case_id = case["id"].as_str().expect("case id");
+        let snapshot = build_facade_snapshot(&case);
+        let astrolabe = snapshot.astrolabe();
+
+        assert_eq!(
+            astrolabe.palaces().len(),
+            12,
+            "{case_id}: astrolabe must expose exactly twelve natal palaces"
+        );
+
+        let branches: HashSet<_> = astrolabe
+            .palaces()
+            .iter()
+            .map(|palace| palace.branch())
+            .collect();
+        assert_eq!(
+            branches.len(),
+            12,
+            "{case_id}: astrolabe palace branches must be unique"
+        );
+
+        let names: HashSet<_> = astrolabe
+            .palaces()
+            .iter()
+            .map(|palace| palace.name())
+            .collect();
+        assert_eq!(
+            names.len(),
+            12,
+            "{case_id}: astrolabe palace names must be unique"
+        );
+    }
+}
+
+#[test]
+fn facade_astrolabe_does_not_leak_temporal_facts() {
+    for case in horoscope_facade_fixture_cases() {
+        let case_id = case["id"].as_str().expect("case id");
+        let snapshot = build_facade_snapshot(&case);
+
+        for palace in snapshot.astrolabe().palaces() {
+            for star in palace.typed_stars() {
+                assert_eq!(
+                    star.scope(),
+                    Scope::Natal,
+                    "{case_id}: astrolabe typed stars must stay natal-only"
+                );
+            }
+            for star in palace.decorative_stars() {
+                assert_eq!(
+                    star.scope(),
+                    Scope::Natal,
+                    "{case_id}: astrolabe decorative stars must stay natal-only"
+                );
+            }
+
+            let palace_json = serde_json::to_value(palace).expect("palace should serialize");
+            assert!(
+                palace_json.get("temporal_stars").is_none(),
+                "{case_id}: astrolabe palace must not serialize temporal stars"
+            );
+            assert!(
+                palace_json.get("temporal_decorative_stars").is_none(),
+                "{case_id}: astrolabe palace must not serialize temporal decorative stars"
+            );
+            assert!(
+                palace_json.get("temporal_mutagen_activations").is_none(),
+                "{case_id}: astrolabe palace must not serialize temporal mutagens"
+            );
+        }
     }
 }
 
@@ -396,6 +499,33 @@ fn normalize_surround(value: &Value) -> Value {
     for field in ["target", "opposite", "wealth", "career"] {
         let normalized = normalize_projection(&object[field]);
         object.insert(field.to_owned(), normalized);
+    }
+    Value::Object(object)
+}
+
+fn normalize_astrolabe(value: &Value) -> Value {
+    let mut object = value.as_object().expect("astrolabe object").clone();
+    let palaces = object["palaces"].as_array().expect("astrolabe palaces");
+    let normalized_palaces = palaces
+        .iter()
+        .map(normalize_astrolabe_palace)
+        .collect::<Vec<_>>();
+    object.insert("palaces".to_owned(), Value::Array(normalized_palaces));
+    Value::Object(object)
+}
+
+fn normalize_astrolabe_palace(value: &Value) -> Value {
+    let mut object = value.as_object().expect("astrolabe palace").clone();
+    if let Some(stars) = object.get("typed_stars").and_then(Value::as_array) {
+        let mut sorted = stars.clone();
+        sorted.sort_by_key(|star| {
+            (
+                star["name"].as_str().unwrap_or_default().to_owned(),
+                star["kind"].as_str().unwrap_or_default().to_owned(),
+                star["brightness"].as_str().unwrap_or_default().to_owned(),
+            )
+        });
+        object.insert("typed_stars".to_owned(), Value::Array(sorted));
     }
     Value::Object(object)
 }
