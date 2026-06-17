@@ -8,6 +8,27 @@ JavaScript implementation.
 - Package: `npm:iztro`
 - Version: `2.5.8`
 
+## Fixture registry & shared birth cases
+
+`MANIFEST.json` is an additive registry of every committed fixture file in this
+directory. Each entry records the fixture's test `category` (`compat`, `natal`,
+`runtime`, `boundary`, `e2e`, `horoscope`), the shared `birth_cases` its `input`
+block(s) encode, the chart `algorithms` it exercises, and what it `covers`.
+
+Three birth cases recur across the compat and runtime fixtures:
+
+- `1990_05_17_chen_female`
+- `1988_03_14_zi_male`
+- `1991_08_09_hai_female`
+
+Each fixture still defines its own `input` block, so this duplication is
+**documented** by the registry rather than consolidated — collapsing the shared
+inputs into a single source is deferred to a follow-up that can re-verify
+expected outputs. `crates/iztro/tests/fixture_manifest.rs` asserts the registry
+stays in sync: every entry points to an existing file, every committed `*.json`
+(except `MANIFEST.json`) is listed, and every entry has a non-empty `file`,
+`category`, and `covers`.
+
 ## Upstream reference workspace
 
 Use the pinned local npm workspace when inspecting or regenerating upstream

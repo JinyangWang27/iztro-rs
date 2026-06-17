@@ -1,0 +1,194 @@
+{
+  "note": "Registry of the committed upstream-reference fixtures. Additive audit only: it records, per fixture file, its test category, the shared birth case(s) its `input` block(s) encode, the chart algorithm(s) it exercises, and what it covers. Three birth cases recur across the compat/runtime fixtures (1990_05_17_chen_female, 1988_03_14_zi_male, 1991_08_09_hai_female); each fixture still defines its own `input` block, so the duplication is documented here, not yet consolidated. `tests/fixture_manifest.rs` keeps this list in sync with the directory.",
+  "target_version": "2.5.8",
+  "categories": [
+    "compat",
+    "natal",
+    "runtime",
+    "boundary",
+    "e2e",
+    "horoscope"
+  ],
+  "birth_cases": [
+    "1990_05_17_chen_female",
+    "1988_03_14_zi_male",
+    "1991_08_09_hai_female"
+  ],
+  "fixtures": [
+    {
+      "file": "minimal_natal_1990_05_17_chen_female.json",
+      "category": "natal",
+      "birth_cases": ["1990_05_17_chen_female"],
+      "algorithms": ["default"],
+      "covers": ["minimal natal palaces, body palace, five-element bureau"]
+    },
+    {
+      "file": "major_stars_1990_05_17_chen_female.json",
+      "category": "compat",
+      "birth_cases": ["1990_05_17_chen_female"],
+      "algorithms": ["default"],
+      "covers": ["fourteen major stars: placement, brightness, birth-year mutagen"]
+    },
+    {
+      "file": "minor_stars_1990_05_17_chen_female.json",
+      "category": "compat",
+      "birth_cases": ["1990_05_17_chen_female"],
+      "algorithms": ["default"],
+      "covers": ["fourteen supported minor stars: placement, kind, brightness, mutagen"]
+    },
+    {
+      "file": "minor_stars_1988_03_14_zi_male.json",
+      "category": "compat",
+      "birth_cases": ["1988_03_14_zi_male"],
+      "algorithms": ["default"],
+      "covers": ["fourteen supported minor stars: placement, kind, brightness, mutagen"]
+    },
+    {
+      "file": "minor_stars_1991_08_09_hai_female.json",
+      "category": "compat",
+      "birth_cases": ["1991_08_09_hai_female"],
+      "algorithms": ["default"],
+      "covers": ["fourteen supported minor stars: placement, kind, brightness, mutagen"]
+    },
+    {
+      "file": "adjective_stars_full_default_1990_05_17_chen_female.json",
+      "category": "compat",
+      "birth_cases": ["1990_05_17_chen_female"],
+      "algorithms": ["default"],
+      "covers": ["full default-algorithm natal adjective/helper stars (38)"]
+    },
+    {
+      "file": "adjective_stars_full_default_1988_03_14_zi_male.json",
+      "category": "compat",
+      "birth_cases": ["1988_03_14_zi_male"],
+      "algorithms": ["default"],
+      "covers": ["full default-algorithm natal adjective/helper stars (38)"]
+    },
+    {
+      "file": "adjective_stars_full_default_1991_08_09_hai_female.json",
+      "category": "compat",
+      "birth_cases": ["1991_08_09_hai_female"],
+      "algorithms": ["default"],
+      "covers": ["full default-algorithm natal adjective/helper stars (38)"]
+    },
+    {
+      "file": "zhongzhou_adjective_stars_1990_05_17_chen_female.json",
+      "category": "compat",
+      "birth_cases": ["1990_05_17_chen_female"],
+      "algorithms": ["zhongzhou"],
+      "covers": ["Zhongzhou natal adjective/helper stars (40)"]
+    },
+    {
+      "file": "zhongzhou_adjective_stars_1988_03_14_zi_male.json",
+      "category": "compat",
+      "birth_cases": ["1988_03_14_zi_male"],
+      "algorithms": ["zhongzhou"],
+      "covers": ["Zhongzhou natal adjective/helper stars (40)"]
+    },
+    {
+      "file": "zhongzhou_adjective_stars_1991_08_09_hai_female.json",
+      "category": "compat",
+      "birth_cases": ["1991_08_09_hai_female"],
+      "algorithms": ["zhongzhou"],
+      "covers": ["Zhongzhou natal adjective/helper stars (40)"]
+    },
+    {
+      "file": "runtime_decorative_default_1990_05_17_chen_female.json",
+      "category": "runtime",
+      "birth_cases": ["1990_05_17_chen_female"],
+      "algorithms": ["default"],
+      "covers": ["four decorative runtime star families per palace"]
+    },
+    {
+      "file": "runtime_decorative_default_1988_03_14_zi_male.json",
+      "category": "runtime",
+      "birth_cases": ["1988_03_14_zi_male"],
+      "algorithms": ["default"],
+      "covers": ["four decorative runtime star families per palace"]
+    },
+    {
+      "file": "runtime_decorative_default_1991_08_09_hai_female.json",
+      "category": "runtime",
+      "birth_cases": ["1991_08_09_hai_female"],
+      "algorithms": ["default"],
+      "covers": ["four decorative runtime star families per palace"]
+    },
+    {
+      "file": "runtime_decorative_zhongzhou_1990_05_17_chen_female.json",
+      "category": "runtime",
+      "birth_cases": ["1990_05_17_chen_female"],
+      "algorithms": ["zhongzhou"],
+      "covers": ["four decorative runtime star families per palace (岁破 vs 大耗 boundary)"]
+    },
+    {
+      "file": "runtime_decorative_zhongzhou_1988_03_14_zi_male.json",
+      "category": "runtime",
+      "birth_cases": ["1988_03_14_zi_male"],
+      "algorithms": ["zhongzhou"],
+      "covers": ["four decorative runtime star families per palace (岁破 vs 大耗 boundary)"]
+    },
+    {
+      "file": "runtime_decorative_zhongzhou_1991_08_09_hai_female.json",
+      "category": "runtime",
+      "birth_cases": ["1991_08_09_hai_female"],
+      "algorithms": ["zhongzhou"],
+      "covers": ["four decorative runtime star families per palace (岁破 vs 大耗 boundary)"]
+    },
+    {
+      "file": "flow_stars.json",
+      "category": "runtime",
+      "birth_cases": [],
+      "algorithms": [],
+      "covers": ["scoped flow-star (流耀) matrix for all stems x branches x scopes (60 cases)"]
+    },
+    {
+      "file": "horoscope.json",
+      "category": "horoscope",
+      "birth_cases": [],
+      "algorithms": ["default", "zhongzhou"],
+      "covers": ["horoscope scope supported fields: palace names, mutagens, flow stars"]
+    },
+    {
+      "file": "horoscope_runtime.json",
+      "category": "horoscope",
+      "birth_cases": [],
+      "algorithms": ["default", "zhongzhou"],
+      "covers": ["horoscope runtime-helper resolution"]
+    },
+    {
+      "file": "horoscope_facade.json",
+      "category": "horoscope",
+      "birth_cases": [],
+      "algorithms": ["default", "zhongzhou"],
+      "covers": ["upstream-like horoscope facade payload snapshot"]
+    },
+    {
+      "file": "e2e_supported_by_lunar.json",
+      "category": "e2e",
+      "birth_cases": [],
+      "algorithms": ["default", "zhongzhou"],
+      "covers": ["by_lunar facade supported fields across six lunar cases x two algorithms"]
+    },
+    {
+      "file": "e2e_supported_by_solar.json",
+      "category": "e2e",
+      "birth_cases": [],
+      "algorithms": ["default", "zhongzhou"],
+      "covers": ["by_solar facade supported fields across solar cases x two algorithms"]
+    },
+    {
+      "file": "leap_month_by_lunar.json",
+      "category": "boundary",
+      "birth_cases": [],
+      "algorithms": ["default"],
+      "covers": ["explicit leap-month by_lunar behavior under is_leap_month / fix_leap toggles"]
+    },
+    {
+      "file": "time_index_rat_hour.json",
+      "category": "boundary",
+      "birth_cases": [],
+      "algorithms": ["default"],
+      "covers": ["timeIndex 0..=12 early/late Zi rat-hour behavior"]
+    }
+  ]
+}
