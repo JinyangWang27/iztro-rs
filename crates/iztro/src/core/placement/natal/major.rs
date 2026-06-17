@@ -68,7 +68,8 @@ pub trait MajorStarPlacer {
     ) -> Result<Chart, ChartError>;
 }
 
-/// The 紫微 series and each star's branch offset from 紫微 (counts backward).
+// 安北斗诸星诀：紫微天机逆行旁，隔一阳武天同当，又隔二位廉贞地，空三复见紫微郎。
+// The 紫微 series and each star's branch offset from 紫微. Negative offsets count backward.
 const ZI_WEI_SERIES: [(StarName, isize); 6] = [
     (StarName::ZiWei, 0),
     (StarName::TianJi, -1),
@@ -78,6 +79,7 @@ const ZI_WEI_SERIES: [(StarName, isize); 6] = [
     (StarName::LianZhen, -8),
 ];
 
+// 安南斗诸星诀: 天府太阴与贪狼，巨门天相及天梁，七杀空三破军位，八星顺数细推详。
 /// The 天府 series and each star's branch offset from 天府 (counts forward).
 const TIAN_FU_SERIES: [(StarName, isize); 8] = [
     (StarName::TianFu, 0),
@@ -169,7 +171,8 @@ pub fn major_star_brightness(star: StarName, branch: EarthlyBranch) -> Brightnes
 
 /// Returns the branch holding 紫微 (Zi Wei) for a bureau and lunar day.
 ///
-/// Implements iztro's 起紫微星诀: divide the lunar day by the bureau number,
+/// Implements iztro's 起紫微星诀: 六、五、四、三、二，酉、午、亥、辰、丑。局数除日数，商数宫前走。
+/// divide the lunar day by the bureau number,
 /// borrowing up to the next multiple; the quotient counts forward from 寅 and
 /// the borrowed amount adjusts forward when even and backward when odd.
 pub fn zi_wei_branch(bureau: FiveElementBureau, day: LunarDay) -> EarthlyBranch {
