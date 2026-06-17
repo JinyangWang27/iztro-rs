@@ -110,6 +110,19 @@ A scoped flow-star builder (`build_flow_star_layer`) places the horoscope flow s
 
 `HoroscopeFacadeSnapshot` is the serializable facade/export layer, not a new engine layer: `HoroscopeFacadeSnapshot::from_horoscope_chart` wraps the already-modeled facts into one deterministic payload that moves toward the upstream `FunctionalAstrolabe#horoscope` shape. It reuses the `HoroscopeSupportedFieldsSnapshot` decadal/age/yearly/monthly/daily/hourly blocks verbatim (flattened to the top level), embeds `NatalFacadeSnapshot` as `astrolabe` from `HoroscopeChart::natal()`, adds a numeric `context` from `HoroscopeChart::target_context()` when available, and reuses `HoroscopeRuntime` for the `age_palace`, `palace_projections`, and `surround_palaces` Life-palace projections — each preserving the natal-versus-temporal split (natal palace name/stem/stars stay separate from the period's temporal palace name, temporal stars, and temporal mutagen activations). The minimal `astrolabe` contains gender, birth-year stem/branch, five-element bureau, Life/Body Palace branches, twelve natal palaces, palace branch/name/stem/roles, typed natal stars, and natal decorative stars. Its context contains `solar_date`, `lunar_date` (including `is_leap_month`), and `time_index` for charts built by `build_full_horoscope_chart`. Manually assembled charts without retained target context keep the older lunar-only fallback from temporal layer contexts and omit solar/time fields. The snapshot is fixture-backed against `horoscope_facade.json`. It adds no placement logic, and it stays explicit about deferred fields: localized upstream `lunarDate` and `solarDate` strings, complete upstream astrolabe helper/query methods, localized natal labels, BaZi strings, decadal ranges, age arrays, the runtime query helpers, and full upstream package parity remain deferred.
 
+### Facade/export star ordering
+
+Core engine placement facts are **order-independent**. A palace is the *set* of stars placed in it, so the core placement compatibility tests compare star sets, not array order — Rust and upstream TS `iztro` do not necessarily emit a palace's stars in the same `Vec` order, and that incidental order carries no semantic meaning.
+
+The facade/export layer must not depend on that accidental order. `NatalFacadePalaceSnapshot` therefore imposes one stable, deterministic Rust-side ordering on each exported palace's star arrays:
+
+- typed natal stars are ordered by `(kind, name, brightness, mutagen)`;
+- decorative natal stars are ordered by `(family, name)`.
+
+The keys use the canonical declaration-order `Ord` of `StarKind`, `StarName`, `Brightness`, `Mutagen`, and `DecorativeStarFamily`; those derives are a sort key only and carry no astrological ranking. Repeated construction of the same facade snapshot is byte-identical, and the policy is pinned by `facade_star_ordering.rs`.
+
+This is a Rust-side canonical order, **not** a claim of upstream TS `iztro` palace-star array-order parity, which remains deferred.
+
 ## Runtime star-family placement
 
 Typed stars and decorative runtime entries are separate fact surfaces, and `Chart::stars()` returns typed `StarPlacement`s only.
