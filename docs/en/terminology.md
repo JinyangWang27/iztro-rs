@@ -6,6 +6,7 @@ This glossary keeps engineering terms and Zi Wei Dou Shu terms aligned across la
 |---|---|---|---|
 | `heavenly_stem` | Heavenly Stem | 天干 | One of the ten stems. |
 | `earthly_branch` | Earthly Branch | 地支 | One of the twelve branches. |
+| `four_pillars` | Four Pillars | 四柱 | Factual year/month/day/hour stem-branch pillars; not BaZi interpretation by itself. |
 | `palace` | Palace | 宫位 | A semantic area of the chart. |
 | `life_palace` | Life Palace | 命宫 | Core self and natal identity. |
 | `body_palace` | Body Palace | 身宫 | Manifested life path and embodied direction. |

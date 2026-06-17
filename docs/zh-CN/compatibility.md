@@ -89,16 +89,23 @@ lunar-lite 历法 normalizer按真实历法解析；公开 API 不暴露 calenda
 的月份/时系公式会像子时一样 wrap，主星安放使用下一农历日，日系杂曜使用上游
 `fixLunarDayIndex`，且闰月后半月的有效月份推进会因晚子时而关闭。
 
-`by_solar` 是同一已支持切片之上的最小适配层：它校验公历日期，通过内部 `lunar-lite`
-适配器将其转换为农历事实，从转换得到的农历年推导出生年天干与地支，依据转换结果设置
-`is_leap_month`、依据请求设置 `fix_leap`，再委托给 `by_lunar`。它自身不做任何排盘，
-因此产出与 `by_lunar` 完全一致的已支持切片。`lunar-lite` 拥有底层天干/地支与六十甲子
-原语（`HeavenlyStem`、`EarthlyBranch`、`StemBranch`），并由 `core` 模块直接 re-export，
-故出生年干支无需逐适配层映射即可直通；仅日历后端日期类型（`SolarDate`、`LunarError`）
-不出现在公开 API。转换以正月初一为年界，与 iztro 默认的 `yearDivide: 'normal'` 一致，
-因此换算出的年干支即便落在立春/正月初一之间的窗口也与上游一致。
+`by_solar` 是同一已支持切片之上的适配层：它校验公历日期，通过内部 `lunar-lite`
+适配器将其转换为农历事实，并用 `lunar-lite` 1.0.0 的
+`four_pillars_from_solar_date_with_options`（`YearDivide::Normal` /
+`MonthDivide::Normal`）推导事实性的本命四柱。它依据转换结果设置 `is_leap_month`、
+依据请求设置 `fix_leap`，委托 `by_lunar` 安星，并把 `lunar_lite::FourPillars`
+保留在 `Chart::four_pillars()` 上；它自身不新增安星逻辑。显式不变量是：只要
+`Chart::four_pillars()` 存在，其年柱必须等于 `Chart::birth_year()`。
+`by_lunar` 保持保守：它只接收显式出生年干支，目前不从农历输入伪造月柱、日柱或时柱，
+所以 `by_lunar` 星盘的 `Chart::four_pillars()` 为 `None`。未来 PR 可决定
+`by_lunar` 是否接受显式 `FourPillars`，或是否通过规范化阳历日期推导。
+`lunar-lite` 拥有底层天干/地支、六十甲子与四柱原语（`HeavenlyStem`、
+`EarthlyBranch`、`StemBranch`、`FourPillars`），并由 `core` 模块直接 re-export；
+仅日历后端日期类型（`SolarDate`、`LunarError`）不出现在公开 API。转换以正月初一为
+年界，与 iztro 默认的 `yearDivide: 'normal'` 一致，因此换算出的年干支即便落在
+立春/正月初一之间的窗口也与上游一致。
 
-完整八字输出、完整 facade 序列化对齐、bindings、特征提取、规则与叙事仍延期实现。`build_full_horoscope_chart`
+事实性 `by_solar` 本命四柱之外的完整八字解读/输出、完整 facade 序列化对齐、bindings、特征提取、规则与叙事仍延期实现。`build_full_horoscope_chart`
 已将大限、小限、流年、流月、流日、流时层组装为一个 `HoroscopeChart`，并保留组装所用的
 数字化目标阳历/农历/时辰 context，但仍仅是已支持事实面的模型级组装，并非上游
 `FunctionalAstrolabe#horoscope` 载荷形状。流年层现已附带
@@ -355,8 +362,9 @@ minimal-natal fixture 只比较 `iztro-rs` 当前已实现的字段：
 十二宫天干由出生年干按起五行寅例生成，并与 iztro 每宫的 `heavenlyStem`
 对照。五行局与 iztro 的 `fiveElementsClass` 对照（`火六局` 映射为 `fire6`）。
 
-出生年干目前通过 fixture input 中的 `birth_year_stem` 显式提供，因为公历到干支年
-推导尚未实现。
+minimal-natal fixture 通过 fixture input 中的 `birth_year_stem` 显式提供出生年干，
+因为该 fixture 走 `by_lunar` / builder 路径；阳历路径的出生年干支与完整本命四柱由
+`by_solar` 通过 `lunar-lite` 推导。
 
 它有意不比较星曜、亮度、四化、大限、流年或解读文本。
 

@@ -185,15 +185,17 @@ impl SolarChartRequestBuilder {
 ///
 /// This facade validates the Gregorian/solar date, converts it to Chinese
 /// lunisolar facts with the internal `lunar-lite` adapter, derives the
-/// birth-year stem/branch from the cyclic year, sets `is_leap_month` from the
-/// conversion and `fix_leap` from the request, then delegates to [`by_lunar`].
-/// It performs no chart construction of its own, so it preserves the exact
-/// `by_lunar` supported slice (including leap-month behavior).
+/// birth-year stem/branch from the cyclic year, retains the factual natal four
+/// pillars, sets `is_leap_month` from the conversion and `fix_leap` from the
+/// request, then delegates star placement to [`by_lunar`]. It adds no placement
+/// logic of its own, so it preserves the exact `by_lunar` supported slice
+/// (including leap-month behavior).
 pub fn by_solar(request: SolarChartRequest) -> Result<Chart, ChartError> {
     let conversion = solar_to_lunar(
         request.solar_year(),
         request.solar_month(),
         request.solar_day(),
+        request.birth_time_variant().iztro_time_index(),
     )?;
 
     let lunar_request = LunarChartRequest::builder()
@@ -209,5 +211,14 @@ pub fn by_solar(request: SolarChartRequest) -> Result<Chart, ChartError> {
         .method_profile(request.method_profile().clone())
         .build()?;
 
-    by_lunar(lunar_request)
+    let chart = by_lunar(lunar_request)?;
+    Chart::try_new_with_four_pillars(
+        chart.birth_context().clone(),
+        chart.birth_year(),
+        Some(conversion.four_pillars()),
+        chart.method_profile().clone(),
+        chart.palaces().to_vec(),
+        chart.body_palace_branch(),
+        chart.five_element_bureau(),
+    )
 }

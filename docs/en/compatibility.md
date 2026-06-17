@@ -42,10 +42,11 @@ The committed fixture JSON files remain the compatibility source of truth.
 The current fixture-backed chart-generation surface includes:
 
 - typed `by_lunar` and `by_solar` request facades;
-- `lunar-lite` 0.3.1-backed solar-to-lunar conversion and normal-boundary four-pillar birth-year derivation for `by_solar`;
+- `lunar-lite` 1.0.0-backed solar-to-lunar conversion and normal-boundary four-pillar derivation for `by_solar`;
 - leap-month / `fix_leap` behavior for the supported slice;
 - upstream `timeIndex` `0..=12` rat-hour modeling through `BirthTime`;
 - retained birth-year `StemBranch`, twelve palace layout, Life Palace, Body Palace, palace stems, and five-element bureau;
+- optional factual natal `lunar_lite::FourPillars` retained on `by_solar` charts;
 - represented typed natal stars, supported brightness, and birth-year mutagens;
 - untyped decorative runtime star families;
 - branch-tagged typed temporal flow-star placements from explicit temporal contexts;
@@ -82,9 +83,11 @@ The upstream locale key `xunzhong` / `旬中` is intentionally excluded because 
 
 Birth time is represented by `BirthTime`, matching upstream `iztro` `timeIndex` values `0..=12`. `EarlyZi` (`0`) and `LateZi` (`12`) both project to `EarthlyBranch::Zi`, while branch-based request setters continue to map `Zi` to early Zi for backward compatibility.
 
-`by_solar` validates the Gregorian/solar date, converts it to Chinese-lunisolar facts through the internal `lunar-lite` adapter, derives the birth-year `StemBranch` through `lunar-lite` 0.3.1's `four_pillars_from_solar_date_with_options` with `YearDivide::Normal` and `MonthDivide::Normal`, sets `is_leap_month` and `fix_leap`, then delegates to `by_lunar`. It performs no chart construction of its own.
+`by_solar` validates the Gregorian/solar date, converts it to Chinese-lunisolar facts through the internal `lunar-lite` adapter, derives factual natal four pillars through `lunar-lite` 1.0.0's `four_pillars_from_solar_date_with_options` with `YearDivide::Normal` and `MonthDivide::Normal`, sets `is_leap_month` and `fix_leap`, delegates placement to `by_lunar`, and retains the resulting `lunar_lite::FourPillars` on `Chart`. It adds no placement logic of its own. The invariant is explicit: when `Chart::four_pillars()` is present, its year pillar equals `Chart::birth_year()`.
 
-`lunar-lite` owns the canonical low-level stem/branch and sexagenary-cycle primitives (`HeavenlyStem`, `EarthlyBranch`, `StemBranch`) that `core` re-exports. `core` owns Zi Wei-specific NaYin and five-element bureau logic.
+`by_lunar` remains conservative: it accepts explicit birth-year stem/branch facts, but it does not pretend to know month/day/hour pillars from lunar input alone, so `Chart::four_pillars()` is `None` for `by_lunar` charts in this slice. A future PR can decide whether `by_lunar` should accept explicit `FourPillars` or derive them through a normalized solar date.
+
+`lunar-lite` owns the canonical low-level stem/branch, sexagenary-cycle, and four-pillar primitives (`HeavenlyStem`, `EarthlyBranch`, `StemBranch`, `FourPillars`) that `core` re-exports. `core` owns Zi Wei-specific NaYin and five-element bureau logic.
 
 ## Horoscope layer models
 
@@ -142,7 +145,7 @@ Yearly `yearlyDecStar` (岁前/将前十二神) is modeled as yearly-scope tempo
 It preserves:
 
 - chart identity fields such as birth context and method profile;
-- birth-year stem-branch;
+- birth-year stem-branch and optional factual natal four pillars;
 - natal Life/Body Palace branches and five-element bureau;
 - conventional 12-palace visual grid positions;
 - a stacked layer model: natal layer first, then temporal layers;
@@ -198,7 +201,7 @@ Deferred surfaces include:
 
 - full upstream facade serialization parity;
 - full multilingual/i18n infrastructure and complete upstream localized-string parity (facade snapshots expose additive zh-CN labels only);
-- full BaZi output;
+- full BaZi interpretation/output beyond factual `by_solar` natal four pillars;
 - bindings;
 - feature extraction for temporal activation;
 - rules;

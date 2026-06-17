@@ -2,9 +2,10 @@
 //!
 //! This module maps `lunar-lite` date values onto the crate's own typed lunar
 //! facts, exposing only in-range month/day domain types to callers. The
-//! birth-year sexagenary pair is derived through lunar-lite's four-pillar API
-//! with the normal lunar-year boundary; its stem and branch (lunar-lite's own
-//! canonical [`HeavenlyStem`]/[`EarthlyBranch`]) flow straight through.
+//! four pillars are derived through lunar-lite's four-pillar API with the normal
+//! year/month boundaries; the year pillar (lunar-lite's own canonical
+//! [`HeavenlyStem`]/[`EarthlyBranch`] pair) flows straight through as the
+//! retained birth-year fact.
 //!
 //! The result is verified against pinned upstream `iztro@2.5.8`: `lunar-lite`
 //! returns the lunar-new-year-bounded year, month, leap-month flag, and day.
@@ -13,8 +14,9 @@
 //! converted lunar-year stem-branch even across the 立春/正月初一 window.
 
 use lunar_lite::{
-    EarthlyBranch, HeavenlyStem, LunarError, MonthDivide, SolarDate, StemBranchOptions, YearDivide,
-    four_pillars_from_solar_date_with_options, solar_to_lunar as convert_solar_to_lunar,
+    EarthlyBranch, FourPillars, HeavenlyStem, LunarError, MonthDivide, SolarDate,
+    StemBranchOptions, YearDivide, four_pillars_from_solar_date_with_options,
+    solar_to_lunar as convert_solar_to_lunar,
 };
 
 use crate::core::error::ChartError;
@@ -33,6 +35,7 @@ pub(crate) struct LunarConversion {
     is_leap_month: bool,
     birth_year_stem: HeavenlyStem,
     birth_year_branch: EarthlyBranch,
+    four_pillars: FourPillars,
 }
 
 impl LunarConversion {
@@ -65,6 +68,11 @@ impl LunarConversion {
     pub(crate) const fn birth_year_branch(&self) -> EarthlyBranch {
         self.birth_year_branch
     }
+
+    /// Returns the full four pillars derived with normal year/month boundaries.
+    pub(crate) const fn four_pillars(&self) -> FourPillars {
+        self.four_pillars
+    }
 }
 
 /// Converts a Gregorian/solar date to typed Chinese-lunisolar facts.
@@ -81,6 +89,7 @@ pub(crate) fn solar_to_lunar(
     year: i32,
     month: SolarMonth,
     day: SolarDay,
+    time_index: u8,
 ) -> Result<LunarConversion, ChartError> {
     let conversion_failed = || ChartError::CalendarConversionFailed {
         year,
@@ -98,7 +107,7 @@ pub(crate) fn solar_to_lunar(
         .map_err(|err| map_solar_conversion_error(err, year, month.value(), day.value()))?;
     let pillars = four_pillars_from_solar_date_with_options(
         solar,
-        0,
+        time_index,
         StemBranchOptions {
             year: YearDivide::Normal,
             month: MonthDivide::Normal,
@@ -116,6 +125,7 @@ pub(crate) fn solar_to_lunar(
         is_leap_month: lunar.is_leap_month,
         birth_year_stem: pillars.yearly.stem(),
         birth_year_branch: pillars.yearly.branch(),
+        four_pillars: pillars,
     })
 }
 
