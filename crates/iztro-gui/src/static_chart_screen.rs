@@ -38,9 +38,24 @@ pub fn view(app: &StaticChartApp) -> Element<'_, Message> {
 
 fn input_bar<'a>(form: &BirthForm, error: Option<&'a str>) -> Element<'a, Message> {
     let fields = row![
-        labeled("年", text_input("1990", &form.year).on_input(Message::YearChanged).width(70)),
-        labeled("月", text_input("5", &form.month).on_input(Message::MonthChanged).width(50)),
-        labeled("日", text_input("17", &form.day).on_input(Message::DayChanged).width(50)),
+        labeled(
+            "年",
+            text_input("1990", &form.year)
+                .on_input(Message::YearChanged)
+                .width(70)
+        ),
+        labeled(
+            "月",
+            text_input("5", &form.month)
+                .on_input(Message::MonthChanged)
+                .width(50)
+        ),
+        labeled(
+            "日",
+            text_input("17", &form.day)
+                .on_input(Message::DayChanged)
+                .width(50)
+        ),
         labeled(
             "时",
             pick_list(TIME_CHOICES, Some(TimeChoice(form.time_index)), |choice| {
@@ -62,17 +77,25 @@ fn input_bar<'a>(form: &BirthForm, error: Option<&'a str>) -> Element<'a, Messag
 
     let mut bar = column![fields].spacing(6);
     if let Some(message) = error {
-        bar = bar.push(text(format!("⚠ {message}")).style(error_text_style).size(14));
+        bar = bar.push(
+            text(format!("⚠ {message}"))
+                .style(error_text_style)
+                .size(14),
+        );
     }
     container(bar).into()
 }
 
 fn labeled<'a>(label: &'a str, control: impl Into<Element<'a, Message>>) -> Element<'a, Message> {
-    column![text(label).size(12), control.into()].spacing(2).into()
+    column![text(label).size(12), control.into()]
+        .spacing(2)
+        .into()
 }
 
 fn history_bar(history: &[BirthInput]) -> Element<'_, Message> {
-    let mut bar = row![text("历史:").size(13)].spacing(8).align_y(iced::Alignment::Center);
+    let mut bar = row![text("历史:").size(13)]
+        .spacing(8)
+        .align_y(iced::Alignment::Center);
     for (index, input) in history.iter().enumerate() {
         let label = format!("{}-{}-{}", input.year, input.month, input.day);
         bar = bar.push(
@@ -196,7 +219,10 @@ fn detail_panel(selected: Option<&StaticPalaceView>) -> Element<'_, Message> {
             text(format!("主星: {}", join_typed(&palace.major_stars))),
             text(format!("辅星: {}", join_typed(&palace.minor_stars))),
             text(format!("杂曜: {}", join_typed(&palace.adjective_stars))),
-            text(format!("神煞: {}", join_decorative(&palace.decorative_stars))),
+            text(format!(
+                "神煞: {}",
+                join_decorative(&palace.decorative_stars)
+            )),
         ]
         .spacing(3),
     };
@@ -306,8 +332,7 @@ impl fmt::Display for TimeChoice {
 #[derive(Clone, Copy, PartialEq, Eq)]
 struct GenderChoice(Gender);
 
-const GENDER_CHOICES: &[GenderChoice] =
-    &[GenderChoice(Gender::Female), GenderChoice(Gender::Male)];
+const GENDER_CHOICES: &[GenderChoice] = &[GenderChoice(Gender::Female), GenderChoice(Gender::Male)];
 
 impl fmt::Display for GenderChoice {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {

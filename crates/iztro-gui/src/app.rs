@@ -359,7 +359,9 @@ fn build_snapshot(input: &BirthInput) -> Result<StaticChartViewSnapshot, ChartEr
         .solar_year(input.year)
         .solar_month(SolarMonth::new(input.month)?)
         .solar_day(SolarDay::new(input.day)?)
-        .birth_time_variant(iztro::core::BirthTime::from_iztro_time_index(input.time_index)?)
+        .birth_time_variant(iztro::core::BirthTime::from_iztro_time_index(
+            input.time_index,
+        )?)
         .gender(input.gender)
         .method_profile(MethodProfile::new(
             "iztro_gui",

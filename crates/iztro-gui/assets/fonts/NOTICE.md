@@ -1,7 +1,9 @@
 # Bundled font
 
-`DroidSansFallbackFull.ttf` — "Droid Sans Fallback", a CJK-capable fallback
-font, distributed under the Apache License 2.0. It is bundled so the GUI renders
-Chinese palace and star labels without relying on platform font fallback.
+`SourceHanSerifSC-Regular.otf` — Source Han Serif SC / 思源宋体 Regular.
 
-Apache License 2.0: https://www.apache.org/licenses/LICENSE-2.0
+This font is licensed under the SIL Open Font License 1.1. The license text is
+included in `LICENSE-SourceHanSerif.txt`.
+
+The font is bundled so Chinese palace and star labels render without relying on
+platform font fallback.
