@@ -17,8 +17,8 @@ use common::{
 };
 use iztro::core::{
     HoroscopeChart, HoroscopeFacadeSnapshot, HoroscopeRuntime, HoroscopeStackInput,
-    HoroscopeSupportedFieldsSnapshot, NatalFacadeSnapshot, PalaceName, Scope, SolarDay, SolarMonth,
-    build_full_horoscope_chart,
+    HoroscopeSupportedFieldsSnapshot, NatalFacadePalaceRole, NatalFacadeSnapshot, PalaceName,
+    Scope, SolarDay, SolarMonth, build_full_horoscope_chart,
 };
 use serde_json::{Value, json};
 
@@ -165,6 +165,145 @@ fn facade_astrolabe_does_not_leak_temporal_facts() {
             );
         }
     }
+}
+
+#[test]
+fn facade_snapshot_accessors_expose_serialized_facts() {
+    let case = horoscope_facade_fixture_cases()
+        .into_iter()
+        .next()
+        .expect("facade fixture case");
+    let chart = build_chart_from_horoscope_fixture_case(&case);
+    let horoscope =
+        build_full_horoscope_chart(chart, stack_input(&case)).expect("full horoscope stack");
+    let snapshot = HoroscopeFacadeSnapshot::from_horoscope_chart(&horoscope)
+        .expect("facade snapshot should build");
+    let natal = horoscope.natal();
+
+    let facade_json = serde_json::to_value(&snapshot).expect("facade should serialize");
+    let supported_json =
+        serde_json::to_value(snapshot.supported_fields()).expect("supported should serialize");
+    for scope in SUPPORTED_SCOPES {
+        assert_eq!(facade_json[scope], supported_json[scope]);
+    }
+
+    let context = snapshot.context();
+    assert!(context.solar_date().is_some());
+    assert_eq!(
+        context.lunar_date(),
+        horoscope.target_context().unwrap().lunar_date()
+    );
+    assert_eq!(context.time_index(), Some(target_time_index(&case)));
+
+    let astrolabe = snapshot.astrolabe();
+    assert_eq!(astrolabe.gender(), natal.birth_context().gender());
+    assert_eq!(astrolabe.birth_year_stem(), natal.birth_year().stem());
+    assert_eq!(astrolabe.birth_year_branch(), natal.birth_year().branch());
+    assert_eq!(astrolabe.five_element_bureau(), natal.five_element_bureau());
+    assert_eq!(
+        astrolabe.life_palace_branch(),
+        natal.life_palace().map(|palace| palace.branch())
+    );
+    assert_eq!(astrolabe.body_palace_branch(), natal.body_palace_branch());
+
+    let body_palace = astrolabe
+        .palaces()
+        .iter()
+        .find(|palace| palace.branch() == astrolabe.body_palace_branch().unwrap())
+        .expect("body palace snapshot");
+    assert_eq!(body_palace.stem(), natal.body_palace().unwrap().stem());
+    assert!(
+        body_palace
+            .roles()
+            .contains(&NatalFacadePalaceRole::NatalBodyPalace)
+    );
+
+    let populated_palace = astrolabe
+        .palaces()
+        .iter()
+        .find(|palace| !palace.typed_stars().is_empty() && !palace.decorative_stars().is_empty())
+        .expect("palace with natal stars");
+    let natal_palace = natal
+        .palaces()
+        .iter()
+        .find(|palace| palace.branch() == populated_palace.branch())
+        .expect("matching natal palace");
+    assert_eq!(populated_palace.name(), natal_palace.name());
+    assert_eq!(populated_palace.stem(), natal_palace.stem());
+
+    let typed_star = &populated_palace.typed_stars()[0];
+    assert_eq!(typed_star.scope(), Scope::Natal);
+    assert_eq!(typed_star.category(), typed_star.kind().category());
+    assert!(
+        natal
+            .stars()
+            .iter()
+            .any(|fact| fact.placement().name() == typed_star.name()
+                && fact.placement().brightness() == typed_star.brightness()
+                && fact.placement().mutagen() == typed_star.mutagen())
+    );
+
+    let decorative_star = &populated_palace.decorative_stars()[0];
+    assert_eq!(decorative_star.scope(), Scope::Natal);
+    assert!(
+        natal
+            .decorative_stars()
+            .iter()
+            .any(|fact| fact.name() == decorative_star.name()
+                && fact.placement().family() == decorative_star.family())
+    );
+
+    let yearly_projection = snapshot
+        .palace_projections()
+        .iter()
+        .find(|projection| projection.scope() == Scope::Yearly)
+        .expect("yearly projection");
+    assert_eq!(yearly_projection.requested_palace_name(), PalaceName::Life);
+    assert_eq!(
+        yearly_projection.natal_palace_stem(),
+        natal
+            .palaces()
+            .iter()
+            .find(|palace| palace.branch() == yearly_projection.branch())
+            .unwrap()
+            .stem()
+    );
+    assert!(!yearly_projection.natal_typed_stars().is_empty());
+    assert!(!yearly_projection.natal_decorative_stars().is_empty());
+    assert!(yearly_projection.temporal_palace_name().is_some());
+    assert!(!yearly_projection.temporal_stars().is_empty());
+    let _ = yearly_projection.temporal_decorative_stars();
+
+    let surround = snapshot
+        .surround_palaces()
+        .iter()
+        .find(|surround| surround.scope() == Scope::Yearly)
+        .expect("yearly surround");
+    assert_eq!(surround.requested_palace_name(), PalaceName::Life);
+    let projections = [
+        surround.target(),
+        surround.opposite(),
+        surround.wealth(),
+        surround.career(),
+    ];
+    assert!(
+        projections
+            .iter()
+            .any(|projection| { !projection.temporal_mutagen_activations().is_empty() })
+    );
+    let activation = projections
+        .iter()
+        .flat_map(|projection| projection.temporal_mutagen_activations())
+        .next()
+        .expect("temporal mutagen activation in surround");
+    assert!(natal.star(activation.target_star()).is_some());
+    assert!(matches!(
+        activation.mutagen(),
+        iztro::core::Mutagen::Lu
+            | iztro::core::Mutagen::Quan
+            | iztro::core::Mutagen::Ke
+            | iztro::core::Mutagen::Ji
+    ));
 }
 
 #[test]
