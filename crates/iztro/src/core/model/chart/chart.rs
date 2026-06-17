@@ -69,13 +69,13 @@ impl Chart {
             });
         }
 
-        if let Some(pillars) = four_pillars
-            && pillars.yearly != birth_year
-        {
-            return Err(ChartError::FourPillarsBirthYearMismatch {
-                birth_year,
-                four_pillars_year: pillars.yearly,
-            });
+        if let Some(pillars) = four_pillars {
+            if pillars.yearly != birth_year {
+                return Err(ChartError::FourPillarsBirthYearMismatch {
+                    birth_year,
+                    four_pillars_year: pillars.yearly,
+                });
+            }
         }
 
         Ok(Self {
