@@ -112,6 +112,19 @@ lunar-lite 历法 normalizer按真实历法解析；公开 API 不暴露 calenda
 `crates/iztro/fixtures/iztro/horoscope_runtime.json` 对齐 `iztro@2.5.8`。
 这些 helper 只查询/投影已有模型事实，不修改本命盘、不复制本命星曜到时间层，也不改变安星语义。
 
+`HoroscopeFacadeSnapshot` 是可序列化的 facade/导出层，而非新的引擎层。
+`HoroscopeFacadeSnapshot::from_horoscope_chart` 把已建模的事实组合成一个确定性载荷，
+更接近上游 `FunctionalAstrolabe#horoscope` 形状：它原样复用 `HoroscopeSupportedFieldsSnapshot`
+的大限/小限/流年/流月/流日/流时分块（扁平化到顶层），加入流年/流月/流日层保留的目标农历日期
+`context`，并复用 `HoroscopeRuntime` 生成 `age_palace`、`palace_projections` 与
+`surround_palaces` 的命宫投影——每个投影都保持本命与时间性事实分离（本命宫名/宫干/星曜与
+该期的时间性宫名、时间性星曜、时间性四化分开）。它以 `horoscope_facade.json` 校验，不新增任何
+安星逻辑，并明确标注延期字段：上游本地化 `lunarDate` 字符串、`solarDate` 字符串与目标时辰序号
+均未保留在 `HoroscopeChart` 上，因此被省略而非重算；重新嵌入的完整本命 astrolabe 载荷、
+runtime 查询助手以及完整上游 package 对齐同样延期。它建立在 `HoroscopeChart`、
+`HoroscopeSupportedFieldsSnapshot` 与 `HoroscopeRuntime` 之上，更接近上游
+`FunctionalAstrolabe#horoscope` 载荷形状，但仍**不是**完整 package 对齐。
+
 ## 运限层模型
 
 `core` 定义了仅模型的运限叠加层：`HoroscopeChart` 包裹不可变的本命 `Chart`，
@@ -226,7 +239,7 @@ scope-generic 算法为大限、流年、流月、流日、流时安放十颗 ma
 四化仍是 `Mutagen` / `MutagenActivation` 事实，永远不是 `StarName` variants。
 最小 `by_solar`（`lunar-lite` 支持的阳历转农历）、已支持 `by_lunar`/`by_solar` 切片的
 fixture 支持闰月行为，以及 `BirthTime`/`timeIndex` `0..=12` 早晚子时变体现已实现
-（见[公开 facade 兼容性](#公开-facade-兼容性)）。完整八字输出、完整 facade 载荷对齐、bindings、特征提取、规则与叙事仍然延期。完整 horoscope stack 组装现已实现（`build_full_horoscope_chart`），流年层并附带 `yearlyDecStar`，可通过 `HoroscopeSupportedFieldsSnapshot` 导出规范化 supported-fields 快照，并可通过 `HoroscopeRuntime` 使用已类型化的 runtime helper；这些仍仅覆盖已支持事实面。
+（见[公开 facade 兼容性](#公开-facade-兼容性)）。完整八字输出、完整 facade 载荷对齐、bindings、特征提取、规则与叙事仍然延期。完整 horoscope stack 组装现已实现（`build_full_horoscope_chart`），流年层并附带 `yearlyDecStar`，可通过 `HoroscopeSupportedFieldsSnapshot` 导出规范化 supported-fields 快照，通过 `HoroscopeRuntime` 使用已类型化的 runtime helper，并可通过 `HoroscopeFacadeSnapshot` 把它们组合为一个上游风格、可序列化的 horoscope 载荷（更接近 `FunctionalAstrolabe#horoscope` 形状，但仍非完整 package 对齐）；这些仍仅覆盖已支持事实面。
 
 ## 当前 fixtures
 
@@ -251,6 +264,8 @@ fixtures 为：
 - `crates/iztro/fixtures/iztro/runtime_decorative_zhongzhou_1991_08_09_hai_female.json`
 - `crates/iztro/fixtures/iztro/flow_stars.json`
 - `crates/iztro/fixtures/iztro/horoscope.json`
+- `crates/iztro/fixtures/iztro/horoscope_runtime.json`
+- `crates/iztro/fixtures/iztro/horoscope_facade.json`
 - `crates/iztro/fixtures/iztro/e2e_supported_by_lunar.json`
 - `crates/iztro/fixtures/iztro/e2e_supported_by_solar.json`
 - `crates/iztro/fixtures/iztro/leap_month_by_lunar.json`

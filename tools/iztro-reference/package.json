@@ -12,6 +12,7 @@
     "dump:runtime-star-families": "node scripts/dump-runtime-star-families.mjs",
     "dump:horoscope": "node scripts/dump-horoscope-fixtures.mjs",
     "dump:horoscope-runtime": "node scripts/dump-horoscope-runtime-fixtures.mjs",
+    "dump:horoscope-facade": "node scripts/dump-horoscope-facade-fixtures.mjs",
     "dump:e2e-supported": "node scripts/dump-e2e-supported-fixtures.mjs",
     "dump:e2e-supported-by-solar": "node scripts/dump-e2e-supported-by-solar-fixtures.mjs",
     "dump:leap-month": "node scripts/dump-leap-month-fixtures.mjs",
