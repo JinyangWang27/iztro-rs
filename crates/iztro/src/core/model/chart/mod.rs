@@ -36,8 +36,9 @@ pub use facade_snapshot::{
     HoroscopeProjectionMutagenActivationSnapshot, HoroscopeSurroundPalacesSnapshot,
 };
 pub use horoscope::{
-    HoroscopeChart, MutagenActivation, ScopedDecorativeStarPlacement, ScopedStarPlacement,
-    TemporalContext, TemporalLayer, TemporalPalaceLayout, TemporalPalaceName,
+    HoroscopeChart, HoroscopeLunarDate, HoroscopeSolarDate, HoroscopeTargetContext,
+    MutagenActivation, ScopedDecorativeStarPlacement, ScopedStarPlacement, TemporalContext,
+    TemporalLayer, TemporalPalaceLayout, TemporalPalaceName,
 };
 pub use hourly::{HourlyPeriod, build_hourly_period};
 pub use monthly::{MonthlyPeriod, build_monthly_period};

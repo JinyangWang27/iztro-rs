@@ -1,10 +1,10 @@
 {
   "target": "iztro@2.5.8",
-  "description": "Upstream iztro@2.5.8 horoscope facade reference. Captures the serializable HoroscopeFacadeSnapshot surface: the target lunar-date context the modeled temporal layers retain, plus the Life-palace (命宫) runtime projections (agePalace, palace, surroundPalaces) across each modeled scope. The decadal/age/yearly/monthly/daily/hourly supported-field blocks are reused from horoscope.json and are not duplicated here. The localized lunarDate string, the solarDate string, the target time index, and the re-embedded natal astrolabe remain deferred.",
-  "generated_at": "2026-06-16T00:00:00Z",
+  "description": "Upstream iztro@2.5.8 horoscope facade reference. Captures the serializable HoroscopeFacadeSnapshot surface: the numeric target solar/lunar/time context retained by the modeled full horoscope stack, plus the Life-palace (命宫) runtime projections (agePalace, palace, surroundPalaces) across each modeled scope. The decadal/age/yearly/monthly/daily/hourly supported-field blocks are reused from horoscope.json and are not duplicated here. The localized lunarDate and solarDate strings, plus the re-embedded natal astrolabe remain deferred.",
+  "generated_at": "2026-06-17T00:00:00Z",
   "generation_command": "npm ci --prefix tools/iztro-reference && node tools/iztro-reference/scripts/dump-horoscope-facade-fixtures.mjs --write",
   "deferred": [
-    "lunarDate (localized string) / solarDate (string) / target time index (not retained on HoroscopeChart)",
+    "lunarDate (localized string) / solarDate (localized/string facade field)",
     "astrolabe (the full natal chart re-embedded in the horoscope result)",
     "hasHoroscopeStars / notHaveHoroscopeStars / hasOneOfHoroscopeStars / hasHoroscopeMutagen (query helpers)"
   ],
@@ -30,9 +30,18 @@
       },
       "facade": {
         "context": {
-          "target_lunar_year": 2026,
-          "target_lunar_month": 5,
-          "target_lunar_day": 17
+          "solar_date": {
+            "year": 2026,
+            "month": 7,
+            "day": 1
+          },
+          "lunar_date": {
+            "year": 2026,
+            "month": 5,
+            "day": 17,
+            "is_leap_month": false
+          },
+          "time_index": 2
         },
         "age_palace": {
           "scope": "age",
@@ -954,9 +963,18 @@
       },
       "facade": {
         "context": {
-          "target_lunar_year": 2034,
-          "target_lunar_month": 5,
-          "target_lunar_day": 16
+          "solar_date": {
+            "year": 2034,
+            "month": 7,
+            "day": 1
+          },
+          "lunar_date": {
+            "year": 2034,
+            "month": 5,
+            "day": 16,
+            "is_leap_month": false
+          },
+          "time_index": 2
         },
         "age_palace": {
           "scope": "age",
@@ -1862,9 +1880,18 @@
       },
       "facade": {
         "context": {
-          "target_lunar_year": 2026,
-          "target_lunar_month": 5,
-          "target_lunar_day": 17
+          "solar_date": {
+            "year": 2026,
+            "month": 7,
+            "day": 1
+          },
+          "lunar_date": {
+            "year": 2026,
+            "month": 5,
+            "day": 17,
+            "is_leap_month": false
+          },
+          "time_index": 2
         },
         "age_palace": {
           "scope": "age",
@@ -2787,9 +2814,18 @@
       },
       "facade": {
         "context": {
-          "target_lunar_year": 2026,
-          "target_lunar_month": 5,
-          "target_lunar_day": 17
+          "solar_date": {
+            "year": 2026,
+            "month": 7,
+            "day": 1
+          },
+          "lunar_date": {
+            "year": 2026,
+            "month": 5,
+            "day": 17,
+            "is_leap_month": false
+          },
+          "time_index": 2
         },
         "age_palace": {
           "scope": "age",
