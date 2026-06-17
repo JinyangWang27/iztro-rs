@@ -309,6 +309,23 @@ These facade fixtures are supported-field-only and exclude temporal flow stars
 horoscope palace-name derivation, temporal decorative arrays, features, rules,
 and narrative.
 
+## Static chart view golden fixture
+
+`static_chart_view_1990_05_17_chen_female.json` is **not** an upstream-reference
+fixture: it is a self-generated golden capturing the serialized
+`StaticChartViewSnapshot::from_chart` for the lunar canonical case
+(`1990_05_17_chen_female`). It records the renderer-neutral GUI view model —
+center panel, twelve perimeter palaces with grid positions, zh-CN labels,
+category-grouped stars, scope selectors, and the (currently always empty)
+highlight list. It carries no top-level `input` block, so the fixture-case
+registry drift check skips it, and no upstream `iztro` data.
+
+Regenerate it after an intentional view-model change with:
+
+```bash
+cargo test -p iztro --test static_chart_view -- --ignored regenerate_fixture
+```
+
 ## Major-star fixture
 
 `major_stars_1990_05_17_chen_female.json` covers the fourteen major stars

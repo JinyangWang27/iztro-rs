@@ -191,6 +191,13 @@
       "birth_cases": [],
       "algorithms": ["default"],
       "covers": ["timeIndex 0..=12 early/late Zi rat-hour behavior"]
+    },
+    {
+      "file": "static_chart_view_1990_05_17_chen_female.json",
+      "category": "natal",
+      "birth_cases": ["1990_05_17_chen_female"],
+      "algorithms": ["default"],
+      "covers": ["self-generated golden: serialized StaticChartViewSnapshot::from_chart (natal-only renderer-neutral view model with zh-CN labels, grid positions, grouped stars, scope selectors, empty highlights)"]
     }
   ]
 }
