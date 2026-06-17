@@ -34,8 +34,8 @@ pub use decadal::{DecadalDirection, DecadalFrame, DecadalPeriod, build_decadal_f
 pub use facade_snapshot::{
     HoroscopeFacadeContext, HoroscopeFacadeSnapshot, HoroscopePalaceProjectionSnapshot,
     HoroscopeProjectionMutagenActivationSnapshot, HoroscopeSurroundPalacesSnapshot,
-    NatalFacadeDecorativeStarSnapshot, NatalFacadePalaceRole, NatalFacadePalaceSnapshot,
-    NatalFacadeSnapshot, NatalFacadeTypedStarSnapshot,
+    NatalFacadeDecorativeStarSnapshot, NatalFacadeFourPillarsSnapshot, NatalFacadePalaceRole,
+    NatalFacadePalaceSnapshot, NatalFacadeSnapshot, NatalFacadeTypedStarSnapshot,
 };
 pub use horoscope::{
     HoroscopeChart, HoroscopeLunarDate, HoroscopeSolarDate, HoroscopeTargetContext,

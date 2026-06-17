@@ -17,7 +17,7 @@ The supported natal chart fact surface currently includes:
 - leap-month and `fix_leap` handling for the supported slice;
 - `BirthTime` / upstream `timeIndex` `0..=12`, including early Zi and late Zi;
 - retained `Chart::birth_year()` stem-branch fact;
-- retained optional `Chart::four_pillars()` natal fact for `by_solar` charts, using `lunar_lite::FourPillars` directly;
+- retained optional `Chart::four_pillars()` natal fact for `by_solar` charts, using `lunar_lite::FourPillars` directly, also exposed through the facade snapshots as `NatalFacadeSnapshot::four_pillars()`;
 - twelve palace layout;
 - Life Palace and Body Palace branches;
 - palace heavenly stems;
@@ -40,6 +40,8 @@ The supported natal chart fact surface currently includes:
 - serializable `HoroscopeFacadeSnapshot` export (`HoroscopeFacadeSnapshot::from_horoscope_chart`), fixture-backed against `crates/iztro/fixtures/iztro/horoscope_facade.json`: an upstream-like horoscope payload built from `HoroscopeChart`, `HoroscopeSupportedFieldsSnapshot`, `NatalFacadeSnapshot`, and `HoroscopeRuntime`. It reuses the supported-field scope blocks, embeds a minimal model-derived natal `astrolabe`, adds retained numeric target context (`solar_date`, `lunar_date` with `is_leap_month`, and `time_index`) when the chart was built by `build_full_horoscope_chart`, and exposes the Life-palace `age_palace` / `palace_projections` / `surround_palaces` projections. It is closer to the upstream `FunctionalAstrolabe#horoscope` payload shape but is **not** full package parity — complete upstream astrolabe helpers/localized labels, localized `lunarDate`/`solarDate` strings, BaZi strings, and the runtime query helpers remain deferred and are explicitly omitted.
 
 `by_solar` now attaches factual natal four pillars to `Chart` through `Chart::four_pillars()`, derived by `lunar-lite` with the same normal year/month boundary semantics already used for birth-year derivation. `by_lunar` remains conservative: it only receives an explicit birth-year stem/branch today, so `Chart::four_pillars()` is `None` for `by_lunar` charts until a later PR decides whether to accept explicit `FourPillars` or derive them from a normalized solar date. Full BaZi interpretation remains deferred; this implemented surface is only 年柱/月柱/日柱/时柱 fact retention.
+
+Those factual natal four pillars are now also exported through the facade snapshots. `NatalFacadeSnapshot` carries an optional `NatalFacadeFourPillarsSnapshot` (`four_pillars`) reusing `lunar_lite::FourPillars` as the underlying fact: each pillar stays a machine-readable `StemBranch` with an additive conventional zh-CN `*_zh` label. The field is `Some(..)` for `by_solar`-derived charts (its year pillar equals `Chart::birth_year()`) and omitted/`None` for `by_lunar`-derived charts, which stay honest about unsupported full pillars. `HoroscopeFacadeSnapshot` carries the same facts through its embedded natal `astrolabe`. This is a factual export only: 十神, 藏干, 五行 scoring, 喜用神, 成格, readings, and the rest of full BaZi interpretation remain deferred and are intentionally absent.
 
 Default/non-Zhongzhou natal output remains 66 typed natal stars. Zhongzhou natal output remains 68 typed natal stars. `represented_star_metadata_table().len() == 70` stays natal-only, while `known_star_metadata_table().len() == 170` inventories the broader upstream runtime star-name universe.
 

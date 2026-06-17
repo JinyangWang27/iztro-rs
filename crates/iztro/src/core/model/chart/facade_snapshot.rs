@@ -47,7 +47,7 @@ use crate::core::{
         },
     },
 };
-use lunar_lite::{EarthlyBranch, HeavenlyStem};
+use lunar_lite::{EarthlyBranch, FourPillars, HeavenlyStem, StemBranch};
 use serde::{Deserialize, Serialize};
 
 /// Scopes the facade projects the Life palace through, mirroring the upstream
@@ -151,8 +151,15 @@ impl HoroscopeFacadeSnapshot {
 ///
 /// This is not the full upstream `astrolabe` object. It contains only stable
 /// natal facts already modeled by [`Chart`] and deliberately excludes temporal
-/// overlays, BaZi strings, runtime query helpers, decadal ranges, age arrays,
-/// render data, rules, and readings.
+/// overlays, runtime query helpers, decadal ranges, age arrays, render data,
+/// rules, and readings.
+///
+/// The optional `four_pillars` field carries the factual natal four pillars
+/// (年柱/月柱/日柱/时柱) retained on [`Chart::four_pillars`]. It is present for
+/// `by_solar`-derived charts and absent (`None`) for `by_lunar`-derived charts,
+/// which do not derive full pillars today. It is strictly a factual export: full
+/// BaZi interpretation (十神, 藏干, 五行 scoring, 喜用神, 成格, readings) remains
+/// deferred and is intentionally absent.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct NatalFacadeSnapshot {
     gender: Gender,
@@ -165,6 +172,8 @@ pub struct NatalFacadeSnapshot {
     life_palace_branch_zh: Option<String>,
     body_palace_branch: Option<EarthlyBranch>,
     body_palace_branch_zh: Option<String>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    four_pillars: Option<NatalFacadeFourPillarsSnapshot>,
     palaces: Vec<NatalFacadePalaceSnapshot>,
 }
 
@@ -186,6 +195,9 @@ impl NatalFacadeSnapshot {
             body_palace_branch,
             body_palace_branch_zh: body_palace_branch
                 .map(|branch| zh_cn::earthly_branch_zh(branch).to_owned()),
+            four_pillars: chart
+                .four_pillars()
+                .map(NatalFacadeFourPillarsSnapshot::from_four_pillars),
             palaces: chart
                 .palaces()
                 .iter()
@@ -244,9 +256,90 @@ impl NatalFacadeSnapshot {
         self.body_palace_branch_zh.as_deref()
     }
 
+    /// Returns the factual natal four pillars, if the chart retains them.
+    ///
+    /// Present for `by_solar`-derived charts; `None` for `by_lunar`-derived
+    /// charts, which do not derive full pillars today.
+    pub const fn four_pillars(&self) -> Option<&NatalFacadeFourPillarsSnapshot> {
+        self.four_pillars.as_ref()
+    }
+
     /// Returns the natal palace snapshots in chart order.
     pub fn palaces(&self) -> &[NatalFacadePalaceSnapshot] {
         &self.palaces
+    }
+}
+
+/// Factual natal four-pillar (四柱) DTO for the facade astrolabe.
+///
+/// Reuses [`lunar_lite::FourPillars`] as the underlying fact: each pillar is a
+/// machine-readable [`StemBranch`] with an additive conventional Chinese label.
+/// This is a factual export only — it carries no 十神, 藏干, 五行 scoring, 喜用神,
+/// 成格, readings, or any other BaZi interpretation, all of which remain deferred.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct NatalFacadeFourPillarsSnapshot {
+    yearly: StemBranch,
+    yearly_zh: String,
+    monthly: StemBranch,
+    monthly_zh: String,
+    daily: StemBranch,
+    daily_zh: String,
+    hourly: StemBranch,
+    hourly_zh: String,
+}
+
+impl NatalFacadeFourPillarsSnapshot {
+    fn from_four_pillars(pillars: &FourPillars) -> Self {
+        Self {
+            yearly: pillars.yearly,
+            yearly_zh: zh_cn::stem_branch_zh(pillars.yearly),
+            monthly: pillars.monthly,
+            monthly_zh: zh_cn::stem_branch_zh(pillars.monthly),
+            daily: pillars.daily,
+            daily_zh: zh_cn::stem_branch_zh(pillars.daily),
+            hourly: pillars.hourly,
+            hourly_zh: zh_cn::stem_branch_zh(pillars.hourly),
+        }
+    }
+
+    /// Returns the year pillar (年柱).
+    pub const fn yearly(&self) -> StemBranch {
+        self.yearly
+    }
+
+    /// Returns the Chinese label for the year pillar.
+    pub fn yearly_zh(&self) -> &str {
+        &self.yearly_zh
+    }
+
+    /// Returns the month pillar (月柱).
+    pub const fn monthly(&self) -> StemBranch {
+        self.monthly
+    }
+
+    /// Returns the Chinese label for the month pillar.
+    pub fn monthly_zh(&self) -> &str {
+        &self.monthly_zh
+    }
+
+    /// Returns the day pillar (日柱).
+    pub const fn daily(&self) -> StemBranch {
+        self.daily
+    }
+
+    /// Returns the Chinese label for the day pillar.
+    pub fn daily_zh(&self) -> &str {
+        &self.daily_zh
+    }
+
+    /// Returns the hour pillar (时柱).
+    pub const fn hourly(&self) -> StemBranch {
+        self.hourly
+    }
+
+    /// Returns the Chinese label for the hour pillar.
+    pub fn hourly_zh(&self) -> &str {
+        &self.hourly_zh
     }
 }
 
