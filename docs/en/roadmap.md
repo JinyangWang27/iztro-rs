@@ -41,7 +41,7 @@ This roadmap is intentionally conservative. The project should first establish s
 - [x] Retain birth-year `StemBranch` as a reusable natal `Chart` fact.
 - [x] Add renderer-neutral `ChartStackSnapshot` read model.
 
-Decadal, age, and horoscope models are defined as typed facts and overlays. `build_decadal_frame` derives the 12-period 大限 frame from natal chart facts, `build_age_period` derives a single fixture-backed 小限 period from nominal age, and `HoroscopeChart` wraps an immutable natal `Chart` with zero or more `TemporalLayer`s plus optional retained target context. Each layer has a non-natal `Scope`, a typed `TemporalContext`, scoped `StarPlacement`s, `MutagenActivation`s, and optional branch-keyed `ScopedDecorativeStarPlacement`s. `build_full_horoscope_chart` composes the decadal, age, yearly, monthly, daily, and hourly layers into one stack for the supported fact surface, retains numeric target solar/lunar/time context, and the yearly layer carries `yearlyDecStar` as yearly-scope temporal decorative facts. `HoroscopeSupportedFieldsSnapshot` exports that implemented fact surface in the fixture-normalized supported-field shape, `HoroscopeRuntime` exposes typed runtime helper projections and queries, and `HoroscopeFacadeSnapshot` combines both, the retained numeric target context, and a minimal `NatalFacadeSnapshot` as `astrolabe` into one upstream-like, serializable horoscope payload. Full upstream package parity — complete astrolabe helper/query methods, localized labels, localized date strings, and BaZi — remains deferred.
+Decadal, age, and horoscope models are defined as typed facts and overlays. `build_decadal_frame` derives the 12-period 大限 frame from natal chart facts, `build_age_period` derives a single fixture-backed 小限 period from nominal age, and `HoroscopeChart` wraps an immutable natal `Chart` with zero or more `TemporalLayer`s plus optional retained target context. Each layer has a non-natal `Scope`, a typed `TemporalContext`, scoped `StarPlacement`s, `MutagenActivation`s, and optional branch-keyed `ScopedDecorativeStarPlacement`s. `build_full_horoscope_chart` composes the decadal, age, yearly, monthly, daily, and hourly layers into one stack for the supported fact surface, retains numeric target solar/lunar/time context, and the yearly layer carries `yearlyDecStar` as yearly-scope temporal decorative facts. `HoroscopeSupportedFieldsSnapshot` exports that implemented fact surface in the fixture-normalized supported-field shape, `HoroscopeRuntime` exposes typed runtime helper projections and queries, and `HoroscopeFacadeSnapshot` combines both, the retained numeric target context, and a minimal `NatalFacadeSnapshot` as `astrolabe` into one upstream-like, serializable horoscope payload. The natal facade `astrolabe` snapshots additionally expose conventional Chinese (zh-CN) labels as additive `*_zh` fields via the deterministic `core::labels::zh_cn` lookups, while internal models stay language-neutral. Full upstream package parity — complete astrolabe helper/query methods, full multilingual/i18n infrastructure and complete upstream localized-string parity, localized date strings, and BaZi — remains deferred.
 
 The current temporal algorithms include decadal-frame derivation, age-period derivation, monthly-period derivation, daily-period derivation, hourly-period derivation, yearly/decadal mutagen layers, scope-generic flow-star placement for the flow-star scopes, decadal temporal palace-name layout, age temporal palace-name layout, and composed monthly, daily, and hourly layer assembly. The selected decadal, age, monthly, daily, and hourly layers carry `TemporalPalaceLayout` values of 12 branch-keyed temporal palace names. Age is explicit non-natal temporal scope/context/layer-kind support only: it does not add scoped flow stars. The mutagen and flow-star builders are overlays only: no natal mutation and no interpretation. `build_full_horoscope_chart` assembles these overlays into one full stack without mutating natal facts or duplicating natal stars. 四化 stay modeled as `MutagenActivation` facts, not independent stars.
 
@@ -87,12 +87,15 @@ Current supported chart-generation slice: `by_lunar` accepts explicit lunar inpu
 - [x] Add `render` crate.
 - [x] Add deterministic plain text chart-stack renderer.
 - [x] Add runnable plain text demo from real `by_solar` input.
+- [ ] Add GUI-ready static chart view model for one selected natal/temporal projection.
+- [ ] Add renderer-neutral highlight annotation DTOs, initially empty/reserved until feature/rule layers can populate them.
 - [ ] Add richer 2D palace-grid renderer.
+- [ ] Add 文墨天机-style static chart GUI/WASM prototype consuming the static chart view model.
 - [ ] Add CLI integration for rendering.
-- [ ] Add GUI/WASM/TUI frontends.
+- [ ] Add timeline frame builder that treats static chart view models as reusable time slices.
 - [ ] Add optional 3D stacked temporal view.
 
-The render layer consumes `ChartStackSnapshot`; it must not generate chart facts, derive temporal periods, evaluate rules, or produce interpretation. A future 文墨天机-style GUI should select temporal contexts and render a stack/projection, not mutate the natal chart.
+The render layer consumes snapshots and view models; it must not generate chart facts, derive temporal periods, evaluate rules, or produce interpretation. A future 文墨天机-style GUI should first reproduce the static 12-palace chart from a renderer-neutral static chart view model. That same static view model should later serve as one frame in a temporal sequence, allowing a 3D frontend to place frames along a time axis without changing core chart-generation logic.
 
 ## Phase 5: Feature extraction
 
@@ -102,8 +105,9 @@ The render layer consumes `ChartStackSnapshot`; it must not generate chart facts
 - [x] Extract palace relations, triads, and oppositions.
 - [ ] Add strength-score placeholders.
 - [ ] Add temporal activation interfaces.
+- [ ] Add pattern-hit interfaces suitable for later 成格 and highlight annotations.
 
-First slice implemented: `BasicFeatureExtractor` (`features`) converts deterministic chart facts into structured palace features, star features, natal mutagen flows, and cyclic palace relations. Star features preserve all placed star facts; the palace/domain mapping is optional metadata and is currently limited to five direct palace-domain mappings (Life, Career, Wealth, Spouse, Health), so stars elsewhere carry no domain. This is feature extraction only — no rule matching, no claims, no interpretation, and no narrative. Strength scoring and temporal activation interfaces remain deferred.
+First slice implemented: `BasicFeatureExtractor` (`features`) converts deterministic chart facts into structured palace features, star features, natal mutagen flows, and cyclic palace relations. Star features preserve all placed star facts; the palace/domain mapping is optional metadata and is currently limited to five direct palace-domain mappings (Life, Career, Wealth, Spouse, Health), so stars elsewhere carry no domain. This is feature extraction only — no rule matching, no claims, no interpretation, and no narrative. Strength scoring, temporal activation interfaces, and pattern-hit interfaces remain deferred.
 
 ## Phase 6: Rule engine skeleton
 
@@ -111,7 +115,10 @@ First slice implemented: `BasicFeatureExtractor` (`features`) converts determini
 - [ ] Load rules from TOML.
 - [ ] Match rules against extracted features.
 - [ ] Emit structured claims with evidence and source metadata.
+- [ ] Emit structured pattern/highlight annotations for 成格, limit-triggered, and flow-triggered configurations.
 - [ ] Add deterministic unit tests for rule matching.
+
+Pattern and 成格 highlighting should flow from features and rules into structured annotations. Renderers may highlight the involved palaces, stars, mutagens, or temporal scopes, but they should not contain astrology-specific rule logic.
 
 ## Phase 7: Basic deterministic reading
 
@@ -136,7 +143,7 @@ First slice implemented: `BasicFeatureExtractor` (`features`) converts determini
 - [ ] GUI frontend.
 - [ ] Optional LLM-assisted narrative polishing.
 
-Application frontends remain consumers of typed facts, snapshots, features, claims, evidence, and reports. They should not parse narrative text to recover domain facts.
+Application frontends remain consumers of typed facts, snapshots, view models, features, claims, evidence, annotations, and reports. They should not parse narrative text to recover domain facts or embed chart-generation/rule logic in UI code.
 
 ## Release policy
 

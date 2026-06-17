@@ -58,8 +58,10 @@
 则提供已类型化的 runtime 宫位投影与查询 helper；`HoroscopeFacadeSnapshot` 再把它们（连同
 保留的数字化目标 context：阳历日期、农历日期、闰月标志与目标 `timeIndex`，以及最小
 `NatalFacadeSnapshot` / `astrolabe`）组合为一个上游风格、可序列化的 horoscope 载荷。
-这些仅覆盖已支持事实面，更接近但仍非完整上游 `FunctionalAstrolabe#horoscope` 载荷对齐——
-完整上游 astrolabe helper/query 方法、本命本地化标签、本地化日期字符串与八字仍然延期。
+这些仅覆盖已支持事实面，更接近但仍非完整上游 `FunctionalAstrolabe#horoscope` 载荷对齐。
+本命 facade `astrolabe` 快照额外通过确定性的 `core::labels::zh_cn` 查表以附加 `*_zh`
+字段暴露常用中文标签，而内部模型保持语言中立。完整上游 astrolabe helper/query 方法、
+完整多语言/i18n 基础设施与完整上游本地化字符串对齐、本地化日期字符串与八字仍然延期。
 
 ## Phase 3：排盘兼容性
 

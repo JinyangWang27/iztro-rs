@@ -526,6 +526,151 @@ fn facade_snapshot_does_not_change_natal_or_metadata_boundaries() {
     assert_metadata_counts();
 }
 
+#[test]
+fn facade_astrolabe_exposes_zh_labels_alongside_machine_fields() {
+    use iztro::core::labels::zh_cn;
+
+    for case in horoscope_facade_fixture_cases() {
+        let case_id = case["id"].as_str().expect("case id");
+        let snapshot = build_facade_snapshot(&case);
+        let astrolabe = snapshot.astrolabe();
+
+        assert_eq!(
+            astrolabe.birth_year_stem_zh(),
+            zh_cn::heavenly_stem_zh(astrolabe.birth_year_stem()),
+            "{case_id}: birth-year stem zh label"
+        );
+        assert_eq!(
+            astrolabe.birth_year_branch_zh(),
+            zh_cn::earthly_branch_zh(astrolabe.birth_year_branch()),
+            "{case_id}: birth-year branch zh label"
+        );
+        assert_eq!(
+            astrolabe.life_palace_branch_zh(),
+            astrolabe.life_palace_branch().map(zh_cn::earthly_branch_zh),
+            "{case_id}: life palace branch zh label"
+        );
+        assert_eq!(
+            astrolabe.body_palace_branch_zh(),
+            astrolabe.body_palace_branch().map(zh_cn::earthly_branch_zh),
+            "{case_id}: body palace branch zh label"
+        );
+
+        for palace in astrolabe.palaces() {
+            assert_eq!(
+                palace.branch_zh(),
+                zh_cn::earthly_branch_zh(palace.branch()),
+                "{case_id}: palace branch_zh"
+            );
+            assert_eq!(
+                palace.name_zh(),
+                zh_cn::palace_name_zh(palace.name()),
+                "{case_id}: palace name_zh"
+            );
+            assert_eq!(
+                palace.stem_zh(),
+                zh_cn::heavenly_stem_zh(palace.stem()),
+                "{case_id}: palace stem_zh"
+            );
+            assert!(!palace.branch_zh().is_empty());
+            assert!(!palace.name_zh().is_empty());
+            assert!(!palace.stem_zh().is_empty());
+
+            for star in palace.typed_stars() {
+                assert_eq!(
+                    star.name_zh(),
+                    zh_cn::star_name_zh(star.name()),
+                    "{case_id}: typed star name_zh"
+                );
+                assert_eq!(
+                    star.kind_zh(),
+                    zh_cn::star_kind_zh(star.kind()),
+                    "{case_id}: typed star kind_zh"
+                );
+                assert_eq!(
+                    star.brightness_zh(),
+                    zh_cn::brightness_zh(star.brightness()),
+                    "{case_id}: typed star brightness_zh"
+                );
+                assert!(!star.name_zh().is_empty());
+                assert!(!star.kind_zh().is_empty());
+                assert_eq!(
+                    star.mutagen_zh(),
+                    star.mutagen().map(zh_cn::mutagen_zh),
+                    "{case_id}: typed star mutagen_zh present iff mutagen present"
+                );
+            }
+
+            for star in palace.decorative_stars() {
+                assert_eq!(
+                    star.name_zh(),
+                    zh_cn::star_name_zh(star.name()),
+                    "{case_id}: decorative star name_zh"
+                );
+                assert_eq!(
+                    star.family_zh(),
+                    zh_cn::decorative_star_family_zh(star.family()),
+                    "{case_id}: decorative star family_zh"
+                );
+                assert!(!star.name_zh().is_empty());
+                assert!(!star.family_zh().is_empty());
+            }
+        }
+    }
+}
+
+#[test]
+fn facade_astrolabe_serializes_zh_labels_additively() {
+    let case = horoscope_facade_fixture_cases()
+        .into_iter()
+        .next()
+        .expect("facade fixture case");
+    let snapshot = build_facade_snapshot(&case);
+    let json = serde_json::to_value(&snapshot).expect("facade should serialize");
+    let astrolabe = &json["astrolabe"];
+
+    // Machine-readable identities remain unchanged.
+    assert!(astrolabe["birth_year_stem"].is_string());
+    assert!(astrolabe["birth_year_branch"].is_string());
+    // Additive Chinese labels sit beside them.
+    assert!(astrolabe["birth_year_stem_zh"].is_string());
+    assert!(astrolabe["birth_year_branch_zh"].is_string());
+
+    let palace = astrolabe["palaces"]
+        .as_array()
+        .expect("palaces array")
+        .iter()
+        .find(|palace| {
+            !palace["typed_stars"].as_array().unwrap().is_empty()
+                && !palace["decorative_stars"].as_array().unwrap().is_empty()
+        })
+        .expect("a populated palace");
+
+    for key in ["branch", "branch_zh", "name", "name_zh", "stem", "stem_zh"] {
+        assert!(palace[key].is_string(), "palace.{key} should serialize");
+    }
+
+    let typed = &palace["typed_stars"][0];
+    for key in [
+        "name",
+        "name_zh",
+        "kind",
+        "kind_zh",
+        "brightness",
+        "brightness_zh",
+    ] {
+        assert!(typed[key].is_string(), "typed_star.{key} should serialize");
+    }
+
+    let decorative = &palace["decorative_stars"][0];
+    for key in ["name", "name_zh", "family", "family_zh"] {
+        assert!(
+            decorative[key].is_string(),
+            "decorative_star.{key} should serialize"
+        );
+    }
+}
+
 fn build_facade_snapshot(case: &Value) -> HoroscopeFacadeSnapshot {
     let chart = build_chart_from_horoscope_fixture_case(case);
     let horoscope = build_full_horoscope_chart(chart, stack_input(case))
@@ -642,7 +787,29 @@ fn normalize_surround(value: &Value) -> Value {
     Value::Object(object)
 }
 
+/// Recursively removes additive `*_zh` localized-label keys so the upstream
+/// fixture comparison keeps validating only the canonical machine-readable
+/// fields. The fixture intentionally records no Chinese labels.
+fn strip_zh_keys(value: &mut Value) {
+    match value {
+        Value::Object(map) => {
+            map.retain(|key, _| !key.ends_with("_zh"));
+            for child in map.values_mut() {
+                strip_zh_keys(child);
+            }
+        }
+        Value::Array(items) => {
+            for item in items {
+                strip_zh_keys(item);
+            }
+        }
+        _ => {}
+    }
+}
+
 fn normalize_astrolabe(value: &Value) -> Value {
+    let mut value = value.clone();
+    strip_zh_keys(&mut value);
     let mut object = value.as_object().expect("astrolabe object").clone();
     let palaces = object["palaces"].as_array().expect("astrolabe palaces");
     let normalized_palaces = palaces

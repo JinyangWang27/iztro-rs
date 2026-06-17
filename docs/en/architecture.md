@@ -53,6 +53,35 @@ It represents the conventional 12-palace grid as x/y coordinates and the selecte
 
 A renderer should consume `ChartStackSnapshot` rather than walking `Chart` directly. A future GUI should change the selected temporal view request and re-render from a snapshot; it should not mutate the natal chart.
 
+### Facade snapshots and GUI view models
+
+`HoroscopeFacadeSnapshot` and related facade DTOs are compatibility/export payloads. They should preserve stable machine-readable fields, deterministic ordering, and additive Chinese labels, but they should not become UI layout code.
+
+A 文墨天机-style static chart should instead be backed by a dedicated GUI-facing read model, for example a future `StaticChartViewSnapshot`. That view model can be derived from existing chart/facade facts and may include:
+
+- the conventional 4x4 palace-grid position for each palace;
+- Chinese labels for branches, stems, palace names, stars, brightness, mutagens, and decorative-star families;
+- grouped star lists for display, such as major stars, minor/helper stars, adjective/misc stars, and decorative stars;
+- selected natal/temporal overlays for the current view;
+- empty or populated highlight annotations.
+
+The view model should remain renderer-neutral. It may describe that a palace or star should be highlighted, but it should not choose CSS classes, colors, canvas coordinates, camera position, animation, or 3D geometry.
+
+### Static chart slices before timeline and 3D
+
+The first GUI target is a static palace-grid chart. The same static chart view model should later be reusable as one frame in a temporal sequence:
+
+```text
+TimelineFrame
+  -> target_context
+  -> StaticChartViewSnapshot
+  -> HighlightView[]
+```
+
+A future 3D view can stack these frames along a time axis. The core should therefore expose facts, selected-scope overlays, and highlight annotations; the frontend decides whether to draw them as a static chart, animation, or 3D scene.
+
+Pattern and 成格 highlighting should be produced by feature/rule layers as structured annotations, not by the renderer. Until the rule engine can identify real patterns, highlight fields should be reserved or empty rather than hard-coded in UI code.
+
 ## 3. Render Layer
 
 The Render Layer turns snapshot/read-model data into human-facing display formats.

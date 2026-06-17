@@ -132,6 +132,17 @@ lunar-lite 历法 normalizer按真实历法解析；公开 API 不暴露 calenda
 `NatalFacadeSnapshot` 与 `HoroscopeRuntime` 之上，更接近上游
 `FunctionalAstrolabe#horoscope` 载荷形状，但仍**不是**完整 package 对齐。
 
+## 本地化标签
+
+Rust 内部领域模型保持语言中立：天干、地支、宫位、星曜、四化、亮度、星类与十二神
+族仍是强类型枚举，并以稳定的机器可读 key 序列化。facade/导出层的本命 astrolabe
+快照额外以**附加**的 `*_zh` 字段暴露常用中文标签（例如 `branch`/`branch_zh`、
+`name`/`name_zh`、`stem`/`stem_zh`），因为紫微斗数主要以中文消费。
+
+这些标签由确定性、表驱动的 `core::labels::zh_cn` 查表生成，绝不替换规范身份，因此
+兼容性断言仍只校验机器可读字段。完整多语言/i18n 基础设施与完整上游本地化字符串
+（含八字）对齐仍然延期。
+
 ## 运限层模型
 
 `core` 定义了仅模型的运限叠加层：`HoroscopeChart` 包裹不可变的本命 `Chart`，

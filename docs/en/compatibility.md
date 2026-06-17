@@ -177,11 +177,27 @@ Key fixture groups include:
 
 The exact fixture files live under `crates/iztro/fixtures/iztro/`. Regeneration scripts live under `tools/iztro-reference`.
 
+## Localization labels
+
+Rust internal domain models remain language-neutral: stems, branches, palaces,
+stars, mutagens, brightness, kinds, and families stay strongly typed enums and
+serialize with stable machine-readable keys. The facade/export natal astrolabe
+snapshots additionally expose conventional Chinese (zh-CN) labels as additive
+`*_zh` fields (for example `branch`/`branch_zh`, `name`/`name_zh`,
+`stem`/`stem_zh`), because Zi Wei Dou Shu is primarily consumed in Chinese.
+
+These labels are produced by the deterministic, table-driven
+`core::labels::zh_cn` lookups. They never replace the canonical identity, so
+compatibility assertions continue to validate only the machine-readable fields.
+Full multilingual/i18n infrastructure and complete upstream localized-string
+(including BaZi) parity remain deferred.
+
 ## Deferred compatibility work
 
 Deferred surfaces include:
 
 - full upstream facade serialization parity;
+- full multilingual/i18n infrastructure and complete upstream localized-string parity (facade snapshots expose additive zh-CN labels only);
 - full BaZi output;
 - bindings;
 - feature extraction for temporal activation;
