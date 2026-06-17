@@ -14,7 +14,8 @@ use iztro::core::{
 };
 use serde_json::Value;
 
-const FIXTURE: &str = include_str!("../fixtures/iztro/static_chart_view_1990_05_17_chen_female.json");
+const FIXTURE: &str =
+    include_str!("../fixtures/iztro/static_chart_view_1990_05_17_chen_female.json");
 
 const CASE_ID: &str = "1990_05_17_chen_female";
 
