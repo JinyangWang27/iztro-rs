@@ -5,13 +5,21 @@
 //! [`StaticChartViewSnapshot`]: iztro::core::StaticChartViewSnapshot
 
 pub mod app;
+pub mod fonts;
 pub mod static_chart_screen;
 
 use app::{Message, StaticChartApp};
 
-/// Launches the local Iced desktop window rendering the sample static chart.
+/// Launches the local Iced desktop window rendering the static chart.
 pub fn run() -> iced::Result {
-    iced::application("iztro · static chart", update, static_chart_screen::view)
+    iced::application("iztro · 静态命盘", update, static_chart_screen::view)
+        .font(fonts::CJK_FONT_BYTES)
+        .default_font(fonts::CJK_FONT)
+        .window(iced::window::Settings {
+            size: iced::Size::new(980.0, 840.0),
+            min_size: Some(iced::Size::new(760.0, 680.0)),
+            ..Default::default()
+        })
         .run_with(|| (StaticChartApp::new(), iced::Task::none()))
 }
 
