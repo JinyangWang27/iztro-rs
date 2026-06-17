@@ -56,9 +56,9 @@
 `yearlyDecStar`（岁前/将前十二神）作为流年范围的时间性装饰事实，并提供
 `HoroscopeSupportedFieldsSnapshot` 作为规范化 supported-fields 导出；`HoroscopeRuntime`
 则提供已类型化的 runtime 宫位投影与查询 helper；`HoroscopeFacadeSnapshot` 再把它们（连同
-保留的目标农历日期 context）组合为一个上游风格、可序列化的 horoscope 载荷。这些仅覆盖已支持
+保留的数字化目标 context：阳历日期、农历日期、闰月标志与目标 `timeIndex`）组合为一个上游风格、可序列化的 horoscope 载荷。这些仅覆盖已支持
 事实面，更接近但仍非完整上游 `FunctionalAstrolabe#horoscope` 载荷对齐——嵌入完整本命
-astrolabe、延期的日期/上下文字符串与八字仍然延期。
+astrolabe、本地化日期字符串与八字仍然延期。
 
 ## Phase 3：排盘兼容性
 
@@ -80,8 +80,8 @@ astrolabe、延期的日期/上下文字符串与八字仍然延期。
 - [x] 添加流年 `yearlyDecStar`（岁前/将前十二神）作为流年范围的时间性装饰事实（`build_yearly_decorative_star_placements`）。无类型：不进入 `Chart::stars()` 或本命 `Palace::decorative_stars()`。
 - [x] 添加 `HoroscopeSupportedFieldsSnapshot`，从 `HoroscopeChart` 导出已实现完整 horoscope 事实面的规范化 supported-fields 快照，并以 `horoscope.json` fixture 校验。它不是上游原始 `FunctionalAstrolabe#horoscope` 载荷。
 - [x] 添加已类型化的上游 runtime 查询助手和 runtime 宫位投影。`HoroscopeRuntime` 覆盖 `agePalace`、`palace`、`surroundPalaces`、`hasHoroscopeStars`、`notHaveHoroscopeStars`、`hasOneOfHoroscopeStars` 与 `hasHoroscopeMutagen`，并以 `horoscope_runtime.json` fixture 校验。
-- [x] 添加上游风格的 horoscope facade 载荷快照。`HoroscopeFacadeSnapshot` 把 `HoroscopeSupportedFieldsSnapshot` 分块、目标农历日期 context 与 `HoroscopeRuntime` 命宫投影组合为一个可序列化载荷，并以 `horoscope_facade.json` fixture 校验。更接近上游 `FunctionalAstrolabe#horoscope` 形状，但非完整 package 对齐。
-- [ ] 添加完整 facade 序列化对齐：嵌入完整本命 astrolabe 载荷、本地化 `lunarDate`/`solarDate` 字符串、目标时辰序号与 runtime 查询助手——这些目前都从 `HoroscopeFacadeSnapshot` 延期。
+- [x] 添加上游风格的 horoscope facade 载荷快照。`HoroscopeFacadeSnapshot` 把 `HoroscopeSupportedFieldsSnapshot` 分块、保留的数字化目标 context 与 `HoroscopeRuntime` 命宫投影组合为一个可序列化载荷，并以 `horoscope_facade.json` fixture 校验。通过 `build_full_horoscope_chart` 构建时，context 包含数字化阳历日期、带闰月标志的数字化农历日期，以及目标 `timeIndex`。更接近上游 `FunctionalAstrolabe#horoscope` 形状，但非完整 package 对齐。
+- [ ] 添加完整 facade 序列化对齐：嵌入完整本命 astrolabe 载荷、本地化 `lunarDate`/`solarDate` 字符串与 runtime 查询助手——这些目前都从 `HoroscopeFacadeSnapshot` 延期。
 - [ ] 添加完整八字输出、bindings、特征提取、规则与叙事。
 
 当前核心切片：`by_lunar` 接受显式农历输入以及显式出生年干、年支，生成确定性的本命星盘事实，并用选定的 `iztro` 2.5.8 fixtures 校验 minimal chart 字段、十四主星、十四颗已支持辅星、完整默认算法的 38 颗本命杂曜/辅助星，以及中州派 40 颗本命杂曜/辅助星输出。默认/非中州派输出保持 14 主星 + 14 辅星 + 38 杂曜/辅助星 = 66 颗本命星；中州派输出为 14 主星 + 14 辅星 + 40 杂曜/辅助星 = 68 颗本命星。已表示 metadata table 为 70 颗，因为默认专属与中州派专属本命杂曜都属于已表示星曜。装饰性 runtime 家族（长生/博士/岁前/将前十二神）与 scoped 流曜现在作为独立事实安放（见下文）。`by_solar` 增加了最小的 `lunar-lite` 阳历转农历转换并委托给 `by_lunar`，后者现在为已支持切片建模 fixture 支持的闰月行为（`is_leap_month`/`fix_leap`）与早晚子时变体（`BirthTime` / `timeIndex` `0..=12`）。流月、流日与流时 period 与 layer 组装已有 fixture-backed 覆盖，完整 horoscope 组装、流年 `yearlyDecStar` 时间性装饰事实、规范化 supported-fields 快照导出，以及 `HoroscopeRuntime` helper 已实现；完整八字输出、完整 facade 载荷对齐、bindings、特征提取、规则与叙事仍然推迟。四化仍作为安星上的 `Mutagen` 事实，而非独立星曜。

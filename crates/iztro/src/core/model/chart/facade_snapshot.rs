@@ -62,7 +62,7 @@ const FACADE_PROJECTION_SCOPES: [Scope; 6] = [
 ///
 /// The decadal/age/yearly/monthly/daily/hourly supported-field blocks are flattened
 /// to the top level (reused from [`HoroscopeSupportedFieldsSnapshot`]); the facade
-/// adds the target lunar-date `context` and the Life-palace runtime projections.
+/// adds the target `context` and the Life-palace runtime projections.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct HoroscopeFacadeSnapshot {
     #[serde(flatten)]
@@ -77,8 +77,8 @@ impl HoroscopeFacadeSnapshot {
     /// Builds the facade payload from a full horoscope chart.
     ///
     /// Requires the full six-layer horoscope stack: the supported-field blocks,
-    /// the runtime projections, and the target lunar-date context all read from
-    /// the modeled temporal layers and so propagate the same
+    /// the runtime projections, and target context all read from modeled facts
+    /// and so propagate the same
     /// [`ChartError`] those builders raise when a required layer, palace layout,
     /// or temporal context is missing.
     pub fn from_horoscope_chart(chart: &HoroscopeChart) -> Result<Self, ChartError> {
@@ -113,7 +113,7 @@ impl HoroscopeFacadeSnapshot {
         &self.supported_fields
     }
 
-    /// Returns the target lunar-date context.
+    /// Returns the target facade context.
     pub const fn context(&self) -> &HoroscopeFacadeContext {
         &self.context
     }
