@@ -31,6 +31,7 @@
 
 use crate::core::{
     error::ChartError,
+    labels::zh_cn,
     model::{
         bureau::FiveElementBureau,
         calendar::Gender,
@@ -156,23 +157,35 @@ impl HoroscopeFacadeSnapshot {
 pub struct NatalFacadeSnapshot {
     gender: Gender,
     birth_year_stem: HeavenlyStem,
+    birth_year_stem_zh: String,
     birth_year_branch: EarthlyBranch,
+    birth_year_branch_zh: String,
     five_element_bureau: Option<FiveElementBureau>,
     life_palace_branch: Option<EarthlyBranch>,
+    life_palace_branch_zh: Option<String>,
     body_palace_branch: Option<EarthlyBranch>,
+    body_palace_branch_zh: Option<String>,
     palaces: Vec<NatalFacadePalaceSnapshot>,
 }
 
 impl NatalFacadeSnapshot {
     /// Builds the natal facade snapshot from an already-assembled natal chart.
     pub fn from_chart(chart: &Chart) -> Self {
+        let life_palace_branch = chart.life_palace().map(Palace::branch);
+        let body_palace_branch = chart.body_palace_branch();
         Self {
             gender: chart.birth_context().gender(),
             birth_year_stem: chart.birth_year().stem(),
+            birth_year_stem_zh: zh_cn::heavenly_stem_zh(chart.birth_year().stem()).to_owned(),
             birth_year_branch: chart.birth_year().branch(),
+            birth_year_branch_zh: zh_cn::earthly_branch_zh(chart.birth_year().branch()).to_owned(),
             five_element_bureau: chart.five_element_bureau(),
-            life_palace_branch: chart.life_palace().map(Palace::branch),
-            body_palace_branch: chart.body_palace_branch(),
+            life_palace_branch,
+            life_palace_branch_zh: life_palace_branch
+                .map(|branch| zh_cn::earthly_branch_zh(branch).to_owned()),
+            body_palace_branch,
+            body_palace_branch_zh: body_palace_branch
+                .map(|branch| zh_cn::earthly_branch_zh(branch).to_owned()),
             palaces: chart
                 .palaces()
                 .iter()
@@ -191,9 +204,19 @@ impl NatalFacadeSnapshot {
         self.birth_year_stem
     }
 
+    /// Returns the Chinese label for the birth-year Heavenly Stem.
+    pub fn birth_year_stem_zh(&self) -> &str {
+        &self.birth_year_stem_zh
+    }
+
     /// Returns the birth-year Earthly Branch.
     pub const fn birth_year_branch(&self) -> EarthlyBranch {
         self.birth_year_branch
+    }
+
+    /// Returns the Chinese label for the birth-year Earthly Branch.
+    pub fn birth_year_branch_zh(&self) -> &str {
+        &self.birth_year_branch_zh
     }
 
     /// Returns the five-element bureau, if modeled.
@@ -206,9 +229,19 @@ impl NatalFacadeSnapshot {
         self.life_palace_branch
     }
 
+    /// Returns the Chinese label for the Life Palace branch, if modeled.
+    pub fn life_palace_branch_zh(&self) -> Option<&str> {
+        self.life_palace_branch_zh.as_deref()
+    }
+
     /// Returns the Body Palace branch, if modeled.
     pub const fn body_palace_branch(&self) -> Option<EarthlyBranch> {
         self.body_palace_branch
+    }
+
+    /// Returns the Chinese label for the Body Palace branch, if modeled.
+    pub fn body_palace_branch_zh(&self) -> Option<&str> {
+        self.body_palace_branch_zh.as_deref()
     }
 
     /// Returns the natal palace snapshots in chart order.
@@ -221,8 +254,11 @@ impl NatalFacadeSnapshot {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct NatalFacadePalaceSnapshot {
     branch: EarthlyBranch,
+    branch_zh: String,
     name: PalaceName,
+    name_zh: String,
     stem: HeavenlyStem,
+    stem_zh: String,
     roles: Vec<NatalFacadePalaceRole>,
     typed_stars: Vec<NatalFacadeTypedStarSnapshot>,
     decorative_stars: Vec<NatalFacadeDecorativeStarSnapshot>,
@@ -251,8 +287,11 @@ impl NatalFacadePalaceSnapshot {
 
         Self {
             branch: palace.branch(),
+            branch_zh: zh_cn::earthly_branch_zh(palace.branch()).to_owned(),
             name: palace.name(),
+            name_zh: zh_cn::palace_name_zh(palace.name()).to_owned(),
             stem: palace.stem(),
+            stem_zh: zh_cn::heavenly_stem_zh(palace.stem()).to_owned(),
             roles,
             typed_stars,
             decorative_stars,
@@ -264,14 +303,29 @@ impl NatalFacadePalaceSnapshot {
         self.branch
     }
 
+    /// Returns the Chinese label for the palace branch.
+    pub fn branch_zh(&self) -> &str {
+        &self.branch_zh
+    }
+
     /// Returns the natal palace name.
     pub const fn name(&self) -> PalaceName {
         self.name
     }
 
+    /// Returns the Chinese label for the natal palace name.
+    pub fn name_zh(&self) -> &str {
+        &self.name_zh
+    }
+
     /// Returns the natal palace stem.
     pub const fn stem(&self) -> HeavenlyStem {
         self.stem
+    }
+
+    /// Returns the Chinese label for the natal palace stem.
+    pub fn stem_zh(&self) -> &str {
+        &self.stem_zh
     }
 
     /// Returns role markers for this natal palace.
@@ -304,10 +358,14 @@ pub enum NatalFacadePalaceRole {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct NatalFacadeTypedStarSnapshot {
     name: StarName,
+    name_zh: String,
     kind: StarKind,
+    kind_zh: String,
     category: StarCategory,
     brightness: Brightness,
+    brightness_zh: String,
     mutagen: Option<Mutagen>,
+    mutagen_zh: Option<String>,
     scope: Scope,
 }
 
@@ -315,10 +373,16 @@ impl NatalFacadeTypedStarSnapshot {
     fn from_star_placement(placement: &StarPlacement) -> Self {
         Self {
             name: placement.name(),
+            name_zh: zh_cn::star_name_zh(placement.name()).to_owned(),
             kind: placement.kind(),
+            kind_zh: zh_cn::star_kind_zh(placement.kind()).to_owned(),
             category: placement.category(),
             brightness: placement.brightness(),
+            brightness_zh: zh_cn::brightness_zh(placement.brightness()).to_owned(),
             mutagen: placement.mutagen(),
+            mutagen_zh: placement
+                .mutagen()
+                .map(|mutagen| zh_cn::mutagen_zh(mutagen).to_owned()),
             scope: placement.scope(),
         }
     }
@@ -328,9 +392,19 @@ impl NatalFacadeTypedStarSnapshot {
         self.name
     }
 
+    /// Returns the Chinese label for the star name.
+    pub fn name_zh(&self) -> &str {
+        &self.name_zh
+    }
+
     /// Returns the fine star kind.
     pub const fn kind(&self) -> StarKind {
         self.kind
+    }
+
+    /// Returns the Chinese label for the fine star kind.
+    pub fn kind_zh(&self) -> &str {
+        &self.kind_zh
     }
 
     /// Returns the coarse star category.
@@ -343,9 +417,19 @@ impl NatalFacadeTypedStarSnapshot {
         self.brightness
     }
 
+    /// Returns the Chinese label for the brightness state.
+    pub fn brightness_zh(&self) -> &str {
+        &self.brightness_zh
+    }
+
     /// Returns the natal mutagen attached to the placement, if present.
     pub const fn mutagen(&self) -> Option<Mutagen> {
         self.mutagen
+    }
+
+    /// Returns the Chinese label for the attached mutagen, if present.
+    pub fn mutagen_zh(&self) -> Option<&str> {
+        self.mutagen_zh.as_deref()
     }
 
     /// Returns the placement scope.
@@ -358,7 +442,9 @@ impl NatalFacadeTypedStarSnapshot {
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct NatalFacadeDecorativeStarSnapshot {
     name: StarName,
+    name_zh: String,
     family: DecorativeStarFamily,
+    family_zh: String,
     scope: Scope,
 }
 
@@ -366,7 +452,9 @@ impl NatalFacadeDecorativeStarSnapshot {
     fn from_decorative_star_placement(placement: &DecorativeStarPlacement) -> Self {
         Self {
             name: placement.name(),
+            name_zh: zh_cn::star_name_zh(placement.name()).to_owned(),
             family: placement.family(),
+            family_zh: zh_cn::decorative_star_family_zh(placement.family()).to_owned(),
             scope: placement.scope(),
         }
     }
@@ -376,9 +464,19 @@ impl NatalFacadeDecorativeStarSnapshot {
         self.name
     }
 
+    /// Returns the Chinese label for the decorative star name.
+    pub fn name_zh(&self) -> &str {
+        &self.name_zh
+    }
+
     /// Returns the decorative star family.
     pub const fn family(&self) -> DecorativeStarFamily {
         self.family
+    }
+
+    /// Returns the Chinese label for the decorative star family.
+    pub fn family_zh(&self) -> &str {
+        &self.family_zh
     }
 
     /// Returns the placement scope.
