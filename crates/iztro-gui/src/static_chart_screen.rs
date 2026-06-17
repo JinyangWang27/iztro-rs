@@ -450,7 +450,7 @@ fn star_group(
     labels: Vec<String>,
     tone: StarGroupTone,
     limit: usize,
-) -> Element<'_, Message> {
+) -> Element<'static, Message> {
     let mut chips = row![text(format!("{label}:")).size(12).style(subtle_text_style)]
         .spacing(4)
         .align_y(iced::Alignment::Center);
@@ -507,22 +507,6 @@ fn fact_row<'a>(label: &'a str, value: impl Into<String>) -> Element<'a, Message
 
 fn section_title(label: &str) -> Element<'_, Message> {
     text(label).size(13).style(section_title_style).into()
-}
-
-fn join_typed(stars: &[StaticTypedStarView]) -> String {
-    stars
-        .iter()
-        .map(|star| star.name_zh.as_str())
-        .collect::<Vec<_>>()
-        .join(" ")
-}
-
-fn join_decorative(stars: &[StaticDecorativeStarView]) -> String {
-    stars
-        .iter()
-        .map(|star| star.name_zh.as_str())
-        .collect::<Vec<_>>()
-        .join(" ")
 }
 
 fn gender_zh(gender: Gender) -> &'static str {
