@@ -207,4 +207,49 @@ mod tests {
         });
         assert!(has_natal_stars, "natal star groups must be populated");
     }
+
+    #[test]
+    fn gui_source_does_not_call_placement_modules_directly() {
+        // The GUI must consume snapshots through the facade only. Direct
+        // placement / star-math symbols would mean the GUI re-implements
+        // astrology logic, which the architecture forbids.
+        const FORBIDDEN: [&str; 8] = [
+            "Placer",
+            "palace_grid_position",
+            "zi_wei_branch",
+            "tian_fu_branch",
+            "build_minimal_natal_chart",
+            "build_natal_chart_with",
+            "star_brightness",
+            "PlacementInput",
+        ];
+
+        let src_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+        let mut checked = 0;
+        for entry in std::fs::read_dir(&src_dir).expect("src directory must exist") {
+            let path = entry.expect("readable dir entry").path();
+            if path.extension().and_then(|ext| ext.to_str()) != Some("rs") {
+                continue;
+            }
+            let raw = std::fs::read_to_string(&path).expect("source file must read");
+            // Only scan production code; this very test names forbidden symbols.
+            let source = raw.split("#[cfg(test)]").next().unwrap_or(&raw);
+            for needle in FORBIDDEN {
+                assert!(
+                    !source.contains(needle),
+                    "{} must not reference placement symbol `{needle}`",
+                    path.display()
+                );
+            }
+            checked += 1;
+        }
+        assert!(checked >= 3, "expected to scan the GUI source files");
+
+        // Charts must be built only through the public facade entry point.
+        let app_src = std::fs::read_to_string(src_dir.join("app.rs")).expect("app.rs must read");
+        assert!(
+            app_src.contains("by_solar"),
+            "the sample chart must be built through the by_solar facade"
+        );
+    }
 }
