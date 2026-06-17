@@ -27,7 +27,7 @@ fn committed_fixture_files() -> BTreeSet<String> {
         .expect("fixtures directory should be readable")
         .filter_map(|entry| entry.ok())
         .map(|entry| entry.file_name().to_string_lossy().into_owned())
-        .filter(|name| name.ends_with(".json") && name != "MANIFEST.json")
+        .filter(|name| name.ends_with(".json") && name != "MANIFEST.json" && name != "CASES.json")
         .collect()
 }
 
