@@ -1,7 +1,7 @@
 use crate::core::model::chart::PalaceName;
 use crate::core::model::star::StarName;
 use crate::core::model::star::mutagen::{Mutagen, Scope};
-use lunar_lite::{EarthlyBranch, HeavenlyStem};
+use lunar_lite::{EarthlyBranch, HeavenlyStem, StemBranch};
 use thiserror::Error;
 
 /// Errors produced by core chart construction or validation.
@@ -101,6 +101,16 @@ pub enum ChartError {
         stem: HeavenlyStem,
         /// Earthly Branch of the rejected pair.
         branch: EarthlyBranch,
+    },
+    /// A provided four-pillar fact must agree with the chart's retained birth year.
+    #[error(
+        "four-pillar year {four_pillars_year:?} does not match chart birth year {birth_year:?}"
+    )]
+    FourPillarsBirthYearMismatch {
+        /// Retained chart birth-year fact.
+        birth_year: StemBranch,
+        /// Year pillar carried by the four-pillar fact.
+        four_pillars_year: StemBranch,
     },
     /// A required builder input was not provided before `build`.
     #[error("missing required input: {field}")]

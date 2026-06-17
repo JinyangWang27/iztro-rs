@@ -20,7 +20,7 @@ use crate::core::model::chart::{
 };
 use crate::core::model::star::mutagen::Scope;
 use crate::core::model::star::{Brightness, StarCategory, StarKind, StarName, mutagen::Mutagen};
-use lunar_lite::{EarthlyBranch, HeavenlyStem};
+use lunar_lite::{EarthlyBranch, FourPillars, HeavenlyStem, StemBranch};
 use serde::{Deserialize, Serialize};
 
 /// Fixed display order for chart scope selectors.
@@ -68,6 +68,9 @@ pub struct StaticChartCenterView {
     pub birth_year_branch: EarthlyBranch,
     /// Chinese label for the birth-year Earthly Branch.
     pub birth_year_branch_zh: String,
+    /// Natal four pillars, if available from the chart facade.
+    #[serde(default)]
+    pub four_pillars: Option<StaticFourPillarsView>,
     /// Five-element bureau, if modeled.
     pub five_element_bureau: Option<FiveElementBureau>,
     /// Life Palace branch, if modeled.
@@ -78,6 +81,42 @@ pub struct StaticChartCenterView {
     pub body_palace_branch: Option<EarthlyBranch>,
     /// Chinese label for the Body Palace branch, if modeled.
     pub body_palace_branch_zh: Option<String>,
+}
+
+/// Presentation-friendly natal four-pillar facts.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct StaticFourPillarsView {
+    /// Year pillar (年柱).
+    pub yearly: StemBranch,
+    /// Chinese label for the year pillar.
+    pub yearly_zh: String,
+    /// Month pillar (月柱).
+    pub monthly: StemBranch,
+    /// Chinese label for the month pillar.
+    pub monthly_zh: String,
+    /// Day pillar (日柱).
+    pub daily: StemBranch,
+    /// Chinese label for the day pillar.
+    pub daily_zh: String,
+    /// Hour pillar (时柱).
+    pub hourly: StemBranch,
+    /// Chinese label for the hour pillar.
+    pub hourly_zh: String,
+}
+
+impl StaticFourPillarsView {
+    fn from_four_pillars(pillars: FourPillars) -> Self {
+        Self {
+            yearly: pillars.yearly,
+            yearly_zh: zh_cn::stem_branch_zh(pillars.yearly),
+            monthly: pillars.monthly,
+            monthly_zh: zh_cn::stem_branch_zh(pillars.monthly),
+            daily: pillars.daily,
+            daily_zh: zh_cn::stem_branch_zh(pillars.daily),
+            hourly: pillars.hourly,
+            hourly_zh: zh_cn::stem_branch_zh(pillars.hourly),
+        }
+    }
 }
 
 /// One perimeter palace cell of a static chart.
@@ -378,6 +417,10 @@ impl StaticChartCenterView {
             birth_year_stem_zh: zh_cn::heavenly_stem_zh(chart.birth_year().stem()).to_owned(),
             birth_year_branch: chart.birth_year().branch(),
             birth_year_branch_zh: zh_cn::earthly_branch_zh(chart.birth_year().branch()).to_owned(),
+            four_pillars: chart
+                .four_pillars()
+                .copied()
+                .map(StaticFourPillarsView::from_four_pillars),
             five_element_bureau: chart.five_element_bureau(),
             life_palace_branch,
             life_palace_branch_zh: life_palace_branch
@@ -539,8 +582,8 @@ mod tests {
     use super::*;
     use crate::core::model::chart::PALACE_COUNT;
     use crate::core::{
-        ChartAlgorithmKind, LunarChartRequest, LunarDay, LunarMonth, MethodProfile, StemBranch,
-        by_lunar,
+        ChartAlgorithmKind, LunarChartRequest, LunarDay, LunarMonth, MethodProfile,
+        SolarChartRequest, SolarDay, SolarMonth, StemBranch, by_lunar, by_solar,
     };
     use std::collections::HashSet;
 
@@ -567,6 +610,26 @@ mod tests {
             .build()
             .expect("lunar chart request should build");
         by_lunar(request).expect("by_lunar should build the canonical chart")
+    }
+
+    fn sample_solar_chart() -> Chart {
+        let method_profile = MethodProfile::new(
+            "1990_05_17_chen_female_solar",
+            ChartAlgorithmKind::QuanShu,
+            "static chart view solar unit test",
+        );
+        let request = SolarChartRequest::builder()
+            .solar_year(1990)
+            .solar_month(SolarMonth::new(5).expect("valid solar month"))
+            .solar_day(SolarDay::new(17).expect("valid solar day"))
+            .iztro_time_index(4)
+            .expect("valid time index")
+            .gender(Gender::Female)
+            .method_profile(method_profile)
+            .build()
+            .expect("solar chart request should build");
+
+        by_solar(request).expect("by_solar should build the canonical chart")
     }
 
     #[test]
@@ -610,6 +673,27 @@ mod tests {
             assert!(!palace.name_zh.is_empty());
             assert!(!palace.stem_zh.is_empty());
         }
+    }
+
+    #[test]
+    fn solar_chart_center_includes_optional_four_pillar_labels() {
+        let chart = sample_solar_chart();
+        let snapshot = StaticChartViewSnapshot::from_chart(&chart);
+        let center = &snapshot.center;
+        let pillars = center
+            .four_pillars
+            .as_ref()
+            .expect("by_solar chart should carry four pillars");
+
+        assert_eq!(
+            Some(&pillars.yearly),
+            chart.four_pillars().map(|p| &p.yearly)
+        );
+        assert_eq!(pillars.yearly, chart.birth_year());
+        assert!(!pillars.yearly_zh.is_empty());
+        assert!(!pillars.monthly_zh.is_empty());
+        assert!(!pillars.daily_zh.is_empty());
+        assert!(!pillars.hourly_zh.is_empty());
     }
 
     #[test]

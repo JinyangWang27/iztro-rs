@@ -20,6 +20,7 @@ pub mod static_chart;
 
 pub use static_chart::{
     HighlightView, StaticChartCenterView, StaticChartSelectorView, StaticChartViewRequest,
-    StaticChartViewSnapshot, StaticDecorativeStarView, StaticOverlayMutagenView, StaticPalaceRole,
-    StaticPalaceView, StaticTemporalOverlayView, StaticTypedStarView,
+    StaticChartViewSnapshot, StaticDecorativeStarView, StaticFourPillarsView,
+    StaticOverlayMutagenView, StaticPalaceRole, StaticPalaceView, StaticTemporalOverlayView,
+    StaticTypedStarView,
 };

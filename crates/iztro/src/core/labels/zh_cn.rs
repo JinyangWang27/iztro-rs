@@ -15,7 +15,7 @@ use crate::core::model::{
         mutagen::{Mutagen, Scope},
     },
 };
-use lunar_lite::{EarthlyBranch, HeavenlyStem};
+use lunar_lite::{EarthlyBranch, HeavenlyStem, StemBranch};
 
 /// Returns the Chinese label for a Heavenly Stem (天干).
 pub const fn heavenly_stem_zh(stem: HeavenlyStem) -> &'static str {
@@ -49,6 +49,15 @@ pub const fn earthly_branch_zh(branch: EarthlyBranch) -> &'static str {
         EarthlyBranch::Xu => "戌",
         EarthlyBranch::Hai => "亥",
     }
+}
+
+/// Returns the Chinese label for a stem-branch pair (干支).
+pub fn stem_branch_zh(stem_branch: StemBranch) -> String {
+    format!(
+        "{}{}",
+        heavenly_stem_zh(stem_branch.stem()),
+        earthly_branch_zh(stem_branch.branch())
+    )
 }
 
 /// Returns the Chinese label for a natal palace name (宫位).

@@ -48,6 +48,10 @@ fn by_lunar_matches_supported_e2e_fixture_cases() {
 
         assert_eq!(known_star_metadata_table().len(), 170);
         assert_eq!(represented_star_metadata_table().len(), 70);
+        assert!(
+            chart.four_pillars().is_none(),
+            "{case_label}: by_lunar should not fake unsupported full four pillars"
+        );
         assert_palaces_match(&chart, fixture_case, &case_label);
         assert_typed_stars_match(&chart, fixture_case, algorithm, &case_label);
         assert_decorative_stars_match(&chart, fixture_case, &case_label);

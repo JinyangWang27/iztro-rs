@@ -12,7 +12,7 @@ use crate::core::{
         },
     },
 };
-use lunar_lite::{EarthlyBranch, HeavenlyStem, StemBranch};
+use lunar_lite::{EarthlyBranch, FourPillars, HeavenlyStem, StemBranch};
 use serde::{Deserialize, Deserializer, Serialize};
 
 /// Number of palaces required for a complete chart.
@@ -23,6 +23,8 @@ pub const PALACE_COUNT: usize = 12;
 pub struct Chart {
     birth_context: BirthContext,
     birth_year: StemBranch,
+    #[serde(default)]
+    four_pillars: Option<FourPillars>,
     method_profile: MethodProfile,
     palaces: Vec<Palace>,
     body_palace_branch: Option<EarthlyBranch>,
@@ -39,6 +41,27 @@ impl Chart {
         body_palace_branch: Option<EarthlyBranch>,
         five_element_bureau: Option<FiveElementBureau>,
     ) -> Result<Self, ChartError> {
+        Self::try_new_with_four_pillars(
+            birth_context,
+            birth_year,
+            None,
+            method_profile,
+            palaces,
+            body_palace_branch,
+            five_element_bureau,
+        )
+    }
+
+    /// Creates a chart from typed chart facts and optional natal four pillars.
+    pub fn try_new_with_four_pillars(
+        birth_context: BirthContext,
+        birth_year: StemBranch,
+        four_pillars: Option<FourPillars>,
+        method_profile: MethodProfile,
+        palaces: Vec<Palace>,
+        body_palace_branch: Option<EarthlyBranch>,
+        five_element_bureau: Option<FiveElementBureau>,
+    ) -> Result<Self, ChartError> {
         if palaces.len() != PALACE_COUNT {
             return Err(ChartError::InvalidPalaceCount {
                 expected: PALACE_COUNT,
@@ -46,9 +69,19 @@ impl Chart {
             });
         }
 
+        if let Some(pillars) = four_pillars
+            && pillars.yearly != birth_year
+        {
+            return Err(ChartError::FourPillarsBirthYearMismatch {
+                birth_year,
+                four_pillars_year: pillars.yearly,
+            });
+        }
+
         Ok(Self {
             birth_context,
             birth_year,
+            four_pillars,
             method_profile,
             palaces,
             body_palace_branch,
@@ -64,6 +97,11 @@ impl Chart {
     /// Returns the birth-year stem-branch used for natal chart derivation.
     pub const fn birth_year(&self) -> StemBranch {
         self.birth_year
+    }
+
+    /// Returns the natal four pillars, if the chart facade could derive them safely.
+    pub const fn four_pillars(&self) -> Option<&FourPillars> {
+        self.four_pillars.as_ref()
     }
 
     /// Returns the method profile metadata.

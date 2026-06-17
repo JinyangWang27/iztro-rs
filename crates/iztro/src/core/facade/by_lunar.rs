@@ -14,7 +14,7 @@ use lunar_lite::{EarthlyBranch, HeavenlyStem, StemBranch};
 ///
 /// This mirrors iztro's `byLunar` conceptually while keeping explicit Rust
 /// domain types. The birth year stem and branch remain explicit because
-/// year-to-ganzhi derivation is not implemented yet.
+/// by-lunar full four-pillar derivation is not supported yet.
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LunarChartRequest {
     lunar_year: i32,

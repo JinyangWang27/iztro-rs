@@ -128,6 +128,7 @@ fn matches_upstream_conversions() {
             case.year,
             SolarMonth::new(case.month).expect("valid solar month"),
             SolarDay::new(case.day).expect("valid solar day"),
+            0,
         )
         .unwrap_or_else(|err| {
             panic!(
@@ -179,6 +180,7 @@ fn cyclic_year_matches_lunar_year_ganzhi() {
             case.year,
             SolarMonth::new(case.month).expect("valid solar month"),
             SolarDay::new(case.day).expect("valid solar day"),
+            0,
         )
         .expect("conversion should succeed");
 
@@ -204,6 +206,7 @@ fn rejects_impossible_solar_date() {
         2021,
         SolarMonth::new(2).expect("valid solar month"),
         SolarDay::new(30).expect("valid solar day"),
+        0,
     )
     .expect_err("30 February is not a real date");
     assert!(matches!(err, ChartError::InvalidSolarDate { .. }));

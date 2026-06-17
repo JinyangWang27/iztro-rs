@@ -33,6 +33,7 @@ fn natal_chart_stack_snapshot_preserves_renderer_ready_natal_facts() {
     assert_eq!(snapshot.birth_context(), chart.birth_context());
     assert_eq!(snapshot.method_profile(), chart.method_profile());
     assert_eq!(snapshot.birth_year(), chart.birth_year());
+    assert_eq!(snapshot.four_pillars(), chart.four_pillars());
     assert_eq!(
         snapshot.life_palace_branch(),
         chart.life_palace().map(|palace| palace.branch())
@@ -217,6 +218,7 @@ fn horoscope_chart_stack_snapshot_groups_temporal_overlays_by_branch_without_dup
     assert_eq!(snapshot.birth_context(), natal.birth_context());
     assert_eq!(snapshot.method_profile(), natal.method_profile());
     assert_eq!(snapshot.birth_year(), natal.birth_year());
+    assert_eq!(snapshot.four_pillars(), natal.four_pillars());
     assert_eq!(snapshot.layers().len(), 2);
     assert_eq!(snapshot.layers()[0].kind(), ChartLayerKind::Natal);
     assert_eq!(snapshot.layers()[0].z_index(), 0);
@@ -286,4 +288,9 @@ fn horoscope_chart_stack_snapshot_groups_temporal_overlays_by_branch_without_dup
         Mutagen::Lu
     );
     assert!(activation_cell.scoped_stars().is_empty());
+    assert_eq!(
+        horoscope.natal().four_pillars(),
+        natal.four_pillars(),
+        "temporal overlays should not mutate natal four pillars"
+    );
 }

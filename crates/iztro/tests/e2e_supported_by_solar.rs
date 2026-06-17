@@ -11,7 +11,7 @@ use common::{
 };
 
 use iztro::core::{
-    CalendarKind, Chart, ChartAlgorithmKind, EarthlyBranch, Gender, MethodProfile,
+    CalendarKind, Chart, ChartAlgorithmKind, EarthlyBranch, FourPillars, Gender, MethodProfile,
     SolarChartRequest, SolarDay, SolarMonth, by_solar,
 };
 use serde_json::Value;
@@ -49,6 +49,7 @@ fn by_solar_matches_supported_e2e_fixture_cases() {
         assert_metadata_counts();
         assert_converted_lunar_matches(&chart, fixture_case, &case_label);
         assert_birth_facts_match(&chart, fixture_case, &case_label);
+        assert_four_pillars_match(&chart, &case_label);
         assert_palaces_match(&chart, supported, &case_label);
         assert_typed_stars_match(&chart, supported, algorithm, &case_label);
         assert_decorative_stars_match(&chart, supported, &case_label);
@@ -135,6 +136,26 @@ fn assert_birth_facts_match(chart: &Chart, fixture_case: &Value, case_label: &st
         chart.birth_context().gender(),
         parse_key::<Gender>(supported["gender"].as_str().expect("gender")),
         "{case_label}: gender mismatch"
+    );
+}
+
+fn assert_four_pillars_match(chart: &Chart, case_label: &str) {
+    let pillars: &FourPillars = chart
+        .four_pillars()
+        .unwrap_or_else(|| panic!("{case_label}: by_solar should retain natal four pillars"));
+
+    assert_eq!(
+        pillars.yearly,
+        chart.birth_year(),
+        "{case_label}: four-pillar year should match retained birth year"
+    );
+
+    let encoded = serde_json::to_string(chart).expect("chart should serialize");
+    let decoded: Chart = serde_json::from_str(&encoded).expect("chart should deserialize");
+    assert_eq!(
+        decoded.four_pillars(),
+        Some(pillars),
+        "{case_label}: chart serialization should preserve four pillars"
     );
 }
 

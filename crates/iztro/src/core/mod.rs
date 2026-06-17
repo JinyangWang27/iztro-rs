@@ -27,7 +27,9 @@ mod calendar;
 
 pub use error::ChartError;
 
-pub use lunar_lite::{EARTHLY_BRANCHES, EarthlyBranch, HEAVENLY_STEMS, HeavenlyStem, StemBranch};
+pub use lunar_lite::{
+    EARTHLY_BRANCHES, EarthlyBranch, FourPillars, HEAVENLY_STEMS, HeavenlyStem, StemBranch,
+};
 pub use model::bureau::{FiveElementBureau, five_element_bureau_from_life_palace};
 pub use model::calendar::{
     BirthContext, BirthTime, CalendarDate, CalendarKind, Gender, SolarDay, SolarMonth,
@@ -115,6 +117,7 @@ pub use facade::by_solar::{SolarChartRequest, SolarChartRequestBuilder, by_solar
 
 pub use view::static_chart::{
     HighlightView, StaticChartCenterView, StaticChartSelectorView, StaticChartViewRequest,
-    StaticChartViewSnapshot, StaticDecorativeStarView, StaticOverlayMutagenView, StaticPalaceRole,
-    StaticPalaceView, StaticTemporalOverlayView, StaticTypedStarView,
+    StaticChartViewSnapshot, StaticDecorativeStarView, StaticFourPillarsView,
+    StaticOverlayMutagenView, StaticPalaceRole, StaticPalaceView, StaticTemporalOverlayView,
+    StaticTypedStarView,
 };

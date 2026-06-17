@@ -17,7 +17,7 @@ use crate::core::model::{
         mutagen::{Mutagen, Scope},
     },
 };
-use lunar_lite::{EarthlyBranch, HeavenlyStem, StemBranch};
+use lunar_lite::{EarthlyBranch, FourPillars, HeavenlyStem, StemBranch};
 use serde::{Deserialize, Serialize};
 
 /// Branch order for the renderer-ready 4x4 visual palace grid.
@@ -62,6 +62,8 @@ pub const fn palace_grid_position(branch: EarthlyBranch) -> PalaceGridPosition {
 pub struct ChartStackSnapshot {
     birth_context: BirthContext,
     birth_year: StemBranch,
+    #[serde(default)]
+    four_pillars: Option<FourPillars>,
     method_profile: MethodProfile,
     life_palace_branch: Option<EarthlyBranch>,
     body_palace_branch: Option<EarthlyBranch>,
@@ -75,6 +77,7 @@ impl ChartStackSnapshot {
         Self {
             birth_context: chart.birth_context().clone(),
             birth_year: chart.birth_year(),
+            four_pillars: chart.four_pillars().copied(),
             method_profile: chart.method_profile().clone(),
             life_palace_branch: chart.life_palace().map(|palace| palace.branch()),
             body_palace_branch: chart.body_palace_branch(),
@@ -95,6 +98,7 @@ impl ChartStackSnapshot {
         Self {
             birth_context: natal.birth_context().clone(),
             birth_year: natal.birth_year(),
+            four_pillars: natal.four_pillars().copied(),
             method_profile: natal.method_profile().clone(),
             life_palace_branch: natal.life_palace().map(|palace| palace.branch()),
             body_palace_branch: natal.body_palace_branch(),
@@ -111,6 +115,11 @@ impl ChartStackSnapshot {
     /// Returns the birth-year stem-branch copied from the natal chart.
     pub const fn birth_year(&self) -> StemBranch {
         self.birth_year
+    }
+
+    /// Returns the natal four pillars copied from the natal chart, if present.
+    pub const fn four_pillars(&self) -> Option<&FourPillars> {
+        self.four_pillars.as_ref()
     }
 
     /// Returns the method profile copied from the natal chart.
