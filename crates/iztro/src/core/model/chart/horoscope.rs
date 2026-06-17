@@ -28,6 +28,119 @@ use crate::core::{
 use lunar_lite::{EarthlyBranch, StemBranch};
 use serde::{Deserialize, Deserializer, Serialize};
 
+/// Target context retained by a full horoscope stack.
+///
+/// This records the numeric target date/time facts used during stack assembly.
+/// Localized date strings and BaZi output remain outside this model.
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+pub struct HoroscopeTargetContext {
+    solar_date: HoroscopeSolarDate,
+    lunar_date: HoroscopeLunarDate,
+    time_index: u8,
+}
+
+impl HoroscopeTargetContext {
+    /// Creates target context from numeric solar/lunar dates and upstream
+    /// `timeIndex`.
+    pub const fn new(
+        solar_date: HoroscopeSolarDate,
+        lunar_date: HoroscopeLunarDate,
+        time_index: u8,
+    ) -> Self {
+        Self {
+            solar_date,
+            lunar_date,
+            time_index,
+        }
+    }
+
+    /// Returns the target Gregorian/solar date.
+    pub const fn solar_date(&self) -> HoroscopeSolarDate {
+        self.solar_date
+    }
+
+    /// Returns the target Chinese-lunisolar date.
+    pub const fn lunar_date(&self) -> HoroscopeLunarDate {
+        self.lunar_date
+    }
+
+    /// Returns the upstream `iztro` target `timeIndex`.
+    pub const fn time_index(&self) -> u8 {
+        self.time_index
+    }
+}
+
+/// Numeric Gregorian/solar date retained for a horoscope target.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+pub struct HoroscopeSolarDate {
+    year: i32,
+    month: u8,
+    day: u8,
+}
+
+impl HoroscopeSolarDate {
+    /// Creates a numeric solar target date.
+    pub const fn new(year: i32, month: u8, day: u8) -> Self {
+        Self { year, month, day }
+    }
+
+    /// Returns the solar year.
+    pub const fn year(self) -> i32 {
+        self.year
+    }
+
+    /// Returns the one-based solar month.
+    pub const fn month(self) -> u8 {
+        self.month
+    }
+
+    /// Returns the one-based solar day.
+    pub const fn day(self) -> u8 {
+        self.day
+    }
+}
+
+/// Numeric Chinese-lunisolar date retained for a horoscope target.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+pub struct HoroscopeLunarDate {
+    year: i32,
+    month: u8,
+    day: u8,
+    is_leap_month: bool,
+}
+
+impl HoroscopeLunarDate {
+    /// Creates a numeric lunar target date.
+    pub const fn new(year: i32, month: u8, day: u8, is_leap_month: bool) -> Self {
+        Self {
+            year,
+            month,
+            day,
+            is_leap_month,
+        }
+    }
+
+    /// Returns the lunar year.
+    pub const fn year(self) -> i32 {
+        self.year
+    }
+
+    /// Returns the one-based lunar month.
+    pub const fn month(self) -> u8 {
+        self.month
+    }
+
+    /// Returns the one-based lunar day.
+    pub const fn day(self) -> u8 {
+        self.day
+    }
+
+    /// Returns whether this target is in a leap lunar month.
+    pub const fn is_leap_month(self) -> bool {
+        self.is_leap_month
+    }
+}
+
 /// Typed temporal context distinguishing each non-natal horoscope scope.
 ///
 /// Every variant records explicit, caller-supplied facts. No calendar fact is
@@ -613,6 +726,8 @@ impl<'de> Deserialize<'de> for TemporalLayer {
 pub struct HoroscopeChart {
     natal: Chart,
     layers: Vec<TemporalLayer>,
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    target_context: Option<HoroscopeTargetContext>,
 }
 
 impl HoroscopeChart {
@@ -621,12 +736,36 @@ impl HoroscopeChart {
         Self {
             natal,
             layers: Vec::new(),
+            target_context: None,
         }
     }
 
     /// Wraps a natal chart with the provided temporal layers.
     pub const fn with_layers(natal: Chart, layers: Vec<TemporalLayer>) -> Self {
-        Self { natal, layers }
+        Self {
+            natal,
+            layers,
+            target_context: None,
+        }
+    }
+
+    /// Wraps a natal chart, temporal layers, and retained target context.
+    pub const fn with_layers_and_target_context(
+        natal: Chart,
+        layers: Vec<TemporalLayer>,
+        target_context: HoroscopeTargetContext,
+    ) -> Self {
+        Self {
+            natal,
+            layers,
+            target_context: Some(target_context),
+        }
+    }
+
+    /// Attaches retained target context to this horoscope chart.
+    pub fn with_target_context(mut self, target_context: HoroscopeTargetContext) -> Self {
+        self.target_context = Some(target_context);
+        self
     }
 
     /// Returns the immutable natal chart.
@@ -637,6 +776,11 @@ impl HoroscopeChart {
     /// Returns the temporal overlay layers.
     pub fn layers(&self) -> &[TemporalLayer] {
         &self.layers
+    }
+
+    /// Returns the retained target context, if this chart was built with one.
+    pub const fn target_context(&self) -> Option<&HoroscopeTargetContext> {
+        self.target_context.as_ref()
     }
 
     /// Appends a temporal overlay layer, leaving natal facts untouched.

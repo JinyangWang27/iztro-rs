@@ -13,10 +13,10 @@ mod common;
 
 use common::{
     assert_metadata_counts, build_chart_from_horoscope_fixture_case,
-    horoscope_facade_fixture_cases, target_solar_date, target_time,
+    horoscope_facade_fixture_cases, target_solar_date, target_time, target_time_index,
 };
 use iztro::core::{
-    HoroscopeFacadeSnapshot, HoroscopeRuntime, HoroscopeStackInput,
+    HoroscopeChart, HoroscopeFacadeSnapshot, HoroscopeRuntime, HoroscopeStackInput,
     HoroscopeSupportedFieldsSnapshot, PalaceName, Scope, SolarDay, SolarMonth,
     build_full_horoscope_chart,
 };
@@ -42,6 +42,7 @@ fn facade_snapshot_matches_upstream_fixture() {
             actual["context"], expected["context"],
             "{case_id}: facade context"
         );
+        assert_rich_context_shape(case_id, &actual["context"], &case);
 
         assert_eq!(
             normalize_projection(&actual["age_palace"]),
@@ -61,6 +62,54 @@ fn facade_snapshot_matches_upstream_fixture() {
             "{case_id}: facade surround palaces"
         );
     }
+}
+
+#[test]
+fn facade_context_uses_retained_target_context_when_present() {
+    for case in horoscope_facade_fixture_cases() {
+        let case_id = case["id"].as_str().expect("case id");
+        let chart = build_chart_from_horoscope_fixture_case(&case);
+        let horoscope = build_full_horoscope_chart(chart, stack_input(&case))
+            .expect("full horoscope stack should build");
+
+        assert!(
+            horoscope.target_context().is_some(),
+            "{case_id}: full stack should retain target context"
+        );
+
+        let facade = HoroscopeFacadeSnapshot::from_horoscope_chart(&horoscope)
+            .expect("facade snapshot should build");
+        let context = serde_json::to_value(facade.context()).expect("context should serialize");
+
+        assert_rich_context_shape(case_id, &context, &case);
+        assert_eq!(
+            context, case["facade"]["context"],
+            "{case_id}: facade context"
+        );
+    }
+}
+
+#[test]
+fn facade_context_falls_back_for_manual_horoscope_chart_without_target_context() {
+    let case = horoscope_facade_fixture_cases()
+        .into_iter()
+        .next()
+        .expect("facade fixture case");
+    let chart = build_chart_from_horoscope_fixture_case(&case);
+    let full = build_full_horoscope_chart(chart, stack_input(&case))
+        .expect("full horoscope stack should build");
+    let manual = HoroscopeChart::with_layers(full.natal().clone(), full.layers().to_vec());
+
+    assert!(manual.target_context().is_none());
+
+    let facade = HoroscopeFacadeSnapshot::from_horoscope_chart(&manual)
+        .expect("manual full-layer horoscope should still build facade snapshot");
+    let context = serde_json::to_value(facade.context()).expect("context should serialize");
+    let expected_lunar = &case["facade"]["context"]["lunar_date"];
+
+    assert!(context["solar_date"].is_null());
+    assert_eq!(context["lunar_date"], *expected_lunar);
+    assert!(context["time_index"].is_null());
 }
 
 #[test]
@@ -250,6 +299,34 @@ fn stack_input(case: &Value) -> HoroscopeStackInput {
         SolarDay::new(day).expect("target solar day should be valid"),
         target_time(case),
     )
+}
+
+fn assert_rich_context_shape(case_id: &str, context: &Value, case: &Value) {
+    let (solar_year, solar_month, solar_day) = target_solar_date(case);
+
+    assert_eq!(
+        context["solar_date"]["year"].as_i64(),
+        Some(solar_year as i64)
+    );
+    assert_eq!(
+        context["solar_date"]["month"].as_u64(),
+        Some(solar_month as u64),
+        "{case_id}: target solar month"
+    );
+    assert_eq!(
+        context["solar_date"]["day"].as_u64(),
+        Some(solar_day as u64),
+        "{case_id}: target solar day"
+    );
+    assert!(context["lunar_date"]["year"].is_i64());
+    assert!(context["lunar_date"]["month"].is_u64());
+    assert!(context["lunar_date"]["day"].is_u64());
+    assert!(context["lunar_date"]["is_leap_month"].is_boolean());
+    assert_eq!(
+        context["time_index"].as_u64(),
+        Some(target_time_index(case) as u64),
+        "{case_id}: target time index"
+    );
 }
 
 /// Indexes projections by their normalized scope so comparison is order-stable.

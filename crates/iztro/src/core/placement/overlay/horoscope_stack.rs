@@ -11,9 +11,10 @@
 use crate::core::error::ChartError;
 use crate::core::model::calendar::{BirthTime, SolarDay, SolarMonth};
 use crate::core::model::chart::{
-    Chart, HoroscopeChart, TemporalLayer, build_age_period, build_daily_period,
-    build_decadal_frame, build_hourly_period, build_monthly_period, build_yearly_period,
-    nominal_age_for_target_year, select_decadal_period_by_age, target_lunar_date,
+    Chart, HoroscopeChart, HoroscopeLunarDate, HoroscopeSolarDate, HoroscopeTargetContext,
+    TemporalLayer, build_age_period, build_daily_period, build_decadal_frame, build_hourly_period,
+    build_monthly_period, build_yearly_period, nominal_age_for_target_year,
+    select_decadal_period_by_age, target_lunar_date,
 };
 use crate::core::placement::overlay::age::build_age_horoscope_layer;
 use crate::core::placement::overlay::daily_horoscope::build_daily_horoscope_layer;
@@ -135,6 +136,24 @@ pub fn build_full_horoscope_chart(
         daily_layer,
         hourly_layer,
     ];
+    let target_context = HoroscopeTargetContext::new(
+        HoroscopeSolarDate::new(
+            input.target_solar_year,
+            input.target_solar_month.value(),
+            input.target_solar_day.value(),
+        ),
+        HoroscopeLunarDate::new(
+            target_lunar.year,
+            target_lunar.month,
+            target_lunar.day,
+            target_lunar.is_leap_month,
+        ),
+        input.target_time.iztro_time_index(),
+    );
 
-    Ok(HoroscopeChart::with_layers(natal, layers))
+    Ok(HoroscopeChart::with_layers_and_target_context(
+        natal,
+        layers,
+        target_context,
+    ))
 }

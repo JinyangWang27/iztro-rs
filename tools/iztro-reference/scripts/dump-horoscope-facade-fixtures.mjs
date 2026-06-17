@@ -5,10 +5,9 @@
 // payload that moves toward the upstream FunctionalAstrolabe#horoscope shape.
 //
 // It records only the in-scope, already-modeled facts:
-//   * context: the target lunar date (year/month/day), which the modeled
-//     temporal contexts retain. The localized upstream lunarDate string, the
-//     solarDate string, and the target time index are intentionally excluded:
-//     iztro-rs does not retain them on HoroscopeChart, so they remain deferred.
+//   * context: the numeric target solar date, numeric target lunar date, target
+//     leap-month flag, and target timeIndex retained by full stack assembly.
+//     Localized upstream lunarDate/solarDate strings remain deferred.
 //   * age_palace / palace_projections / surround_palaces: the runtime palace
 //     projections for the Life palace (命宫) across each modeled scope, reusing
 //     the shared projection helpers that back the runtime fixture.
@@ -29,7 +28,7 @@ import { fileURLToPath } from "node:url";
 import { projection, surroundProjection } from "./lib/horoscope-projection.mjs";
 
 const TARGET = "iztro@2.5.8";
-const GENERATED_AT = "2026-06-16T00:00:00Z";
+const GENERATED_AT = "2026-06-17T00:00:00Z";
 const GENERATION_COMMAND =
   "npm ci --prefix tools/iztro-reference && node tools/iztro-reference/scripts/dump-horoscope-facade-fixtures.mjs --write";
 
@@ -110,12 +109,22 @@ const CASE_DEFS = [
   }
 ];
 
-function targetLunarContext(targetSolarDate) {
-  const lunar = solar2lunar(targetSolarDate);
+function parseSolarDate(targetSolarDate) {
+  const [year, month, day] = targetSolarDate.split("-").map((part) => Number.parseInt(part, 10));
+  return { year, month, day };
+}
+
+function targetContext(def) {
+  const lunar = solar2lunar(def.targetSolarDate);
   return {
-    target_lunar_year: lunar.lunarYear,
-    target_lunar_month: lunar.lunarMonth,
-    target_lunar_day: lunar.lunarDay
+    solar_date: parseSolarDate(def.targetSolarDate),
+    lunar_date: {
+      year: lunar.lunarYear,
+      month: lunar.lunarMonth,
+      day: lunar.lunarDay,
+      is_leap_month: lunar.isLeap
+    },
+    time_index: def.targetTimeIndex
   };
 }
 
@@ -151,7 +160,7 @@ function buildCase(def) {
       }
     },
     facade: {
-      context: targetLunarContext(def.targetSolarDate),
+      context: targetContext(def),
       age_palace: projection(horoscope, "age", LIFE_PALACE),
       palace_projections: PROJECTION_SCOPES.map((scope) => projection(horoscope, scope, LIFE_PALACE)),
       surround_palaces: PROJECTION_SCOPES.map((scope) => surroundProjection(horoscope, scope, LIFE_PALACE))
@@ -163,17 +172,17 @@ const fixture = {
   target: TARGET,
   description:
     "Upstream iztro@2.5.8 horoscope facade reference. Captures the serializable " +
-    "HoroscopeFacadeSnapshot surface: the target lunar-date context the modeled " +
-    "temporal layers retain, plus the Life-palace (命宫) runtime projections " +
+    "HoroscopeFacadeSnapshot surface: the numeric target solar/lunar/time context " +
+    "retained by the modeled full horoscope stack, plus the Life-palace (命宫) runtime projections " +
     "(agePalace, palace, surroundPalaces) across each modeled scope. The " +
     "decadal/age/yearly/monthly/daily/hourly supported-field blocks are reused " +
     "from horoscope.json and are not duplicated here. The localized lunarDate " +
-    "string, the solarDate string, the target time index, and the re-embedded " +
+    "and solarDate strings, plus the re-embedded " +
     "natal astrolabe remain deferred.",
   generated_at: GENERATED_AT,
   generation_command: GENERATION_COMMAND,
   deferred: [
-    "lunarDate (localized string) / solarDate (string) / target time index (not retained on HoroscopeChart)",
+    "lunarDate (localized string) / solarDate (localized/string facade field)",
     "astrolabe (the full natal chart re-embedded in the horoscope result)",
     "hasHoroscopeStars / notHaveHoroscopeStars / hasOneOfHoroscopeStars / hasHoroscopeMutagen (query helpers)"
   ],

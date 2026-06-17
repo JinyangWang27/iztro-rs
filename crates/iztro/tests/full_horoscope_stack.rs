@@ -5,7 +5,8 @@ use std::collections::HashMap;
 use common::{
     build_chart_from_horoscope_fixture_case, expected_palace_names_by_branch,
     expected_scope_flow_stars, expected_scope_mutagens, horoscope_fixture_case,
-    horoscope_fixture_cases, scope_stem_branch, target_solar_date, target_time, target_year,
+    horoscope_fixture_cases, scope_stem_branch, target_solar_date, target_time, target_time_index,
+    target_year,
 };
 use iztro::core::{
     ChartLayerKind, ChartStackSnapshot, EarthlyBranch, FlowStarScope, HoroscopeChart,
@@ -62,6 +63,7 @@ fn full_stack_matches_all_fixture_cases() {
         let chart = build_chart_from_horoscope_fixture_case(&case);
         let horoscope = build_full_horoscope_chart(chart.clone(), stack_input(&case))
             .expect("full horoscope stack should build");
+        assert_target_context(case_id, &horoscope, &case);
 
         let layers = horoscope.layers();
         assert_eq!(layers.len(), 6, "{case_id}: stack should have six layers");
@@ -324,6 +326,7 @@ fn full_stack_round_trips_through_json() {
         serde_json::from_str(&encoded).expect("horoscope should deserialize");
 
     assert_eq!(decoded, horoscope);
+    assert!(decoded.target_context().is_some());
     assert_eq!(decoded.layers().len(), 6);
     assert_eq!(
         decoded
@@ -333,6 +336,15 @@ fn full_stack_round_trips_through_json() {
             .collect::<Vec<_>>(),
         STACK.iter().map(|(scope, ..)| *scope).collect::<Vec<_>>(),
     );
+}
+
+#[test]
+fn manual_horoscope_chart_constructors_do_not_set_target_context() {
+    let case = horoscope_fixture_case(CANONICAL_CASE_ID);
+    let natal = build_chart_from_horoscope_fixture_case(&case);
+    let horoscope = HoroscopeChart::with_layers(natal, Vec::new());
+
+    assert!(horoscope.target_context().is_none());
 }
 
 // --- helpers -------------------------------------------------------------------
@@ -350,6 +362,55 @@ fn stack_input(case: &Value) -> HoroscopeStackInput {
         SolarDay::new(day).expect("target solar day should be valid"),
         target_time(case),
     )
+}
+
+fn assert_target_context(case_id: &str, horoscope: &HoroscopeChart, case: &Value) {
+    let context = horoscope
+        .target_context()
+        .unwrap_or_else(|| panic!("{case_id}: full stack should retain target context"));
+    let (solar_year, solar_month, solar_day) = target_solar_date(case);
+    let target_lunar = target_lunar_date(case);
+
+    assert_eq!(
+        context.solar_date().year(),
+        solar_year,
+        "{case_id}: target solar year"
+    );
+    assert_eq!(
+        context.solar_date().month(),
+        solar_month,
+        "{case_id}: target solar month"
+    );
+    assert_eq!(
+        context.solar_date().day(),
+        solar_day,
+        "{case_id}: target solar day"
+    );
+    assert_eq!(
+        context.lunar_date().year(),
+        target_lunar.year,
+        "{case_id}: target lunar year"
+    );
+    assert_eq!(
+        context.lunar_date().month(),
+        target_lunar.month,
+        "{case_id}: target lunar month"
+    );
+    assert_eq!(
+        context.lunar_date().day(),
+        target_lunar.day,
+        "{case_id}: target lunar day"
+    );
+    assert_eq!(
+        context.lunar_date().is_leap_month(),
+        target_lunar.is_leap_month,
+        "{case_id}: target leap-month flag"
+    );
+    assert_eq!(
+        context.time_index(),
+        target_time_index(case),
+        "{case_id}: target time index"
+    );
 }
 
 fn layer_with_scope(horoscope: &HoroscopeChart, scope: Scope) -> &TemporalLayer {

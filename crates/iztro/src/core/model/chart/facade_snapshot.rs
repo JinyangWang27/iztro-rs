@@ -10,7 +10,8 @@
 //!
 //! * the normalized supported-field blocks of [`HoroscopeSupportedFieldsSnapshot`]
 //!   (decadal/age/yearly/monthly/daily/hourly), reused verbatim;
-//! * the target lunar-date context the modeled temporal layers already retain;
+//! * the target numeric solar/lunar/time context retained by full stack assembly,
+//!   with a lunar-only fallback for manually assembled full-layer charts;
 //! * the runtime palace projections of [`HoroscopeRuntime`] for the Life palace
 //!   across each modeled scope.
 //!
@@ -20,9 +21,7 @@
 //!
 //! Deferred, and intentionally absent from this payload:
 //!
-//! * the upstream localized `lunarDate` string, the `solarDate` string, and the
-//!   target time index — [`HoroscopeChart`] does not retain the target instant,
-//!   so these cannot be exposed exactly without recomputation;
+//! * the upstream localized `lunarDate` and `solarDate` strings;
 //! * the re-embedded full natal astrolabe payload;
 //! * the runtime query helpers (`hasHoroscopeStars` and friends), which remain
 //!   [`HoroscopeRuntime`] methods rather than precomputed DTO fields;
@@ -32,9 +31,10 @@ use crate::core::{
     error::ChartError,
     model::{
         chart::{
-            HoroscopeChart, HoroscopePalaceProjection, HoroscopeProjectionMutagenActivation,
-            HoroscopeRuntime, HoroscopeSupportedFieldsSnapshot, HoroscopeSurroundPalaces,
-            PalaceName, TemporalContext,
+            HoroscopeChart, HoroscopeLunarDate, HoroscopePalaceProjection,
+            HoroscopeProjectionMutagenActivation, HoroscopeRuntime, HoroscopeSolarDate,
+            HoroscopeSupportedFieldsSnapshot, HoroscopeSurroundPalaces, PalaceName,
+            TemporalContext,
         },
         star::{
             StarName,
@@ -134,41 +134,54 @@ impl HoroscopeFacadeSnapshot {
     }
 }
 
-/// Target date/context fields the modeled horoscope retains.
+/// Target date/context fields exposed by the facade.
 ///
-/// Only the target lunar date is carried: the yearly, monthly, and daily
-/// temporal contexts retain the target lunar year, month, and day respectively.
-/// The upstream localized `lunarDate` string, the `solarDate` string, and the
-/// target time index are not retained on [`HoroscopeChart`] and remain deferred.
+/// Full-stack-built charts retain numeric solar date, lunar date, leap-month
+/// flag, and upstream `timeIndex`. Manually assembled charts without retained
+/// target context still expose the older lunar year/month/day facts derived from
+/// temporal layer contexts, with solar date and time index absent.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct HoroscopeFacadeContext {
-    target_lunar_year: i32,
-    target_lunar_month: u8,
-    target_lunar_day: u8,
+    solar_date: Option<HoroscopeSolarDate>,
+    lunar_date: HoroscopeLunarDate,
+    time_index: Option<u8>,
 }
 
 impl HoroscopeFacadeContext {
     fn from_horoscope_chart(chart: &HoroscopeChart) -> Result<Self, ChartError> {
+        if let Some(context) = chart.target_context() {
+            return Ok(Self {
+                solar_date: Some(context.solar_date()),
+                lunar_date: context.lunar_date(),
+                time_index: Some(context.time_index()),
+            });
+        }
+
         Ok(Self {
-            target_lunar_year: lunar_year(chart)?,
-            target_lunar_month: lunar_month(chart)?,
-            target_lunar_day: lunar_day(chart)?,
+            solar_date: None,
+            lunar_date: HoroscopeLunarDate::new(
+                lunar_year(chart)?,
+                lunar_month(chart)?,
+                lunar_day(chart)?,
+                false,
+            ),
+            time_index: None,
         })
     }
 
-    /// Returns the target lunar year carried by the yearly layer.
-    pub const fn target_lunar_year(&self) -> i32 {
-        self.target_lunar_year
+    /// Returns the retained target solar date, if available.
+    pub const fn solar_date(&self) -> Option<HoroscopeSolarDate> {
+        self.solar_date
     }
 
-    /// Returns the one-based target lunar month carried by the monthly layer.
-    pub const fn target_lunar_month(&self) -> u8 {
-        self.target_lunar_month
+    /// Returns the target lunar date.
+    pub const fn lunar_date(&self) -> HoroscopeLunarDate {
+        self.lunar_date
     }
 
-    /// Returns the one-based target lunar day carried by the daily layer.
-    pub const fn target_lunar_day(&self) -> u8 {
-        self.target_lunar_day
+    /// Returns the retained upstream `iztro` target `timeIndex`, if available.
+    pub const fn time_index(&self) -> Option<u8> {
+        self.time_index
     }
 }
 
