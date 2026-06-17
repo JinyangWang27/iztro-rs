@@ -1,0 +1,1495 @@
+{
+  "case_id": "1990_05_17_chen_female",
+  "note": "Self-generated golden: serialized StaticChartViewSnapshot::from_chart for the canonical natal case. No upstream iztro data.",
+  "snapshot": {
+    "active_scopes": [
+      "natal"
+    ],
+    "center": {
+      "birth_year_branch": "wu",
+      "birth_year_branch_zh": "午",
+      "birth_year_stem": "geng",
+      "birth_year_stem_zh": "庚",
+      "body_palace_branch": "xu",
+      "body_palace_branch_zh": "戌",
+      "five_element_bureau": "earth5",
+      "gender": "female",
+      "life_palace_branch": "yin",
+      "life_palace_branch_zh": "寅"
+    },
+    "highlights": [],
+    "palaces": [
+      {
+        "adjective_stars": [
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "adjective",
+            "kind_zh": "杂曜",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "tian_wu",
+            "name_zh": "天巫"
+          },
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "adjective",
+            "kind_zh": "杂曜",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "po_sui",
+            "name_zh": "破碎"
+          },
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "flower",
+            "kind_zh": "桃花星",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "tian_yao",
+            "name_zh": "天姚"
+          }
+        ],
+        "branch": "si",
+        "branch_zh": "巳",
+        "decorative_stars": [
+          {
+            "family": "changsheng12",
+            "family_zh": "长生十二神",
+            "name": "lin_guan",
+            "name_zh": "临官"
+          },
+          {
+            "family": "boshi12",
+            "family_zh": "博士十二神",
+            "name": "xiao_hao_boshi",
+            "name_zh": "小耗"
+          },
+          {
+            "family": "suiqian12",
+            "family_zh": "岁前十二神",
+            "name": "bing_fu_suiqian",
+            "name_zh": "病符"
+          },
+          {
+            "family": "jiangqian12",
+            "family_zh": "将前十二神",
+            "name": "wang_shen",
+            "name_zh": "亡神"
+          }
+        ],
+        "grid_position": {
+          "column": 0,
+          "row": 0
+        },
+        "highlights": [],
+        "major_stars": [
+          {
+            "brightness": "prosperous",
+            "brightness_zh": "旺",
+            "category": "major",
+            "category_zh": "主星",
+            "kind": "major",
+            "kind_zh": "主星",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "ju_men",
+            "name_zh": "巨门"
+          }
+        ],
+        "minor_stars": [
+          {
+            "brightness": "advantage",
+            "brightness_zh": "得",
+            "category": "minor",
+            "category_zh": "辅星",
+            "kind": "tough",
+            "kind_zh": "煞星",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "huo_xing",
+            "name_zh": "火星"
+          }
+        ],
+        "name": "property",
+        "name_zh": "田宅",
+        "other_typed_stars": [],
+        "overlays": [],
+        "roles": [
+          {
+            "kind": "natal_palace",
+            "palace_name": "property"
+          }
+        ],
+        "stem": "xin",
+        "stem_zh": "辛"
+      },
+      {
+        "adjective_stars": [
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "adjective",
+            "kind_zh": "杂曜",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "feng_gao",
+            "name_zh": "封诰"
+          },
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "adjective",
+            "kind_zh": "杂曜",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "yin_sha",
+            "name_zh": "阴煞"
+          },
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "adjective",
+            "kind_zh": "杂曜",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "tian_fu_adj",
+            "name_zh": "天福"
+          },
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "adjective",
+            "kind_zh": "杂曜",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "jie_lu",
+            "name_zh": "截路"
+          }
+        ],
+        "branch": "wu",
+        "branch_zh": "午",
+        "decorative_stars": [
+          {
+            "family": "changsheng12",
+            "family_zh": "长生十二神",
+            "name": "guan_dai",
+            "name_zh": "冠带"
+          },
+          {
+            "family": "boshi12",
+            "family_zh": "博士十二神",
+            "name": "qing_long",
+            "name_zh": "青龙"
+          },
+          {
+            "family": "suiqian12",
+            "family_zh": "岁前十二神",
+            "name": "sui_jian",
+            "name_zh": "岁建"
+          },
+          {
+            "family": "jiangqian12",
+            "family_zh": "将前十二神",
+            "name": "jiang_xing",
+            "name_zh": "将星"
+          }
+        ],
+        "grid_position": {
+          "column": 1,
+          "row": 0
+        },
+        "highlights": [],
+        "major_stars": [
+          {
+            "brightness": "flat",
+            "brightness_zh": "平",
+            "category": "major",
+            "category_zh": "主星",
+            "kind": "major",
+            "kind_zh": "主星",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "lian_zhen",
+            "name_zh": "廉贞"
+          },
+          {
+            "brightness": "temple",
+            "brightness_zh": "庙",
+            "category": "major",
+            "category_zh": "主星",
+            "kind": "major",
+            "kind_zh": "主星",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "tian_xiang",
+            "name_zh": "天相"
+          }
+        ],
+        "minor_stars": [
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "minor",
+            "category_zh": "辅星",
+            "kind": "soft",
+            "kind_zh": "吉星",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "you_bi",
+            "name_zh": "右弼"
+          },
+          {
+            "brightness": "trapped",
+            "brightness_zh": "陷",
+            "category": "minor",
+            "category_zh": "辅星",
+            "kind": "soft",
+            "kind_zh": "吉星",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "wen_chang",
+            "name_zh": "文昌"
+          }
+        ],
+        "name": "career",
+        "name_zh": "官禄",
+        "other_typed_stars": [],
+        "overlays": [],
+        "roles": [
+          {
+            "kind": "natal_palace",
+            "palace_name": "career"
+          }
+        ],
+        "stem": "ren",
+        "stem_zh": "壬"
+      },
+      {
+        "adjective_stars": [
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "adjective",
+            "kind_zh": "杂曜",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "tian_yue_adj",
+            "name_zh": "天月"
+          },
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "adjective",
+            "kind_zh": "杂曜",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "tian_kong",
+            "name_zh": "天空"
+          },
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "adjective",
+            "kind_zh": "杂曜",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "tian_shang",
+            "name_zh": "天伤"
+          },
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "adjective",
+            "kind_zh": "杂曜",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "kong_wang",
+            "name_zh": "空亡"
+          }
+        ],
+        "branch": "wei",
+        "branch_zh": "未",
+        "decorative_stars": [
+          {
+            "family": "changsheng12",
+            "family_zh": "长生十二神",
+            "name": "mu_yu",
+            "name_zh": "沐浴"
+          },
+          {
+            "family": "boshi12",
+            "family_zh": "博士十二神",
+            "name": "li_shi",
+            "name_zh": "力士"
+          },
+          {
+            "family": "suiqian12",
+            "family_zh": "岁前十二神",
+            "name": "hui_qi",
+            "name_zh": "晦气"
+          },
+          {
+            "family": "jiangqian12",
+            "family_zh": "将前十二神",
+            "name": "pan_an",
+            "name_zh": "攀鞍"
+          }
+        ],
+        "grid_position": {
+          "column": 2,
+          "row": 0
+        },
+        "highlights": [],
+        "major_stars": [
+          {
+            "brightness": "prosperous",
+            "brightness_zh": "旺",
+            "category": "major",
+            "category_zh": "主星",
+            "kind": "major",
+            "kind_zh": "主星",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "tian_liang",
+            "name_zh": "天梁"
+          }
+        ],
+        "minor_stars": [
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "minor",
+            "category_zh": "辅星",
+            "kind": "soft",
+            "kind_zh": "吉星",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "tian_yue",
+            "name_zh": "天钺"
+          },
+          {
+            "brightness": "temple",
+            "brightness_zh": "庙",
+            "category": "minor",
+            "category_zh": "辅星",
+            "kind": "tough",
+            "kind_zh": "煞星",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "tuo_luo",
+            "name_zh": "陀罗"
+          },
+          {
+            "brightness": "favourable",
+            "brightness_zh": "利",
+            "category": "minor",
+            "category_zh": "辅星",
+            "kind": "tough",
+            "kind_zh": "煞星",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "ling_xing",
+            "name_zh": "铃星"
+          },
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "minor",
+            "category_zh": "辅星",
+            "kind": "tough",
+            "kind_zh": "煞星",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "di_kong",
+            "name_zh": "地空"
+          }
+        ],
+        "name": "friends",
+        "name_zh": "仆役",
+        "other_typed_stars": [],
+        "overlays": [],
+        "roles": [
+          {
+            "kind": "natal_palace",
+            "palace_name": "friends"
+          }
+        ],
+        "stem": "gui",
+        "stem_zh": "癸"
+      },
+      {
+        "adjective_stars": [
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "adjective",
+            "kind_zh": "杂曜",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "gu_chen",
+            "name_zh": "孤辰"
+          },
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "adjective",
+            "kind_zh": "杂曜",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "tian_cai",
+            "name_zh": "天才"
+          }
+        ],
+        "branch": "shen",
+        "branch_zh": "申",
+        "decorative_stars": [
+          {
+            "family": "changsheng12",
+            "family_zh": "长生十二神",
+            "name": "chang_sheng",
+            "name_zh": "长生"
+          },
+          {
+            "family": "boshi12",
+            "family_zh": "博士十二神",
+            "name": "bo_shi",
+            "name_zh": "博士"
+          },
+          {
+            "family": "suiqian12",
+            "family_zh": "岁前十二神",
+            "name": "sang_men",
+            "name_zh": "丧门"
+          },
+          {
+            "family": "jiangqian12",
+            "family_zh": "将前十二神",
+            "name": "sui_yi",
+            "name_zh": "岁驿"
+          }
+        ],
+        "grid_position": {
+          "column": 3,
+          "row": 0
+        },
+        "highlights": [],
+        "major_stars": [
+          {
+            "brightness": "temple",
+            "brightness_zh": "庙",
+            "category": "major",
+            "category_zh": "主星",
+            "kind": "major",
+            "kind_zh": "主星",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "qi_sha",
+            "name_zh": "七杀"
+          }
+        ],
+        "minor_stars": [
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "minor",
+            "category_zh": "辅星",
+            "kind": "soft",
+            "kind_zh": "吉星",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "zuo_fu",
+            "name_zh": "左辅"
+          },
+          {
+            "brightness": "advantage",
+            "brightness_zh": "得",
+            "category": "minor",
+            "category_zh": "辅星",
+            "kind": "soft",
+            "kind_zh": "吉星",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "wen_qu",
+            "name_zh": "文曲"
+          },
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "minor",
+            "category_zh": "辅星",
+            "kind": "lucun",
+            "kind_zh": "禄存",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "lu_cun",
+            "name_zh": "禄存"
+          },
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "minor",
+            "category_zh": "辅星",
+            "kind": "tianma",
+            "kind_zh": "天马",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "tian_ma",
+            "name_zh": "天马"
+          }
+        ],
+        "name": "migration",
+        "name_zh": "迁移",
+        "other_typed_stars": [],
+        "overlays": [],
+        "roles": [
+          {
+            "kind": "natal_palace",
+            "palace_name": "migration"
+          }
+        ],
+        "stem": "jia",
+        "stem_zh": "甲"
+      },
+      {
+        "adjective_stars": [
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "adjective",
+            "kind_zh": "杂曜",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "feng_ge",
+            "name_zh": "凤阁"
+          },
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "adjective",
+            "kind_zh": "杂曜",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "gua_su",
+            "name_zh": "寡宿"
+          },
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "adjective",
+            "kind_zh": "杂曜",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "tian_shou",
+            "name_zh": "天寿"
+          },
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "helper",
+            "kind_zh": "助星",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "nian_jie",
+            "name_zh": "年解"
+          }
+        ],
+        "branch": "chen",
+        "branch_zh": "辰",
+        "decorative_stars": [
+          {
+            "family": "changsheng12",
+            "family_zh": "长生十二神",
+            "name": "di_wang",
+            "name_zh": "帝旺"
+          },
+          {
+            "family": "boshi12",
+            "family_zh": "博士十二神",
+            "name": "jiang_jun",
+            "name_zh": "将军"
+          },
+          {
+            "family": "suiqian12",
+            "family_zh": "岁前十二神",
+            "name": "diao_ke",
+            "name_zh": "吊客"
+          },
+          {
+            "family": "jiangqian12",
+            "family_zh": "将前十二神",
+            "name": "yue_sha",
+            "name_zh": "月煞"
+          }
+        ],
+        "grid_position": {
+          "column": 0,
+          "row": 1
+        },
+        "highlights": [],
+        "major_stars": [
+          {
+            "brightness": "temple",
+            "brightness_zh": "庙",
+            "category": "major",
+            "category_zh": "主星",
+            "kind": "major",
+            "kind_zh": "主星",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "tan_lang",
+            "name_zh": "贪狼"
+          }
+        ],
+        "minor_stars": [],
+        "name": "spirit",
+        "name_zh": "福德",
+        "other_typed_stars": [],
+        "overlays": [],
+        "roles": [
+          {
+            "kind": "natal_palace",
+            "palace_name": "spirit"
+          }
+        ],
+        "stem": "geng",
+        "stem_zh": "庚"
+      },
+      {
+        "adjective_stars": [
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "adjective",
+            "kind_zh": "杂曜",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "en_guang",
+            "name_zh": "恩光"
+          },
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "adjective",
+            "kind_zh": "杂曜",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "tian_shi",
+            "name_zh": "天使"
+          },
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "flower",
+            "kind_zh": "桃花星",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "hong_luan",
+            "name_zh": "红鸾"
+          }
+        ],
+        "branch": "you",
+        "branch_zh": "酉",
+        "decorative_stars": [
+          {
+            "family": "changsheng12",
+            "family_zh": "长生十二神",
+            "name": "yang",
+            "name_zh": "养"
+          },
+          {
+            "family": "boshi12",
+            "family_zh": "博士十二神",
+            "name": "guan_fu_boshi",
+            "name_zh": "官府"
+          },
+          {
+            "family": "suiqian12",
+            "family_zh": "岁前十二神",
+            "name": "guan_suo",
+            "name_zh": "贯索"
+          },
+          {
+            "family": "jiangqian12",
+            "family_zh": "将前十二神",
+            "name": "xi_shen_jiangqian",
+            "name_zh": "息神"
+          }
+        ],
+        "grid_position": {
+          "column": 3,
+          "row": 1
+        },
+        "highlights": [],
+        "major_stars": [
+          {
+            "brightness": "flat",
+            "brightness_zh": "平",
+            "category": "major",
+            "category_zh": "主星",
+            "kind": "major",
+            "kind_zh": "主星",
+            "mutagen": "ji",
+            "mutagen_zh": "忌",
+            "name": "tian_tong",
+            "name_zh": "天同"
+          }
+        ],
+        "minor_stars": [
+          {
+            "brightness": "trapped",
+            "brightness_zh": "陷",
+            "category": "minor",
+            "category_zh": "辅星",
+            "kind": "tough",
+            "kind_zh": "煞星",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "qing_yang",
+            "name_zh": "擎羊"
+          }
+        ],
+        "name": "health",
+        "name_zh": "疾厄",
+        "other_typed_stars": [],
+        "overlays": [],
+        "roles": [
+          {
+            "kind": "natal_palace",
+            "palace_name": "health"
+          }
+        ],
+        "stem": "yi",
+        "stem_zh": "乙"
+      },
+      {
+        "adjective_stars": [
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "adjective",
+            "kind_zh": "杂曜",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "tian_de",
+            "name_zh": "天德"
+          },
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "flower",
+            "kind_zh": "桃花星",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "tian_xi",
+            "name_zh": "天喜"
+          },
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "flower",
+            "kind_zh": "桃花星",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "xian_chi",
+            "name_zh": "咸池"
+          }
+        ],
+        "branch": "mao",
+        "branch_zh": "卯",
+        "decorative_stars": [
+          {
+            "family": "changsheng12",
+            "family_zh": "长生十二神",
+            "name": "shuai",
+            "name_zh": "衰"
+          },
+          {
+            "family": "boshi12",
+            "family_zh": "博士十二神",
+            "name": "zhou_shu",
+            "name_zh": "奏书"
+          },
+          {
+            "family": "suiqian12",
+            "family_zh": "岁前十二神",
+            "name": "tian_de_suiqian",
+            "name_zh": "天德"
+          },
+          {
+            "family": "jiangqian12",
+            "family_zh": "将前十二神",
+            "name": "xian_chi_jiangqian",
+            "name_zh": "咸池"
+          }
+        ],
+        "grid_position": {
+          "column": 0,
+          "row": 2
+        },
+        "highlights": [],
+        "major_stars": [
+          {
+            "brightness": "trapped",
+            "brightness_zh": "陷",
+            "category": "major",
+            "category_zh": "主星",
+            "kind": "major",
+            "kind_zh": "主星",
+            "mutagen": "ke",
+            "mutagen_zh": "科",
+            "name": "tai_yin",
+            "name_zh": "太阴"
+          }
+        ],
+        "minor_stars": [
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "minor",
+            "category_zh": "辅星",
+            "kind": "tough",
+            "kind_zh": "煞星",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "di_jie",
+            "name_zh": "地劫"
+          }
+        ],
+        "name": "parents",
+        "name_zh": "父母",
+        "other_typed_stars": [],
+        "overlays": [],
+        "roles": [
+          {
+            "kind": "natal_palace",
+            "palace_name": "parents"
+          }
+        ],
+        "stem": "ji",
+        "stem_zh": "己"
+      },
+      {
+        "adjective_stars": [
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "adjective",
+            "kind_zh": "杂曜",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "tai_fu",
+            "name_zh": "台辅"
+          },
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "adjective",
+            "kind_zh": "杂曜",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "long_chi",
+            "name_zh": "龙池"
+          },
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "adjective",
+            "kind_zh": "杂曜",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "hua_gai",
+            "name_zh": "华盖"
+          },
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "adjective",
+            "kind_zh": "杂曜",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "xun_kong",
+            "name_zh": "旬空"
+          }
+        ],
+        "branch": "xu",
+        "branch_zh": "戌",
+        "decorative_stars": [
+          {
+            "family": "changsheng12",
+            "family_zh": "长生十二神",
+            "name": "tai",
+            "name_zh": "胎"
+          },
+          {
+            "family": "boshi12",
+            "family_zh": "博士十二神",
+            "name": "fu_bing",
+            "name_zh": "伏兵"
+          },
+          {
+            "family": "suiqian12",
+            "family_zh": "岁前十二神",
+            "name": "guan_fu_suiqian",
+            "name_zh": "官符"
+          },
+          {
+            "family": "jiangqian12",
+            "family_zh": "将前十二神",
+            "name": "hua_gai_jiangqian",
+            "name_zh": "华盖"
+          }
+        ],
+        "grid_position": {
+          "column": 3,
+          "row": 2
+        },
+        "highlights": [],
+        "major_stars": [
+          {
+            "brightness": "temple",
+            "brightness_zh": "庙",
+            "category": "major",
+            "category_zh": "主星",
+            "kind": "major",
+            "kind_zh": "主星",
+            "mutagen": "quan",
+            "mutagen_zh": "权",
+            "name": "wu_qu",
+            "name_zh": "武曲"
+          }
+        ],
+        "minor_stars": [],
+        "name": "wealth",
+        "name_zh": "财帛",
+        "other_typed_stars": [],
+        "overlays": [],
+        "roles": [
+          {
+            "kind": "natal_palace",
+            "palace_name": "wealth"
+          },
+          {
+            "kind": "body_palace"
+          }
+        ],
+        "stem": "bing",
+        "stem_zh": "丙"
+      },
+      {
+        "adjective_stars": [
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "adjective",
+            "kind_zh": "杂曜",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "ba_zuo",
+            "name_zh": "八座"
+          },
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "adjective",
+            "kind_zh": "杂曜",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "fei_lian",
+            "name_zh": "蜚廉"
+          },
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "adjective",
+            "kind_zh": "杂曜",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "tian_chu",
+            "name_zh": "天厨"
+          }
+        ],
+        "branch": "yin",
+        "branch_zh": "寅",
+        "decorative_stars": [
+          {
+            "family": "changsheng12",
+            "family_zh": "长生十二神",
+            "name": "bing",
+            "name_zh": "病"
+          },
+          {
+            "family": "boshi12",
+            "family_zh": "博士十二神",
+            "name": "fay_lian_boshi",
+            "name_zh": "飞廉"
+          },
+          {
+            "family": "suiqian12",
+            "family_zh": "岁前十二神",
+            "name": "bai_hu",
+            "name_zh": "白虎"
+          },
+          {
+            "family": "jiangqian12",
+            "family_zh": "将前十二神",
+            "name": "zhi_bei",
+            "name_zh": "指背"
+          }
+        ],
+        "grid_position": {
+          "column": 0,
+          "row": 3
+        },
+        "highlights": [],
+        "major_stars": [
+          {
+            "brightness": "prosperous",
+            "brightness_zh": "旺",
+            "category": "major",
+            "category_zh": "主星",
+            "kind": "major",
+            "kind_zh": "主星",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "zi_wei",
+            "name_zh": "紫微"
+          },
+          {
+            "brightness": "temple",
+            "brightness_zh": "庙",
+            "category": "major",
+            "category_zh": "主星",
+            "kind": "major",
+            "kind_zh": "主星",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "tian_fu",
+            "name_zh": "天府"
+          }
+        ],
+        "minor_stars": [],
+        "name": "life",
+        "name_zh": "命宫",
+        "other_typed_stars": [],
+        "overlays": [],
+        "roles": [
+          {
+            "kind": "natal_palace",
+            "palace_name": "life"
+          }
+        ],
+        "stem": "wu",
+        "stem_zh": "戊"
+      },
+      {
+        "adjective_stars": [
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "adjective",
+            "kind_zh": "杂曜",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "tian_xing",
+            "name_zh": "天刑"
+          }
+        ],
+        "branch": "chou",
+        "branch_zh": "丑",
+        "decorative_stars": [
+          {
+            "family": "changsheng12",
+            "family_zh": "长生十二神",
+            "name": "si",
+            "name_zh": "死"
+          },
+          {
+            "family": "boshi12",
+            "family_zh": "博士十二神",
+            "name": "xi_shen_boshi",
+            "name_zh": "喜神"
+          },
+          {
+            "family": "suiqian12",
+            "family_zh": "岁前十二神",
+            "name": "long_de_suiqian",
+            "name_zh": "龙德"
+          },
+          {
+            "family": "jiangqian12",
+            "family_zh": "将前十二神",
+            "name": "tian_sha",
+            "name_zh": "天煞"
+          }
+        ],
+        "grid_position": {
+          "column": 1,
+          "row": 3
+        },
+        "highlights": [],
+        "major_stars": [
+          {
+            "brightness": "trapped",
+            "brightness_zh": "陷",
+            "category": "major",
+            "category_zh": "主星",
+            "kind": "major",
+            "kind_zh": "主星",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "tian_ji",
+            "name_zh": "天机"
+          }
+        ],
+        "minor_stars": [
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "minor",
+            "category_zh": "辅星",
+            "kind": "soft",
+            "kind_zh": "吉星",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "tian_kui",
+            "name_zh": "天魁"
+          }
+        ],
+        "name": "siblings",
+        "name_zh": "兄弟",
+        "other_typed_stars": [],
+        "overlays": [],
+        "roles": [
+          {
+            "kind": "natal_palace",
+            "palace_name": "siblings"
+          }
+        ],
+        "stem": "ji",
+        "stem_zh": "己"
+      },
+      {
+        "adjective_stars": [
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "adjective",
+            "kind_zh": "杂曜",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "san_tai",
+            "name_zh": "三台"
+          },
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "adjective",
+            "kind_zh": "杂曜",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "tian_ku",
+            "name_zh": "天哭"
+          },
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "adjective",
+            "kind_zh": "杂曜",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "tian_xu",
+            "name_zh": "天虚"
+          },
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "helper",
+            "kind_zh": "助星",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "jie_shen",
+            "name_zh": "解神"
+          }
+        ],
+        "branch": "zi",
+        "branch_zh": "子",
+        "decorative_stars": [
+          {
+            "family": "changsheng12",
+            "family_zh": "长生十二神",
+            "name": "mu",
+            "name_zh": "墓"
+          },
+          {
+            "family": "boshi12",
+            "family_zh": "博士十二神",
+            "name": "bing_fu_boshi",
+            "name_zh": "病符"
+          },
+          {
+            "family": "suiqian12",
+            "family_zh": "岁前十二神",
+            "name": "da_hao_suiqian",
+            "name_zh": "大耗"
+          },
+          {
+            "family": "jiangqian12",
+            "family_zh": "将前十二神",
+            "name": "zai_sha",
+            "name_zh": "灾煞"
+          }
+        ],
+        "grid_position": {
+          "column": 2,
+          "row": 3
+        },
+        "highlights": [],
+        "major_stars": [
+          {
+            "brightness": "temple",
+            "brightness_zh": "庙",
+            "category": "major",
+            "category_zh": "主星",
+            "kind": "major",
+            "kind_zh": "主星",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "po_jun",
+            "name_zh": "破军"
+          }
+        ],
+        "minor_stars": [],
+        "name": "spouse",
+        "name_zh": "夫妻",
+        "other_typed_stars": [],
+        "overlays": [],
+        "roles": [
+          {
+            "kind": "natal_palace",
+            "palace_name": "spouse"
+          }
+        ],
+        "stem": "wu",
+        "stem_zh": "戊"
+      },
+      {
+        "adjective_stars": [
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "adjective",
+            "kind_zh": "杂曜",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "tian_gui",
+            "name_zh": "天贵"
+          },
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "adjective",
+            "kind_zh": "杂曜",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "yue_de",
+            "name_zh": "月德"
+          },
+          {
+            "brightness": "unknown",
+            "brightness_zh": "",
+            "category": "adjective",
+            "category_zh": "杂曜",
+            "kind": "adjective",
+            "kind_zh": "杂曜",
+            "mutagen": null,
+            "mutagen_zh": null,
+            "name": "tian_guan",
+            "name_zh": "天官"
+          }
+        ],
+        "branch": "hai",
+        "branch_zh": "亥",
+        "decorative_stars": [
+          {
+            "family": "changsheng12",
+            "family_zh": "长生十二神",
+            "name": "jue",
+            "name_zh": "绝"
+          },
+          {
+            "family": "boshi12",
+            "family_zh": "博士十二神",
+            "name": "da_hao_boshi",
+            "name_zh": "大耗"
+          },
+          {
+            "family": "suiqian12",
+            "family_zh": "岁前十二神",
+            "name": "xiao_hao_suiqian",
+            "name_zh": "小耗"
+          },
+          {
+            "family": "jiangqian12",
+            "family_zh": "将前十二神",
+            "name": "jie_sha",
+            "name_zh": "劫煞"
+          }
+        ],
+        "grid_position": {
+          "column": 3,
+          "row": 3
+        },
+        "highlights": [],
+        "major_stars": [
+          {
+            "brightness": "trapped",
+            "brightness_zh": "陷",
+            "category": "major",
+            "category_zh": "主星",
+            "kind": "major",
+            "kind_zh": "主星",
+            "mutagen": "lu",
+            "mutagen_zh": "禄",
+            "name": "tai_yang",
+            "name_zh": "太阳"
+          }
+        ],
+        "minor_stars": [],
+        "name": "children",
+        "name_zh": "子女",
+        "other_typed_stars": [],
+        "overlays": [],
+        "roles": [
+          {
+            "kind": "natal_palace",
+            "palace_name": "children"
+          }
+        ],
+        "stem": "ding",
+        "stem_zh": "丁"
+      }
+    ],
+    "selectors": [
+      {
+        "enabled": true,
+        "label_zh": "本命",
+        "scope": "natal",
+        "selected": true
+      },
+      {
+        "enabled": false,
+        "label_zh": "大限",
+        "scope": "decadal",
+        "selected": false
+      },
+      {
+        "enabled": false,
+        "label_zh": "小限",
+        "scope": "age",
+        "selected": false
+      },
+      {
+        "enabled": false,
+        "label_zh": "流年",
+        "scope": "yearly",
+        "selected": false
+      },
+      {
+        "enabled": false,
+        "label_zh": "流月",
+        "scope": "monthly",
+        "selected": false
+      },
+      {
+        "enabled": false,
+        "label_zh": "流日",
+        "scope": "daily",
+        "selected": false
+      },
+      {
+        "enabled": false,
+        "label_zh": "流时",
+        "scope": "hourly",
+        "selected": false
+      }
+    ]
+  },
+  "view_model": "StaticChartViewSnapshot"
+}

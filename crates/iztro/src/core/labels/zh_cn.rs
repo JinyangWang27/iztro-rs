@@ -10,7 +10,10 @@
 
 use crate::core::model::{
     chart::{DecorativeStarFamily, PalaceName},
-    star::{Brightness, StarKind, StarName, mutagen::Mutagen},
+    star::{
+        Brightness, StarCategory, StarKind, StarName,
+        mutagen::{Mutagen, Scope},
+    },
 };
 use lunar_lite::{EarthlyBranch, HeavenlyStem};
 
@@ -90,6 +93,32 @@ pub const fn brightness_zh(brightness: Brightness) -> &'static str {
         Brightness::Weak => "不",
         Brightness::Trapped => "陷",
         Brightness::Unknown => "",
+    }
+}
+
+/// Returns the Chinese label for a coarse star category (星耀大类).
+///
+/// This is the grouping used by GUI-facing static chart views: the fourteen
+/// major stars (主星), the supportive/tough minor stars (辅星), and the
+/// miscellaneous symbolic markers (杂曜). It is coarser than [`star_kind_zh`].
+pub const fn star_category_zh(category: StarCategory) -> &'static str {
+    match category {
+        StarCategory::Major => "主星",
+        StarCategory::Minor => "辅星",
+        StarCategory::Adjective => "杂曜",
+    }
+}
+
+/// Returns the Chinese label for a horoscope scope (运限), as used by chart selectors.
+pub const fn scope_zh(scope: Scope) -> &'static str {
+    match scope {
+        Scope::Natal => "本命",
+        Scope::Decadal => "大限",
+        Scope::Age => "小限",
+        Scope::Yearly => "流年",
+        Scope::Monthly => "流月",
+        Scope::Daily => "流日",
+        Scope::Hourly => "流时",
     }
 }
 
@@ -376,6 +405,24 @@ mod tests {
         assert_eq!(brightness_zh(Brightness::Weak), "不");
         assert_eq!(brightness_zh(Brightness::Trapped), "陷");
         assert_eq!(brightness_zh(Brightness::Unknown), "");
+    }
+
+    #[test]
+    fn star_category_labels_cover_all_categories() {
+        assert_eq!(star_category_zh(StarCategory::Major), "主星");
+        assert_eq!(star_category_zh(StarCategory::Minor), "辅星");
+        assert_eq!(star_category_zh(StarCategory::Adjective), "杂曜");
+    }
+
+    #[test]
+    fn scope_labels_cover_all_scopes() {
+        assert_eq!(scope_zh(Scope::Natal), "本命");
+        assert_eq!(scope_zh(Scope::Decadal), "大限");
+        assert_eq!(scope_zh(Scope::Age), "小限");
+        assert_eq!(scope_zh(Scope::Yearly), "流年");
+        assert_eq!(scope_zh(Scope::Monthly), "流月");
+        assert_eq!(scope_zh(Scope::Daily), "流日");
+        assert_eq!(scope_zh(Scope::Hourly), "流时");
     }
 
     #[test]

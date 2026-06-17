@@ -57,15 +57,16 @@ A renderer should consume `ChartStackSnapshot` rather than walking `Chart` direc
 
 `HoroscopeFacadeSnapshot` and related facade DTOs are compatibility/export payloads. They should preserve stable machine-readable fields, deterministic ordering, and additive Chinese labels, but they should not become UI layout code.
 
-A 文墨天机-style static chart should instead be backed by a dedicated GUI-facing read model, for example a future `StaticChartViewSnapshot`. That view model can be derived from existing chart/facade facts and may include:
+A 文墨天机-style static chart is instead backed by a dedicated GUI-facing read model, `StaticChartViewSnapshot` (implemented in `core::view`). It is derived from existing chart/facade facts via `StaticChartViewSnapshot::from_chart` (natal-only) or `from_horoscope_chart` (natal plus selected temporal overlays), and includes:
 
-- the conventional 4x4 palace-grid position for each palace;
-- Chinese labels for branches, stems, palace names, stars, brightness, mutagens, and decorative-star families;
-- grouped star lists for display, such as major stars, minor/helper stars, adjective/misc stars, and decorative stars;
-- selected natal/temporal overlays for the current view;
-- empty or populated highlight annotations.
+- the conventional 4x4 palace-grid position for each palace (reusing `palace_grid_position`);
+- Chinese labels for branches, stems, palace names, stars, brightness, mutagens, decorative-star families, star categories, and scopes;
+- star lists grouped by `StarCategory` (major / minor / adjective, with a reserved `other_typed_stars`) plus decorative stars, all in the deterministic facade star order;
+- scope-selector state (本命/大限/小限/流年/流月/流日/流时) and the active scopes, so a frontend can render selector controls without owning that logic;
+- selected natal/temporal overlays for the current view, kept separate from natal facts;
+- reserved highlight annotations (`HighlightView`), currently always empty.
 
-The view model should remain renderer-neutral. It may describe that a palace or star should be highlighted, but it should not choose CSS classes, colors, canvas coordinates, camera position, animation, or 3D geometry.
+The view model remains renderer-neutral. It may describe that a palace or star should be highlighted, but it does not choose CSS classes, colors, canvas coordinates, camera position, animation, or 3D geometry.
 
 ### Static chart slices before timeline and 3D
 
