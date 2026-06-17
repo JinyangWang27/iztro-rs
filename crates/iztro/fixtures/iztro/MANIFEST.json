@@ -1,5 +1,7 @@
 {
   "note": "Registry of the committed upstream-reference fixtures. Additive audit only: it records, per fixture file, its test category, the shared birth case(s) its `input` block(s) encode, the chart algorithm(s) it exercises, and what it covers. Three birth cases recur across the compat/runtime fixtures (1990_05_17_chen_female, 1988_03_14_zi_male, 1991_08_09_hai_female); each fixture still defines its own `input` block, so the duplication is documented here, not yet consolidated. `tests/fixture_manifest.rs` keeps this list in sync with the directory.",
+  "canonical_cases": "CASES.json",
+  "canonical_cases_note": "Canonical definitions of the recurring birth cases referenced by `birth_cases` arrays live in CASES.json. MANIFEST.json owns the file-level fixture inventory, coverage, and algorithm metadata; CASES.json owns the reusable case identities. `tests/fixture_case_registry.rs` checks that every `birth_cases` id resolves to a registered case and that the fixtures' duplicated `input` blocks stay consistent with it.",
   "target_version": "2.5.8",
   "categories": [
     "compat",
