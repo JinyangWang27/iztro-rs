@@ -7,6 +7,41 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0](https://github.com/JinyangWang27/iztro-rs/compare/v0.5.0...v0.6.0) - 2026-06-17
+
+### Added
+
+- *(gui)* add birth input, by_solar generation, and chart cache
+- *(core)* add from_horoscope_chart temporal overlays + selectors
+- *(core)* add StaticChartViewSnapshot view model + from_chart
+- *(labels)* add scope_zh and star_category_zh helpers
+- *(core)* expose zh-CN labels on natal facade snapshots
+- *(core)* add table-driven zh-CN label module
+- *(core)* add natal astrolabe facade snapshot ([#73](https://github.com/JinyangWang27/iztro-rs/pull/73))
+- *(core)* retain horoscope target context ([#72](https://github.com/JinyangWang27/iztro-rs/pull/72))
+- *(core)* add horoscope runtime helpers ([#69](https://github.com/JinyangWang27/iztro-rs/pull/69))
+
+### Fixed
+
+- *(core)* always keep natal active in horoscope static views
+
+### Other
+
+- rustfmt static chart view fixture test
+- *(core)* add static chart view golden fixture + manifest entry
+- enhance comments for 紫微 and 天府 series with additional context
+- *(facade)* pin deterministic facade star ordering
+- *(core)* order facade palace stars deterministically
+- *(fixtures)* document CASES.json case registry
+- *(fixtures)* add fixture case registry drift tests
+- *(fixtures)* add canonical birth case registry CASES.json
+- add more tests
+- *(fixtures)* add fixture manifest registry and drift test
+- *(test)* prefix leap-month and rat-hour boundary tests
+- *(test)* centralize compat fixture plumbing and add compat_ prefix
+- *(test)* split shared test common into module tree
+- *(core)* add horoscope facade reference fixtures ([#71](https://github.com/JinyangWang27/iztro-rs/pull/71))
+
 ## [0.5.0](https://github.com/JinyangWang27/iztro-rs/compare/v0.4.0...v0.5.0) - 2026-06-16
 
 ### Added
