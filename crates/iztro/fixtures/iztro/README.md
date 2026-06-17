@@ -26,8 +26,33 @@ Each fixture still defines its own `input` block, so this duplication is
 inputs into a single source is deferred to a follow-up that can re-verify
 expected outputs. `crates/iztro/tests/fixture_manifest.rs` asserts the registry
 stays in sync: every entry points to an existing file, every committed `*.json`
-(except `MANIFEST.json`) is listed, and every entry has a non-empty `file`,
-`category`, and `covers`.
+(except `MANIFEST.json` and `CASES.json`) is listed, and every entry has a
+non-empty `file`, `category`, and `covers`.
+
+### Two registries
+
+The two top-level JSON registries have distinct jobs:
+
+- **`MANIFEST.json`** — the file-level fixture inventory and coverage registry.
+  It owns the per-file `category`, `algorithms`, `covers`, and the `birth_cases`
+  ids each fixture encodes.
+- **`CASES.json`** — the reusable canonical case registry. It defines each
+  recurring birth case once, by stable id, with its calendar-system birth fields
+  (`calendar`, `year`/`month`/`day`, `birth_time`, `time_index`, `gender`,
+  `is_leap_month`, `fix_leap`, `language`) plus algorithm-independent identity
+  metadata (birth-year ganzhi). Algorithms stay in `MANIFEST.json`: a case
+  describes a birth instant, not a chart algorithm.
+
+The fixture files **still keep their own `input` blocks** for standalone
+readability; nothing is consolidated yet. `crates/iztro/tests/fixture_case_registry.rs`
+provides the drift guard: it validates `CASES.json`, asserts every
+`MANIFEST.json` `birth_cases` id resolves to a registered case with unique ids,
+and asserts each recurring fixture's duplicated `input` block stays consistent
+with the registered case. Fixtures with empty `birth_cases` (broad
+e2e/horoscope/flow fixtures) are skipped, as are solar `input` readings that
+share a lunar case id (e.g. the `major_stars`/`minimal_natal` solar readings of
+`1990_05_17_chen_female`), since they encode a different birth instant and
+cannot be checked unambiguously against the lunar case.
 
 ## Upstream reference workspace
 
