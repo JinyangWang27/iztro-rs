@@ -716,4 +716,183 @@ mod tests {
         let snapshot = StaticChartViewSnapshot::from_chart(&sample_chart());
         assert!(snapshot.palaces.iter().all(|p| p.overlays.is_empty()));
     }
+
+    use crate::core::model::chart::{ScopedStarPlacement, TemporalContext, TemporalLayer};
+
+    /// Branch carrying the synthetic decadal overlay facts in the test horoscope.
+    const OVERLAY_BRANCH: EarthlyBranch = EarthlyBranch::Zi;
+
+    /// Builds a horoscope chart with a decadal layer (carrying one flow star and
+    /// one mutagen activation on [`OVERLAY_BRANCH`]) and an empty yearly layer.
+    fn sample_horoscope_chart() -> HoroscopeChart {
+        let mut chart = HoroscopeChart::new(sample_chart());
+
+        let period = StemBranch::from_lunar_year(2020);
+        let decadal_star = StarPlacement::new(
+            StarName::YunLu,
+            StarKind::LuCun,
+            Brightness::Unknown,
+            None,
+            Scope::Decadal,
+        );
+        let decadal_layer = TemporalLayer::try_new(
+            Scope::Decadal,
+            TemporalContext::Decadal {
+                stem_branch: period,
+                start_age: 6,
+            },
+            vec![ScopedStarPlacement::new(OVERLAY_BRANCH, decadal_star)],
+            vec![MutagenActivation::new(
+                Scope::Decadal,
+                StarName::ZiWei,
+                OVERLAY_BRANCH,
+                Mutagen::Lu,
+            )],
+        )
+        .expect("decadal layer should build");
+        chart.push_layer(decadal_layer);
+
+        let yearly_layer = TemporalLayer::try_new(
+            Scope::Yearly,
+            TemporalContext::Yearly {
+                stem_branch: period,
+                lunar_year: 2020,
+            },
+            Vec::new(),
+            Vec::new(),
+        )
+        .expect("yearly layer should build");
+        chart.push_layer(yearly_layer);
+
+        chart
+    }
+
+    #[test]
+    fn from_horoscope_chart_enables_and_selects_present_scopes() {
+        let chart = sample_horoscope_chart();
+        let snapshot = StaticChartViewSnapshot::from_horoscope_chart(&chart);
+
+        let present = [Scope::Natal, Scope::Decadal, Scope::Yearly];
+        for selector in &snapshot.selectors {
+            let is_present = present.contains(&selector.scope);
+            assert_eq!(selector.enabled, is_present, "{:?}", selector.scope);
+            assert_eq!(selector.selected, is_present, "{:?}", selector.scope);
+        }
+        // Active scopes follow the fixed display order: 本命 / 大限 / 流年.
+        assert_eq!(
+            snapshot.active_scopes,
+            vec![Scope::Natal, Scope::Decadal, Scope::Yearly]
+        );
+    }
+
+    #[test]
+    fn selector_labels_are_correct() {
+        let snapshot = StaticChartViewSnapshot::from_horoscope_chart(&sample_horoscope_chart());
+        let labels: Vec<(Scope, &str)> = snapshot
+            .selectors
+            .iter()
+            .map(|s| (s.scope, s.label_zh.as_str()))
+            .collect();
+        assert_eq!(
+            labels,
+            vec![
+                (Scope::Natal, "本命"),
+                (Scope::Decadal, "大限"),
+                (Scope::Age, "小限"),
+                (Scope::Yearly, "流年"),
+                (Scope::Monthly, "流月"),
+                (Scope::Daily, "流日"),
+                (Scope::Hourly, "流时"),
+            ]
+        );
+    }
+
+    #[test]
+    fn absent_scopes_are_disabled_deterministically() {
+        let snapshot = StaticChartViewSnapshot::from_horoscope_chart(&sample_horoscope_chart());
+        for scope in [Scope::Age, Scope::Monthly, Scope::Daily, Scope::Hourly] {
+            let selector = snapshot
+                .selectors
+                .iter()
+                .find(|s| s.scope == scope)
+                .expect("selector present");
+            assert!(!selector.enabled);
+            assert!(!selector.selected);
+        }
+    }
+
+    #[test]
+    fn active_scopes_match_requested_visible_scopes() {
+        let chart = sample_horoscope_chart();
+        // Request only Natal + Decadal, plus an absent Monthly (must be ignored).
+        let request = StaticChartViewRequest {
+            visible_scopes: vec![Scope::Natal, Scope::Decadal, Scope::Monthly],
+        };
+        let snapshot = StaticChartViewSnapshot::from_horoscope_chart_with(&chart, &request);
+        assert_eq!(snapshot.active_scopes, vec![Scope::Natal, Scope::Decadal]);
+
+        // Yearly is present but not requested: enabled yet not selected.
+        let yearly = snapshot
+            .selectors
+            .iter()
+            .find(|s| s.scope == Scope::Yearly)
+            .unwrap();
+        assert!(yearly.enabled);
+        assert!(!yearly.selected);
+    }
+
+    #[test]
+    fn selected_overlays_appear_only_on_the_overlay_branch() {
+        let snapshot = StaticChartViewSnapshot::from_horoscope_chart(&sample_horoscope_chart());
+        for palace in &snapshot.palaces {
+            // One overlay per selected non-natal layer (decadal + yearly).
+            assert_eq!(palace.overlays.len(), 2, "{:?}", palace.branch);
+            let decadal = palace
+                .overlays
+                .iter()
+                .find(|o| o.scope == Scope::Decadal)
+                .expect("decadal overlay");
+            if palace.branch == OVERLAY_BRANCH {
+                assert_eq!(decadal.typed_stars.len(), 1);
+                assert_eq!(decadal.typed_stars[0].name, StarName::YunLu);
+                assert_eq!(decadal.mutagens.len(), 1);
+                assert_eq!(decadal.mutagens[0].mutagen, Mutagen::Lu);
+            } else {
+                assert!(decadal.typed_stars.is_empty());
+                assert!(decadal.mutagens.is_empty());
+            }
+        }
+    }
+
+    #[test]
+    fn selecting_scopes_changes_only_overlays_not_natal_facts() {
+        let chart = sample_horoscope_chart();
+        let natal_only = StaticChartViewSnapshot::from_chart(chart.natal());
+        let with_overlays = StaticChartViewSnapshot::from_horoscope_chart(&chart);
+
+        // Center and per-palace natal facts are identical; only overlays differ.
+        assert_eq!(natal_only.center, with_overlays.center);
+        for (a, b) in natal_only.palaces.iter().zip(&with_overlays.palaces) {
+            assert_eq!(a.branch, b.branch);
+            assert_eq!(a.major_stars, b.major_stars);
+            assert_eq!(a.minor_stars, b.minor_stars);
+            assert_eq!(a.adjective_stars, b.adjective_stars);
+            assert_eq!(a.decorative_stars, b.decorative_stars);
+            assert_eq!(a.roles, b.roles);
+            assert!(a.overlays.is_empty());
+            assert!(!b.overlays.is_empty());
+        }
+    }
+
+    #[test]
+    fn horoscope_snapshot_serializes_deterministically_and_keeps_natal_immutable() {
+        let chart = sample_horoscope_chart();
+        let before = chart.clone();
+        let first = serde_json::to_string(&StaticChartViewSnapshot::from_horoscope_chart(&chart))
+            .expect("serialize");
+        let second = serde_json::to_string(&StaticChartViewSnapshot::from_horoscope_chart(&chart))
+            .expect("serialize");
+        assert_eq!(first, second);
+        assert_eq!(chart, before);
+    }
 }
