@@ -82,6 +82,7 @@ The following remain intentionally out of scope for the current supported surfac
 - full BaZi output;
 - temporal decorative arrays beyond yearly `yearlyDecStar` (e.g. decadal/monthly/daily/hourly decorative arrays);
 - full upstream facade serialization parity (the upstream `FunctionalAstrolabe#horoscope` payload shape);
+- full multilingual/i18n infrastructure and complete upstream localized-string parity (the natal facade `astrolabe` snapshots expose additive zh-CN `*_zh` labels via `core::labels::zh_cn`, but internal models stay language-neutral);
 - bindings;
 - richer renderers and GUI/WASM/TUI frontends;
 - feature extraction for temporal activation;
