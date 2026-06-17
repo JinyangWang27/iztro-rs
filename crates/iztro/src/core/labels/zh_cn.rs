@@ -109,8 +109,7 @@ pub const fn star_category_zh(category: StarCategory) -> &'static str {
     }
 }
 
-/// Returns the Chinese label for a horoscope scope (运限), as used by
-/// 文墨天机-style chart selectors.
+/// Returns the Chinese label for a horoscope scope (运限), as used by chart selectors.
 pub const fn scope_zh(scope: Scope) -> &'static str {
     match scope {
         Scope::Natal => "本命",

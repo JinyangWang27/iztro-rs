@@ -1,7 +1,7 @@
 //! A renderer-neutral static 12-palace chart view model.
 //!
-//! [`StaticChartViewSnapshot`] is the GUI-facing read model that backs a future
-//! 文墨天机-style static chart. It is one selected chart slice: a center panel,
+//! [`StaticChartViewSnapshot`] is the GUI-facing read model that backs a future static chart.
+//! It is one selected chart slice: a center panel,
 //! twelve perimeter palaces laid out on the conventional 4x4 grid, scope-selector
 //! state (本命/大限/小限/流年/流月/流日/流时), optional temporal overlays, and a
 //! reserved (currently always empty) set of highlight annotations.
@@ -25,9 +25,8 @@ use serde::{Deserialize, Serialize};
 
 /// Fixed display order for chart scope selectors.
 ///
-/// This is the 文墨天机 ordering (本命/大限/小限/流年/流月/流日/流时), which is
-/// independent of the [`Scope`] declaration order. It also fixes the order of
-/// [`StaticChartViewSnapshot::selectors`] and [`active_scopes`].
+/// This ordering (本命/大限/小限/流年/流月/流日/流时) is independent of the [`Scope`] declaration order.
+/// It also fixes the order of [`StaticChartViewSnapshot::selectors`] and [`active_scopes`].
 ///
 /// [`active_scopes`]: StaticChartViewSnapshot::active_scopes
 const SELECTOR_ORDER: [Scope; 7] = [
@@ -283,11 +282,16 @@ pub struct HighlightView {
     pub involved_mutagens: Vec<Mutagen>,
 }
 
-/// A request describing which scopes a static chart view should make visible.
+/// A request describing which temporal overlays a static chart view should show.
+///
+/// [`Scope::Natal`] is always the base layer of a static chart, so it is always
+/// selected/active regardless of this request. `visible_scopes` only controls
+/// the requested temporal overlays on top of natal.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct StaticChartViewRequest {
-    /// Scopes the caller wants visible. Scopes absent from the chart are ignored
-    /// (their selector is emitted disabled).
+    /// Requested temporal overlays. Natal is always included as the base layer
+    /// even if omitted here. Scopes absent from the chart are ignored (their
+    /// selector is emitted disabled).
     pub visible_scopes: Vec<Scope>,
 }
 
@@ -332,9 +336,14 @@ impl StaticChartViewSnapshot {
     ) -> Self {
         let natal = chart.natal();
         let present = present_scopes(chart);
+        // Natal is always the base layer of a static chart, so it is always
+        // selected/active; `visible_scopes` only controls temporal overlays.
         let selected: Vec<Scope> = SELECTOR_ORDER
             .into_iter()
-            .filter(|scope| present.contains(scope) && request.visible_scopes.contains(scope))
+            .filter(|scope| {
+                *scope == Scope::Natal
+                    || (present.contains(scope) && request.visible_scopes.contains(scope))
+            })
             .collect();
 
         // Only selected non-natal layers contribute overlays.
@@ -839,6 +848,27 @@ mod tests {
             .unwrap();
         assert!(yearly.enabled);
         assert!(!yearly.selected);
+    }
+
+    #[test]
+    fn natal_is_always_active_for_horoscope_static_views() {
+        let chart = sample_horoscope_chart();
+        let request = StaticChartViewRequest {
+            visible_scopes: vec![Scope::Yearly],
+        };
+
+        let snapshot = StaticChartViewSnapshot::from_horoscope_chart_with(&chart, &request);
+
+        assert_eq!(snapshot.active_scopes, vec![Scope::Natal, Scope::Yearly]);
+
+        let natal = snapshot
+            .selectors
+            .iter()
+            .find(|selector| selector.scope == Scope::Natal)
+            .expect("natal selector");
+
+        assert!(natal.enabled);
+        assert!(natal.selected);
     }
 
     #[test]
