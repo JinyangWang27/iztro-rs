@@ -8,7 +8,7 @@ use common::{
 };
 use iztro::core::{
     ChartError, HoroscopeChart, HoroscopeStackInput, HoroscopeSupportedFieldsSnapshot, Scope,
-    SolarDay, SolarMonth, TemporalLayer, build_full_horoscope_chart,
+    SolarDay, SolarMonth, StarName, TemporalLayer, build_full_horoscope_chart,
 };
 use serde_json::{Value, json};
 
@@ -121,6 +121,112 @@ fn supported_fields_snapshot_round_trips_through_json() {
         serde_json::from_str(&encoded).expect("snapshot should deserialize");
 
     assert_eq!(decoded, snapshot);
+}
+
+#[test]
+fn supported_fields_accessors_expose_every_scope_block() {
+    let case = horoscope_fixture_case(CANONICAL_CASE_ID);
+    let chart = build_chart_from_horoscope_fixture_case(&case);
+    let horoscope = build_full_horoscope_chart(chart, stack_input(&case))
+        .expect("full horoscope stack should build");
+    let snapshot = HoroscopeSupportedFieldsSnapshot::from_horoscope_chart(&horoscope)
+        .expect("supported-fields snapshot should build");
+
+    assert_eq!(snapshot.decadal().common().name(), Scope::Decadal);
+    assert_eq!(snapshot.age().common().name(), Scope::Age);
+    assert_eq!(snapshot.yearly().common().name(), Scope::Yearly);
+    assert_eq!(snapshot.monthly().common().name(), Scope::Monthly);
+    assert_eq!(snapshot.daily().common().name(), Scope::Daily);
+    assert_eq!(snapshot.hourly().common().name(), Scope::Hourly);
+
+    let age = &case["supported_fields"]["age"];
+    assert_eq!(
+        snapshot.age().nominal_age(),
+        age["nominal_age"].as_u64().expect("nominal age") as u8
+    );
+    assert_eq!(
+        snapshot.age().common().index(),
+        age["index"].as_u64().expect("age index") as usize
+    );
+    assert_eq!(
+        snapshot.age().common().palace_names()[snapshot.age().common().index()].name(),
+        iztro::core::PalaceName::Life
+    );
+
+    let decadal = snapshot.decadal();
+    assert_eq!(decadal.flow_stars().len(), 10);
+    assert_eq!(
+        decadal.common().mutagen().lu().transform(),
+        iztro::core::Mutagen::Lu
+    );
+    assert_eq!(
+        decadal.common().mutagen().quan().transform(),
+        iztro::core::Mutagen::Quan
+    );
+    assert_eq!(
+        decadal.common().mutagen().ke().transform(),
+        iztro::core::Mutagen::Ke
+    );
+    assert_eq!(
+        decadal.common().mutagen().ji().transform(),
+        iztro::core::Mutagen::Ji
+    );
+    let _ = decadal.common().mutagen().lu().star();
+
+    for scope in [snapshot.monthly(), snapshot.daily(), snapshot.hourly()] {
+        assert_eq!(scope.flow_stars().len(), 10);
+        assert!(
+            scope
+                .flow_stars()
+                .iter()
+                .all(|star| star.kind() == iztro::core::StarKind::Flower
+                    || star.kind() == iztro::core::StarKind::LuCun
+                    || star.kind() == iztro::core::StarKind::TianMa
+                    || star.kind() == iztro::core::StarKind::Soft
+                    || star.kind() == iztro::core::StarKind::Tough)
+        );
+        assert!(
+            scope
+                .flow_stars()
+                .iter()
+                .all(|star| star.branch().index() < 12)
+        );
+        assert!(scope.flow_stars().iter().all(|star| {
+            matches!(
+                star.base(),
+                iztro::core::FlowStarBase::Chang
+                    | iztro::core::FlowStarBase::Kui
+                    | iztro::core::FlowStarBase::Lu
+                    | iztro::core::FlowStarBase::Luan
+                    | iztro::core::FlowStarBase::Ma
+                    | iztro::core::FlowStarBase::Qu
+                    | iztro::core::FlowStarBase::Tuo
+                    | iztro::core::FlowStarBase::Xi
+                    | iztro::core::FlowStarBase::Yang
+                    | iztro::core::FlowStarBase::Yue
+            )
+        }));
+    }
+
+    let yearly = snapshot.yearly();
+    assert!(yearly.nian_jie_branch().is_some());
+    assert_eq!(yearly.flow_stars().len(), 10);
+    assert_eq!(yearly.yearly_dec_stars().suiqian12().len(), 12);
+    assert_eq!(yearly.yearly_dec_stars().jiangqian12().len(), 12);
+    assert!(
+        yearly
+            .yearly_dec_stars()
+            .suiqian12()
+            .iter()
+            .all(|star| star.branch().index() < 12 && star.name() != StarName::ZiWei)
+    );
+    assert!(
+        yearly
+            .yearly_dec_stars()
+            .jiangqian12()
+            .iter()
+            .all(|star| star.branch().index() < 12 && star.name() != StarName::ZiWei)
+    );
 }
 
 #[test]
