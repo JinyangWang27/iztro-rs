@@ -87,8 +87,8 @@ Current supported chart-generation slice: `by_lunar` accepts explicit lunar inpu
 - [x] Add `render` crate.
 - [x] Add deterministic plain text chart-stack renderer.
 - [x] Add runnable plain text demo from real `by_solar` input.
-- [ ] Add GUI-ready static chart view model for one selected natal/temporal projection.
-- [ ] Add renderer-neutral highlight annotation DTOs, initially empty/reserved until feature/rule layers can populate them.
+- [x] Add GUI-ready static chart view model for one selected natal/temporal projection (`StaticChartViewSnapshot` in `core::view`).
+- [x] Add renderer-neutral highlight annotation DTOs, initially empty/reserved until feature/rule layers can populate them (`HighlightView`).
 - [ ] Add richer 2D palace-grid renderer.
 - [ ] Add 文墨天机-style static chart GUI/WASM prototype consuming the static chart view model.
 - [ ] Add CLI integration for rendering.
