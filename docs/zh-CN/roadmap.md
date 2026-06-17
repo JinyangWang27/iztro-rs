@@ -61,8 +61,9 @@
 `NatalFacadeSnapshot` / `astrolabe`）组合为一个上游风格、可序列化的 horoscope 载荷。
 这些仅覆盖已支持事实面，更接近但仍非完整上游 `FunctionalAstrolabe#horoscope` 载荷对齐。
 本命 facade `astrolabe` 快照额外通过确定性的 `core::labels::zh_cn` 查表以附加 `*_zh`
-字段暴露常用中文标签，而内部模型保持语言中立。完整上游 astrolabe helper/query 方法、
-完整多语言/i18n 基础设施与完整上游本地化字符串对齐、本地化日期字符串与八字仍然延期。
+字段暴露常用中文标签，而内部模型保持语言中立；当本命星盘保留四柱时，还会携带可选的事实性
+本命四柱（`NatalFacadeFourPillarsSnapshot`）。完整上游 astrolabe helper/query 方法、
+完整多语言/i18n 基础设施与完整上游本地化字符串对齐、本地化日期字符串与完整八字解读仍然延期。
 
 ## Phase 3：排盘兼容性
 
@@ -87,6 +88,7 @@
 - [x] 添加已类型化的上游 runtime 查询助手和 runtime 宫位投影。`HoroscopeRuntime` 覆盖 `agePalace`、`palace`、`surroundPalaces`、`hasHoroscopeStars`、`notHaveHoroscopeStars`、`hasOneOfHoroscopeStars` 与 `hasHoroscopeMutagen`，并以 `horoscope_runtime.json` fixture 校验。
 - [x] 添加上游风格的 horoscope facade 载荷快照。`HoroscopeFacadeSnapshot` 把 `HoroscopeSupportedFieldsSnapshot` 分块、保留的数字化目标 context、最小本命 `astrolabe` 与 `HoroscopeRuntime` 命宫投影组合为一个可序列化载荷，并以 `horoscope_facade.json` fixture 校验。通过 `build_full_horoscope_chart` 构建时，context 包含数字化阳历日期、带闰月标志的数字化农历日期，以及目标 `timeIndex`。更接近上游 `FunctionalAstrolabe#horoscope` 形状，但非完整 package 对齐。
 - [x] 添加最小本命 astrolabe facade 快照。`NatalFacadeSnapshot` 作为 `astrolabe` 嵌入 `HoroscopeFacadeSnapshot`，只从 `HoroscopeChart::natal()` / `Chart` 派生，并只暴露已建模本命事实，不包含时间叠加层或新增安星逻辑。
+- [x] 在 facade 快照中暴露事实性的本命四柱。`NatalFacadeSnapshot` 携带可选的 `NatalFacadeFourPillarsSnapshot`（`four_pillars`），直接复用 `lunar_lite::FourPillars`：每柱仍是机器可读的 `StemBranch`，并附加 zh-CN `*_zh` 标签。对 `by_solar` 星盘为 `Some(..)`（其年柱等于 `Chart::birth_year()`），对 `by_lunar` 星盘省略/为 `None`，并通过 `HoroscopeFacadeSnapshot` 的内嵌 `astrolabe` 一并携带。仅为事实导出——不含十神、藏干、五行评分、喜用神、成格、读断或其他八字解读。
 - [ ] 添加完整 facade 序列化对齐：补齐完整上游 astrolabe helper/query 方法、本命本地化标签、本地化 `lunarDate`/`solarDate` 字符串、八字字符串、大限 ranges、ages 数组与 runtime 查询助手——这些目前都从 `HoroscopeFacadeSnapshot` 延期。
 - [ ] 添加事实性 `by_solar` 本命四柱之外的完整八字解读/输出、bindings、特征提取、规则与叙事。
 
