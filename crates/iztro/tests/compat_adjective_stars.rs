@@ -1,10 +1,13 @@
+mod common;
+
 use std::collections::{HashMap, HashSet};
 
+use common::{fixture_value, parse_gender_key, parse_key};
 use iztro::core::{
     AdjectiveStarPlacementInput, AdjectiveStarPlacer, BirthContext, Brightness, CalendarDate,
     Chart, ChartError, DeterministicAdjectiveStarPlacer, DeterministicMinorStarPlacer,
-    EARTHLY_BRANCHES, EarthlyBranch, Gender, HeavenlyStem, LunarChartRequest, LunarDay, LunarMonth,
-    MethodProfile, MinorStarPlacementInput, MinorStarPlacer, NatalChartWithMajorStarsInput,
+    EarthlyBranch, Gender, HeavenlyStem, LunarChartRequest, LunarDay, LunarMonth, MethodProfile,
+    MinorStarPlacementInput, MinorStarPlacer, NatalChartWithMajorStarsInput,
     NatalChartWithSupportedStarsInput, Scope, StarCategory, StarKind, StarName,
     adjective_star_metadata, adjective_star_metadata_table, build_natal_chart_with_major_stars,
     build_natal_chart_with_supported_stars, by_lunar, represented_star_metadata_table,
@@ -307,9 +310,11 @@ fn direct_adjective_placer_matches_iztro_branch_formulas() {
                     .expect("fixture lunar month should be valid"),
                 LunarDay::new(input["lunar_day"].as_u64().expect("lunar_day") as u8)
                     .expect("fixture lunar day should be valid"),
-                parse_branch_key(input["birth_time"].as_str().expect("birth_time")),
-                parse_stem_key(input["birth_year_stem"].as_str().expect("birth_year_stem")),
-                parse_branch_key(
+                parse_key::<EarthlyBranch>(input["birth_time"].as_str().expect("birth_time")),
+                parse_key::<HeavenlyStem>(
+                    input["birth_year_stem"].as_str().expect("birth_year_stem"),
+                ),
+                parse_key::<EarthlyBranch>(
                     input["birth_year_branch"]
                         .as_str()
                         .expect("birth_year_branch"),
@@ -332,7 +337,7 @@ fn adjective_stars_require_minor_star_anchors() {
                 input["lunar_month"].as_u64().expect("lunar_month") as u8,
                 input["lunar_day"].as_u64().expect("lunar_day") as u8,
             ),
-            parse_branch_key(input["birth_time"].as_str().expect("birth_time")),
+            parse_key::<EarthlyBranch>(input["birth_time"].as_str().expect("birth_time")),
             parse_gender_key(input["gender"].as_str().expect("gender")),
         ),
         MethodProfile::placeholder("adjective_missing_anchor"),
@@ -340,8 +345,8 @@ fn adjective_stars_require_minor_star_anchors() {
             .expect("fixture lunar month should be valid"),
         LunarDay::new(input["lunar_day"].as_u64().expect("lunar_day") as u8)
             .expect("fixture lunar day should be valid"),
-        parse_stem_key(input["birth_year_stem"].as_str().expect("birth_year_stem")),
-        parse_branch_key(
+        parse_key::<HeavenlyStem>(input["birth_year_stem"].as_str().expect("birth_year_stem")),
+        parse_key::<EarthlyBranch>(
             input["birth_year_branch"]
                 .as_str()
                 .expect("birth_year_branch"),
@@ -357,9 +362,11 @@ fn adjective_stars_require_minor_star_anchors() {
                     .expect("fixture lunar month should be valid"),
                 LunarDay::new(input["lunar_day"].as_u64().expect("lunar_day") as u8)
                     .expect("fixture lunar day should be valid"),
-                parse_branch_key(input["birth_time"].as_str().expect("birth_time")),
-                parse_stem_key(input["birth_year_stem"].as_str().expect("birth_year_stem")),
-                parse_branch_key(
+                parse_key::<EarthlyBranch>(input["birth_time"].as_str().expect("birth_time")),
+                parse_key::<HeavenlyStem>(
+                    input["birth_year_stem"].as_str().expect("birth_year_stem"),
+                ),
+                parse_key::<EarthlyBranch>(
                     input["birth_year_branch"]
                         .as_str()
                         .expect("birth_year_branch"),
@@ -447,7 +454,7 @@ fn life_and_body_anchored_stars_follow_life_and_body_palaces() {
     // under the default algorithm (no 阴阳 swap).
     let fixture = fixture_value(ADJECTIVE_STARS_1990_FIXTURE);
     let chart = supported_chart_from_fixture(&fixture);
-    let year_branch = parse_branch_key(
+    let year_branch = parse_key::<EarthlyBranch>(
         fixture["input"]["birth_year_branch"]
             .as_str()
             .expect("birth_year_branch"),
@@ -624,7 +631,7 @@ fn minor_chart_from_fixture(fixture: &Value) -> Chart {
                 input["lunar_month"].as_u64().expect("lunar_month") as u8,
                 input["lunar_day"].as_u64().expect("lunar_day") as u8,
             ),
-            parse_branch_key(input["birth_time"].as_str().expect("birth_time")),
+            parse_key::<EarthlyBranch>(input["birth_time"].as_str().expect("birth_time")),
             parse_gender_key(input["gender"].as_str().expect("gender")),
         ),
         MethodProfile::placeholder("adjective_direct"),
@@ -632,8 +639,8 @@ fn minor_chart_from_fixture(fixture: &Value) -> Chart {
             .expect("fixture lunar month should be valid"),
         LunarDay::new(input["lunar_day"].as_u64().expect("lunar_day") as u8)
             .expect("fixture lunar day should be valid"),
-        parse_stem_key(input["birth_year_stem"].as_str().expect("birth_year_stem")),
-        parse_branch_key(
+        parse_key::<HeavenlyStem>(input["birth_year_stem"].as_str().expect("birth_year_stem")),
+        parse_key::<EarthlyBranch>(
             input["birth_year_branch"]
                 .as_str()
                 .expect("birth_year_branch"),
@@ -647,9 +654,11 @@ fn minor_chart_from_fixture(fixture: &Value) -> Chart {
             MinorStarPlacementInput::new(
                 LunarMonth::new(input["lunar_month"].as_u64().expect("lunar_month") as u8)
                     .expect("fixture lunar month should be valid"),
-                parse_branch_key(input["birth_time"].as_str().expect("birth_time")),
-                parse_stem_key(input["birth_year_stem"].as_str().expect("birth_year_stem")),
-                parse_branch_key(
+                parse_key::<EarthlyBranch>(input["birth_time"].as_str().expect("birth_time")),
+                parse_key::<HeavenlyStem>(
+                    input["birth_year_stem"].as_str().expect("birth_year_stem"),
+                ),
+                parse_key::<EarthlyBranch>(
                     input["birth_year_branch"]
                         .as_str()
                         .expect("birth_year_branch"),
@@ -669,7 +678,7 @@ fn supported_chart_from_fixture(fixture: &Value) -> Chart {
                 input["lunar_month"].as_u64().expect("lunar_month") as u8,
                 input["lunar_day"].as_u64().expect("lunar_day") as u8,
             ),
-            parse_branch_key(input["birth_time"].as_str().expect("birth_time")),
+            parse_key::<EarthlyBranch>(input["birth_time"].as_str().expect("birth_time")),
             parse_gender_key(input["gender"].as_str().expect("gender")),
         ),
         MethodProfile::placeholder("adjective_star_fixture"),
@@ -677,8 +686,8 @@ fn supported_chart_from_fixture(fixture: &Value) -> Chart {
             .expect("fixture lunar month should be valid"),
         LunarDay::new(input["lunar_day"].as_u64().expect("lunar_day") as u8)
             .expect("fixture lunar day should be valid"),
-        parse_stem_key(input["birth_year_stem"].as_str().expect("birth_year_stem")),
-        parse_branch_key(
+        parse_key::<HeavenlyStem>(input["birth_year_stem"].as_str().expect("birth_year_stem")),
+        parse_key::<EarthlyBranch>(
             input["birth_year_branch"]
                 .as_str()
                 .expect("birth_year_branch"),
@@ -698,12 +707,13 @@ fn assert_adjective_stars_match_fixture(chart: &Chart, fixture: &Value) {
         .as_array()
         .expect("fixture should include supported adjective-star fields")
     {
-        let branch = parse_branch_key(expected_palace["branch"].as_str().expect("branch"));
+        let branch =
+            parse_key::<EarthlyBranch>(expected_palace["branch"].as_str().expect("branch"));
         let expected_stars: HashSet<StarName> = expected_palace["stars"]
             .as_array()
             .expect("stars array")
             .iter()
-            .map(|star| parse_star_key(star["name"].as_str().expect("star name")))
+            .map(|star| parse_key::<StarName>(star["name"].as_str().expect("star name")))
             .collect();
         let actual_stars: HashSet<StarName> = actual
             .keys()
@@ -716,7 +726,7 @@ fn assert_adjective_stars_match_fixture(chart: &Chart, fixture: &Value) {
         );
 
         for expected_star in expected_palace["stars"].as_array().expect("stars array") {
-            let name = parse_star_key(expected_star["name"].as_str().expect("star name"));
+            let name = parse_key::<StarName>(expected_star["name"].as_str().expect("star name"));
             let got = actual
                 .get(&(branch, name))
                 .unwrap_or_else(|| panic!("missing {name:?} in {branch:?}"));
@@ -750,10 +760,6 @@ fn collect_adjective_star_facts(
         }
     }
     out
-}
-
-fn fixture_value(raw: &str) -> Value {
-    serde_json::from_str(raw).expect("fixture should be valid JSON")
 }
 
 fn fixture_values() -> Vec<Value> {
@@ -821,101 +827,5 @@ fn star_key(star: StarName) -> &'static str {
         StarName::JieShaAdj => "jie_sha_adj",
         StarName::DaHaoAdj => "da_hao_adj",
         other => panic!("unsupported adjective star: {other:?}"),
-    }
-}
-
-fn parse_star_key(value: &str) -> StarName {
-    match value {
-        "hong_luan" => StarName::HongLuan,
-        "tian_xi" => StarName::TianXi,
-        "tian_yao" => StarName::TianYao,
-        "tian_xing" => StarName::TianXing,
-        "tai_fu" => StarName::TaiFu,
-        "feng_gao" => StarName::FengGao,
-        "san_tai" => StarName::SanTai,
-        "ba_zuo" => StarName::BaZuo,
-        "long_chi" => StarName::LongChi,
-        "feng_ge" => StarName::FengGe,
-        "tian_ku" => StarName::TianKu,
-        "tian_xu" => StarName::TianXu,
-        "en_guang" => StarName::EnGuang,
-        "tian_gui" => StarName::TianGui,
-        "tian_wu" => StarName::TianWu,
-        "tian_yue_adj" => StarName::TianYueAdj,
-        "yin_sha" => StarName::YinSha,
-        "jie_shen" => StarName::JieShen,
-        "hua_gai" => StarName::HuaGai,
-        "gu_chen" => StarName::GuChen,
-        "gua_su" => StarName::GuaSu,
-        "fei_lian" => StarName::FeiLian,
-        "po_sui" => StarName::PoSui,
-        "tian_de" => StarName::TianDe,
-        "yue_de" => StarName::YueDe,
-        "nian_jie" => StarName::NianJie,
-        "xian_chi" => StarName::XianChi,
-        "tian_kong" => StarName::TianKong,
-        "tian_guan" => StarName::TianGuan,
-        "tian_chu" => StarName::TianChu,
-        "tian_fu_adj" => StarName::TianFuAdj,
-        "tian_cai" => StarName::TianCai,
-        "tian_shou" => StarName::TianShou,
-        "tian_shang" => StarName::TianShang,
-        "tian_shi" => StarName::TianShi,
-        "jie_lu" => StarName::JieLu,
-        "kong_wang" => StarName::KongWang,
-        "xun_kong" => StarName::XunKong,
-        "long_de_adj" => StarName::LongDeAdj,
-        "jie_kong" => StarName::JieKong,
-        "jie_sha_adj" => StarName::JieShaAdj,
-        "da_hao_adj" => StarName::DaHaoAdj,
-        other => panic!("unsupported adjective star key in fixture: {other}"),
-    }
-}
-
-fn parse_branch_key(value: &str) -> EarthlyBranch {
-    EARTHLY_BRANCHES
-        .into_iter()
-        .find(|branch| branch_key(*branch) == value)
-        .unwrap_or_else(|| panic!("unsupported branch key in fixture: {value}"))
-}
-
-fn branch_key(branch: EarthlyBranch) -> &'static str {
-    match branch {
-        EarthlyBranch::Zi => "zi",
-        EarthlyBranch::Chou => "chou",
-        EarthlyBranch::Yin => "yin",
-        EarthlyBranch::Mao => "mao",
-        EarthlyBranch::Chen => "chen",
-        EarthlyBranch::Si => "si",
-        EarthlyBranch::Wu => "wu",
-        EarthlyBranch::Wei => "wei",
-        EarthlyBranch::Shen => "shen",
-        EarthlyBranch::You => "you",
-        EarthlyBranch::Xu => "xu",
-        EarthlyBranch::Hai => "hai",
-    }
-}
-
-fn parse_stem_key(value: &str) -> HeavenlyStem {
-    match value {
-        "jia" => HeavenlyStem::Jia,
-        "yi" => HeavenlyStem::Yi,
-        "bing" => HeavenlyStem::Bing,
-        "ding" => HeavenlyStem::Ding,
-        "wu" => HeavenlyStem::Wu,
-        "ji" => HeavenlyStem::Ji,
-        "geng" => HeavenlyStem::Geng,
-        "xin" => HeavenlyStem::Xin,
-        "ren" => HeavenlyStem::Ren,
-        "gui" => HeavenlyStem::Gui,
-        other => panic!("unsupported stem key in fixture: {other}"),
-    }
-}
-
-fn parse_gender_key(value: &str) -> Gender {
-    match value {
-        "male" => Gender::Male,
-        "female" => Gender::Female,
-        other => panic!("unsupported gender key in fixture: {other}"),
     }
 }

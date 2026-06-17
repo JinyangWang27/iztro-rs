@@ -8,6 +8,27 @@ JavaScript implementation.
 - Package: `npm:iztro`
 - Version: `2.5.8`
 
+## Fixture registry & shared birth cases
+
+`MANIFEST.json` is an additive registry of every committed fixture file in this
+directory. Each entry records the fixture's test `category` (`compat`, `natal`,
+`runtime`, `boundary`, `e2e`, `horoscope`), the shared `birth_cases` its `input`
+block(s) encode, the chart `algorithms` it exercises, and what it `covers`.
+
+Three birth cases recur across the compat and runtime fixtures:
+
+- `1990_05_17_chen_female`
+- `1988_03_14_zi_male`
+- `1991_08_09_hai_female`
+
+Each fixture still defines its own `input` block, so this duplication is
+**documented** by the registry rather than consolidated — collapsing the shared
+inputs into a single source is deferred to a follow-up that can re-verify
+expected outputs. `crates/iztro/tests/fixture_manifest.rs` asserts the registry
+stays in sync: every entry points to an existing file, every committed `*.json`
+(except `MANIFEST.json`) is listed, and every entry has a non-empty `file`,
+`category`, and `covers`.
+
 ## Upstream reference workspace
 
 Use the pinned local npm workspace when inspecting or regenerating upstream
@@ -225,7 +246,7 @@ Each case records the lunar facade inputs (including `is_leap_month`, `fix_leap`
 and the upstream-derived `birth_year_stem`/`birth_year_branch` fed back to Rust),
 a `resolved_lunar` block (the lunar date upstream resolved to via `lunar2solar`),
 and the supported chart fields. The Rust E2E test
-(`crates/iztro-core/tests/leap_month_by_lunar.rs`) builds each case through
+(`crates/iztro/tests/boundary_leap_month_by_lunar.rs`) builds each case through
 `iztro_core::by_lunar(...)` with the leap flags set, compares the supported
 fields, and asserts the chart's recorded lunar date reproduces the upstream
 `resolved_lunar` block. The resolved leap flag remains covered by internal
@@ -247,7 +268,7 @@ pair under `fix_leap=true` proving late Zi does not advance the effective month.
 Each case records the lunar facade inputs, the upstream-derived
 `birth_year_stem`/`birth_year_branch` fed back to Rust, the `resolved_lunar`
 block, and the supported chart fields. The Rust E2E test
-(`crates/iztro-core/tests/time_index_rat_hour.rs`) builds each case through
+(`crates/iztro/tests/boundary_time_index_rat_hour.rs`) builds each case through
 `iztro_core::by_lunar(...)` using `iztro_time_index`, asserts the recorded
 `BirthTime` variant, compares the supported fields, and verifies the chart's
 recorded lunar date reproduces upstream `resolved_lunar`.

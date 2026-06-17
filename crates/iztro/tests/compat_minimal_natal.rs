@@ -1,5 +1,8 @@
+mod common;
+
+use common::{parse_gender_key, parse_key};
 use iztro::core::{
-    BirthContext, CalendarDate, EarthlyBranch, FiveElementBureau, Gender, HeavenlyStem, LunarMonth,
+    BirthContext, CalendarDate, EarthlyBranch, FiveElementBureau, HeavenlyStem, LunarMonth,
     MethodProfile, NatalChartInput, PalaceName, build_minimal_natal_chart,
 };
 use serde_json::Value;
@@ -24,7 +27,7 @@ fn minimal_natal_chart_matches_supported_iztro_fixture_fields() {
             .as_str()
             .expect("fixture should include solar_date"),
     );
-    let birth_branch = parse_branch_key(
+    let birth_branch = parse_key::<EarthlyBranch>(
         input["birth_time"]
             .as_str()
             .expect("fixture should include birth_time"),
@@ -34,7 +37,7 @@ fn minimal_natal_chart_matches_supported_iztro_fixture_fields() {
             .as_str()
             .expect("fixture should include gender"),
     );
-    let birth_year_stem = parse_stem_key(
+    let birth_year_stem = parse_key::<HeavenlyStem>(
         input["birth_year_stem"]
             .as_str()
             .expect("fixture should include birth_year_stem"),
@@ -54,7 +57,7 @@ fn minimal_natal_chart_matches_supported_iztro_fixture_fields() {
         .iter()
         .find(|palace| palace.name() == PalaceName::Life)
         .expect("chart should contain a Life Palace");
-    let expected_body_branch = parse_branch_key(
+    let expected_body_branch = parse_key::<EarthlyBranch>(
         expected["body_palace_branch"]
             .as_str()
             .expect("fixture should include body_palace_branch"),
@@ -179,48 +182,6 @@ fn parse_solar_date(value: &str) -> CalendarDate {
     }
 
     CalendarDate::solar(year, month, day)
-}
-
-fn parse_branch_key(value: &str) -> EarthlyBranch {
-    match value {
-        "zi" => EarthlyBranch::Zi,
-        "chou" => EarthlyBranch::Chou,
-        "yin" => EarthlyBranch::Yin,
-        "mao" => EarthlyBranch::Mao,
-        "chen" => EarthlyBranch::Chen,
-        "si" => EarthlyBranch::Si,
-        "wu" => EarthlyBranch::Wu,
-        "wei" => EarthlyBranch::Wei,
-        "shen" => EarthlyBranch::Shen,
-        "you" => EarthlyBranch::You,
-        "xu" => EarthlyBranch::Xu,
-        "hai" => EarthlyBranch::Hai,
-        other => panic!("unsupported branch key in fixture: {other}"),
-    }
-}
-
-fn parse_stem_key(value: &str) -> HeavenlyStem {
-    match value {
-        "jia" => HeavenlyStem::Jia,
-        "yi" => HeavenlyStem::Yi,
-        "bing" => HeavenlyStem::Bing,
-        "ding" => HeavenlyStem::Ding,
-        "wu" => HeavenlyStem::Wu,
-        "ji" => HeavenlyStem::Ji,
-        "geng" => HeavenlyStem::Geng,
-        "xin" => HeavenlyStem::Xin,
-        "ren" => HeavenlyStem::Ren,
-        "gui" => HeavenlyStem::Gui,
-        other => panic!("unsupported stem key in fixture: {other}"),
-    }
-}
-
-fn parse_gender_key(value: &str) -> Gender {
-    match value {
-        "male" => Gender::Male,
-        "female" => Gender::Female,
-        other => panic!("unsupported gender key in fixture: {other}"),
-    }
 }
 
 fn palace_name_key(name: PalaceName) -> &'static str {

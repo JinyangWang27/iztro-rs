@@ -1,12 +1,14 @@
 //! Verifies scoped flow-star (流耀) placement against upstream iztro@2.5.8
 //! `getHoroscopeStar` fixtures, plus the temporal-layer invariants.
 
+mod common;
+
 use std::collections::HashMap;
 
+use common::{fixture_value, flow_star_kind, parse_flow_base, parse_key};
 use iztro::core::{
-    ChartError, EarthlyBranch, FlowStarBase, FlowStarScope, HeavenlyStem, Scope, StarKind,
-    StarName, StemBranch, TemporalContext, build_flow_star_layer, flow_star_name,
-    try_flow_star_parts,
+    ChartError, EarthlyBranch, FlowStarScope, HeavenlyStem, Scope, StarKind, StarName, StemBranch,
+    TemporalContext, build_flow_star_layer, flow_star_name, try_flow_star_parts,
 };
 use serde_json::Value;
 
@@ -14,7 +16,7 @@ const FLOW_FIXTURE: &str = include_str!("../fixtures/iztro/flow_stars.json");
 
 #[test]
 fn flow_layers_match_upstream_fixtures() {
-    let fixture: Value = serde_json::from_str(FLOW_FIXTURE).expect("flow fixture should parse");
+    let fixture: Value = fixture_value(FLOW_FIXTURE);
     let cases = fixture["cases"].as_array().expect("cases array");
     assert_eq!(
         cases.len(),
@@ -24,8 +26,8 @@ fn flow_layers_match_upstream_fixtures() {
 
     for case in cases {
         let scope = parse_flow_scope(case["scope"].as_str().expect("scope"));
-        let stem = parse_stem(case["stem"].as_str().expect("stem"));
-        let branch = parse_branch(case["branch"].as_str().expect("branch"));
+        let stem = parse_key::<HeavenlyStem>(case["stem"].as_str().expect("stem"));
+        let branch = parse_key::<EarthlyBranch>(case["branch"].as_str().expect("branch"));
         let stem_branch = StemBranch::try_new(stem, branch).expect("valid sexagenary pair");
         let context = context_for(scope, stem_branch);
 
@@ -53,8 +55,8 @@ fn flow_layers_match_upstream_fixtures() {
         let mut expected_count = matrix.len();
         for entry in matrix {
             let base = parse_flow_base(entry["base"].as_str().expect("base"));
-            let branch = parse_branch(entry["branch"].as_str().expect("branch"));
-            let kind = kind_from_type(entry["type"].as_str().expect("type"));
+            let branch = parse_key::<EarthlyBranch>(entry["branch"].as_str().expect("branch"));
+            let kind = flow_star_kind(entry["type"].as_str().expect("type"));
             let name = flow_star_name(scope, base);
 
             let (actual_branch, actual_kind) = actual
@@ -71,7 +73,7 @@ fn flow_layers_match_upstream_fixtures() {
         // 年解 is yearly-only and is not part of the FlowStarBase matrix.
         if scope == FlowStarScope::Yearly {
             expected_count += 1;
-            let nian_jie_branch = parse_branch(
+            let nian_jie_branch = parse_key::<EarthlyBranch>(
                 case["nian_jie_branch"]
                     .as_str()
                     .expect("yearly case should record 年解 branch"),
@@ -156,40 +158,4 @@ fn parse_flow_scope(value: &str) -> FlowStarScope {
         "hourly" => FlowStarScope::Hourly,
         other => panic!("unsupported flow scope: {other}"),
     }
-}
-
-fn parse_flow_base(value: &str) -> FlowStarBase {
-    match value {
-        "kui" => FlowStarBase::Kui,
-        "yue" => FlowStarBase::Yue,
-        "chang" => FlowStarBase::Chang,
-        "qu" => FlowStarBase::Qu,
-        "lu" => FlowStarBase::Lu,
-        "yang" => FlowStarBase::Yang,
-        "tuo" => FlowStarBase::Tuo,
-        "ma" => FlowStarBase::Ma,
-        "luan" => FlowStarBase::Luan,
-        "xi" => FlowStarBase::Xi,
-        other => panic!("unsupported flow base: {other}"),
-    }
-}
-
-fn kind_from_type(value: &str) -> StarKind {
-    match value {
-        "soft" => StarKind::Soft,
-        "tough" => StarKind::Tough,
-        "lucun" => StarKind::LuCun,
-        "tianma" => StarKind::TianMa,
-        "flower" => StarKind::Flower,
-        "helper" => StarKind::Helper,
-        other => panic!("unsupported flow star type: {other}"),
-    }
-}
-
-fn parse_branch(value: &str) -> EarthlyBranch {
-    serde_json::from_str(&format!("\"{value}\"")).expect("branch key should parse")
-}
-
-fn parse_stem(value: &str) -> HeavenlyStem {
-    serde_json::from_str(&format!("\"{value}\"")).expect("stem key should parse")
 }

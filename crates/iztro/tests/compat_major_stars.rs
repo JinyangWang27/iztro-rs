@@ -1,5 +1,8 @@
+mod common;
+
 use std::collections::{HashMap, HashSet};
 
+use common::{fixture_value, parse_gender_key, parse_key, parse_optional_mutagen};
 use iztro::core::{
     BirthContext, Brightness, CalendarDate, Chart, DeterministicMajorStarPlacer, EarthlyBranch,
     FiveElementBureau, Gender, HeavenlyStem, LunarDay, LunarMonth, MajorStarPlacementInput,
@@ -222,8 +225,7 @@ fn placer_sets_known_brightness_for_each_major_star() {
 
 #[test]
 fn placed_major_star_brightness_matches_iztro_fixture() {
-    let fixture: Value =
-        serde_json::from_str(MAJOR_STARS_FIXTURE).expect("fixture should be valid JSON");
+    let fixture: Value = fixture_value(MAJOR_STARS_FIXTURE);
     let chart = place_fixture_major_stars();
     let actual = collect_major_star_facts(&chart);
 
@@ -231,11 +233,12 @@ fn placed_major_star_brightness_matches_iztro_fixture() {
         .as_array()
         .expect("fixture should include supported major-star fields")
     {
-        let branch = parse_branch_key(expected_palace["branch"].as_str().expect("branch"));
+        let branch =
+            parse_key::<EarthlyBranch>(expected_palace["branch"].as_str().expect("branch"));
         for expected_star in expected_palace["stars"].as_array().expect("stars array") {
-            let name = parse_star_key(expected_star["name"].as_str().expect("star name"));
+            let name = parse_key::<StarName>(expected_star["name"].as_str().expect("star name"));
             let expected_brightness =
-                parse_brightness_key(expected_star["brightness"].as_str().expect("brightness"));
+                parse_key::<Brightness>(expected_star["brightness"].as_str().expect("brightness"));
             let got = actual
                 .get(&(branch, name))
                 .unwrap_or_else(|| panic!("missing {name:?} in {branch:?}"));
@@ -316,8 +319,7 @@ fn try_major_star_metadata_is_some_for_major_and_none_for_minor() {
 
 #[test]
 fn placed_major_star_mutagens_match_iztro_fixture() {
-    let fixture: Value =
-        serde_json::from_str(MAJOR_STARS_FIXTURE).expect("fixture should be valid JSON");
+    let fixture: Value = fixture_value(MAJOR_STARS_FIXTURE);
     let chart = place_fixture_major_stars();
     let actual = collect_major_star_facts(&chart);
 
@@ -325,10 +327,11 @@ fn placed_major_star_mutagens_match_iztro_fixture() {
         .as_array()
         .expect("fixture should include supported major-star fields")
     {
-        let branch = parse_branch_key(expected_palace["branch"].as_str().expect("branch"));
+        let branch =
+            parse_key::<EarthlyBranch>(expected_palace["branch"].as_str().expect("branch"));
         for expected_star in expected_palace["stars"].as_array().expect("stars array") {
-            let name = parse_star_key(expected_star["name"].as_str().expect("star name"));
-            let expected_mutagen = parse_optional_mutagen_key(&expected_star["mutagen"]);
+            let name = parse_key::<StarName>(expected_star["name"].as_str().expect("star name"));
+            let expected_mutagen = parse_optional_mutagen(&expected_star["mutagen"]);
             let got = actual
                 .get(&(branch, name))
                 .unwrap_or_else(|| panic!("missing {name:?} in {branch:?}"));
@@ -430,8 +433,7 @@ fn placer_preserves_palace_count_and_chart_metadata() {
 
 #[test]
 fn fourteen_major_stars_match_iztro_fixture() {
-    let fixture: Value =
-        serde_json::from_str(MAJOR_STARS_FIXTURE).expect("fixture should be valid JSON");
+    let fixture: Value = fixture_value(MAJOR_STARS_FIXTURE);
     assert_eq!(
         fixture["metadata"]["target_version"].as_str(),
         Some("2.5.8")
@@ -441,7 +443,7 @@ fn fourteen_major_stars_match_iztro_fixture() {
     let placed = build_natal_chart_with_major_stars(NatalChartWithMajorStarsInput::new(
         BirthContext::new(
             parse_solar_date(input["solar_date"].as_str().expect("solar_date")),
-            parse_branch_key(input["birth_time"].as_str().expect("birth_time")),
+            parse_key::<EarthlyBranch>(input["birth_time"].as_str().expect("birth_time")),
             parse_gender_key(input["gender"].as_str().expect("gender")),
         ),
         MethodProfile::placeholder("iztro_major_stars_fixture"),
@@ -452,8 +454,8 @@ fn fourteen_major_stars_match_iztro_fixture() {
                 .as_u64()
                 .expect("fixture should include lunar_day") as u8,
         ),
-        parse_stem_key(input["birth_year_stem"].as_str().expect("birth_year_stem")),
-        parse_branch_key(
+        parse_key::<HeavenlyStem>(input["birth_year_stem"].as_str().expect("birth_year_stem")),
+        parse_key::<EarthlyBranch>(
             input["birth_year_branch"]
                 .as_str()
                 .expect("birth_year_branch"),
@@ -477,7 +479,8 @@ fn fourteen_major_stars_match_iztro_fixture() {
     assert_eq!(expected_palaces.len(), placed.palaces().len());
 
     for expected_palace in expected_palaces {
-        let branch = parse_branch_key(expected_palace["branch"].as_str().expect("branch"));
+        let branch =
+            parse_key::<EarthlyBranch>(expected_palace["branch"].as_str().expect("branch"));
         let expected_stars: HashSet<&str> = expected_palace["stars"]
             .as_array()
             .expect("stars array")
@@ -492,8 +495,7 @@ fn fourteen_major_stars_match_iztro_fixture() {
 
 #[test]
 fn major_star_fixture_records_normalized_supported_facts() {
-    let fixture: Value =
-        serde_json::from_str(MAJOR_STARS_FIXTURE).expect("fixture should be valid JSON");
+    let fixture: Value = fixture_value(MAJOR_STARS_FIXTURE);
     let expected: HashSet<(EarthlyBranch, &str, &str, Option<&str>)> = EXPECTED_FIXTURE_STAR_FACTS
         .iter()
         .map(|&(branch, star, brightness, mutagen)| (branch, star_key(star), brightness, mutagen))
@@ -504,7 +506,8 @@ fn major_star_fixture_records_normalized_supported_facts() {
         .as_array()
         .expect("fixture should include supported major-star fields")
     {
-        let branch = parse_branch_key(expected_palace["branch"].as_str().expect("branch"));
+        let branch =
+            parse_key::<EarthlyBranch>(expected_palace["branch"].as_str().expect("branch"));
         for star in expected_palace["stars"].as_array().expect("stars array") {
             let name = star["name"].as_str().expect("star name");
             let brightness = star["brightness"].as_str().expect("star brightness");
@@ -595,51 +598,6 @@ fn star_key(star: StarName) -> &'static str {
     }
 }
 
-fn parse_star_key(value: &str) -> StarName {
-    match value {
-        "zi_wei" => StarName::ZiWei,
-        "tian_ji" => StarName::TianJi,
-        "tai_yang" => StarName::TaiYang,
-        "wu_qu" => StarName::WuQu,
-        "tian_tong" => StarName::TianTong,
-        "lian_zhen" => StarName::LianZhen,
-        "tian_fu" => StarName::TianFu,
-        "tai_yin" => StarName::TaiYin,
-        "tan_lang" => StarName::TanLang,
-        "ju_men" => StarName::JuMen,
-        "tian_xiang" => StarName::TianXiang,
-        "tian_liang" => StarName::TianLiang,
-        "qi_sha" => StarName::QiSha,
-        "po_jun" => StarName::PoJun,
-        other => panic!("unsupported star key in fixture: {other}"),
-    }
-}
-
-fn parse_brightness_key(value: &str) -> Brightness {
-    match value {
-        "temple" => Brightness::Temple,
-        "prosperous" => Brightness::Prosperous,
-        "advantage" => Brightness::Advantage,
-        "favourable" => Brightness::Favourable,
-        "flat" => Brightness::Flat,
-        "weak" => Brightness::Weak,
-        "trapped" => Brightness::Trapped,
-        "unknown" => Brightness::Unknown,
-        other => panic!("unsupported brightness key in fixture: {other}"),
-    }
-}
-
-fn parse_optional_mutagen_key(value: &Value) -> Option<Mutagen> {
-    match value.as_str() {
-        Some("lu") => Some(Mutagen::Lu),
-        Some("quan") => Some(Mutagen::Quan),
-        Some("ke") => Some(Mutagen::Ke),
-        Some("ji") => Some(Mutagen::Ji),
-        None => None,
-        Some(other) => panic!("unsupported mutagen key in fixture: {other}"),
-    }
-}
-
 fn parse_solar_date(value: &str) -> CalendarDate {
     let mut parts = value.split('-');
     let year = parts
@@ -656,46 +614,4 @@ fn parse_solar_date(value: &str) -> CalendarDate {
         .unwrap_or_else(|| panic!("unsupported solar_date in fixture: {value}"));
 
     CalendarDate::solar(year, month, day)
-}
-
-fn parse_branch_key(value: &str) -> EarthlyBranch {
-    match value {
-        "zi" => EarthlyBranch::Zi,
-        "chou" => EarthlyBranch::Chou,
-        "yin" => EarthlyBranch::Yin,
-        "mao" => EarthlyBranch::Mao,
-        "chen" => EarthlyBranch::Chen,
-        "si" => EarthlyBranch::Si,
-        "wu" => EarthlyBranch::Wu,
-        "wei" => EarthlyBranch::Wei,
-        "shen" => EarthlyBranch::Shen,
-        "you" => EarthlyBranch::You,
-        "xu" => EarthlyBranch::Xu,
-        "hai" => EarthlyBranch::Hai,
-        other => panic!("unsupported branch key in fixture: {other}"),
-    }
-}
-
-fn parse_stem_key(value: &str) -> HeavenlyStem {
-    match value {
-        "jia" => HeavenlyStem::Jia,
-        "yi" => HeavenlyStem::Yi,
-        "bing" => HeavenlyStem::Bing,
-        "ding" => HeavenlyStem::Ding,
-        "wu" => HeavenlyStem::Wu,
-        "ji" => HeavenlyStem::Ji,
-        "geng" => HeavenlyStem::Geng,
-        "xin" => HeavenlyStem::Xin,
-        "ren" => HeavenlyStem::Ren,
-        "gui" => HeavenlyStem::Gui,
-        other => panic!("unsupported stem key in fixture: {other}"),
-    }
-}
-
-fn parse_gender_key(value: &str) -> Gender {
-    match value {
-        "male" => Gender::Male,
-        "female" => Gender::Female,
-        other => panic!("unsupported gender key in fixture: {other}"),
-    }
 }

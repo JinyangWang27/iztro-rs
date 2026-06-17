@@ -2,8 +2,11 @@
 //! against upstream iztro@2.5.8 fixtures, and the type boundary that keeps these
 //! untyped facts separate from typed [`StarPlacement`]s.
 
+mod common;
+
 use std::collections::{HashMap, HashSet};
 
+use common::{DECORATIVE_FAMILIES, fixture_value, parse_gender, parse_key};
 use iztro::core::{
     BirthContext, CalendarDate, Chart, ChartAlgorithmKind, ChartError, DecorativeStarFamily,
     DecorativeStarPlacement, DecorativeStarPlacementInput, DecorativeStarPlacer,
@@ -26,13 +29,6 @@ const ZHONGZHOU_FIXTURES: [&str; 3] = [
     include_str!("../fixtures/iztro/runtime_decorative_zhongzhou_1991_08_09_hai_female.json"),
 ];
 
-const DECORATIVE_FAMILIES: [(&str, DecorativeStarFamily); 4] = [
-    ("changsheng12", DecorativeStarFamily::Changsheng12),
-    ("boshi12", DecorativeStarFamily::Boshi12),
-    ("suiqian12", DecorativeStarFamily::Suiqian12),
-    ("jiangqian12", DecorativeStarFamily::Jiangqian12),
-];
-
 #[test]
 fn decorative_families_match_upstream_fixtures() {
     for raw in DEFAULT_FIXTURES.into_iter().chain(ZHONGZHOU_FIXTURES) {
@@ -44,9 +40,9 @@ fn decorative_families_match_upstream_fixtures() {
             .as_array()
             .expect("fixture should list decorative palaces")
         {
-            let branch = parse_branch(palace["branch"].as_str().expect("branch"));
+            let branch = parse_key::<EarthlyBranch>(palace["branch"].as_str().expect("branch"));
             for (field, family) in DECORATIVE_FAMILIES {
-                let expected = parse_star(palace[field].as_str().expect("family key"));
+                let expected = parse_key::<StarName>(palace[field].as_str().expect("family key"));
                 assert_eq!(
                     actual.get(&(branch, family)).copied(),
                     Some(expected),
@@ -292,39 +288,19 @@ fn chart_from_fixture(fixture: &Value) -> Chart {
                 input["lunar_month"].as_u64().expect("lunar_month") as u8,
                 input["lunar_day"].as_u64().expect("lunar_day") as u8,
             ),
-            parse_branch(input["birth_time"].as_str().expect("birth_time")),
+            parse_key::<EarthlyBranch>(input["birth_time"].as_str().expect("birth_time")),
             parse_gender(input["gender"].as_str().expect("gender")),
         ),
         profile,
         LunarMonth::new(input["lunar_month"].as_u64().expect("lunar_month") as u8)
             .expect("lunar month"),
         LunarDay::new(input["lunar_day"].as_u64().expect("lunar_day") as u8).expect("lunar day"),
-        parse_stem(input["birth_year_stem"].as_str().expect("birth_year_stem")),
-        parse_branch(
+        parse_key::<HeavenlyStem>(input["birth_year_stem"].as_str().expect("birth_year_stem")),
+        parse_key::<EarthlyBranch>(
             input["birth_year_branch"]
                 .as_str()
                 .expect("birth_year_branch"),
         ),
     ))
     .expect("runtime chart should build")
-}
-
-fn fixture_value(raw: &str) -> Value {
-    serde_json::from_str(raw).expect("fixture should be valid JSON")
-}
-
-fn parse_star(key: &str) -> StarName {
-    serde_json::from_str(&format!("\"{key}\"")).expect("star key should parse")
-}
-
-fn parse_branch(key: &str) -> EarthlyBranch {
-    serde_json::from_str(&format!("\"{key}\"")).expect("branch key should parse")
-}
-
-fn parse_stem(key: &str) -> HeavenlyStem {
-    serde_json::from_str(&format!("\"{key}\"")).expect("stem key should parse")
-}
-
-fn parse_gender(key: &str) -> Gender {
-    serde_json::from_str(&format!("\"{key}\"")).expect("gender key should parse")
 }
