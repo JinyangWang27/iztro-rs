@@ -1,0 +1,51 @@
+{
+  "note": "Canonical reusable birth-case registry. These are the recurring birth inputs that the compat/runtime fixture files encode in their own `input` blocks. Each case is recorded here once, by stable id, with the calendar-system-specific birth fields plus algorithm-independent identity metadata (birth-year ganzhi). Algorithms stay in MANIFEST.json: a case describes a person/birth instant, not a chart algorithm. The committed fixture files keep their own self-contained `input` blocks for standalone readability; `tests/fixture_case_registry.rs` checks that those duplicated blocks stay consistent with the case registered here. The lunar `1990_05_17_chen_female` case is the canonical lunar reading (lunar 1990-5-17); the `major_stars`/`minimal_natal` fixtures of the same id encode a solar reading (solar 1990-05-17) and are therefore not drift-checked against this lunar case.",
+  "target_version": "2.5.8",
+  "cases": [
+    {
+      "id": "1990_05_17_chen_female",
+      "calendar": "lunar",
+      "year": 1990,
+      "month": 5,
+      "day": 17,
+      "birth_time": "chen",
+      "time_index": 4,
+      "gender": "female",
+      "is_leap_month": false,
+      "fix_leap": true,
+      "language": "zh-CN",
+      "birth_year_stem": "geng",
+      "birth_year_branch": "wu"
+    },
+    {
+      "id": "1988_03_14_zi_male",
+      "calendar": "lunar",
+      "year": 1988,
+      "month": 3,
+      "day": 14,
+      "birth_time": "zi",
+      "time_index": 0,
+      "gender": "male",
+      "is_leap_month": false,
+      "fix_leap": true,
+      "language": "zh-CN",
+      "birth_year_stem": "wu",
+      "birth_year_branch": "chen"
+    },
+    {
+      "id": "1991_08_09_hai_female",
+      "calendar": "lunar",
+      "year": 1991,
+      "month": 8,
+      "day": 9,
+      "birth_time": "hai",
+      "time_index": 11,
+      "gender": "female",
+      "is_leap_month": false,
+      "fix_leap": true,
+      "language": "zh-CN",
+      "birth_year_stem": "xin",
+      "birth_year_branch": "wei"
+    }
+  ]
+}
