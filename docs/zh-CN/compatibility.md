@@ -106,7 +106,7 @@ lunar-lite 历法 normalizer按真实历法解析；公开 API 不暴露 calenda
 `HoroscopeSupportedFieldsSnapshot` 现在可从 `HoroscopeChart` 导出规范化的 supported-fields
 快照，用于和 `crates/iztro/fixtures/iztro/horoscope.json` 中已实现的大限、小限、流年、
 流月、流日、流时事实面做确定性兼容校验。该 DTO 使用 snake_case 字段和寅宫起序的宫名数组，
-不包含原始中文标签、嵌入的本命 astrolabe，也不表示完整上游 facade JSON 对齐。
+不包含原始中文标签、runtime 宫位投影或 facade 级本命 astrolabe，也不表示完整上游 facade JSON 对齐。
 `HoroscopeRuntime` 现在提供已类型化的上游 runtime helper 切片：`age_palace`、`palace`、
 `surround_palaces`、`has_horoscope_stars`、`not_have_horoscope_stars`、
 `has_one_of_horoscope_stars` 与 `has_horoscope_mutagen`，并以
@@ -116,16 +116,20 @@ lunar-lite 历法 normalizer按真实历法解析；公开 API 不暴露 calenda
 `HoroscopeFacadeSnapshot` 是可序列化的 facade/导出层，而非新的引擎层。
 `HoroscopeFacadeSnapshot::from_horoscope_chart` 把已建模的事实组合成一个确定性载荷，
 更接近上游 `FunctionalAstrolabe#horoscope` 形状：它原样复用 `HoroscopeSupportedFieldsSnapshot`
-的大限/小限/流年/流月/流日/流时分块（扁平化到顶层），在 `build_full_horoscope_chart`
+的大限/小限/流年/流月/流日/流时分块（扁平化到顶层），从 `HoroscopeChart::natal()` 嵌入
+最小 `NatalFacadeSnapshot` 作为 `astrolabe`，在 `build_full_horoscope_chart`
 构建的星盘上加入保留的数字化目标 `context`（阳历日期、农历日期、闰月标志与目标
 `timeIndex`），并复用 `HoroscopeRuntime` 生成 `age_palace`、`palace_projections` 与
 `surround_palaces` 的命宫投影——每个投影都保持本命与时间性事实分离（本命宫名/宫干/星曜与
-该期的时间性宫名、时间性星曜、时间性四化分开）。手工组装且没有 target context 的
+该期的时间性宫名、时间性星曜、时间性四化分开）。最小 `astrolabe` 只包含已由 Rust 建模的
+本命事实：性别、出生年干支、五行局、命/身宫地支、十二宫、宫位地支/宫名/宫干/角色、本命
+有类型星曜和本命装饰星曜。手工组装且没有 target context 的
 `HoroscopeChart` 仍可使用旧有的农历 year/month/day fallback，并省略阳历日期与目标
 `timeIndex`。它以 `horoscope_facade.json` 校验，不新增任何安星逻辑，并明确标注延期字段：
-上游本地化 `lunarDate` 与 `solarDate` 字符串、重新嵌入的完整本命 astrolabe 载荷、runtime
-查询助手以及完整上游 package 对齐仍然延期。它建立在 `HoroscopeChart`、
-`HoroscopeSupportedFieldsSnapshot` 与 `HoroscopeRuntime` 之上，更接近上游
+上游本地化 `lunarDate` 与 `solarDate` 字符串、完整上游 astrolabe helper/query 方法、
+本命本地化标签、八字字符串、大限 ranges、ages 数组、runtime 查询助手以及完整上游 package
+对齐仍然延期。它建立在 `HoroscopeChart`、`HoroscopeSupportedFieldsSnapshot`、
+`NatalFacadeSnapshot` 与 `HoroscopeRuntime` 之上，更接近上游
 `FunctionalAstrolabe#horoscope` 载荷形状，但仍**不是**完整 package 对齐。
 
 ## 运限层模型
@@ -244,7 +248,7 @@ scope-generic 算法为大限、流年、流月、流日、流时安放十颗 ma
 四化仍是 `Mutagen` / `MutagenActivation` 事实，永远不是 `StarName` variants。
 最小 `by_solar`（`lunar-lite` 支持的阳历转农历）、已支持 `by_lunar`/`by_solar` 切片的
 fixture 支持闰月行为，以及 `BirthTime`/`timeIndex` `0..=12` 早晚子时变体现已实现
-（见[公开 facade 兼容性](#公开-facade-兼容性)）。完整八字输出、完整 facade 载荷对齐、bindings、特征提取、规则与叙事仍然延期。完整 horoscope stack 组装现已实现（`build_full_horoscope_chart`），会保留数字化目标阳历/农历/时辰 context，流年层并附带 `yearlyDecStar`，可通过 `HoroscopeSupportedFieldsSnapshot` 导出规范化 supported-fields 快照，通过 `HoroscopeRuntime` 使用已类型化的 runtime helper，并可通过 `HoroscopeFacadeSnapshot` 把它们组合为一个上游风格、可序列化的 horoscope 载荷（更接近 `FunctionalAstrolabe#horoscope` 形状，但仍非完整 package 对齐）；这些仍仅覆盖已支持事实面。
+（见[公开 facade 兼容性](#公开-facade-兼容性)）。完整八字输出、完整 facade 载荷对齐、bindings、特征提取、规则与叙事仍然延期。完整 horoscope stack 组装现已实现（`build_full_horoscope_chart`），会保留数字化目标阳历/农历/时辰 context，流年层并附带 `yearlyDecStar`，可通过 `HoroscopeSupportedFieldsSnapshot` 导出规范化 supported-fields 快照，通过 `HoroscopeRuntime` 使用已类型化的 runtime helper，并可通过 `HoroscopeFacadeSnapshot` 把它们和最小本命 `astrolabe` 组合为一个上游风格、可序列化的 horoscope 载荷（更接近 `FunctionalAstrolabe#horoscope` 形状，但仍非完整 package 对齐）；这些仍仅覆盖已支持事实面。
 
 ## 当前 fixtures
 

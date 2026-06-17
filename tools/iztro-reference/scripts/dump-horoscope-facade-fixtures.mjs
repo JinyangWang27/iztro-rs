@@ -8,6 +8,8 @@
 //   * context: the numeric target solar date, numeric target lunar date, target
 //     leap-month flag, and target timeIndex retained by full stack assembly.
 //     Localized upstream lunarDate/solarDate strings remain deferred.
+//   * astrolabe: a minimal natal snapshot normalized from horoscope.astrolabe,
+//     limited to modeled Rust natal facts.
 //   * age_palace / palace_projections / surround_palaces: the runtime palace
 //     projections for the Life palace (命宫) across each modeled scope, reusing
 //     the shared projection helpers that back the runtime fixture.
@@ -26,6 +28,20 @@ import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
 import { projection, surroundProjection } from "./lib/horoscope-projection.mjs";
+import {
+  BOSHI_KEYS,
+  BRANCH_KEYS,
+  BRIGHTNESS_KEYS,
+  BUREAU_KEYS,
+  CHANGSHENG_KEYS,
+  JIANGQIAN_KEYS,
+  MUTAGEN_KEYS,
+  PALACE_KEYS,
+  STEM_KEYS,
+  SUIQIAN_KEYS,
+  TYPED_STAR_KEYS,
+  requiredKey
+} from "./lib/normalize.mjs";
 
 const TARGET = "iztro@2.5.8";
 const GENERATED_AT = "2026-06-17T00:00:00Z";
@@ -37,6 +53,7 @@ const GENERATION_COMMAND =
 // upstream split between agePalace() and palace(name, scope).
 const LIFE_PALACE = "命宫";
 const PROJECTION_SCOPES = ["origin", "decadal", "yearly", "monthly", "daily", "hourly"];
+const BRANCH_SORT_ORDER = ["zi", "chou", "yin", "mao", "chen", "si", "wu", "wei", "shen", "you", "xu", "hai"];
 
 const CASE_DEFS = [
   {
@@ -128,6 +145,86 @@ function targetContext(def) {
   };
 }
 
+function starCategory(kind) {
+  if (kind === "major") {
+    return "major";
+  }
+  if (["soft", "tough", "lucun", "tianma"].includes(kind)) {
+    return "minor";
+  }
+  return "adjective";
+}
+
+function normalizeMutagen(mutagen) {
+  if (!mutagen) {
+    return null;
+  }
+  return requiredKey(MUTAGEN_KEYS, mutagen, "mutagen");
+}
+
+function normalizeTypedStar(star) {
+  const kind = star.type;
+  return {
+    name: requiredKey(TYPED_STAR_KEYS, star.name, "typed star"),
+    kind,
+    category: starCategory(kind),
+    brightness: requiredKey(BRIGHTNESS_KEYS, star.brightness ?? "", "brightness"),
+    mutagen: normalizeMutagen(star.mutagen),
+    scope: "natal"
+  };
+}
+
+function normalizeDecorativeStar(name, family, map) {
+  return {
+    name: requiredKey(map, name, family),
+    family,
+    scope: "natal"
+  };
+}
+
+function normalizeAstrolabePalace(palace) {
+  const name = requiredKey(PALACE_KEYS, palace.name, "palace");
+  const roles = [{ kind: "natal_palace", palace_name: name }];
+  if (palace.isBodyPalace) {
+    roles.push({ kind: "natal_body_palace" });
+  }
+
+  return {
+    branch: requiredKey(BRANCH_KEYS, palace.earthlyBranch, "branch"),
+    name,
+    stem: requiredKey(STEM_KEYS, palace.heavenlyStem, "stem"),
+    roles,
+    typed_stars: [
+      ...palace.majorStars.map(normalizeTypedStar),
+      ...palace.minorStars.map(normalizeTypedStar),
+      ...palace.adjectiveStars.map(normalizeTypedStar)
+    ],
+    decorative_stars: [
+      normalizeDecorativeStar(palace.changsheng12, "changsheng12", CHANGSHENG_KEYS),
+      normalizeDecorativeStar(palace.boshi12, "boshi12", BOSHI_KEYS),
+      normalizeDecorativeStar(palace.suiqian12, "suiqian12", SUIQIAN_KEYS),
+      normalizeDecorativeStar(palace.jiangqian12, "jiangqian12", JIANGQIAN_KEYS)
+    ]
+  };
+}
+
+function normalizeAstrolabe(astrolabe) {
+  const yearly = astrolabe.rawDates?.chineseDate?.yearly ?? astrolabe.chineseDate.split(" ")[0];
+  const palaces = astrolabe.palaces
+    .map(normalizeAstrolabePalace)
+    .sort((a, b) => BRANCH_SORT_ORDER.indexOf(a.branch) - BRANCH_SORT_ORDER.indexOf(b.branch));
+
+  return {
+    gender: astrolabe.gender === "女" ? "female" : "male",
+    birth_year_stem: requiredKey(STEM_KEYS, yearly[0], "birth-year stem"),
+    birth_year_branch: requiredKey(BRANCH_KEYS, yearly[1], "birth-year branch"),
+    five_element_bureau: requiredKey(BUREAU_KEYS, astrolabe.fiveElementsClass, "five element bureau"),
+    life_palace_branch: requiredKey(BRANCH_KEYS, astrolabe.earthlyBranchOfSoulPalace, "life palace branch"),
+    body_palace_branch: requiredKey(BRANCH_KEYS, astrolabe.earthlyBranchOfBodyPalace, "body palace branch"),
+    palaces
+  };
+}
+
 function buildCase(def) {
   astro.config({ algorithm: def.algorithm });
   const chart = astro.byLunar(
@@ -161,6 +258,7 @@ function buildCase(def) {
     },
     facade: {
       context: targetContext(def),
+      astrolabe: normalizeAstrolabe(horoscope.astrolabe),
       age_palace: projection(horoscope, "age", LIFE_PALACE),
       palace_projections: PROJECTION_SCOPES.map((scope) => projection(horoscope, scope, LIFE_PALACE)),
       surround_palaces: PROJECTION_SCOPES.map((scope) => surroundProjection(horoscope, scope, LIFE_PALACE))
@@ -174,16 +272,16 @@ const fixture = {
     "Upstream iztro@2.5.8 horoscope facade reference. Captures the serializable " +
     "HoroscopeFacadeSnapshot surface: the numeric target solar/lunar/time context " +
     "retained by the modeled full horoscope stack, plus the Life-palace (命宫) runtime projections " +
-    "(agePalace, palace, surroundPalaces) across each modeled scope. The " +
+    "(agePalace, palace, surroundPalaces) across each modeled scope, plus the minimal " +
+    "natal astrolabe facts already represented by Rust. The " +
     "decadal/age/yearly/monthly/daily/hourly supported-field blocks are reused " +
     "from horoscope.json and are not duplicated here. The localized lunarDate " +
-    "and solarDate strings, plus the re-embedded " +
-    "natal astrolabe remain deferred.",
+    "and solarDate strings remain deferred.",
   generated_at: GENERATED_AT,
   generation_command: GENERATION_COMMAND,
   deferred: [
     "lunarDate (localized string) / solarDate (localized/string facade field)",
-    "astrolabe (the full natal chart re-embedded in the horoscope result)",
+    "complete upstream astrolabe helper/query methods, localized labels, BaZi strings, decadal ranges, and age arrays",
     "hasHoroscopeStars / notHaveHoroscopeStars / hasOneOfHoroscopeStars / hasHoroscopeMutagen (query helpers)"
   ],
   cases: CASE_DEFS.map(buildCase)
