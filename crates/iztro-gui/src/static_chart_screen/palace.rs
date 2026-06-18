@@ -350,35 +350,46 @@ pub(super) fn center_panel(
     let basic_header = text(format!("{}基本信息", gender_symbol(center.gender)))
         .size(14)
         .style(section_title_style);
-    let basic = column![
-        basic_header,
+    let basic_left = column![
         fact_row(
             "五行局",
             center.five_element_bureau_zh.as_deref().unwrap_or(dash)
         ),
         fact_row(
-            "年龄(虚岁)",
-            center.nominal_age_label.as_deref().unwrap_or(dash)
-        ),
-        fact_row(
             "四柱",
             four_pillars_line(center).unwrap_or_else(|| dash.to_owned())
         ),
-        fact_row("阳历", center.birth_solar_label.as_str()),
         fact_row("农历", center.birth_lunar_label.as_str()),
-        fact_row("时辰", center.birth_time_label.as_str()),
         fact_row("生肖", center.zodiac_zh.as_str()),
-        fact_row("星座", center.constellation_zh.as_str()),
         fact_row("命主", center.soul_master_zh.as_deref().unwrap_or(dash)),
-        fact_row("身主", center.body_master_zh.as_deref().unwrap_or(dash)),
         fact_row(
             "命宫",
             center.life_palace_branch_zh.as_deref().unwrap_or(dash)
         ),
+    ]
+    .spacing(2)
+    .width(Length::FillPortion(1));
+    let basic_right = column![
+        fact_row(
+            "年龄(虚岁)",
+            center.nominal_age_label.as_deref().unwrap_or(dash)
+        ),
+        fact_row("阳历", center.birth_solar_label.as_str()),
+        fact_row("时辰", center.birth_time_label.as_str()),
+        fact_row("星座", center.constellation_zh.as_str()),
+        fact_row("身主", center.body_master_zh.as_deref().unwrap_or(dash)),
         fact_row(
             "身宫",
             center.body_palace_branch_zh.as_deref().unwrap_or(dash)
         ),
+    ]
+    .spacing(2)
+    .width(Length::FillPortion(1));
+    let basic = column![
+        basic_header,
+        row![basic_left, basic_right]
+            .spacing(12)
+            .width(Length::Fill),
     ]
     .spacing(2);
 

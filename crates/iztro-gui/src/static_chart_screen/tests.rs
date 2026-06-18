@@ -69,6 +69,20 @@ fn bureau_label_is_a_prepared_chinese_core_field() {
     assert!(label.ends_with('局'), "got {label}");
 }
 
+#[test]
+fn basic_information_uses_two_alternating_columns() {
+    let source = include_str!("palace.rs");
+
+    assert!(source.contains("row![basic_left, basic_right]"));
+    assert!(
+        source.contains("let basic_left = column![\n        fact_row(\n            \"五行局\"")
+    );
+    assert!(
+        source
+            .contains("let basic_right = column![\n        fact_row(\n            \"年龄(虚岁)\"")
+    );
+}
+
 /// A typed star carrying only the field that drives visual classification.
 fn typed_star_with_kind(kind: StarKind) -> iztro::core::StaticTypedStarView {
     let mut star = sample_typed_star();
