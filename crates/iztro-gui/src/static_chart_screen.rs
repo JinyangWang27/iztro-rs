@@ -14,13 +14,12 @@ use std::fmt;
 use iced::widget::{Column, button, column, container, pick_list, row, text, text_input};
 use iced::{Border, Color, Element, Length, Theme};
 use iztro::core::{
-    Gender, Scope, StaticChartCenterView, StaticChartViewSnapshot, StaticDecadalCellView,
-    StaticDecorativeStarView, StaticNavigationCellView, StaticPalaceView,
-    StaticTemporalOverlayView, StaticTemporalPanelView, StaticTypedStarView,
-    StaticYearlyAgeCellView,
+    Gender, Scope, StaticChartCenterView, StaticChartViewSnapshot, StaticDecorativeStarView,
+    StaticNavigationCellView, StaticPalaceView, StaticTemporalOverlayView, StaticTemporalPanelView,
+    StaticTypedStarView,
 };
 
-use crate::app::{BirthForm, BirthInput, Message, Screen, StaticChartApp};
+use crate::app::{BirthForm, BirthInput, Message, Screen, StaticChartApp, TemporalCell};
 
 /// Renders the active screen: the startup landing page or a generated chart.
 pub fn view(app: &StaticChartApp) -> Element<'_, Message> {
@@ -60,7 +59,7 @@ fn chart_screen<'a>(
         chart_toolbar(),
         palace_grid(app, snapshot),
         category_legend(),
-        temporal_navigation_panel(&snapshot.temporal_panel),
+        temporal_navigation_panel(&snapshot.temporal_panel, app.selected_temporal()),
     ]
     .spacing(8)
     .padding(12)
@@ -411,18 +410,70 @@ fn overlay_badges(overlay: &StaticTemporalOverlayView) -> Element<'_, Message> {
     content.into()
 }
 
-fn temporal_navigation_panel(panel: &StaticTemporalPanelView) -> Element<'_, Message> {
-    let mut rows = column![
-        decadal_row("大限", &panel.decadal_cells),
-        yearly_age_row("流年/小限", &panel.yearly_age_cells),
-        navigation_row("流月", &panel.month_cells),
-    ]
-    .spacing(4);
+fn temporal_navigation_panel<'a>(
+    panel: &'a StaticTemporalPanelView,
+    selected: Option<TemporalCell>,
+) -> Element<'a, Message> {
+    let decadal = temporal_row(
+        "大限",
+        panel
+            .decadal_cells
+            .iter()
+            .enumerate()
+            .map(|(i, cell)| {
+                temporal_cell(
+                    TemporalCell::Decadal(i),
+                    cell.age_range_zh.as_deref(),
+                    cell.limit_label_zh.as_deref(),
+                    cell.enabled,
+                    selected,
+                )
+            })
+            .collect(),
+    );
+    let yearly = temporal_row(
+        "流年/小限",
+        panel
+            .yearly_age_cells
+            .iter()
+            .enumerate()
+            .map(|(i, cell)| {
+                temporal_cell(
+                    TemporalCell::YearlyAge(i),
+                    cell.year_label.as_deref(),
+                    cell.stem_branch_age_zh.as_deref(),
+                    cell.enabled,
+                    selected,
+                )
+            })
+            .collect(),
+    );
+    let month = temporal_row(
+        "流月",
+        nav_cells(&panel.month_cells, selected, TemporalCell::Month),
+    );
 
-    for days in &panel.day_rows {
-        rows = rows.push(navigation_row("流日", days));
+    let mut rows = column![decadal, yearly, month].spacing(4);
+    for (r, days) in panel.day_rows.iter().enumerate() {
+        let widgets = days
+            .iter()
+            .enumerate()
+            .map(|(i, cell)| {
+                temporal_cell(
+                    TemporalCell::Day(r, i),
+                    Some(cell.label_zh.as_str()),
+                    None,
+                    cell.enabled,
+                    selected,
+                )
+            })
+            .collect();
+        rows = rows.push(temporal_row("流日", widgets));
     }
-    rows = rows.push(navigation_row("流时", &panel.hour_cells));
+    rows = rows.push(temporal_row(
+        "流时",
+        nav_cells(&panel.hour_cells, selected, TemporalCell::Hour),
+    ));
 
     container(rows)
         .style(temporal_panel_style)
@@ -431,25 +482,25 @@ fn temporal_navigation_panel(panel: &StaticTemporalPanelView) -> Element<'_, Mes
         .into()
 }
 
-fn decadal_row<'a>(
-    label: &'static str,
-    cells: &'a [StaticDecadalCellView],
-) -> Element<'a, Message> {
-    temporal_row(label, cells.iter().map(decadal_cell).collect())
-}
-
-fn yearly_age_row<'a>(
-    label: &'static str,
-    cells: &'a [StaticYearlyAgeCellView],
-) -> Element<'a, Message> {
-    temporal_row(label, cells.iter().map(yearly_age_cell).collect())
-}
-
-fn navigation_row<'a>(
-    label: &'static str,
+/// Builds the clickable cell widgets for a simple navigation row.
+fn nav_cells<'a>(
     cells: &'a [StaticNavigationCellView],
-) -> Element<'a, Message> {
-    temporal_row(label, cells.iter().map(navigation_cell).collect())
+    selected: Option<TemporalCell>,
+    id_for: impl Fn(usize) -> TemporalCell,
+) -> Vec<Element<'a, Message>> {
+    cells
+        .iter()
+        .enumerate()
+        .map(|(i, cell)| {
+            temporal_cell(
+                id_for(i),
+                Some(cell.label_zh.as_str()),
+                None,
+                cell.enabled,
+                selected,
+            )
+        })
+        .collect()
 }
 
 fn temporal_row<'a>(label: &'static str, cells: Vec<Element<'a, Message>>) -> Element<'a, Message> {
@@ -462,47 +513,44 @@ fn temporal_row<'a>(label: &'static str, cells: Vec<Element<'a, Message>>) -> El
     content.into()
 }
 
-fn decadal_cell(cell: &StaticDecadalCellView) -> Element<'_, Message> {
-    temporal_cell(
-        cell.age_range_zh.as_deref(),
-        cell.limit_label_zh.as_deref(),
-        cell.enabled,
-    )
-}
-
-fn yearly_age_cell(cell: &StaticYearlyAgeCellView) -> Element<'_, Message> {
-    temporal_cell(
-        cell.year_label.as_deref(),
-        cell.stem_branch_age_zh.as_deref(),
-        cell.enabled,
-    )
-}
-
-fn navigation_cell(cell: &StaticNavigationCellView) -> Element<'_, Message> {
-    temporal_cell(Some(cell.label_zh.as_str()), None, cell.enabled)
-}
-
+/// Renders one temporal cell. Enabled cells are clickable buttons that emit a
+/// [`Message::SelectTemporalCell`]; disabled cells stay inert containers and can
+/// never become an active selection.
 fn temporal_cell<'a>(
+    id: TemporalCell,
     primary: Option<&'a str>,
     secondary: Option<&'a str>,
     enabled: bool,
+    selected: Option<TemporalCell>,
 ) -> Element<'a, Message> {
-    let primary = text(primary.unwrap_or("—")).size(10);
-    let primary = if enabled {
-        primary
+    let is_selected = selected == Some(id);
+    let primary_text = text(primary.unwrap_or("—")).size(10);
+    let primary_text = if enabled {
+        primary_text
     } else {
-        primary.style(subtle_text_style)
+        primary_text.style(subtle_text_style)
     };
-    let mut content = column![primary].spacing(1).align_x(iced::Alignment::Center);
+    let mut content = column![primary_text]
+        .spacing(1)
+        .align_x(iced::Alignment::Center);
     if let Some(secondary) = secondary {
         content = content.push(text(secondary).size(9));
     }
 
-    container(content)
-        .style(move |theme| temporal_cell_style(theme, enabled))
-        .padding([3, 2])
-        .width(Length::FillPortion(1))
-        .into()
+    if enabled {
+        button(content)
+            .on_press(Message::SelectTemporalCell(id))
+            .padding([3, 2])
+            .width(Length::FillPortion(1))
+            .style(move |theme, _status| temporal_cell_button_style(theme, is_selected))
+            .into()
+    } else {
+        container(content)
+            .style(move |theme| temporal_cell_style(theme, false))
+            .padding([3, 2])
+            .width(Length::FillPortion(1))
+            .into()
+    }
 }
 
 fn star_group(
@@ -748,6 +796,36 @@ fn temporal_cell_style(theme: &Theme, enabled: bool) -> container::Style {
             radius: 3.0.into(),
         },
         ..container::Style::default()
+    }
+}
+
+/// Style for an enabled, clickable temporal cell; the selected cell is tinted.
+fn temporal_cell_button_style(theme: &Theme, selected: bool) -> button::Style {
+    let palette = theme.extended_palette();
+    let (background, text_color, border_color, width) = if selected {
+        (
+            palette.primary.weak.color,
+            palette.primary.weak.text,
+            palette.primary.strong.color,
+            2.0,
+        )
+    } else {
+        (
+            palette.background.base.color,
+            palette.background.base.text,
+            palette.background.strong.color,
+            1.0,
+        )
+    };
+    button::Style {
+        background: Some(background.into()),
+        text_color,
+        border: Border {
+            color: border_color,
+            width,
+            radius: 3.0.into(),
+        },
+        ..button::Style::default()
     }
 }
 
