@@ -48,15 +48,14 @@ mod tests {
     }
 
     #[test]
-    fn gui_manifest_uses_tiny_skia_without_wgpu_defaults() {
+    fn gui_manifest_uses_wgpu_without_software_fallback() {
         let manifest = include_str!("../Cargo.toml");
 
         assert!(
             manifest.contains(
-                r#"iced = { version = "0.13", default-features = false, features = ["tiny-skia"] }"#
+                r#"iced = { version = "0.13", default-features = false, features = ["wgpu"] }"#
             ),
-            "GUI must avoid Iced's wgpu renderer because wgpu 0.19 can panic when WSLg \
-             recreates a Wayland surface during resize"
+            "GUI should use GPU rendering; WSL safety comes from forcing XWayland before Iced starts"
         );
     }
 

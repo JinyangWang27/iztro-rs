@@ -11,8 +11,8 @@ rust-version.workspace = true
 
 [dependencies]
 iztro = { path = "../iztro" }
-# Software rendering avoids wgpu 0.19 Wayland surface panics during WSLg resize.
-iced = { version = "0.13", default-features = false, features = ["tiny-skia"] }
+# WSL uses XWayland at process startup, avoiding wgpu's unstable WSLg Wayland path.
+iced = { version = "0.13", default-features = false, features = ["wgpu"] }
 serde = { workspace = true }
 serde_json = { workspace = true }
 dirs = "5"

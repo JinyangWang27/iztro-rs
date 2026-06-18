@@ -37,11 +37,11 @@ starts without persistence and surfaces a non-fatal notice rather than scatterin
 saved charts.
 
 A generated chart renders from `StaticChartViewSnapshot` using the bundled
-Source Han Serif SC font for Chinese text. The prototype uses Iced's `tiny-skia`
-software renderer so WSLg window resizing does not depend on the unstable
-`wgpu 0.19` Wayland surface path. On WSL, the binary also prefers WSLg's stable
-XWayland endpoint when `DISPLAY` is available; native Linux keeps its normal
-window-backend selection. The center panel shows factual
+Source Han Serif SC font for Chinese text and Iced's GPU renderer. On WSL, the
+binary prefers WSLg's stable XWayland endpoint when `DISPLAY` is available,
+avoiding the unstable `wgpu 0.19` Wayland surface path while retaining
+GPU-accelerated redraws. Native Linux keeps its normal window-backend selection.
+The center panel shows factual
 four-pillar labels (年柱/月柱/日柱/时柱) when the chart snapshot provides them.
 Palace cells use an iztro-like static layout: stars are zoned within each cell
 rather than shown as labeled category badges. Major stars (主星) appear in the
