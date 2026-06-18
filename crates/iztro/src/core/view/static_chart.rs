@@ -11,14 +11,16 @@
 //! ordering so a renderer never has to depend on accidental `Vec` order.
 
 use crate::core::calendar::lunar_month_has_thirtieth;
-use crate::core::labels::zh_cn;
+use crate::core::labels::{chinese_date, zh_cn};
 use crate::core::model::bureau::FiveElementBureau;
-use crate::core::model::calendar::Gender;
+use crate::core::model::calendar::{CalendarKind, Gender};
 use crate::core::model::chart::{
     Chart, DecadalFrame, DecadalPeriod, DecorativeStarFamily, DecorativeStarPlacement,
     HoroscopeChart, MutagenActivation, PALACE_COUNT, Palace, PalaceGridPosition, PalaceName,
-    StarPlacement, TemporalLayer, VISUAL_BRANCH_ORDER, build_decadal_frame, palace_grid_position,
+    StarPlacement, TemporalLayer, VISUAL_BRANCH_ORDER, build_age_period, build_decadal_frame,
+    palace_grid_position,
 };
+use crate::core::model::master::{body_master, soul_master};
 use crate::core::model::star::mutagen::Scope;
 use crate::core::model::star::{Brightness, StarCategory, StarKind, StarName, mutagen::Mutagen};
 use lunar_lite::{EarthlyBranch, FourPillars, HeavenlyStem, StemBranch};
@@ -96,6 +98,41 @@ pub struct StaticChartCenterView {
     pub four_pillars: Option<StaticFourPillarsView>,
     /// Five-element bureau, if modeled.
     pub five_element_bureau: Option<FiveElementBureau>,
+    /// Chinese label for the five-element bureau (五行局), such as `木三局`.
+    #[serde(default)]
+    pub five_element_bureau_zh: Option<String>,
+    /// Birth solar (阳历) date label, such as `1993-05-27`.
+    #[serde(default)]
+    pub birth_solar_label: String,
+    /// Birth lunar (农历) date label, such as `一九九三年四月初七`.
+    #[serde(default)]
+    pub birth_lunar_label: String,
+    /// Birth double-hour (时辰) label with range, such as `酉时(17:00~19:00)`.
+    #[serde(default)]
+    pub birth_time_label: String,
+    /// Chinese zodiac animal (生肖) label, such as `鸡`.
+    #[serde(default)]
+    pub zodiac_zh: String,
+    /// Western constellation (星座) label, such as `双子座`.
+    #[serde(default)]
+    pub constellation_zh: String,
+    /// Soul master (命主) star label, such as `廉贞`.
+    #[serde(default)]
+    pub soul_master_zh: Option<String>,
+    /// Body master (身主) star label, such as `天同`.
+    #[serde(default)]
+    pub body_master_zh: Option<String>,
+    /// Selected period nominal age (年龄(虚岁)) label, such as `16 岁`.
+    ///
+    /// Filled by the temporal facade because it depends on navigation state.
+    #[serde(default)]
+    pub nominal_age_label: Option<String>,
+    /// Selected period lunar (运限农历) date label.
+    #[serde(default)]
+    pub temporal_lunar_label: Option<String>,
+    /// Selected period solar (运限阳历) date label.
+    #[serde(default)]
+    pub temporal_solar_label: Option<String>,
     /// Life Palace branch, if modeled.
     pub life_palace_branch: Option<EarthlyBranch>,
     /// Chinese label for the Life Palace branch, if modeled.
@@ -481,6 +518,23 @@ impl StaticSurroundPalacesView {
     }
 }
 
+/// Prepared decadal (大限) and small-limit (小限) facts for one palace cell.
+///
+/// These are renderer-neutral display facts derived from the natal decadal frame
+/// and age-period walk. The GUI draws them in the palace center without
+/// performing any age or branch arithmetic of its own.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, Default)]
+pub struct StaticPalaceLimitView {
+    /// Inclusive decadal age range (大限) for this palace, such as `6-15`.
+    pub decadal_age_range_zh: Option<String>,
+    /// Nominal small-limit ages (小限) that land on this palace, ascending.
+    #[serde(default)]
+    pub small_limit_ages_zh: Vec<String>,
+    /// Whether this palace holds the currently selected decadal period.
+    #[serde(default)]
+    pub is_active_decadal: bool,
+}
+
 /// One perimeter palace cell of a static chart.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct StaticPalaceView {
@@ -496,6 +550,9 @@ pub struct StaticPalaceView {
     /// interpretation. Renderers use it to highlight a palace's surrounding
     /// influence set without performing any branch arithmetic themselves.
     pub surround: StaticSurroundPalacesView,
+    /// Prepared 大限 / 小限 limit facts shown in the palace center.
+    #[serde(default)]
+    pub limit: StaticPalaceLimitView,
     /// Natal palace name.
     pub name: PalaceName,
     /// Chinese label for the natal palace name.
@@ -632,6 +689,9 @@ pub struct StaticChartSelectorView {
 pub struct StaticTemporalOverlayView {
     /// The non-natal scope this overlay belongs to.
     pub scope: Scope,
+    /// Compact prepared badge label for this period, such as `流年·丁`.
+    #[serde(default)]
+    pub period_label_zh: Option<String>,
     /// The temporal palace name this period assigns to the branch, if any.
     pub temporal_palace_name: Option<PalaceName>,
     /// Chinese label for the temporal palace name, if any.
@@ -899,17 +959,35 @@ impl StaticChartCenterView {
     fn from_chart(chart: &Chart) -> Self {
         let life_palace_branch = chart.life_palace().map(Palace::branch);
         let body_palace_branch = chart.body_palace_branch();
+        let birth_year_branch = chart.birth_year().branch();
+        let time_index = chart.birth_context().birth_time_variant().iztro_time_index();
+        let (birth_solar_label, birth_lunar_label, constellation_zh) = natal_date_labels(chart);
         Self {
             gender: chart.birth_context().gender(),
             birth_year_stem: chart.birth_year().stem(),
             birth_year_stem_zh: zh_cn::heavenly_stem_zh(chart.birth_year().stem()).to_owned(),
-            birth_year_branch: chart.birth_year().branch(),
-            birth_year_branch_zh: zh_cn::earthly_branch_zh(chart.birth_year().branch()).to_owned(),
+            birth_year_branch,
+            birth_year_branch_zh: zh_cn::earthly_branch_zh(birth_year_branch).to_owned(),
             four_pillars: chart
                 .four_pillars()
                 .copied()
                 .map(StaticFourPillarsView::from_four_pillars),
             five_element_bureau: chart.five_element_bureau(),
+            five_element_bureau_zh: chart
+                .five_element_bureau()
+                .map(|bureau| zh_cn::five_element_bureau_zh(bureau).to_owned()),
+            birth_solar_label,
+            birth_lunar_label,
+            birth_time_label: chinese_date::birth_time_label(time_index),
+            zodiac_zh: zh_cn::zodiac_animal_zh(birth_year_branch).to_owned(),
+            constellation_zh,
+            soul_master_zh: life_palace_branch
+                .map(|branch| zh_cn::star_name_zh(soul_master(branch)).to_owned()),
+            body_master_zh: Some(zh_cn::star_name_zh(body_master(birth_year_branch)).to_owned()),
+            // Temporal (navigation-dependent) labels are filled by the facade.
+            nominal_age_label: None,
+            temporal_lunar_label: None,
+            temporal_solar_label: None,
             life_palace_branch,
             life_palace_branch_zh: life_palace_branch
                 .map(|branch| zh_cn::earthly_branch_zh(branch).to_owned()),
@@ -920,9 +998,96 @@ impl StaticChartCenterView {
     }
 }
 
+/// Returns `(solar_label, lunar_label, constellation_zh)` for a natal chart,
+/// preferring the retained natal display dates and falling back to whatever
+/// calendar the birth context carries.
+fn natal_date_labels(chart: &Chart) -> (String, String, String) {
+    if let Some(facts) = chart.natal_date_facts() {
+        let solar = facts.solar();
+        let lunar = facts.lunar();
+        return (
+            chinese_date::solar_date_label(solar.year(), solar.month(), solar.day()),
+            chinese_date::lunar_date_label(lunar.year(), lunar.month(), lunar.day(), lunar.is_leap_month()),
+            chinese_date::constellation_zh(solar.month(), solar.day()).to_owned(),
+        );
+    }
+
+    let date = chart.birth_context().date();
+    match date.kind() {
+        CalendarKind::Solar => (
+            chinese_date::solar_date_label(date.year(), date.month(), date.day()),
+            String::new(),
+            chinese_date::constellation_zh(date.month(), date.day()).to_owned(),
+        ),
+        CalendarKind::Lunar => (
+            String::new(),
+            chinese_date::lunar_date_label(date.year(), date.month(), date.day(), false),
+            String::new(),
+        ),
+    }
+}
+
+/// Highest nominal small-limit age retained for per-palace display.
+const SMALL_LIMIT_MAX_AGE: u8 = 120;
+
+/// Precomputed per-palace 大限 / 小限 facts, derived once per chart so each
+/// palace cell does not recompute the decadal frame or age-period walk.
+struct PalaceLimits {
+    decadal: Vec<(EarthlyBranch, u8, u8)>,
+    small: Vec<(EarthlyBranch, Vec<u8>)>,
+}
+
+impl PalaceLimits {
+    fn for_chart(chart: &Chart) -> Self {
+        let mut decadal = Vec::new();
+        if let Ok(frame) = build_decadal_frame(chart) {
+            for period in frame.periods() {
+                decadal.push((
+                    period.palace_branch(),
+                    period.start_age(),
+                    period.end_age(),
+                ));
+            }
+        }
+
+        let mut small: Vec<(EarthlyBranch, Vec<u8>)> = Vec::new();
+        for base in 1u8..=PALACE_COUNT as u8 {
+            if let Ok(period) = build_age_period(chart, base) {
+                let mut ages = Vec::new();
+                let mut age = base;
+                while age <= SMALL_LIMIT_MAX_AGE {
+                    ages.push(age);
+                    age += PALACE_COUNT as u8;
+                }
+                small.push((period.palace_branch(), ages));
+            }
+        }
+
+        Self { decadal, small }
+    }
+
+    fn view_for(&self, branch: EarthlyBranch) -> StaticPalaceLimitView {
+        StaticPalaceLimitView {
+            decadal_age_range_zh: self
+                .decadal
+                .iter()
+                .find(|(palace_branch, _, _)| *palace_branch == branch)
+                .map(|(_, start, end)| format!("{start}-{end}")),
+            small_limit_ages_zh: self
+                .small
+                .iter()
+                .find(|(palace_branch, _)| *palace_branch == branch)
+                .map(|(_, ages)| ages.iter().map(u8::to_string).collect())
+                .unwrap_or_default(),
+            is_active_decadal: false,
+        }
+    }
+}
+
 /// Builds the twelve palace cells in fixed [`VISUAL_BRANCH_ORDER`], attaching any
 /// overlays from `overlay_layers`.
 fn build_palaces(chart: &Chart, overlay_layers: &[&TemporalLayer]) -> Vec<StaticPalaceView> {
+    let limits = PalaceLimits::for_chart(chart);
     VISUAL_BRANCH_ORDER
         .into_iter()
         .filter_map(|branch| {
@@ -930,13 +1095,18 @@ fn build_palaces(chart: &Chart, overlay_layers: &[&TemporalLayer]) -> Vec<Static
                 .palaces()
                 .iter()
                 .find(|palace| palace.branch() == branch)
-                .map(|palace| StaticPalaceView::from_palace(chart, palace, overlay_layers))
+                .map(|palace| StaticPalaceView::from_palace(chart, palace, overlay_layers, &limits))
         })
         .collect()
 }
 
 impl StaticPalaceView {
-    fn from_palace(chart: &Chart, palace: &Palace, overlay_layers: &[&TemporalLayer]) -> Self {
+    fn from_palace(
+        chart: &Chart,
+        palace: &Palace,
+        overlay_layers: &[&TemporalLayer],
+        limits: &PalaceLimits,
+    ) -> Self {
         let mut roles = vec![StaticPalaceRole::NatalPalace(palace.name())];
         if chart.is_body_palace_branch(palace.branch()) {
             roles.push(StaticPalaceRole::BodyPalace);
@@ -975,6 +1145,7 @@ impl StaticPalaceView {
             branch_zh: zh_cn::earthly_branch_zh(palace.branch()).to_owned(),
             grid_position: palace_grid_position(palace.branch()),
             surround: StaticSurroundPalacesView::for_branch(palace.branch()),
+            limit: limits.view_for(palace.branch()),
             name: palace.name(),
             name_zh: zh_cn::palace_name_zh(palace.name()).to_owned(),
             stem: palace.stem(),
@@ -1022,8 +1193,15 @@ impl StaticTemporalOverlayView {
             .map(StaticOverlayMutagenView::from_activation)
             .collect();
 
+        let period_label_zh = Some(format!(
+            "{}·{}",
+            zh_cn::scope_zh(layer.scope()),
+            zh_cn::heavenly_stem_zh(layer.context().stem_branch().stem())
+        ));
+
         Self {
             scope: layer.scope(),
+            period_label_zh,
             temporal_palace_name,
             temporal_palace_name_zh: temporal_palace_name
                 .map(|name| zh_cn::palace_name_zh(name).to_owned()),

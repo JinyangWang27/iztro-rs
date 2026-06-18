@@ -27,7 +27,7 @@ pub(crate) use temporal_layout::{
 pub use age::{AgePeriod, build_age_period};
 pub use chart::{
     Chart, DecorativeStarFamily, DecorativeStarPlacement, DecorativeStarPlacementRef,
-    MajorStarPlacementRef, PALACE_COUNT, Palace, StarPlacement, StarPlacementRef,
+    MajorStarPlacementRef, NatalDateFacts, PALACE_COUNT, Palace, StarPlacement, StarPlacementRef,
 };
 pub use daily::{DailyPeriod, build_daily_period};
 pub use decadal::{DecadalDirection, DecadalFrame, DecadalPeriod, build_decadal_frame};

@@ -1,0 +1,162 @@
+//! Conventional Chinese date, lunar-date, double-hour, and constellation
+//! display labels.
+//!
+//! These are additive presentation helpers: they format already-computed
+//! calendar facts into the conventional Chinese strings used by chart views
+//! (for example `一九九三年四月初七`, `酉时(17:00~19:00)`, `双子座`). They never
+//! perform calendar conversion themselves; callers supply the numeric facts.
+
+/// Chinese digits used for digit-by-digit year rendering (`〇` for zero).
+const YEAR_DIGITS: [&str; 10] = ["〇", "一", "二", "三", "四", "五", "六", "七", "八", "九"];
+
+/// Conventional lunar month labels (`正月`..`腊月`), one-based.
+const LUNAR_MONTH_LABELS: [&str; 12] = [
+    "正月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "冬月", "腊月",
+];
+
+/// Conventional lunar day labels (`初一`..`三十`), one-based.
+const LUNAR_DAY_LABELS: [&str; 30] = [
+    "初一", "初二", "初三", "初四", "初五", "初六", "初七", "初八", "初九", "初十", "十一", "十二",
+    "十三", "十四", "十五", "十六", "十七", "十八", "十九", "二十", "廿一", "廿二", "廿三", "廿四",
+    "廿五", "廿六", "廿七", "廿八", "廿九", "三十",
+];
+
+/// Renders a year digit-by-digit in Chinese numerals, such as `1993` → `一九九三`.
+///
+/// Negative years are rendered with a leading `公元前` marker; this never occurs
+/// for real birth charts but keeps the helper total.
+pub fn chinese_year_digits(year: i32) -> String {
+    if year < 0 {
+        return format!("公元前{}", chinese_year_digits(-year));
+    }
+    year.to_string()
+        .bytes()
+        .map(|byte| YEAR_DIGITS[(byte - b'0') as usize])
+        .collect()
+}
+
+/// Returns the conventional Chinese label for a one-based lunar month.
+///
+/// Out-of-range months fall back to the bare number with a `月` suffix so the
+/// helper stays total.
+pub fn lunar_month_zh(month: u8) -> String {
+    match month {
+        1..=12 => LUNAR_MONTH_LABELS[(month - 1) as usize].to_owned(),
+        other => format!("{other}月"),
+    }
+}
+
+/// Returns the conventional Chinese label for a one-based lunar day.
+///
+/// Out-of-range days fall back to the bare number so the helper stays total.
+pub fn lunar_day_zh(day: u8) -> String {
+    match day {
+        1..=30 => LUNAR_DAY_LABELS[(day - 1) as usize].to_owned(),
+        other => other.to_string(),
+    }
+}
+
+/// Formats a solar (Gregorian) date as `YYYY-MM-DD`, such as `1993-05-27`.
+pub fn solar_date_label(year: i32, month: u8, day: u8) -> String {
+    format!("{year}-{month:02}-{day:02}")
+}
+
+/// Formats a lunar date as `<年>年<月><日>`, such as `一九九三年四月初七`.
+///
+/// Leap months are prefixed with `闰`, matching conventional almanac display.
+pub fn lunar_date_label(year: i32, month: u8, day: u8, is_leap_month: bool) -> String {
+    let leap = if is_leap_month { "闰" } else { "" };
+    format!(
+        "{}年{}{}{}",
+        chinese_year_digits(year),
+        leap,
+        lunar_month_zh(month),
+        lunar_day_zh(day)
+    )
+}
+
+/// Returns the conventional double-hour (时辰) label with its clock range for an
+/// upstream `iztro` `timeIndex` (`0..=12`), such as `酉时(17:00~19:00)`.
+///
+/// Early Zi (`0`) and late Zi (`12`) share the `子时` branch but carry the two
+/// halves of the Zi double-hour range.
+pub fn birth_time_label(time_index: u8) -> String {
+    let (branch, range) = match time_index {
+        0 => ("子", "00:00~01:00"),
+        1 => ("丑", "01:00~03:00"),
+        2 => ("寅", "03:00~05:00"),
+        3 => ("卯", "05:00~07:00"),
+        4 => ("辰", "07:00~09:00"),
+        5 => ("巳", "09:00~11:00"),
+        6 => ("午", "11:00~13:00"),
+        7 => ("未", "13:00~15:00"),
+        8 => ("申", "15:00~17:00"),
+        9 => ("酉", "17:00~19:00"),
+        10 => ("戌", "19:00~21:00"),
+        11 => ("亥", "21:00~23:00"),
+        12 => ("子", "23:00~24:00"),
+        _ => ("未知", "--:--~--:--"),
+    };
+    format!("{branch}时({range})")
+}
+
+/// Returns the Western constellation (星座) for a solar month and day, such as
+/// `双子座` for 27 May.
+pub fn constellation_zh(solar_month: u8, solar_day: u8) -> &'static str {
+    match (solar_month, solar_day) {
+        (3, 21..=31) | (4, 1..=19) => "白羊座",
+        (4, 20..=30) | (5, 1..=20) => "金牛座",
+        (5, 21..=31) | (6, 1..=21) => "双子座",
+        (6, 22..=30) | (7, 1..=22) => "巨蟹座",
+        (7, 23..=31) | (8, 1..=22) => "狮子座",
+        (8, 23..=31) | (9, 1..=22) => "处女座",
+        (9, 23..=30) | (10, 1..=23) => "天秤座",
+        (10, 24..=31) | (11, 1..=22) => "天蝎座",
+        (11, 23..=30) | (12, 1..=21) => "射手座",
+        (12, 22..=31) | (1, 1..=19) => "摩羯座",
+        (1, 20..=31) | (2, 1..=18) => "水瓶座",
+        (2, 19..=29) | (3, 1..=20) => "双鱼座",
+        _ => "未知",
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn year_renders_digit_by_digit() {
+        assert_eq!(chinese_year_digits(1993), "一九九三");
+        assert_eq!(chinese_year_digits(2008), "二〇〇八");
+        assert_eq!(chinese_year_digits(2020), "二〇二〇");
+    }
+
+    #[test]
+    fn solar_date_label_is_zero_padded() {
+        assert_eq!(solar_date_label(1993, 5, 27), "1993-05-27");
+        assert_eq!(solar_date_label(2008, 2, 10), "2008-02-10");
+    }
+
+    #[test]
+    fn lunar_date_label_matches_almanac_form() {
+        assert_eq!(lunar_date_label(1993, 4, 7, false), "一九九三年四月初七");
+        assert_eq!(lunar_date_label(2008, 1, 4, false), "二〇〇八年正月初四");
+        assert_eq!(lunar_date_label(2020, 4, 15, true), "二〇二〇年闰四月十五");
+    }
+
+    #[test]
+    fn birth_time_label_includes_hour_range() {
+        assert_eq!(birth_time_label(9), "酉时(17:00~19:00)");
+        assert_eq!(birth_time_label(0), "子时(00:00~01:00)");
+        assert_eq!(birth_time_label(12), "子时(23:00~24:00)");
+    }
+
+    #[test]
+    fn constellation_matches_western_zodiac() {
+        assert_eq!(constellation_zh(5, 27), "双子座");
+        assert_eq!(constellation_zh(5, 20), "金牛座");
+        assert_eq!(constellation_zh(5, 21), "双子座");
+        assert_eq!(constellation_zh(1, 1), "摩羯座");
+        assert_eq!(constellation_zh(12, 25), "摩羯座");
+    }
+}

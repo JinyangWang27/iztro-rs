@@ -9,6 +9,7 @@
 pub mod bureau;
 pub mod calendar;
 pub mod chart;
+pub mod master;
 pub mod nayin;
 pub mod profile;
 pub mod star;

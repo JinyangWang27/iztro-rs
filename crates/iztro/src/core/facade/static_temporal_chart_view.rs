@@ -15,11 +15,12 @@
 //!
 //! [`TemporalLayer`]: crate::core::model::chart::TemporalLayer
 
-use crate::core::calendar::resolve_non_leap_lunar;
+use crate::core::calendar::{resolve_non_leap_lunar, solar_to_lunar};
 use crate::core::error::ChartError;
 use crate::core::facade::by_solar::{SolarChartRequest, by_solar};
-use crate::core::model::calendar::BirthTime;
-use crate::core::model::chart::{Chart, build_decadal_frame};
+use crate::core::labels::chinese_date;
+use crate::core::model::calendar::{BirthTime, SolarDay, SolarMonth};
+use crate::core::model::chart::{Chart, HoroscopeTargetContext, build_decadal_frame};
 use crate::core::model::star::mutagen::Scope;
 use crate::core::placement::overlay::partial_horoscope::{
     PartialHoroscope, build_partial_horoscope_chart,
@@ -55,6 +56,7 @@ pub fn static_temporal_chart_view(
         | StaticTemporalNavigationSelection::PreDecadal => {
             let mut snapshot = StaticChartViewSnapshot::from_chart(&natal);
             snapshot.temporal_panel = StaticTemporalPanelView::from_selection(&natal, selection);
+            decorate_temporal(&mut snapshot, &natal, selection, None);
             Ok(snapshot)
         }
         _ => {
@@ -66,8 +68,133 @@ pub fn static_temporal_chart_view(
             );
             snapshot.temporal_panel =
                 StaticTemporalPanelView::from_selection(horoscope.natal(), selection);
+            let target = horoscope.target_context().cloned();
+            decorate_temporal(&mut snapshot, horoscope.natal(), selection, target.as_ref());
             Ok(snapshot)
         }
+    }
+}
+
+/// Fills the selection-dependent center labels (年龄(虚岁), 运限农历, 运限阳历) and
+/// marks the active decadal palace.
+///
+/// All natal facts already live on the snapshot; this only layers on the facts
+/// that depend on the temporal navigation selection.
+fn decorate_temporal(
+    snapshot: &mut StaticChartViewSnapshot,
+    natal: &Chart,
+    selection: StaticTemporalNavigationSelection,
+    target: Option<&HoroscopeTargetContext>,
+) {
+    if let Some(decadal_index) = selection.decadal_index() {
+        if let Ok(frame) = build_decadal_frame(natal) {
+            if let Some(period) = frame.periods().get(decadal_index) {
+                let active_branch = period.palace_branch();
+                for palace in &mut snapshot.palaces {
+                    if palace.branch == active_branch {
+                        palace.limit.is_active_decadal = true;
+                    }
+                }
+
+                let nominal_age = u16::from(period.start_age())
+                    + selection.year_index().map_or(0, u16::from);
+                snapshot.center.nominal_age_label = Some(format!("{nominal_age} 岁"));
+            }
+        }
+    }
+
+    if let Some(target) = target {
+        let solar = target.solar_date();
+        let lunar = target.lunar_date();
+        snapshot.center.temporal_solar_label = Some(chinese_date::solar_date_label(
+            solar.year(),
+            solar.month(),
+            solar.day(),
+        ));
+        snapshot.center.temporal_lunar_label = Some(chinese_date::lunar_date_label(
+            lunar.year(),
+            lunar.month(),
+            lunar.day(),
+            lunar.is_leap_month(),
+        ));
+    } else if let (Some(decadal_index), Some(year_index)) =
+        (selection.decadal_index(), selection.year_index())
+    {
+        // A 流年 selection resolves only to a lunar year, not a concrete day.
+        if let Ok(year) = lunar_year_for(natal, decadal_index, year_index) {
+            snapshot.center.temporal_lunar_label =
+                Some(format!("{}年", chinese_date::chinese_year_digits(year)));
+            snapshot.center.temporal_solar_label = Some(format!("{year}"));
+        }
+    }
+}
+
+/// Resolves the temporal navigation selection that points at a given local
+/// solar moment ("today"), for the `今` control.
+///
+/// The renderer supplies only the explicit current solar date/time facts; all
+/// calendar conversion, nominal-age, and decadal-period mapping happens here.
+/// The clock `hour` (`0..=23`) is mapped to the conventional double-hour
+/// `timeIndex`; `minute` is currently unused but accepted so the renderer can
+/// pass a complete moment.
+pub fn temporal_selection_for_local_moment(
+    natal: &Chart,
+    year: i32,
+    month: u8,
+    day: u8,
+    hour: u8,
+    minute: u8,
+) -> Result<StaticTemporalNavigationSelection, ChartError> {
+    let _ = minute;
+    let conversion = solar_to_lunar(
+        year,
+        SolarMonth::new(month)?,
+        SolarDay::new(day)?,
+        time_index_for_hour(hour),
+    )?;
+
+    let birth_lunar_year = natal.birth_context().date().year();
+    let nominal_age = conversion.lunar_year() - birth_lunar_year + 1;
+    let frame = build_decadal_frame(natal)?;
+    let periods = frame.periods();
+    let first_start = periods.first().map_or(1, |period| period.start_age());
+
+    if nominal_age < i32::from(first_start) {
+        return Ok(StaticTemporalNavigationSelection::PreDecadal);
+    }
+
+    let (decadal_index, period) = periods
+        .iter()
+        .enumerate()
+        .find(|(_, period)| {
+            i32::from(period.start_age()) <= nominal_age
+                && nominal_age <= i32::from(period.end_age())
+        })
+        .unwrap_or((periods.len() - 1, periods.last().expect("12 periods")));
+
+    let year_index = (nominal_age - i32::from(period.start_age())).clamp(0, 9) as u8;
+    let month_index = conversion.lunar_month().value().saturating_sub(1).min(11);
+    let day_index = conversion.lunar_day().value().saturating_sub(1).min(29);
+    let hour_index = time_index_for_hour(hour).min(11);
+
+    Ok(StaticTemporalNavigationSelection::Hourly {
+        decadal_index,
+        year_index,
+        month_index,
+        day_index,
+        hour_index,
+    })
+}
+
+/// Maps a clock hour (`0..=23`) to the conventional double-hour `timeIndex`.
+///
+/// Hour `0` is early Zi (`0`) and hour `23` is late Zi (`12`); every other hour
+/// folds into its branch's two-hour window.
+const fn time_index_for_hour(hour: u8) -> u8 {
+    match hour {
+        0 => 0,
+        23 => 12,
+        h => h.div_ceil(2),
     }
 }
 

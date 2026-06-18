@@ -31,6 +31,7 @@ pub use lunar_lite::{
     EARTHLY_BRANCHES, EarthlyBranch, FourPillars, HEAVENLY_STEMS, HeavenlyStem, StemBranch,
 };
 pub use model::bureau::{FiveElementBureau, five_element_bureau_from_life_palace};
+pub use model::master::{body_master, soul_master};
 pub use model::calendar::{
     BirthContext, BirthTime, CalendarDate, CalendarKind, Gender, SolarDay, SolarMonth,
 };
@@ -48,8 +49,9 @@ pub use model::chart::{
     HoroscopeSurroundPalacesSnapshot, HoroscopeTargetContext,
     HoroscopeYearlyDecorativeStarSupportedField, HoroscopeYearlyDecorativeSupportedFields,
     HoroscopeYearlySupportedFields, HourlyPeriod, MajorStarPlacementRef, MonthlyPeriod,
-    MutagenActivation, MutagenActivationSnapshot, NatalFacadeDecorativeStarSnapshot,
-    NatalFacadeFourPillarsSnapshot, NatalFacadePalaceRole, NatalFacadePalaceSnapshot,
+    MutagenActivation, MutagenActivationSnapshot, NatalDateFacts,
+    NatalFacadeDecorativeStarSnapshot, NatalFacadeFourPillarsSnapshot, NatalFacadePalaceRole,
+    NatalFacadePalaceSnapshot,
     NatalFacadeSnapshot, NatalFacadeTypedStarSnapshot, PALACE_COUNT, PALACE_NAMES, Palace,
     PalaceGridPosition, PalaceLayerCellSnapshot, PalaceName, PalaceRoleKind, PalaceRoleSnapshot,
     ScopedDecorativeStarPlacement, ScopedStarPlacement, ScopedStarSnapshot, StarPlacement,
@@ -114,7 +116,9 @@ pub use placement::overlay::yearly_horoscope::build_yearly_horoscope_layer;
 
 pub use facade::by_lunar::{LunarChartRequest, LunarChartRequestBuilder, by_lunar};
 pub use facade::by_solar::{SolarChartRequest, SolarChartRequestBuilder, by_solar};
-pub use facade::static_temporal_chart_view::static_temporal_chart_view;
+pub use facade::static_temporal_chart_view::{
+    static_temporal_chart_view, temporal_selection_for_local_moment,
+};
 
 pub use view::static_chart::{
     HighlightView, StaticChartCenterView, StaticChartSelectorView, StaticChartViewRequest,

@@ -8,7 +8,8 @@
 
 use iztro::core::{
     BirthTime, ChartAlgorithmKind, ChartError, Gender, MethodProfile, Scope, SolarChartRequest,
-    SolarDay, SolarMonth, StaticTemporalNavigationSelection, static_temporal_chart_view,
+    SolarDay, SolarMonth, StaticTemporalNavigationSelection, by_solar, static_temporal_chart_view,
+    temporal_selection_for_local_moment,
 };
 
 fn sample_request() -> SolarChartRequest {
@@ -25,6 +26,124 @@ fn sample_request() -> SolarChartRequest {
         ))
         .build()
         .unwrap()
+}
+
+/// The spec reference birth data: solar 1993-05-27, 酉 hour (timeIndex 9), male.
+fn spec_request() -> SolarChartRequest {
+    SolarChartRequest::builder()
+        .solar_year(1993)
+        .solar_month(SolarMonth::new(5).unwrap())
+        .solar_day(SolarDay::new(27).unwrap())
+        .birth_time_variant(BirthTime::from_iztro_time_index(9).unwrap())
+        .gender(Gender::Male)
+        .method_profile(MethodProfile::new(
+            "iztro_test",
+            ChartAlgorithmKind::QuanShu,
+            "static temporal chart view spec test",
+        ))
+        .build()
+        .unwrap()
+}
+
+#[test]
+fn center_carries_prepared_iztro_style_natal_labels() {
+    let center =
+        static_temporal_chart_view(spec_request(), StaticTemporalNavigationSelection::Natal)
+            .unwrap()
+            .center;
+
+    assert_eq!(center.five_element_bureau_zh.as_deref(), Some("木三局"));
+    assert_eq!(center.birth_solar_label, "1993-05-27");
+    assert_eq!(center.birth_lunar_label, "一九九三年四月初七");
+    assert_eq!(center.birth_time_label, "酉时(17:00~19:00)");
+    assert_eq!(center.zodiac_zh, "鸡");
+    assert_eq!(center.constellation_zh, "双子座");
+    assert!(center.soul_master_zh.is_some(), "命主 should be prepared");
+    assert!(center.body_master_zh.is_some(), "身主 should be prepared");
+}
+
+#[test]
+fn nominal_age_and_run_xian_dates_update_with_navigation() {
+    let natal =
+        static_temporal_chart_view(spec_request(), StaticTemporalNavigationSelection::Natal)
+            .unwrap();
+    assert!(natal.center.nominal_age_label.is_none());
+    assert!(natal.center.temporal_solar_label.is_none());
+
+    // Resolve "today" → a Hourly selection, then render it.
+    let chart = by_solar(spec_request()).unwrap();
+    let selection = temporal_selection_for_local_moment(&chart, 2008, 2, 10, 10, 0).unwrap();
+    let snapshot = static_temporal_chart_view(spec_request(), selection).unwrap();
+
+    // 2008 is the nominal 16th year for a 1993 birth (虚岁).
+    assert_eq!(snapshot.center.nominal_age_label.as_deref(), Some("16 岁"));
+    assert!(
+        snapshot.center.temporal_solar_label.is_some(),
+        "运限阳历 should be filled for a dated selection"
+    );
+    assert!(snapshot.center.temporal_lunar_label.is_some());
+}
+
+#[test]
+fn selecting_a_decadal_marks_exactly_one_active_palace() {
+    let snapshot = static_temporal_chart_view(
+        spec_request(),
+        StaticTemporalNavigationSelection::Decadal { decadal_index: 1 },
+    )
+    .unwrap();
+
+    let active: Vec<_> = snapshot
+        .palaces
+        .iter()
+        .filter(|p| p.limit.is_active_decadal)
+        .collect();
+    assert_eq!(active.len(), 1, "exactly one palace is the active 大限");
+    // The natal snapshot marks none.
+    let natal =
+        static_temporal_chart_view(spec_request(), StaticTemporalNavigationSelection::Natal)
+            .unwrap();
+    assert!(natal.palaces.iter().all(|p| !p.limit.is_active_decadal));
+}
+
+#[test]
+fn every_palace_carries_a_decadal_age_range() {
+    let snapshot =
+        static_temporal_chart_view(spec_request(), StaticTemporalNavigationSelection::Natal)
+            .unwrap();
+    assert!(
+        snapshot
+            .palaces
+            .iter()
+            .all(|p| p.limit.decadal_age_range_zh.is_some()),
+        "each palace has a prepared 大限 age range"
+    );
+    assert!(
+        snapshot
+            .palaces
+            .iter()
+            .all(|p| !p.limit.small_limit_ages_zh.is_empty()),
+        "each palace has prepared 小限 ages"
+    );
+}
+
+#[test]
+fn temporal_overlay_carries_a_period_label() {
+    let snapshot = static_temporal_chart_view(
+        spec_request(),
+        StaticTemporalNavigationSelection::Yearly {
+            decadal_index: 1,
+            year_index: 0,
+        },
+    )
+    .unwrap();
+    let label = snapshot
+        .palaces
+        .iter()
+        .flat_map(|p| p.overlays.iter())
+        .find(|o| o.scope == Scope::Yearly)
+        .and_then(|o| o.period_label_zh.clone())
+        .expect("流年 overlay carries a period label");
+    assert!(label.starts_with("流年·"), "got {label}");
 }
 
 #[test]
@@ -93,8 +212,16 @@ fn temporal_selection_changes_overlays_only_not_natal_facts() {
     )
     .unwrap();
 
-    // Center natal facts are identical regardless of temporal selection.
-    assert_eq!(natal.center, decadal.center);
+    // Natal center facts are identical regardless of temporal selection; only
+    // the navigation-dependent labels (年龄(虚岁), 运限农历/阳历) may differ.
+    let stable = |center: &iztro::core::StaticChartCenterView| {
+        let mut center = center.clone();
+        center.nominal_age_label = None;
+        center.temporal_lunar_label = None;
+        center.temporal_solar_label = None;
+        center
+    };
+    assert_eq!(stable(&natal.center), stable(&decadal.center));
 
     // Natal palace identity, surround (三方四正) and natal star lists are
     // byte-identical; only overlays may differ.

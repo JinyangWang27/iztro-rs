@@ -9,6 +9,7 @@
 //! canonical machine-readable enum/value identity used internally or in JSON.
 
 use crate::core::model::{
+    bureau::FiveElementBureau,
     chart::{DecorativeStarFamily, PalaceName},
     star::{
         Brightness, StarCategory, StarKind, StarName,
@@ -331,6 +332,35 @@ pub const fn star_name_zh(name: StarName) -> &'static str {
     }
 }
 
+/// Returns the Chinese label for a five-element bureau (五行局).
+pub const fn five_element_bureau_zh(bureau: FiveElementBureau) -> &'static str {
+    match bureau {
+        FiveElementBureau::Water2 => "水二局",
+        FiveElementBureau::Wood3 => "木三局",
+        FiveElementBureau::Metal4 => "金四局",
+        FiveElementBureau::Earth5 => "土五局",
+        FiveElementBureau::Fire6 => "火六局",
+    }
+}
+
+/// Returns the Chinese zodiac animal (生肖) for an Earthly Branch.
+pub const fn zodiac_animal_zh(branch: EarthlyBranch) -> &'static str {
+    match branch {
+        EarthlyBranch::Zi => "鼠",
+        EarthlyBranch::Chou => "牛",
+        EarthlyBranch::Yin => "虎",
+        EarthlyBranch::Mao => "兔",
+        EarthlyBranch::Chen => "龙",
+        EarthlyBranch::Si => "蛇",
+        EarthlyBranch::Wu => "马",
+        EarthlyBranch::Wei => "羊",
+        EarthlyBranch::Shen => "猴",
+        EarthlyBranch::You => "鸡",
+        EarthlyBranch::Xu => "狗",
+        EarthlyBranch::Hai => "猪",
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -495,5 +525,35 @@ mod tests {
         assert_eq!(star_name_zh(StarName::TianYueAdj), "天月");
         assert_eq!(star_name_zh(StarName::TianFu), "天府");
         assert_eq!(star_name_zh(StarName::TianFuAdj), "天福");
+    }
+
+    #[test]
+    fn five_element_bureau_labels_are_chinese() {
+        assert_eq!(five_element_bureau_zh(FiveElementBureau::Water2), "水二局");
+        assert_eq!(five_element_bureau_zh(FiveElementBureau::Wood3), "木三局");
+        assert_eq!(five_element_bureau_zh(FiveElementBureau::Metal4), "金四局");
+        assert_eq!(five_element_bureau_zh(FiveElementBureau::Earth5), "土五局");
+        assert_eq!(five_element_bureau_zh(FiveElementBureau::Fire6), "火六局");
+    }
+
+    #[test]
+    fn zodiac_animal_labels_cover_all_twelve_branches() {
+        let pairs = [
+            (EarthlyBranch::Zi, "鼠"),
+            (EarthlyBranch::Chou, "牛"),
+            (EarthlyBranch::Yin, "虎"),
+            (EarthlyBranch::Mao, "兔"),
+            (EarthlyBranch::Chen, "龙"),
+            (EarthlyBranch::Si, "蛇"),
+            (EarthlyBranch::Wu, "马"),
+            (EarthlyBranch::Wei, "羊"),
+            (EarthlyBranch::Shen, "猴"),
+            (EarthlyBranch::You, "鸡"),
+            (EarthlyBranch::Xu, "狗"),
+            (EarthlyBranch::Hai, "猪"),
+        ];
+        for (branch, expected) in pairs {
+            assert_eq!(zodiac_animal_zh(branch), expected);
+        }
     }
 }
