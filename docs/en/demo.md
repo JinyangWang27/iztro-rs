@@ -29,5 +29,10 @@ cargo run -p iztro-gui
 It renders a static natal chart from `StaticChartViewSnapshot` using the bundled
 Source Han Serif SC font for Chinese text. The center panel shows factual
 four-pillar labels (年柱/月柱/日柱/时柱) when the chart snapshot provides them.
+Palace cells display their own stars with category-colored labels, with a
+compact legend explaining those display categories. A bottom temporal panel
+shows factual decadal cells where available plus static month, day, and hour
+navigation labels. The panel is navigation-only in this prototype: it does not
+switch temporal scopes or provide target-date controls.
 This GUI remains a prototype chart-fact viewer; it does not provide readings,
 rules, 成格 detection, BaZi interpretation, or narrative output.
