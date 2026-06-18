@@ -12,4 +12,5 @@ pub use by_lunar::{LunarChartRequest, LunarChartRequestBuilder, by_lunar};
 pub use by_solar::{SolarChartRequest, SolarChartRequestBuilder, by_solar};
 pub use static_temporal_chart_view::{
     static_temporal_chart_view, temporal_selection_for_local_moment,
+    temporal_selection_for_solar_moment,
 };

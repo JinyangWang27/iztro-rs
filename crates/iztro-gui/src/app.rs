@@ -17,6 +17,7 @@ use iztro::core::{
     BirthTime, ChartAlgorithmKind, ChartError, EarthlyBranch, Gender, MethodProfile,
     SolarChartRequest, SolarDay, SolarMonth, StaticChartCenterView, StaticChartViewSnapshot,
     StaticPalaceView, StaticTemporalNavigationSelection, static_temporal_chart_view,
+    temporal_selection_for_solar_moment,
 };
 
 /// Non-fatal notice shown when no local data directory is available, so saved
@@ -109,6 +110,106 @@ fn next_temporal_selection(
             month_index: current.month_index()?,
             day_index: current.day_index()?,
             hour_index: u8::try_from(index).ok()?,
+        }),
+    }
+}
+
+/// A temporal unit the compact stepper controls can move by.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TemporalUnit {
+    /// 大限 (decadal period).
+    Decadal,
+    /// 流年 (flowing year).
+    Year,
+    /// 流月 (flowing month).
+    Month,
+    /// 流日 (flowing day).
+    Day,
+    /// 流时 (flowing double-hour).
+    Hour,
+}
+
+/// Direction a temporal stepper moves a unit.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum StepDirection {
+    /// Step to an earlier index (◀).
+    Backward,
+    /// Step to a later index (▶).
+    Forward,
+}
+
+impl StepDirection {
+    const fn delta(self) -> i64 {
+        match self {
+            Self::Backward => -1,
+            Self::Forward => 1,
+        }
+    }
+}
+
+/// Plain current-moment facts the renderer reads from the system clock for the
+/// `今` control. All calendar/age mapping happens in core; the GUI never
+/// performs date math itself.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct LocalSolarMoment {
+    /// Solar (Gregorian) year.
+    pub year: i32,
+    /// Solar month (`1..=12`).
+    pub month: u8,
+    /// Solar day (`1..=31`).
+    pub day: u8,
+    /// Clock hour (`0..=23`).
+    pub hour: u8,
+    /// Clock minute (`0..=59`).
+    pub minute: u8,
+}
+
+/// Steps the hierarchical temporal selection by one `unit` in `direction`,
+/// clamped to valid index ranges (`day_index` to `max_day_index`).
+///
+/// Returns `None` when the step needs a parent index the current path lacks
+/// (for example stepping 流年 before any 大限 is chosen), which keeps that
+/// control inert. All index ranges are renderer-neutral; the core facade still
+/// validates and builds the resulting snapshot.
+fn stepped_selection(
+    current: StaticTemporalNavigationSelection,
+    unit: TemporalUnit,
+    direction: StepDirection,
+    max_day_index: u8,
+) -> Option<StaticTemporalNavigationSelection> {
+    let delta = direction.delta();
+    let clamp_u8 = |value: i64, max: u8| value.clamp(0, i64::from(max)) as u8;
+    match unit {
+        TemporalUnit::Decadal => {
+            let index = (current.decadal_index().map_or(0, |i| i as i64) + delta).clamp(0, 11);
+            Some(StaticTemporalNavigationSelection::Decadal {
+                decadal_index: index as usize,
+            })
+        }
+        TemporalUnit::Year => Some(StaticTemporalNavigationSelection::Yearly {
+            decadal_index: current.decadal_index()?,
+            year_index: clamp_u8(i64::from(current.year_index().unwrap_or(0)) + delta, 9),
+        }),
+        TemporalUnit::Month => Some(StaticTemporalNavigationSelection::Monthly {
+            decadal_index: current.decadal_index()?,
+            year_index: current.year_index()?,
+            month_index: clamp_u8(i64::from(current.month_index().unwrap_or(0)) + delta, 11),
+        }),
+        TemporalUnit::Day => Some(StaticTemporalNavigationSelection::Daily {
+            decadal_index: current.decadal_index()?,
+            year_index: current.year_index()?,
+            month_index: current.month_index()?,
+            day_index: clamp_u8(
+                i64::from(current.day_index().unwrap_or(0)) + delta,
+                max_day_index,
+            ),
+        }),
+        TemporalUnit::Hour => Some(StaticTemporalNavigationSelection::Hourly {
+            decadal_index: current.decadal_index()?,
+            year_index: current.year_index()?,
+            month_index: current.month_index()?,
+            day_index: current.day_index()?,
+            hour_index: clamp_u8(i64::from(current.hour_index().unwrap_or(0)) + delta, 11),
         }),
     }
 }
@@ -293,8 +394,10 @@ pub enum Message {
     SelectSaved(usize),
     /// A bottom temporal-navigation cell was clicked.
     SelectTemporalCell(TemporalCell),
-    /// The 三方四正 highlight mode was toggled.
-    ToggleSanFang(bool),
+    /// A compact stepper moved a temporal unit one step.
+    StepTemporal(TemporalUnit, StepDirection),
+    /// The `今` control jumped to the supplied current local moment.
+    SelectToday(LocalSolarMoment),
     /// The pointer entered the palace cell identified by its branch.
     HoverPalace(EarthlyBranch),
     /// The pointer left the palace cell identified by its branch.
@@ -316,7 +419,6 @@ pub struct StaticChartApp {
     selected: Option<EarthlyBranch>,
     hovered_palace: Option<EarthlyBranch>,
     selected_temporal_selection: StaticTemporalNavigationSelection,
-    highlight_san_fang: bool,
     error: Option<String>,
     cache: ChartCache,
     saved: Vec<BirthInput>,
@@ -337,7 +439,6 @@ impl StaticChartApp {
             selected: None,
             hovered_palace: None,
             selected_temporal_selection: StaticTemporalNavigationSelection::PreDecadal,
-            highlight_san_fang: true,
             error: None,
             cache: ChartCache::default(),
             saved: Vec::new(),
@@ -470,24 +571,48 @@ impl StaticChartApp {
         self.selected_temporal_selection
     }
 
-    /// Whether 三方四正 highlight mode is enabled.
-    pub fn highlight_san_fang(&self) -> bool {
-        self.highlight_san_fang
-    }
-
     /// Whether `branch` is in the active palace's prepared 三方四正 set.
     ///
     /// The active palace is the hovered one, falling back to the sticky
-    /// selection. Reads the prepared [`surround`] field; performs no branch
-    /// arithmetic. Returns `false` while the toggle is off, so only the active
-    /// palace itself is highlighted.
+    /// selection (which defaults to the natal 命宫 after generating). Reads the
+    /// prepared [`surround`] field; performs no branch arithmetic. 三方四正 is
+    /// always shown, matching the original iztro chart.
     ///
     /// [`surround`]: iztro::core::StaticPalaceView::surround
     pub fn is_in_san_fang(&self, branch: EarthlyBranch) -> bool {
-        self.highlight_san_fang
-            && self
-                .active_palace()
-                .is_some_and(|palace| palace.surround.involves(branch))
+        self.active_palace()
+            .is_some_and(|palace| palace.surround.involves(branch))
+    }
+
+    /// Whether the active 三方四正 source is the natal 命宫 default (passive
+    /// lines) rather than a user-clicked palace or 流 badge (active lines).
+    pub fn san_fang_is_default(&self) -> bool {
+        match (
+            self.active_branch(),
+            self.center().and_then(|c| c.life_palace_branch),
+        ) {
+            (Some(active), Some(life)) => active == life,
+            // No active palace yet behaves like the default state.
+            (None, _) => true,
+            _ => false,
+        }
+    }
+
+    /// Number of enabled 流日 cells in the current snapshot, used to clamp day
+    /// stepping to a valid range.
+    fn enabled_day_count(&self) -> usize {
+        self.snapshot
+            .as_ref()
+            .map(|snapshot| {
+                snapshot
+                    .temporal_panel
+                    .day_rows
+                    .iter()
+                    .flatten()
+                    .filter(|cell| cell.enabled)
+                    .count()
+            })
+            .unwrap_or(0)
     }
 
     /// Whether the given temporal cell is enabled in the current snapshot.
@@ -524,9 +649,11 @@ impl StaticChartApp {
 
         match self.cache.get_or_build(&input) {
             Ok((snapshot, hit)) => {
+                // Default the active 三方四正 source to the natal 命宫, matching
+                // the original iztro chart's initial state.
+                self.selected = snapshot.center.life_palace_branch;
                 self.snapshot = Some(snapshot);
                 self.input = Some(input);
-                self.selected = None;
                 self.hovered_palace = None;
                 self.selected_temporal_selection = StaticTemporalNavigationSelection::PreDecadal;
                 self.error = None;
@@ -546,6 +673,23 @@ impl StaticChartApp {
                 self.error = Some(error.to_string());
                 GenerateOutcome::Invalid
             }
+        }
+    }
+
+    /// Rebuilds the snapshot for a new temporal selection through the cache, so
+    /// all overlay derivation stays in core. Errors are surfaced without
+    /// disturbing the existing snapshot.
+    fn apply_temporal_selection(&mut self, selection: StaticTemporalNavigationSelection) {
+        let Some(input) = self.input else {
+            return;
+        };
+        match self.cache.get_or_build_with(&input, selection) {
+            Ok((snapshot, _)) => {
+                self.selected_temporal_selection = selection;
+                self.snapshot = Some(snapshot);
+                self.error = None;
+            }
+            Err(error) => self.error = Some(error.to_string()),
         }
     }
 
@@ -578,24 +722,35 @@ impl StaticChartApp {
             Message::SelectTemporalCell(cell) => {
                 // Disabled cells stay inert: no selection, no snapshot change.
                 if self.temporal_cell_enabled(cell) {
-                    let Some(selection) =
+                    if let Some(selection) =
                         next_temporal_selection(self.selected_temporal_selection, cell)
-                    else {
-                        return;
-                    };
-                    if let Some(input) = self.input {
-                        match self.cache.get_or_build_with(&input, selection) {
-                            Ok((snapshot, _)) => {
-                                self.selected_temporal_selection = selection;
-                                self.snapshot = Some(snapshot);
-                                self.error = None;
-                            }
-                            Err(error) => self.error = Some(error.to_string()),
-                        }
+                    {
+                        self.apply_temporal_selection(selection);
                     }
                 }
             }
-            Message::ToggleSanFang(enabled) => self.highlight_san_fang = enabled,
+            Message::StepTemporal(unit, direction) => {
+                let max_day_index = self.enabled_day_count().saturating_sub(1) as u8;
+                // A step that needs a missing parent index stays inert.
+                if let Some(selection) = stepped_selection(
+                    self.selected_temporal_selection,
+                    unit,
+                    direction,
+                    max_day_index,
+                ) {
+                    if selection != self.selected_temporal_selection {
+                        self.apply_temporal_selection(selection);
+                    }
+                }
+            }
+            Message::SelectToday(moment) => {
+                if let Some(input) = self.input {
+                    match resolve_today_selection(&input, moment) {
+                        Ok(selection) => self.apply_temporal_selection(selection),
+                        Err(error) => self.error = Some(error.to_string()),
+                    }
+                }
+            }
             Message::HoverPalace(branch) => self.hovered_palace = Some(branch),
             Message::ClearHoveredPalace(branch) => {
                 // Ignore a stale exit so it cannot clear a newer hover.
@@ -626,7 +781,13 @@ fn build_snapshot(
     input: &BirthInput,
     selection: StaticTemporalNavigationSelection,
 ) -> Result<StaticChartViewSnapshot, ChartError> {
-    let request = SolarChartRequest::builder()
+    static_temporal_chart_view(build_request(input)?, selection)
+}
+
+/// Builds the typed solar chart request for an input. Shared by snapshot
+/// building and the `今` selection resolver.
+fn build_request(input: &BirthInput) -> Result<SolarChartRequest, ChartError> {
+    SolarChartRequest::builder()
         .solar_year(input.year)
         .solar_month(SolarMonth::new(input.month)?)
         .solar_day(SolarDay::new(input.day)?)
@@ -637,9 +798,23 @@ fn build_snapshot(
             ChartAlgorithmKind::QuanShu,
             "iztro-gui static chart prototype",
         ))
-        .build()?;
+        .build()
+}
 
-    static_temporal_chart_view(request, selection)
+/// Resolves the temporal selection pointing at `moment` ("today") for `input`,
+/// delegating all calendar/age mapping to the core facade.
+fn resolve_today_selection(
+    input: &BirthInput,
+    moment: LocalSolarMoment,
+) -> Result<StaticTemporalNavigationSelection, ChartError> {
+    temporal_selection_for_solar_moment(
+        build_request(input)?,
+        moment.year,
+        moment.month,
+        moment.day,
+        moment.hour,
+        moment.minute,
+    )
 }
 
 #[cfg(test)]
@@ -878,14 +1053,36 @@ mod tests {
     }
 
     #[test]
-    fn selecting_a_palace_updates_the_selected_branch() {
+    fn generated_chart_defaults_active_branch_to_natal_life_palace() {
         let mut app = StaticChartApp::new();
         app.generate();
-        assert_eq!(app.selected_branch(), None);
-        let branch = app.palaces()[3].branch;
+        let life = app
+            .center()
+            .and_then(|center| center.life_palace_branch)
+            .expect("life palace branch");
+        // The sticky selection defaults to 命宫 so 三方四正 draws from it.
+        assert_eq!(app.selected_branch(), Some(life));
+        assert_eq!(app.active_branch(), Some(life));
+        assert!(app.san_fang_is_default());
+    }
+
+    #[test]
+    fn selecting_a_palace_changes_the_active_branch_off_default() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        // Pick a palace that is not the default 命宫.
+        let life = app.center().and_then(|c| c.life_palace_branch).unwrap();
+        let branch = app
+            .palaces()
+            .iter()
+            .map(|p| p.branch)
+            .find(|b| *b != life)
+            .expect("a non-life palace");
         app.update(Message::SelectPalace(branch));
         assert_eq!(app.selected_branch(), Some(branch));
         assert_eq!(app.selected_palace().expect("selected").branch, branch);
+        // Clicking a non-命宫 palace switches lines to the active (non-default) tone.
+        assert!(!app.san_fang_is_default());
     }
 
     #[test]
@@ -900,12 +1097,6 @@ mod tests {
             assert!(app.is_in_san_fang(related));
         }
         assert!(!app.is_in_san_fang(palace.branch));
-
-        // Toggling the mode off suppresses all highlight membership.
-        app.update(Message::ToggleSanFang(false));
-        for related in palace.surround.branches() {
-            assert!(!app.is_in_san_fang(related));
-        }
     }
 
     #[test]
@@ -959,13 +1150,6 @@ mod tests {
             assert!(app.is_in_san_fang(related));
         }
         assert!(!app.is_in_san_fang(palace.branch));
-
-        // Toggling the mode off suppresses related-palace highlight; only the
-        // active palace itself stays emphasized (handled by the renderer).
-        app.update(Message::ToggleSanFang(false));
-        for related in palace.surround.branches() {
-            assert!(!app.is_in_san_fang(related));
-        }
     }
 
     #[test]
@@ -1174,6 +1358,103 @@ mod tests {
                 || !palace.adjective_stars.is_empty()
         });
         assert!(has_natal_stars, "natal star groups must be populated");
+    }
+
+    #[test]
+    fn stepping_decadal_forward_updates_selection_and_rebuilds_through_cache() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        let misses_before = app.cache().misses();
+
+        app.update(Message::StepTemporal(
+            TemporalUnit::Decadal,
+            StepDirection::Forward,
+        ));
+
+        assert_eq!(
+            app.selected_temporal_selection(),
+            StaticTemporalNavigationSelection::Decadal { decadal_index: 1 }
+        );
+        // A fresh selection is built through the cache facade.
+        assert!(app.cache().misses() > misses_before);
+        assert!(
+            app.snapshot()
+                .expect("snapshot")
+                .active_scopes
+                .contains(&iztro::core::Scope::Decadal)
+        );
+    }
+
+    #[test]
+    fn stepping_a_unit_without_its_parent_path_is_inert() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        let before = app.snapshot().cloned();
+
+        // From 限前 there is no 大限, so stepping 流年 cannot resolve a parent.
+        app.update(Message::StepTemporal(
+            TemporalUnit::Year,
+            StepDirection::Forward,
+        ));
+
+        assert_eq!(
+            app.selected_temporal_selection(),
+            StaticTemporalNavigationSelection::PreDecadal
+        );
+        assert_eq!(app.snapshot().cloned(), before);
+    }
+
+    #[test]
+    fn stepping_decadal_backward_clamps_at_the_first_period() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        app.update(Message::StepTemporal(
+            TemporalUnit::Decadal,
+            StepDirection::Backward,
+        ));
+        // From the default (no decadal) a backward step lands on, and stays at, 0.
+        assert_eq!(
+            app.selected_temporal_selection(),
+            StaticTemporalNavigationSelection::Decadal { decadal_index: 0 }
+        );
+        app.update(Message::StepTemporal(
+            TemporalUnit::Decadal,
+            StepDirection::Backward,
+        ));
+        assert_eq!(
+            app.selected_temporal_selection(),
+            StaticTemporalNavigationSelection::Decadal { decadal_index: 0 }
+        );
+    }
+
+    #[test]
+    fn selecting_today_jumps_to_a_dated_selection_with_nominal_age() {
+        let mut app = StaticChartApp::new();
+        // Spec birth data: solar 1993-05-27, 酉时 (index 9), male.
+        app.update(Message::YearChanged("1993".to_string()));
+        app.update(Message::MonthChanged("5".to_string()));
+        app.update(Message::DayChanged("27".to_string()));
+        app.update(Message::TimeSelected(9));
+        app.update(Message::GenderSelected(Gender::Male));
+        app.generate();
+
+        app.update(Message::SelectToday(LocalSolarMoment {
+            year: 2008,
+            month: 2,
+            day: 10,
+            hour: 10,
+            minute: 0,
+        }));
+
+        // 2008 is the 16th nominal year (虚岁) for a 1993 birth.
+        assert_eq!(
+            app.center().and_then(|c| c.nominal_age_label.as_deref()),
+            Some("16 岁")
+        );
+        assert!(matches!(
+            app.selected_temporal_selection(),
+            StaticTemporalNavigationSelection::Hourly { .. }
+        ));
     }
 
     #[test]

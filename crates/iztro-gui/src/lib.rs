@@ -53,9 +53,13 @@ mod tests {
 
         assert!(
             manifest.contains(
-                r#"iced = { version = "0.13", default-features = false, features = ["wgpu"] }"#
+                r#"iced = { version = "0.13", default-features = false, features = ["wgpu", "canvas"] }"#
             ),
-            "GUI should use GPU rendering; WSL safety comes from forcing XWayland before Iced starts"
+            "GUI should use GPU rendering (wgpu) plus the canvas overlay; WSL safety comes from forcing XWayland before Iced starts"
+        );
+        assert!(
+            !manifest.contains("tiny-skia"),
+            "no software-rendering fallback should be enabled"
         );
     }
 

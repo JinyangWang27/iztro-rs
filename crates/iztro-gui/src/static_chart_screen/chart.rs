@@ -1,43 +1,51 @@
-use iced::widget::{button, checkbox, column, container, row, text};
-use iced::{Alignment, Element, Length};
-use iztro::core::{StaticChartViewSnapshot, StaticTemporalNavigationSelection};
+use chrono::{Datelike, Local, Timelike};
+use iced::widget::{button, column, container, stack, text};
+use iced::{Element, Length};
+use iztro::core::StaticChartViewSnapshot;
 
-use crate::app::{Message, StaticChartApp};
+use crate::app::{LocalSolarMoment, Message, StaticChartApp};
 
-use super::palace::{category_legend, palace_grid};
-use super::temporal::temporal_navigation_panel;
+use super::lines::san_fang_overlay;
+use super::palace::palace_grid;
 
-/// The generated static chart screen.
+/// The generated static chart screen: a slim toolbar above the palace grid, with
+/// a transparent 三方四正 line overlay stacked over the grid.
 pub(super) fn chart_screen<'a>(
     app: &'a StaticChartApp,
     snapshot: &'a StaticChartViewSnapshot,
 ) -> Element<'a, Message> {
-    column![
-        chart_toolbar(app),
-        palace_grid(app, snapshot),
-        category_legend(),
-        temporal_navigation_panel(
-            &snapshot.temporal_panel,
-            app.selected_temporal_selection() == StaticTemporalNavigationSelection::Natal,
-        ),
-    ]
-    .spacing(8)
-    .padding(12)
-    .into()
+    let now = current_moment();
+    let grid = stack![palace_grid(app, snapshot, now), san_fang_overlay(app)]
+        .width(Length::Fill)
+        .height(Length::Fill);
+
+    column![chart_toolbar(app), grid]
+        .spacing(8)
+        .padding(12)
+        .into()
 }
 
-/// Top bar of the chart screen: a return action plus the 三方四正 highlight toggle.
-pub(super) fn chart_toolbar(app: &StaticChartApp) -> Element<'_, Message> {
-    let bar = row![
+/// Top bar of the chart screen: just a return action. 三方四正 is always shown as
+/// connecting lines, matching the original iztro chart, so there is no toggle.
+pub(super) fn chart_toolbar(_app: &StaticChartApp) -> Element<'_, Message> {
+    container(
         button(text("← 返回").size(14))
             .on_press(Message::BackToStartup)
             .style(button::secondary),
-        checkbox("三方四正", app.highlight_san_fang())
-            .on_toggle(Message::ToggleSanFang)
-            .size(16)
-            .text_size(13),
-    ]
-    .spacing(16)
-    .align_y(Alignment::Center);
-    container(bar).width(Length::Fill).into()
+    )
+    .width(Length::Fill)
+    .into()
+}
+
+/// Reads the machine's current local date/time as plain solar facts for the `今`
+/// control. Core does all calendar/age mapping; the GUI supplies only the facts.
+fn current_moment() -> LocalSolarMoment {
+    let now = Local::now();
+    LocalSolarMoment {
+        year: now.year(),
+        month: now.month() as u8,
+        day: now.day() as u8,
+        hour: now.hour() as u8,
+        minute: now.minute() as u8,
+    }
 }

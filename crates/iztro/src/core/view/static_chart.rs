@@ -960,7 +960,10 @@ impl StaticChartCenterView {
         let life_palace_branch = chart.life_palace().map(Palace::branch);
         let body_palace_branch = chart.body_palace_branch();
         let birth_year_branch = chart.birth_year().branch();
-        let time_index = chart.birth_context().birth_time_variant().iztro_time_index();
+        let time_index = chart
+            .birth_context()
+            .birth_time_variant()
+            .iztro_time_index();
         let (birth_solar_label, birth_lunar_label, constellation_zh) = natal_date_labels(chart);
         Self {
             gender: chart.birth_context().gender(),
@@ -1007,7 +1010,12 @@ fn natal_date_labels(chart: &Chart) -> (String, String, String) {
         let lunar = facts.lunar();
         return (
             chinese_date::solar_date_label(solar.year(), solar.month(), solar.day()),
-            chinese_date::lunar_date_label(lunar.year(), lunar.month(), lunar.day(), lunar.is_leap_month()),
+            chinese_date::lunar_date_label(
+                lunar.year(),
+                lunar.month(),
+                lunar.day(),
+                lunar.is_leap_month(),
+            ),
             chinese_date::constellation_zh(solar.month(), solar.day()).to_owned(),
         );
     }
@@ -1042,11 +1050,7 @@ impl PalaceLimits {
         let mut decadal = Vec::new();
         if let Ok(frame) = build_decadal_frame(chart) {
             for period in frame.periods() {
-                decadal.push((
-                    period.palace_branch(),
-                    period.start_age(),
-                    period.end_age(),
-                ));
+                decadal.push((period.palace_branch(), period.start_age(), period.end_age()));
             }
         }
 

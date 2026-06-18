@@ -31,7 +31,6 @@ pub use lunar_lite::{
     EARTHLY_BRANCHES, EarthlyBranch, FourPillars, HEAVENLY_STEMS, HeavenlyStem, StemBranch,
 };
 pub use model::bureau::{FiveElementBureau, five_element_bureau_from_life_palace};
-pub use model::master::{body_master, soul_master};
 pub use model::calendar::{
     BirthContext, BirthTime, CalendarDate, CalendarKind, Gender, SolarDay, SolarMonth,
 };
@@ -51,15 +50,15 @@ pub use model::chart::{
     HoroscopeYearlySupportedFields, HourlyPeriod, MajorStarPlacementRef, MonthlyPeriod,
     MutagenActivation, MutagenActivationSnapshot, NatalDateFacts,
     NatalFacadeDecorativeStarSnapshot, NatalFacadeFourPillarsSnapshot, NatalFacadePalaceRole,
-    NatalFacadePalaceSnapshot,
-    NatalFacadeSnapshot, NatalFacadeTypedStarSnapshot, PALACE_COUNT, PALACE_NAMES, Palace,
-    PalaceGridPosition, PalaceLayerCellSnapshot, PalaceName, PalaceRoleKind, PalaceRoleSnapshot,
-    ScopedDecorativeStarPlacement, ScopedStarPlacement, ScopedStarSnapshot, StarPlacement,
-    StarPlacementRef, TemporalContext, TemporalLayer, TemporalPalaceLayout, TemporalPalaceName,
-    TypedStarSnapshot, VISUAL_BRANCH_ORDER, YearlyPeriod, build_age_period, build_daily_period,
-    build_decadal_frame, build_hourly_period, build_monthly_period, build_yearly_period,
-    palace_grid_position,
+    NatalFacadePalaceSnapshot, NatalFacadeSnapshot, NatalFacadeTypedStarSnapshot, PALACE_COUNT,
+    PALACE_NAMES, Palace, PalaceGridPosition, PalaceLayerCellSnapshot, PalaceName, PalaceRoleKind,
+    PalaceRoleSnapshot, ScopedDecorativeStarPlacement, ScopedStarPlacement, ScopedStarSnapshot,
+    StarPlacement, StarPlacementRef, TemporalContext, TemporalLayer, TemporalPalaceLayout,
+    TemporalPalaceName, TypedStarSnapshot, VISUAL_BRANCH_ORDER, YearlyPeriod, build_age_period,
+    build_daily_period, build_decadal_frame, build_hourly_period, build_monthly_period,
+    build_yearly_period, palace_grid_position,
 };
+pub use model::master::{body_master, soul_master};
 pub use model::nayin::{NaYinElement, nayin_element};
 pub use model::profile::{ChartAlgorithmKind, MethodProfile};
 pub use model::star::mutagen::{
@@ -118,6 +117,7 @@ pub use facade::by_lunar::{LunarChartRequest, LunarChartRequestBuilder, by_lunar
 pub use facade::by_solar::{SolarChartRequest, SolarChartRequestBuilder, by_solar};
 pub use facade::static_temporal_chart_view::{
     static_temporal_chart_view, temporal_selection_for_local_moment,
+    temporal_selection_for_solar_moment,
 };
 
 pub use view::static_chart::{

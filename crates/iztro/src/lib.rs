@@ -69,8 +69,8 @@ pub use core::{
     major_star_metadata, major_star_metadata_table, minor_star_brightness, minor_star_metadata,
     minor_star_metadata_table, nayin_element, palace_grid_position, palace_stem_for_branch,
     palace_stems_from_year_stem, represented_star_metadata_table, soul_master, star_metadata,
-    static_temporal_chart_view, temporal_selection_for_local_moment, tian_fu_branch,
-    try_adjective_star_metadata, try_flow_star_parts,
-    try_known_star_metadata, try_major_star_metadata, try_minor_star_metadata, try_star_metadata,
-    zi_wei_branch,
+    static_temporal_chart_view, temporal_selection_for_local_moment,
+    temporal_selection_for_solar_moment, tian_fu_branch, try_adjective_star_metadata,
+    try_flow_star_parts, try_known_star_metadata, try_major_star_metadata, try_minor_star_metadata,
+    try_star_metadata, zi_wei_branch,
 };

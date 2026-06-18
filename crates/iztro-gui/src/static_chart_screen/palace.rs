@@ -2,23 +2,25 @@ use iced::widget::{button, column, container, mouse_area, row, stack, text};
 use iced::{Alignment, Color, Element, Length, Padding};
 use iztro::core::{
     DecorativeStarFamily, Mutagen, StarCategory, StarKind, StaticChartCenterView,
-    StaticChartViewSnapshot, StaticDecorativeStarView, StaticPalaceView, StaticTypedStarView,
+    StaticChartViewSnapshot, StaticDecorativeStarView, StaticPalaceView,
+    StaticTemporalNavigationSelection, StaticTypedStarView,
 };
 
-use crate::app::{Message, StaticChartApp};
+use crate::app::{LocalSolarMoment, Message, StaticChartApp};
 
-use super::labels::{bureau_label, center_four_pillar_rows, fact_row, gender_zh, section_title};
+use super::labels::{fact_row, four_pillars_line, gender_symbol, section_title};
 use super::style::{
-    ADJ_GRAY, BRIGHTNESS_GRAY, DECOR_GOD_OLIVE, DECORATIVE_AREA_HEIGHT, LU_CUN_ORANGE,
-    MAJOR_PURPLE, MINOR_MALEFIC, PEACH_MAGENTA, TIAN_MA_BLUE, center_panel_style,
-    mutagen_badge_color, mutagen_inline_badge, palace_cell_style, subtle_text_style,
+    ADJ_GRAY, BRIGHTNESS_GRAY, DECOR_GOD_OLIVE, DECORATIVE_AREA_HEIGHT, LIMIT_ACTIVE, LIMIT_GRAY,
+    LU_CUN_ORANGE, MAJOR_PURPLE, MINOR_MALEFIC, PEACH_MAGENTA, TIAN_MA_BLUE, center_panel_style,
+    mutagen_badge_color, mutagen_inline_badge, palace_cell_style, section_title_style,
 };
-use super::temporal::overlay_badges;
+use super::temporal::{period_badge, temporal_controls};
 
 // Palace grid
 pub(super) fn palace_grid<'a>(
     app: &'a StaticChartApp,
     snapshot: &'a StaticChartViewSnapshot,
+    now: LocalSolarMoment,
 ) -> Element<'a, Message> {
     let top = row![
         grid_cell(app, 0, 0),
@@ -35,11 +37,15 @@ pub(super) fn palace_grid<'a>(
     let right = column![grid_cell(app, 1, 3), grid_cell(app, 2, 3)]
         .spacing(6)
         .width(Length::FillPortion(1));
-    let center = container(center_panel(&snapshot.center))
-        .style(center_panel_style)
-        .padding(10)
-        .width(Length::FillPortion(2))
-        .height(Length::Fill);
+    let center = container(center_panel(
+        &snapshot.center,
+        app.selected_temporal_selection(),
+        now,
+    ))
+    .style(center_panel_style)
+    .padding(10)
+    .width(Length::FillPortion(2))
+    .height(Length::Fill);
     let middle = row![left, center, right]
         .spacing(6)
         .height(Length::FillPortion(2));
@@ -122,17 +128,19 @@ pub(super) fn palace_cell(
     .spacing(4)
     .align_y(Alignment::Start);
 
-    let mut content = column![star_area].spacing(4);
-    for overlay in &palace.overlays {
-        if overlay.temporal_palace_name_zh.is_none()
-            && overlay.typed_stars.is_empty()
-            && overlay.decorative_stars.is_empty()
-            && overlay.mutagens.is_empty()
-        {
-            continue;
+    let mut content = column![star_area].spacing(3);
+
+    // 流年/流月/流日/流时 badges sit above the 大限/小限 middle area.
+    let is_source = matches!(highlight, PalaceHighlight::Selected);
+    if !palace.overlays.is_empty() {
+        let mut badges = row![].spacing(3);
+        for overlay in &palace.overlays {
+            badges = badges.push(period_badge(overlay, palace.branch, is_source));
         }
-        content = content.push(overlay_badges(overlay));
+        content = content.push(badges);
     }
+
+    content = content.push(limit_middle(palace));
 
     // Decorative "twelve gods" go to the bottom, split by prepared family:
     // 长生/博士 bottom-left (olive), 将前/岁前 bottom-right (malefic tone). No
@@ -308,65 +316,88 @@ fn bottom_decorative_layer<'a>(
         .into()
 }
 
-pub(super) fn center_panel(center: &StaticChartCenterView) -> Element<'_, Message> {
-    let mut four_pillars = column![section_title("四柱")].spacing(3);
-    if center.four_pillars.is_some() {
-        for (label, value) in center_four_pillar_rows(center) {
-            four_pillars = four_pillars.push(fact_row(label, value));
-        }
+/// The 大限 / 小限 limit facts shown in the middle of a palace cell, between the
+/// top stars and the bottom decorative footer. All values are prepared by core.
+fn limit_middle(palace: &StaticPalaceView) -> Element<'static, Message> {
+    let decadal_color = if palace.limit.is_active_decadal {
+        LIMIT_ACTIVE
     } else {
-        four_pillars = four_pillars.push(text("四柱：未提供").size(13).style(subtle_text_style));
+        LIMIT_GRAY
+    };
+    let mut col = column![].spacing(0).align_x(Alignment::Center);
+    if let Some(range) = palace.limit.decadal_age_range_zh.as_deref() {
+        col = col.push(text(format!("大限 {range}")).size(9).color(decadal_color));
     }
+    if !palace.limit.small_limit_ages_zh.is_empty() {
+        col = col.push(
+            text(palace.limit.small_limit_ages_zh.join(" "))
+                .size(8)
+                .color(LIMIT_GRAY),
+        );
+    }
+    container(col)
+        .width(Length::Fill)
+        .align_x(Alignment::Center)
+        .into()
+}
 
-    let facts = column![
-        section_title("基本"),
-        fact_row("性别", gender_zh(center.gender)),
-        fact_row("五行局", bureau_label(center)),
-    ]
-    .spacing(3);
-
-    let palace_facts = column![
-        section_title("宫位"),
+/// The iztro-style center information block: a `♂/♀基本信息` panel followed by a
+/// `运限信息` panel with the compact temporal stepper. Every value is a prepared
+/// core field; the GUI computes none of them.
+pub(super) fn center_panel(
+    center: &StaticChartCenterView,
+    selection: StaticTemporalNavigationSelection,
+    now: LocalSolarMoment,
+) -> Element<'static, Message> {
+    let dash = "—";
+    let basic_header = text(format!("{}基本信息", gender_symbol(center.gender)))
+        .size(14)
+        .style(section_title_style);
+    let basic = column![
+        basic_header,
+        fact_row(
+            "五行局",
+            center.five_element_bureau_zh.as_deref().unwrap_or(dash)
+        ),
+        fact_row(
+            "年龄(虚岁)",
+            center.nominal_age_label.as_deref().unwrap_or(dash)
+        ),
+        fact_row(
+            "四柱",
+            four_pillars_line(center).unwrap_or_else(|| dash.to_owned())
+        ),
+        fact_row("阳历", center.birth_solar_label.as_str()),
+        fact_row("农历", center.birth_lunar_label.as_str()),
+        fact_row("时辰", center.birth_time_label.as_str()),
+        fact_row("生肖", center.zodiac_zh.as_str()),
+        fact_row("星座", center.constellation_zh.as_str()),
+        fact_row("命主", center.soul_master_zh.as_deref().unwrap_or(dash)),
+        fact_row("身主", center.body_master_zh.as_deref().unwrap_or(dash)),
         fact_row(
             "命宫",
-            center.life_palace_branch_zh.as_deref().unwrap_or("未提供")
+            center.life_palace_branch_zh.as_deref().unwrap_or(dash)
         ),
         fact_row(
             "身宫",
-            center.body_palace_branch_zh.as_deref().unwrap_or("未提供")
+            center.body_palace_branch_zh.as_deref().unwrap_or(dash)
         ),
     ]
-    .spacing(3);
+    .spacing(2);
 
-    let content = column![text("命盘").size(22), four_pillars, facts, palace_facts].spacing(10);
-    content.into()
-}
-
-/// Compact color legend matching the new palace-cell tones, so cells need no
-/// in-cell category labels.
-pub(super) fn category_legend() -> Element<'static, Message> {
-    row![
-        text("图例").size(12).style(subtle_text_style),
-        legend_item("主星/辅星", MAJOR_PURPLE),
-        legend_item("六煞", MINOR_MALEFIC),
-        legend_item("禄存", LU_CUN_ORANGE),
-        legend_item("天马", TIAN_MA_BLUE),
-        legend_item("桃花", PEACH_MAGENTA),
-        legend_item("杂曜", ADJ_GRAY),
-        legend_item("长生/博士", DECOR_GOD_OLIVE),
-        legend_item("将前/岁前", MINOR_MALEFIC),
-        text("四化").size(12).style(subtle_text_style),
-        mutagen_inline_badge(Mutagen::Lu, "禄"),
-        mutagen_inline_badge(Mutagen::Quan, "权"),
-        mutagen_inline_badge(Mutagen::Ke, "科"),
-        mutagen_inline_badge(Mutagen::Ji, "忌"),
+    let run_xian = column![
+        section_title("运限信息"),
+        fact_row(
+            "农历",
+            center.temporal_lunar_label.as_deref().unwrap_or(dash)
+        ),
+        fact_row(
+            "阳历",
+            center.temporal_solar_label.as_deref().unwrap_or(dash)
+        ),
+        temporal_controls(selection, now),
     ]
-    .spacing(6)
-    .align_y(Alignment::Center)
-    .into()
-}
+    .spacing(2);
 
-/// One legend label rendered in its tone color.
-fn legend_item(label: &str, color: Color) -> Element<'static, Message> {
-    text(label.to_owned()).size(12).color(color).into()
+    column![basic, run_xian].spacing(10).into()
 }

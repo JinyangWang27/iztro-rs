@@ -96,8 +96,8 @@ fn decorate_temporal(
                     }
                 }
 
-                let nominal_age = u16::from(period.start_age())
-                    + selection.year_index().map_or(0, u16::from);
+                let nominal_age =
+                    u16::from(period.start_age()) + selection.year_index().map_or(0, u16::from);
                 snapshot.center.nominal_age_label = Some(format!("{nominal_age} 岁"));
             }
         }
@@ -184,6 +184,21 @@ pub fn temporal_selection_for_local_moment(
         day_index,
         hour_index,
     })
+}
+
+/// Resolves the "today" temporal selection straight from a [`SolarChartRequest`]
+/// and a local solar moment, so a renderer never has to build or hold a
+/// [`Chart`] itself.
+pub fn temporal_selection_for_solar_moment(
+    request: SolarChartRequest,
+    year: i32,
+    month: u8,
+    day: u8,
+    hour: u8,
+    minute: u8,
+) -> Result<StaticTemporalNavigationSelection, ChartError> {
+    let natal = by_solar(request)?;
+    temporal_selection_for_local_moment(&natal, year, month, day, hour, minute)
 }
 
 /// Maps a clock hour (`0..=23`) to the conventional double-hour `timeIndex`.

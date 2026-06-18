@@ -1,4 +1,4 @@
-use iztro_gui::app::{Message, Screen, StaticChartApp, TemporalCell};
+use iztro_gui::app::{Message, Screen, StaticChartApp, StepDirection, TemporalCell, TemporalUnit};
 use iztro_gui::static_chart_screen;
 
 #[test]
@@ -27,15 +27,18 @@ fn chart_screen_builds_after_generating_with_full_interaction_state() {
     app.update(Message::Generate);
     assert_eq!(app.screen(), Screen::Chart);
 
-    // Exercise the selection, temporal-click, and 三方四正 highlight paths.
+    // Exercise the selection, temporal-click, and temporal-stepper paths.
     let branch = app.palaces()[0].branch;
     app.update(Message::SelectPalace(branch));
     app.update(Message::SelectTemporalCell(TemporalCell::Month(0)));
-    app.update(Message::ToggleSanFang(true));
+    app.update(Message::StepTemporal(
+        TemporalUnit::Decadal,
+        StepDirection::Forward,
+    ));
 
     let _ = static_chart_screen::view(&app);
 
-    // Toggling 三方四正 off still renders cleanly.
-    app.update(Message::ToggleSanFang(false));
+    // Returning to the natal 命宫 default still renders cleanly.
+    app.update(Message::SelectTemporalCell(TemporalCell::Natal));
     let _ = static_chart_screen::view(&app);
 }
