@@ -41,7 +41,7 @@ Source Han Serif SC font for Chinese text. The center panel shows factual
 four-pillar labels (年柱/月柱/日柱/时柱) when the chart snapshot provides them.
 Palace cells use an iztro-like static layout: stars are zoned within each cell
 rather than shown as labeled category badges. Major stars (主星) appear in the
-upper-left in bold, larger, purple type; auxiliary/minor stars (辅星) appear in
+upper-left in larger purple type; auxiliary/minor stars (辅星) appear in
 the upper-middle; adjective/miscellaneous stars (杂曜) appear in the upper-right.
 Brightness labels (庙旺得利平陷不) and **科 / 权 / 禄 / 忌** mutagen markers render
 inline immediately after each star name. Color and position carry the category,
@@ -66,16 +66,21 @@ itself.
 
 The bottom temporal panel is **effective**, not merely a selection indicator.
 Its first row carries the **本命** (natal) and **限前** (pre-decadal) cells before
-the normal **大限** decadal row, followed by month, day, and hour navigation
-labels. Clicking an enabled cell asks core for a freshly prepared
-`StaticChartViewSnapshot`: selecting a 大限 cell attaches that decadal period's
-overlay to the palaces, while 本命 / 限前 (and the flowing scopes, which still need
-a target date core cannot yet infer from a cell index) resolve to the natal base
-slice. All temporal-overlay derivation stays in the core
-`static_temporal_chart_view` facade — the GUI never builds a horoscope, temporal
-layer, decadal frame, or palace names itself. Natal facts are immutable across
-selections; only overlays change. Disabled cells stay inert, and there is still
-no target-date control or permanent selected-palace detail panel.
+the normal **大限** decadal row. Generated and reopened charts default to
+**限前**, showing the natal base with no overlay. Navigation then unlocks
+hierarchically: **大限 → 流年/小限 → 流月 → 流日 → 流时**. Each enabled click asks
+core for a freshly prepared `StaticChartViewSnapshot`, and selecting a parent
+clears deeper selections.
+
+The bottom panel keeps lunar labels: 流月 uses **正月 through 腊月**, and 流日 uses
+the existing 3×10 **初一 through 三十** grid. A 29-day lunar month disables 三十;
+there is no 31-day solar cell. Leap-month selection remains deferred. Core
+resolves the selected lunar path through an internal bounded date resolver and
+builds only the partial temporal stack through the selected scope. No public
+`lunar_to_solar` API is exposed. The GUI only sends the hierarchical index path
+to `static_temporal_chart_view` and renders core-prepared labels, enabled flags,
+selected flags, overlays, and palace names. Natal facts remain immutable across
+selections, and disabled cells stay inert.
 
 This GUI remains a prototype chart-fact viewer; it does not provide readings,
 rules, 成格 detection, BaZi interpretation, or narrative output.

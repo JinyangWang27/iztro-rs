@@ -831,6 +831,17 @@ mod tests {
         assert_eq!(app.screen(), Screen::Chart);
         assert_eq!(app.input(), Some(SAMPLE_INPUT));
         assert_eq!(app.palaces().len(), 12);
+        assert_eq!(
+            app.selected_temporal_selection(),
+            StaticTemporalNavigationSelection::PreDecadal
+        );
+        assert!(
+            app.snapshot()
+                .expect("saved chart snapshot")
+                .temporal_panel
+                .pre_decadal_cell
+                .selected
+        );
     }
 
     #[test]
@@ -1167,7 +1178,7 @@ mod tests {
 
     #[test]
     fn gui_source_does_not_derive_astrology_facts() {
-        const FORBIDDEN: [&str; 20] = [
+        const FORBIDDEN: [&str; 27] = [
             "Placer",
             "palace_grid_position",
             "zi_wei_branch",
@@ -1185,8 +1196,15 @@ mod tests {
             // facade; the GUI must never construct a horoscope, temporal layer,
             // or decadal frame itself.
             "build_decadal_horoscope_chart",
+            "build_partial_horoscope_chart",
             "build_decadal_horoscope_layer",
             "build_full_horoscope_chart",
+            "build_yearly_period",
+            "build_monthly_period",
+            "build_daily_period",
+            "build_hourly_period",
+            "resolve_non_leap_lunar",
+            "target_lunar_date",
             "from_horoscope_chart_with",
             "HoroscopeChart",
             "TemporalLayer",
