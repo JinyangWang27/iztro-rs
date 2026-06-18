@@ -133,9 +133,11 @@ fn natal_panel_exposes_static_navigation_and_neutral_yearly_age_cells() {
             "子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"
         ]
     );
-    assert!(panel.month_cells.iter().all(|cell| cell.enabled));
-    assert!(panel.day_rows.iter().flatten().all(|cell| cell.enabled));
-    assert!(panel.hour_cells.iter().all(|cell| cell.enabled));
+    // Under the natal base slice the flowing rows are visible but greyed: the
+    // drill-down only unlocks them once a parent scope is selected.
+    assert!(panel.month_cells.iter().all(|cell| !cell.enabled));
+    assert!(panel.day_rows.iter().flatten().all(|cell| !cell.enabled));
+    assert!(panel.hour_cells.iter().all(|cell| !cell.enabled));
     assert!(panel.yearly_age_cells.iter().all(|cell| {
         !cell.enabled && cell.year_label.is_none() && cell.stem_branch_age_zh.is_none()
     }));

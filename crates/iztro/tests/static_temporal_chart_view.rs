@@ -56,7 +56,7 @@ fn pre_decadal_selection_is_natal_base() {
 fn decadal_selection_attaches_a_decadal_overlay() {
     let snapshot = static_temporal_chart_view(
         sample_request(),
-        StaticTemporalNavigationSelection::Decadal { index: 1 },
+        StaticTemporalNavigationSelection::Decadal { decadal_index: 1 },
     )
     .expect("decadal selection should build");
 
@@ -77,7 +77,7 @@ fn decadal_selection_attaches_a_decadal_overlay() {
 fn out_of_range_decadal_index_is_an_error() {
     let result = static_temporal_chart_view(
         sample_request(),
-        StaticTemporalNavigationSelection::Decadal { index: 999 },
+        StaticTemporalNavigationSelection::Decadal { decadal_index: 999 },
     );
     assert!(result.is_err(), "an impossible decadal index must error");
 }
@@ -89,7 +89,7 @@ fn temporal_selection_changes_overlays_only_not_natal_facts() {
             .unwrap();
     let decadal = static_temporal_chart_view(
         sample_request(),
-        StaticTemporalNavigationSelection::Decadal { index: 0 },
+        StaticTemporalNavigationSelection::Decadal { decadal_index: 0 },
     )
     .unwrap();
 
@@ -105,4 +105,155 @@ fn temporal_selection_changes_overlays_only_not_natal_facts() {
         assert_eq!(n.major_stars, d.major_stars);
         assert_eq!(n.minor_stars, d.minor_stars);
     }
+}
+
+#[test]
+fn pre_decadal_default_greys_lower_rows_and_enables_decadal() {
+    let panel = static_temporal_chart_view(
+        sample_request(),
+        StaticTemporalNavigationSelection::PreDecadal,
+    )
+    .unwrap()
+    .temporal_panel;
+
+    assert!(panel.pre_decadal_cell.selected, "限前 is the default selection");
+    assert!(
+        panel.decadal_cells.iter().any(|c| c.enabled),
+        "大限 row is enabled by default"
+    );
+    assert!(
+        panel.yearly_age_cells.iter().all(|c| !c.enabled),
+        "流年 row greyed before 大限 selection"
+    );
+    assert!(panel.month_cells.iter().all(|c| !c.enabled));
+    assert!(
+        panel
+            .day_rows
+            .iter()
+            .all(|row| row.iter().all(|c| !c.enabled))
+    );
+    assert!(panel.hour_cells.iter().all(|c| !c.enabled));
+}
+
+#[test]
+fn decadal_selection_enables_exactly_ten_yearly_cells() {
+    let panel = static_temporal_chart_view(
+        sample_request(),
+        StaticTemporalNavigationSelection::Decadal { decadal_index: 2 },
+    )
+    .unwrap()
+    .temporal_panel;
+
+    let enabled: Vec<_> = panel
+        .yearly_age_cells
+        .iter()
+        .filter(|c| c.enabled)
+        .collect();
+    assert_eq!(enabled.len(), 10, "a 大限 spans exactly 10 流年");
+    assert!(
+        enabled
+            .iter()
+            .all(|c| c.year_label.is_some() && c.stem_branch_age_zh.is_some()),
+        "each 流年 cell carries year + stem-branch-age labels"
+    );
+    assert!(panel.decadal_cells[2].selected);
+    // 流月 still greyed until a 流年 is selected.
+    assert!(panel.month_cells.iter().all(|c| !c.enabled));
+}
+
+#[test]
+fn each_parent_enables_only_the_next_child_row() {
+    let yearly = static_temporal_chart_view(
+        sample_request(),
+        StaticTemporalNavigationSelection::Yearly {
+            decadal_index: 2,
+            year_index: 0,
+        },
+    )
+    .unwrap()
+    .temporal_panel;
+    assert!(yearly.month_cells.iter().all(|c| c.enabled), "流年 enables 流月");
+    assert_eq!(yearly.month_cells.len(), 12);
+    assert!(
+        yearly.day_rows.iter().all(|row| row.iter().all(|c| !c.enabled)),
+        "流日 greyed until a 流月 is selected"
+    );
+
+    let monthly = static_temporal_chart_view(
+        sample_request(),
+        StaticTemporalNavigationSelection::Monthly {
+            decadal_index: 2,
+            year_index: 0,
+            month_index: 0,
+        },
+    )
+    .unwrap()
+    .temporal_panel;
+    assert!(
+        monthly.day_rows.iter().any(|row| row.iter().any(|c| c.enabled)),
+        "流月 enables 流日"
+    );
+    assert!(monthly.hour_cells.iter().all(|c| !c.enabled), "流时 greyed");
+    assert!(monthly.month_cells[0].selected);
+
+    let daily = static_temporal_chart_view(
+        sample_request(),
+        StaticTemporalNavigationSelection::Daily {
+            decadal_index: 2,
+            year_index: 0,
+            month_index: 0,
+            day_index: 0,
+        },
+    )
+    .unwrap()
+    .temporal_panel;
+    assert!(daily.hour_cells.iter().all(|c| c.enabled), "流日 enables 流时");
+    assert_eq!(daily.hour_cells.len(), 12);
+}
+
+#[test]
+fn hourly_selection_activates_the_full_scope_stack() {
+    let snapshot = static_temporal_chart_view(
+        sample_request(),
+        StaticTemporalNavigationSelection::Hourly {
+            decadal_index: 2,
+            year_index: 0,
+            month_index: 0,
+            day_index: 0,
+            hour_index: 6,
+        },
+    )
+    .expect("hourly selection should build");
+
+    for scope in [
+        Scope::Natal,
+        Scope::Decadal,
+        Scope::Age,
+        Scope::Yearly,
+        Scope::Monthly,
+        Scope::Daily,
+        Scope::Hourly,
+    ] {
+        assert!(
+            snapshot.active_scopes.contains(&scope),
+            "missing active scope {scope:?}"
+        );
+    }
+    assert!(snapshot.temporal_panel.hour_cells[6].selected);
+}
+
+#[test]
+fn snapshot_with_selection_flags_serializes_round_trip() {
+    let snapshot = static_temporal_chart_view(
+        sample_request(),
+        StaticTemporalNavigationSelection::Yearly {
+            decadal_index: 1,
+            year_index: 3,
+        },
+    )
+    .unwrap();
+    let json = serde_json::to_string(&snapshot).expect("serialize");
+    let back: iztro::core::StaticChartViewSnapshot =
+        serde_json::from_str(&json).expect("deserialize");
+    assert_eq!(snapshot, back);
 }

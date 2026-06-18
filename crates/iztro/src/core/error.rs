@@ -276,6 +276,18 @@ pub enum ChartError {
         /// Star that cannot be normalized for that scope.
         star: StarName,
     },
+    /// A requested non-leap lunar date could not be resolved to a solar date
+    /// within the bounded scan window (for example lunar day 30 of a 29-day
+    /// month, or a date outside the supported calendar-conversion range).
+    #[error("unresolvable lunar date: {lunar_year}-{lunar_month}-{lunar_day}")]
+    UnresolvableLunarDate {
+        /// Lunar year of the unresolved date.
+        lunar_year: i32,
+        /// Lunar month (1..=12, non-leap) of the unresolved date.
+        lunar_month: u8,
+        /// Lunar day (1..=30) of the unresolved date.
+        lunar_day: u8,
+    },
     /// Placeholder error used until chart-generation validation exists.
     #[error("chart generation is not implemented")]
     NotImplemented,
