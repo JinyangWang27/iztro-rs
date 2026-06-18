@@ -1842,6 +1842,11 @@
           "label_zh": "腊月"
         }
       ],
+      "pre_decadal_cell": {
+        "age_range_zh": "1-4",
+        "enabled": true,
+        "label_zh": "限前"
+      },
       "yearly_age_cells": [
         {
           "enabled": false,

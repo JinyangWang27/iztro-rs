@@ -129,6 +129,12 @@ pub struct StaticFourPillarsView {
 /// Renderer-neutral bottom temporal navigation panel.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct StaticTemporalPanelView {
+    /// The pre-decadal (限前) cell shown before the normal 大限 row.
+    ///
+    /// `#[serde(default)]` keeps snapshots serialized before this field existed
+    /// roundtripping: they decode to the disabled [`Default`] cell.
+    #[serde(default)]
+    pub pre_decadal_cell: StaticPreDecadalCellView,
     /// Twelve factual decadal cells in existing core period order.
     pub decadal_cells: Vec<StaticDecadalCellView>,
     /// Twelve factual or neutral flowing-year / nominal-age cells.
@@ -139,6 +145,24 @@ pub struct StaticTemporalPanelView {
     pub day_rows: Vec<Vec<StaticNavigationCellView>>,
     /// Conventional Earthly Branch double-hour labels.
     pub hour_cells: Vec<StaticNavigationCellView>,
+}
+
+/// The pre-decadal (限前) cell shown before the normal 大限 row.
+///
+/// Core has no childhood-limit (童限) palace-walk derivation yet, so this cell
+/// only truthfully represents the nominal-age span *before* the first 大限. It
+/// carries no temporal overlay: selecting it shows the natal base slice.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, Default)]
+pub struct StaticPreDecadalCellView {
+    /// Whether the span before the first decadal period is available.
+    pub enabled: bool,
+    /// Chinese label for the cell, such as `限前`.
+    pub label_zh: String,
+    /// Inclusive nominal-age range before the first 大限, such as `1-4`.
+    ///
+    /// `None` when the decadal frame is unavailable or the first period already
+    /// starts at age one.
+    pub age_range_zh: Option<String>,
 }
 
 /// One factual or disabled decadal-period display cell.
@@ -190,6 +214,7 @@ impl StaticFourPillarsView {
 impl StaticTemporalPanelView {
     fn from_chart(chart: &Chart) -> Self {
         Self {
+            pre_decadal_cell: pre_decadal_cell(chart),
             decadal_cells: decadal_cells(chart),
             yearly_age_cells: disabled_yearly_age_cells(),
             month_cells: navigation_cells(&MONTH_LABELS),
@@ -205,6 +230,29 @@ impl StaticTemporalPanelView {
         let mut panel = Self::from_chart(chart.natal());
         panel.yearly_age_cells = yearly_age_cells(chart);
         panel
+    }
+}
+
+fn pre_decadal_cell(chart: &Chart) -> StaticPreDecadalCellView {
+    const LABEL: &str = "限前";
+    match build_decadal_frame(chart) {
+        Ok(frame) => {
+            let first_start = frame.periods().first().map(|period| period.start_age());
+            let age_range_zh = match first_start {
+                Some(start) if start > 1 => Some(format!("1-{}", start - 1)),
+                _ => None,
+            };
+            StaticPreDecadalCellView {
+                enabled: true,
+                label_zh: LABEL.to_owned(),
+                age_range_zh,
+            }
+        }
+        Err(_) => StaticPreDecadalCellView {
+            enabled: false,
+            label_zh: LABEL.to_owned(),
+            age_range_zh: None,
+        },
     }
 }
 
