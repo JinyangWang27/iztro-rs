@@ -44,8 +44,12 @@ pub fn static_temporal_chart_view(
 
     match selection {
         StaticTemporalNavigationSelection::Decadal { index } => {
-            let horoscope =
-                build_decadal_horoscope_chart(natal, DecadalHoroscopeInput { period_index: index })?;
+            let horoscope = build_decadal_horoscope_chart(
+                natal,
+                DecadalHoroscopeInput {
+                    period_index: index,
+                },
+            )?;
             Ok(StaticChartViewSnapshot::from_horoscope_chart_with(
                 &horoscope,
                 &StaticChartViewRequest {

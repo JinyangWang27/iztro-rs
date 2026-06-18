@@ -2,11 +2,11 @@
 //!
 //! This module is renderer-agnostic: it depends only on `iztro` facade APIs and
 //! read models, never on `iced`. It owns the birth-input form, builds charts
-//! through the public [`by_solar`] facade, caches the resulting
-//! [`StaticChartViewSnapshot`] values by normalized input, and exposes
+//! through the public `static_temporal_chart_view` facade, caches the resulting
+//! [`StaticChartViewSnapshot`] values by `(input, selection)`, and exposes
 //! deterministic, testable accessors. No astrology placement, rule evaluation,
-//! 三方四正, mutagen, or 成格 derivation lives here — those facts are read from
-//! prepared snapshots only.
+//! temporal-overlay, 三方四正, mutagen, or 成格 derivation lives here — those
+//! facts are read from prepared snapshots only.
 
 use std::collections::HashMap;
 
@@ -14,9 +14,9 @@ use serde::{Deserialize, Serialize};
 
 use crate::persistence::ChartStore;
 use iztro::core::{
-    ChartAlgorithmKind, ChartError, EarthlyBranch, Gender, MethodProfile, SolarChartRequest,
-    SolarDay, SolarMonth, StaticChartCenterView, StaticChartViewSnapshot, StaticPalaceView,
-    by_solar,
+    BirthTime, ChartAlgorithmKind, ChartError, EarthlyBranch, Gender, MethodProfile,
+    SolarChartRequest, SolarDay, SolarMonth, StaticChartCenterView, StaticChartViewSnapshot,
+    StaticPalaceView, StaticTemporalNavigationSelection, static_temporal_chart_view,
 };
 
 /// Non-fatal notice shown when no local data directory is available, so saved
@@ -53,10 +53,15 @@ pub enum Screen {
 
 /// A clickable bottom temporal-navigation cell, identified by row and index.
 ///
-/// This is pure GUI selection state; selecting a cell does not switch temporal
-/// scopes or recompute any chart facts.
+/// This is the renderer-side identity of a navigation cell. Each cell maps to a
+/// renderer-neutral [`StaticTemporalNavigationSelection`] that core turns into a
+/// prepared snapshot; the GUI never derives the overlay itself.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum TemporalCell {
+    /// The 本命 (natal) cell.
+    Natal,
+    /// The 限前 (pre-decadal) cell.
+    PreDecadal,
     /// A 大限 decadal cell at the given index.
     Decadal(usize),
     /// A 流年/小限 cell at the given index.
@@ -67,6 +72,24 @@ pub enum TemporalCell {
     Day(usize, usize),
     /// A 流时 cell at the given index.
     Hour(usize),
+}
+
+impl TemporalCell {
+    /// Maps this renderer cell to the renderer-neutral core selection that core
+    /// resolves into a prepared snapshot.
+    pub fn selection(self) -> StaticTemporalNavigationSelection {
+        match self {
+            TemporalCell::Natal => StaticTemporalNavigationSelection::Natal,
+            TemporalCell::PreDecadal => StaticTemporalNavigationSelection::PreDecadal,
+            TemporalCell::Decadal(index) => StaticTemporalNavigationSelection::Decadal { index },
+            TemporalCell::YearlyAge(index) => {
+                StaticTemporalNavigationSelection::YearlyAge { index }
+            }
+            TemporalCell::Month(index) => StaticTemporalNavigationSelection::Month { index },
+            TemporalCell::Day(row, index) => StaticTemporalNavigationSelection::Day { row, index },
+            TemporalCell::Hour(index) => StaticTemporalNavigationSelection::Hour { index },
+        }
+    }
 }
 
 /// Normalized, hashable birth input. Doubles as the chart cache key and the
@@ -166,25 +189,38 @@ pub enum GenerateOutcome {
 /// not persisted to disk.
 #[derive(Clone, Debug, Default)]
 pub struct ChartCache {
-    entries: HashMap<BirthInput, StaticChartViewSnapshot>,
+    entries: HashMap<(BirthInput, StaticTemporalNavigationSelection), StaticChartViewSnapshot>,
     hits: u64,
     misses: u64,
 }
 
 impl ChartCache {
-    /// Returns the cached snapshot for `input`, building and storing it on a
-    /// miss. The `bool` is `true` when the result came from the cache.
+    /// Returns the cached natal snapshot for `input`, building it on a miss.
     pub fn get_or_build(
         &mut self,
         input: &BirthInput,
     ) -> Result<(StaticChartViewSnapshot, bool), ChartError> {
-        if let Some(snapshot) = self.entries.get(input) {
+        self.get_or_build_with(input, StaticTemporalNavigationSelection::Natal)
+    }
+
+    /// Returns the cached snapshot for `(input, selection)`, building and storing
+    /// it on a miss. The `bool` is `true` when the result came from the cache.
+    ///
+    /// The snapshot is prepared by core through the `static_temporal_chart_view`
+    /// facade: the GUI never derives the overlay itself.
+    pub fn get_or_build_with(
+        &mut self,
+        input: &BirthInput,
+        selection: StaticTemporalNavigationSelection,
+    ) -> Result<(StaticChartViewSnapshot, bool), ChartError> {
+        let key = (*input, selection);
+        if let Some(snapshot) = self.entries.get(&key) {
             self.hits += 1;
             return Ok((snapshot.clone(), true));
         }
-        let snapshot = build_snapshot(input)?;
+        let snapshot = build_snapshot(input, selection)?;
         self.misses += 1;
-        self.entries.insert(*input, snapshot.clone());
+        self.entries.insert(key, snapshot.clone());
         Ok((snapshot, false))
     }
 
@@ -208,9 +244,10 @@ impl ChartCache {
         self.entries.is_empty()
     }
 
-    /// Whether a snapshot for `input` is currently cached.
+    /// Whether the natal snapshot for `input` is currently cached.
     pub fn contains(&self, input: &BirthInput) -> bool {
-        self.entries.contains_key(input)
+        self.entries
+            .contains_key(&(*input, StaticTemporalNavigationSelection::Natal))
     }
 }
 
@@ -438,6 +475,9 @@ impl StaticChartApp {
             return false;
         };
         match cell {
+            // The natal slice is always available once a chart is shown.
+            TemporalCell::Natal => true,
+            TemporalCell::PreDecadal => panel.pre_decadal_cell.enabled,
             TemporalCell::Decadal(i) => panel.decadal_cells.get(i).is_some_and(|c| c.enabled),
             TemporalCell::YearlyAge(i) => panel.yearly_age_cells.get(i).is_some_and(|c| c.enabled),
             TemporalCell::Month(i) => panel.month_cells.get(i).is_some_and(|c| c.enabled),
@@ -515,9 +555,19 @@ impl StaticChartApp {
                 }
             }
             Message::SelectTemporalCell(cell) => {
-                // Disabled cells never become an active selection.
+                // Disabled cells stay inert: no selection, no snapshot change.
                 if self.temporal_cell_enabled(cell) {
                     self.selected_temporal = Some(cell);
+                    // Ask core/facade for the prepared slice for this selection.
+                    // Natal facts are identical across selections; only overlays
+                    // differ. A facade error keeps the current snapshot.
+                    if let Some(input) = self.input {
+                        if let Ok((snapshot, _)) =
+                            self.cache.get_or_build_with(&input, cell.selection())
+                        {
+                            self.snapshot = Some(snapshot);
+                        }
+                    }
                 }
             }
             Message::ToggleSanFang(enabled) => self.highlight_san_fang = enabled,
@@ -544,16 +594,18 @@ impl Default for StaticChartApp {
     }
 }
 
-/// Builds a [`StaticChartViewSnapshot`] for `input` through the `by_solar`
-/// facade. Returns the facade error for invalid calendar input.
-fn build_snapshot(input: &BirthInput) -> Result<StaticChartViewSnapshot, ChartError> {
+/// Builds a [`StaticChartViewSnapshot`] for `input` and `selection` through the
+/// `static_temporal_chart_view` facade, so all temporal-overlay derivation stays
+/// in core. Returns the facade error for invalid calendar input or selection.
+fn build_snapshot(
+    input: &BirthInput,
+    selection: StaticTemporalNavigationSelection,
+) -> Result<StaticChartViewSnapshot, ChartError> {
     let request = SolarChartRequest::builder()
         .solar_year(input.year)
         .solar_month(SolarMonth::new(input.month)?)
         .solar_day(SolarDay::new(input.day)?)
-        .birth_time_variant(iztro::core::BirthTime::from_iztro_time_index(
-            input.time_index,
-        )?)
+        .birth_time_variant(BirthTime::from_iztro_time_index(input.time_index)?)
         .gender(input.gender)
         .method_profile(MethodProfile::new(
             "iztro_gui",
@@ -562,8 +614,7 @@ fn build_snapshot(input: &BirthInput) -> Result<StaticChartViewSnapshot, ChartEr
         ))
         .build()?;
 
-    let chart = by_solar(request)?;
-    Ok(StaticChartViewSnapshot::from_chart(&chart))
+    static_temporal_chart_view(request, selection)
 }
 
 #[cfg(test)]
@@ -716,7 +767,10 @@ mod tests {
         assert_eq!(app.generate(), GenerateOutcome::Built);
         assert_eq!(app.screen(), Screen::Chart);
         assert_eq!(app.saved(), &[SAMPLE_INPUT]);
-        assert!(app.error().is_none(), "a successful build clears the notice");
+        assert!(
+            app.error().is_none(),
+            "a successful build clears the notice"
+        );
     }
 
     #[test]
@@ -896,6 +950,76 @@ mod tests {
     }
 
     #[test]
+    fn clicking_a_decadal_cell_changes_the_effective_snapshot() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        // The natal base carries no overlays.
+        assert!(app.palaces().iter().all(|p| p.overlays.is_empty()));
+
+        let cell = TemporalCell::Decadal(0);
+        assert!(app.temporal_cell_enabled(cell));
+        app.update(Message::SelectTemporalCell(cell));
+
+        assert_eq!(app.selected_temporal(), Some(cell));
+        // The prepared snapshot now carries a decadal overlay — the click changed
+        // the effective slice, not only the selection state.
+        assert!(
+            app.snapshot()
+                .expect("snapshot")
+                .active_scopes
+                .contains(&iztro::core::Scope::Decadal)
+        );
+        assert!(app.palaces().iter().any(|p| !p.overlays.is_empty()));
+    }
+
+    #[test]
+    fn clicking_a_disabled_temporal_cell_changes_neither_selection_nor_snapshot() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        let before = app.snapshot().cloned();
+
+        let disabled = TemporalCell::YearlyAge(0);
+        assert!(!app.temporal_cell_enabled(disabled));
+        app.update(Message::SelectTemporalCell(disabled));
+
+        assert_eq!(app.selected_temporal(), None);
+        assert_eq!(app.snapshot().cloned(), before);
+    }
+
+    #[test]
+    fn pre_decadal_cell_is_an_enabled_first_row_navigation_cell() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        let panel = &app.snapshot().expect("snapshot").temporal_panel;
+        assert_eq!(panel.pre_decadal_cell.label_zh, "限前");
+        assert!(panel.pre_decadal_cell.enabled);
+
+        // 限前 is selectable and resolves to the natal base slice (no overlay).
+        let cell = TemporalCell::PreDecadal;
+        assert!(app.temporal_cell_enabled(cell));
+        app.update(Message::SelectTemporalCell(cell));
+        assert_eq!(app.selected_temporal(), Some(cell));
+        assert!(app.palaces().iter().all(|p| p.overlays.is_empty()));
+    }
+
+    #[test]
+    fn returning_to_a_decadal_then_natal_keeps_natal_facts_immutable() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        let natal_palaces: Vec<_> = app.palaces().to_vec();
+
+        app.update(Message::SelectTemporalCell(TemporalCell::Decadal(0)));
+        app.update(Message::SelectTemporalCell(TemporalCell::Natal));
+
+        // Selecting overlays then returning to 本命 leaves natal facts identical.
+        for (before, after) in natal_palaces.iter().zip(app.palaces()) {
+            assert_eq!(before.branch, after.branch);
+            assert_eq!(before.surround, after.surround);
+            assert_eq!(before.major_stars, after.major_stars);
+        }
+    }
+
+    #[test]
     fn natal_snapshot_has_no_temporal_overlays() {
         let mut app = StaticChartApp::new();
         app.generate();
@@ -915,7 +1039,7 @@ mod tests {
 
     #[test]
     fn gui_source_does_not_derive_astrology_facts() {
-        const FORBIDDEN: [&str; 12] = [
+        const FORBIDDEN: [&str; 20] = [
             "Placer",
             "palace_grid_position",
             "zi_wei_branch",
@@ -929,6 +1053,17 @@ mod tests {
             "StaticSurroundPalacesView::for_branch",
             "birth_year_star_mutagen",
             "birth_year_major_star_mutagen",
+            // Temporal overlays must be prepared by the `static_temporal_chart_view`
+            // facade; the GUI must never construct a horoscope, temporal layer,
+            // or decadal frame itself.
+            "build_decadal_horoscope_chart",
+            "build_decadal_horoscope_layer",
+            "build_full_horoscope_chart",
+            "from_horoscope_chart_with",
+            "HoroscopeChart",
+            "TemporalLayer",
+            "DecadalHoroscopeInput",
+            "build_decadal_frame",
         ];
 
         let src_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
@@ -954,8 +1089,8 @@ mod tests {
 
         let app_src = std::fs::read_to_string(src_dir.join("app.rs")).expect("app.rs must read");
         assert!(
-            app_src.contains("by_solar"),
-            "charts must be built through the by_solar facade"
+            app_src.contains("static_temporal_chart_view"),
+            "charts must be built through the static_temporal_chart_view facade"
         );
     }
 }
