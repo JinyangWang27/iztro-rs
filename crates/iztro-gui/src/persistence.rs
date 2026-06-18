@@ -31,11 +31,17 @@ impl ChartStore {
         Self { path: path.into() }
     }
 
-    /// The conventional per-user store at `<data_dir>/iztro-gui/charts.json`,
-    /// falling back to the current directory when no data directory is known.
-    pub fn default_path() -> Self {
-        let base = dirs::data_dir().unwrap_or_else(|| PathBuf::from("."));
-        Self::new(base.join(STORE_DIR).join(STORE_FILE))
+    /// The conventional per-user store at
+    /// `<data_local_dir>/iztro-gui/charts.json`, or `None` when no local data
+    /// directory is known.
+    ///
+    /// There is deliberately no current-directory fallback: silently writing a
+    /// user's saved charts into whatever working directory the GUI happened to
+    /// launch from would scatter and leak them. When this returns `None` the GUI
+    /// runs without persistence instead.
+    pub fn default_store() -> Option<Self> {
+        let base = dirs::data_local_dir()?;
+        Some(Self::new(base.join(STORE_DIR).join(STORE_FILE)))
     }
 
     /// The backing file path.
@@ -107,8 +113,12 @@ mod tests {
     }
 
     #[test]
-    fn default_path_targets_the_conventional_store_file() {
-        let store = ChartStore::default_path();
-        assert!(store.path().ends_with("iztro-gui/charts.json"));
+    fn default_store_targets_the_conventional_store_file_when_available() {
+        // On a host with a local data directory the store targets the
+        // conventional file; on a host without one it is `None`. Never the cwd.
+        if let Some(store) = ChartStore::default_store() {
+            assert!(store.path().ends_with("iztro-gui/charts.json"));
+            assert_ne!(store.path(), Path::new("iztro-gui/charts.json"));
+        }
     }
 }

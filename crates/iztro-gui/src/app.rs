@@ -19,6 +19,11 @@ use iztro::core::{
     by_solar,
 };
 
+/// Non-fatal notice shown when no local data directory is available, so saved
+/// charts cannot be persisted this session.
+pub const PERSISTENCE_UNAVAILABLE: &str =
+    "Persistent storage unavailable; generated charts won't be saved this session.";
+
 /// Side length of the fixed visual palace grid (4x4 perimeter layout).
 pub const GRID_SIZE: u8 = 4;
 
@@ -281,6 +286,22 @@ impl StaticChartApp {
             saved,
             store: Some(store),
             ..Self::new()
+        }
+    }
+
+    /// Builds an app from an optional store.
+    ///
+    /// `Some(store)` behaves like [`with_store`](Self::with_store). `None` starts
+    /// the app without persistence and surfaces a non-fatal notice: chart
+    /// generation still works, but saved charts are not written to disk.
+    pub fn with_optional_store(store: Option<ChartStore>) -> Self {
+        match store {
+            Some(store) => Self::with_store(store),
+            None => {
+                let mut app = Self::new();
+                app.error = Some(PERSISTENCE_UNAVAILABLE.to_owned());
+                app
+            }
         }
     }
 
@@ -645,6 +666,28 @@ mod tests {
         reloaded.update(Message::SelectSaved(0));
         assert_eq!(reloaded.screen(), Screen::Chart);
         assert_eq!(reloaded.input().map(|i| i.year), Some(1985));
+    }
+
+    #[test]
+    fn no_store_starts_without_persistence_and_warns_but_still_generates() {
+        let mut app = StaticChartApp::with_optional_store(None);
+        assert!(app.saved().is_empty());
+        assert_eq!(app.error(), Some(PERSISTENCE_UNAVAILABLE));
+
+        // Generation still works; the chart is tracked in memory only.
+        assert_eq!(app.generate(), GenerateOutcome::Built);
+        assert_eq!(app.screen(), Screen::Chart);
+        assert_eq!(app.saved(), &[SAMPLE_INPUT]);
+        assert!(app.error().is_none(), "a successful build clears the notice");
+    }
+
+    #[test]
+    fn optional_store_some_behaves_like_with_store() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let store = crate::persistence::ChartStore::new(dir.path().join("charts.json"));
+        let app = StaticChartApp::with_optional_store(Some(store));
+        assert!(app.saved().is_empty());
+        assert!(app.error().is_none());
     }
 
     #[test]
