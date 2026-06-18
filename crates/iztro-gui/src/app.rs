@@ -10,6 +10,9 @@
 
 use std::collections::HashMap;
 
+use serde::{Deserialize, Serialize};
+
+use crate::persistence::ChartStore;
 use iztro::core::{
     ChartAlgorithmKind, ChartError, EarthlyBranch, Gender, MethodProfile, SolarChartRequest,
     SolarDay, SolarMonth, StaticChartCenterView, StaticChartViewSnapshot, StaticPalaceView,
@@ -61,8 +64,9 @@ pub enum TemporalCell {
     Hour(usize),
 }
 
-/// Normalized, hashable birth input. Doubles as the chart cache key.
-#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+/// Normalized, hashable birth input. Doubles as the chart cache key and the
+/// persisted record for a saved chart.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
 pub struct BirthInput {
     /// Solar (Gregorian) year.
     pub year: i32,
@@ -245,6 +249,7 @@ pub struct StaticChartApp {
     error: Option<String>,
     cache: ChartCache,
     saved: Vec<BirthInput>,
+    store: Option<ChartStore>,
 }
 
 impl StaticChartApp {
@@ -264,6 +269,18 @@ impl StaticChartApp {
             error: None,
             cache: ChartCache::default(),
             saved: Vec::new(),
+            store: None,
+        }
+    }
+
+    /// Builds an app backed by a local [`ChartStore`], seeding the saved-charts
+    /// list from disk. Still starts on the startup screen with no chart.
+    pub fn with_store(store: ChartStore) -> Self {
+        let saved = store.load();
+        Self {
+            saved,
+            store: Some(store),
+            ..Self::new()
         }
     }
 
@@ -420,9 +437,13 @@ impl StaticChartApp {
         }
     }
 
-    /// Hook for persisting the saved list. Overridden in the persistence layer;
-    /// the pure core keeps the saved list in memory only.
-    fn persist_saved(&mut self) {}
+    /// Persists the saved list to the backing store, if one is configured. A
+    /// write failure is non-fatal: the in-memory list stays authoritative.
+    fn persist_saved(&mut self) {
+        if let Some(store) = &self.store {
+            let _ = store.save(&self.saved);
+        }
+    }
 
     /// Applies a message to the state.
     pub fn update(&mut self, message: Message) {
@@ -604,6 +625,41 @@ mod tests {
         assert!(app.cache().contains(&other));
         assert_eq!(app.cache().len(), 2);
         assert_eq!(app.saved().len(), 2);
+    }
+
+    #[test]
+    fn generated_charts_persist_and_reload_through_the_store() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let store = crate::persistence::ChartStore::new(dir.path().join("charts.json"));
+
+        let mut app = StaticChartApp::with_store(store.clone());
+        assert!(app.saved().is_empty());
+        app.update(Message::YearChanged("1985".to_string()));
+        app.generate();
+        assert_eq!(app.saved().len(), 1);
+
+        // A fresh app backed by the same store sees the persisted chart and can
+        // open it without re-entering the form.
+        let mut reloaded = StaticChartApp::with_store(store);
+        assert_eq!(reloaded.saved().len(), 1);
+        reloaded.update(Message::SelectSaved(0));
+        assert_eq!(reloaded.screen(), Screen::Chart);
+        assert_eq!(reloaded.input().map(|i| i.year), Some(1985));
+    }
+
+    #[test]
+    fn invalid_input_does_not_corrupt_the_persisted_store() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let store = crate::persistence::ChartStore::new(dir.path().join("charts.json"));
+
+        let mut app = StaticChartApp::with_store(store.clone());
+        app.generate(); // one valid sample chart persisted
+        app.update(Message::MonthChanged("13".to_string()));
+        assert_eq!(app.generate(), GenerateOutcome::Invalid);
+
+        // The on-disk store still parses and holds exactly the valid chart.
+        let reloaded = store.load();
+        assert_eq!(reloaded, vec![SAMPLE_INPUT]);
     }
 
     #[test]

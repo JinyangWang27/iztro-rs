@@ -6,9 +6,11 @@
 
 pub mod app;
 pub mod fonts;
+pub mod persistence;
 pub mod static_chart_screen;
 
 use app::{Message, StaticChartApp};
+use persistence::ChartStore;
 
 const WINDOW_TITLE: &str = "iztro Static Chart";
 
@@ -22,7 +24,12 @@ pub fn run() -> iced::Result {
             min_size: Some(iced::Size::new(760.0, 680.0)),
             ..Default::default()
         })
-        .run_with(|| (StaticChartApp::new(), iced::Task::none()))
+        .run_with(|| {
+            (
+                StaticChartApp::with_store(ChartStore::default_path()),
+                iced::Task::none(),
+            )
+        })
 }
 
 /// Bridges the pure [`StaticChartApp::update`] into the Iced update loop.
