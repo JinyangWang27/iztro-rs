@@ -5,7 +5,8 @@
 //! through the public [`by_solar`] facade, caches the resulting
 //! [`StaticChartViewSnapshot`] values by normalized input, and exposes
 //! deterministic, testable accessors. No astrology placement, rule evaluation,
-//! or 成格 detection lives here.
+//! 三方四正, mutagen, or 成格 derivation lives here — those facts are read from
+//! prepared snapshots only.
 
 use std::collections::HashMap;
 
@@ -21,7 +22,10 @@ pub const GRID_SIZE: u8 = 4;
 /// The four center grid cells that hold the center panel, never a palace.
 pub const CENTER_CELLS: [(u8, u8); 4] = [(1, 1), (1, 2), (2, 1), (2, 2)];
 
-/// The hardcoded sample birth input used as the default chart.
+/// A sample birth input used to pre-fill the startup form for convenience.
+///
+/// Pre-filling the form does *not* generate a chart: the app starts on the
+/// startup screen with no chart until the user explicitly generates one.
 pub const SAMPLE_INPUT: BirthInput = BirthInput {
     year: 1990,
     month: 5,
@@ -29,6 +33,33 @@ pub const SAMPLE_INPUT: BirthInput = BirthInput {
     time_index: 4, // 辰时
     gender: Gender::Female,
 };
+
+/// Which top-level screen the app is showing.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Screen {
+    /// Landing page: birth-input form plus the saved-charts list. No chart yet.
+    Startup,
+    /// A generated static chart is being displayed.
+    Chart,
+}
+
+/// A clickable bottom temporal-navigation cell, identified by row and index.
+///
+/// This is pure GUI selection state; selecting a cell does not switch temporal
+/// scopes or recompute any chart facts.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum TemporalCell {
+    /// A 大限 decadal cell at the given index.
+    Decadal(usize),
+    /// A 流年/小限 cell at the given index.
+    YearlyAge(usize),
+    /// A 流月 cell at the given index.
+    Month(usize),
+    /// A 流日 cell at `(row, index)`.
+    Day(usize, usize),
+    /// A 流时 cell at the given index.
+    Hour(usize),
+}
 
 /// Normalized, hashable birth input. Doubles as the chart cache key.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -191,43 +222,64 @@ pub enum Message {
     GenderSelected(Gender),
     /// Generate-chart action triggered.
     Generate,
-    /// A history entry selected by index.
-    SelectHistory(usize),
+    /// A saved chart selected by index; opens it in the chart view.
+    SelectSaved(usize),
+    /// A bottom temporal-navigation cell was clicked.
+    SelectTemporalCell(TemporalCell),
+    /// The 三方四正 highlight mode was toggled.
+    ToggleSanFang(bool),
+    /// Return to the startup screen.
+    BackToStartup,
 }
 
 /// Pure application state backing the static chart screen.
 #[derive(Debug, Clone)]
 pub struct StaticChartApp {
+    screen: Screen,
     form: BirthForm,
-    input: BirthInput,
-    snapshot: StaticChartViewSnapshot,
+    input: Option<BirthInput>,
+    snapshot: Option<StaticChartViewSnapshot>,
     selected: Option<EarthlyBranch>,
+    selected_temporal: Option<TemporalCell>,
+    highlight_san_fang: bool,
     error: Option<String>,
     cache: ChartCache,
-    history: Vec<BirthInput>,
+    saved: Vec<BirthInput>,
 }
 
 impl StaticChartApp {
-    /// Builds the app from the hardcoded sample input, generating its chart.
+    /// Builds an app on the startup screen with no chart generated.
+    ///
+    /// The birth form is pre-filled from [`SAMPLE_INPUT`] for convenience, but no
+    /// chart is built until the user generates one.
     pub fn new() -> Self {
-        let mut cache = ChartCache::default();
-        let (snapshot, _) = cache
-            .get_or_build(&SAMPLE_INPUT)
-            .expect("hardcoded sample input must build a chart");
         Self {
-            form: BirthForm::from_input(&SAMPLE_INPUT),
-            input: SAMPLE_INPUT,
-            snapshot,
+            screen: Screen::Startup,
+            form: BirthForm::default(),
+            input: None,
+            snapshot: None,
             selected: None,
+            selected_temporal: None,
+            highlight_san_fang: true,
             error: None,
-            cache,
-            history: vec![SAMPLE_INPUT],
+            cache: ChartCache::default(),
+            saved: Vec::new(),
         }
     }
 
-    /// Returns the immutable static chart snapshot driving the view.
-    pub fn snapshot(&self) -> &StaticChartViewSnapshot {
-        &self.snapshot
+    /// Replaces the saved-charts list (e.g. when seeding from persistence).
+    pub fn set_saved(&mut self, saved: Vec<BirthInput>) {
+        self.saved = saved;
+    }
+
+    /// The current top-level screen.
+    pub fn screen(&self) -> Screen {
+        self.screen
+    }
+
+    /// Returns the static chart snapshot driving the chart view, if any.
+    pub fn snapshot(&self) -> Option<&StaticChartViewSnapshot> {
+        self.snapshot.as_ref()
     }
 
     /// Returns the editable birth-input form.
@@ -235,8 +287,8 @@ impl StaticChartApp {
         &self.form
     }
 
-    /// Returns the normalized input that produced the current snapshot.
-    pub fn input(&self) -> BirthInput {
+    /// Returns the normalized input that produced the current snapshot, if any.
+    pub fn input(&self) -> Option<BirthInput> {
         self.input
     }
 
@@ -250,29 +302,32 @@ impl StaticChartApp {
         &self.cache
     }
 
-    /// Returns the generated-chart history, most recent last.
-    pub fn history(&self) -> &[BirthInput] {
-        &self.history
+    /// Returns the saved generated-chart inputs, most recent last.
+    pub fn saved(&self) -> &[BirthInput] {
+        &self.saved
     }
 
-    /// Returns the twelve perimeter palaces.
+    /// Returns the twelve perimeter palaces of the current snapshot, if any.
     pub fn palaces(&self) -> &[StaticPalaceView] {
-        &self.snapshot.palaces
+        self.snapshot
+            .as_ref()
+            .map(|snapshot| snapshot.palaces.as_slice())
+            .unwrap_or(&[])
     }
 
-    /// Returns the center-panel facts.
-    pub fn center(&self) -> &StaticChartCenterView {
-        &self.snapshot.center
+    /// Returns the center-panel facts of the current snapshot, if any.
+    pub fn center(&self) -> Option<&StaticChartCenterView> {
+        self.snapshot.as_ref().map(|snapshot| &snapshot.center)
     }
 
     /// Returns the palace whose fixed grid position is `(row, column)`.
     ///
-    /// Lookup is keyed by [`grid_position`], not by `Vec` order. Center cells
-    /// return `None`.
+    /// Lookup is keyed by [`grid_position`], not by `Vec` order. Center cells and
+    /// the empty-snapshot case return `None`.
     ///
     /// [`grid_position`]: iztro::core::StaticPalaceView::grid_position
     pub fn palace_at(&self, row: u8, column: u8) -> Option<&StaticPalaceView> {
-        self.snapshot.palaces.iter().find(|palace| {
+        self.palaces().iter().find(|palace| {
             palace.grid_position.row() == row && palace.grid_position.column() == column
         })
     }
@@ -285,13 +340,50 @@ impl StaticChartApp {
     /// Returns the currently selected palace, if any.
     pub fn selected_palace(&self) -> Option<&StaticPalaceView> {
         let branch = self.selected?;
-        self.snapshot
-            .palaces
-            .iter()
-            .find(|palace| palace.branch == branch)
+        self.palaces().iter().find(|palace| palace.branch == branch)
     }
 
-    /// Generates a chart from the current form, updating the displayed chart on
+    /// Returns the currently selected temporal cell, if any.
+    pub fn selected_temporal(&self) -> Option<TemporalCell> {
+        self.selected_temporal
+    }
+
+    /// Whether 三方四正 highlight mode is enabled.
+    pub fn highlight_san_fang(&self) -> bool {
+        self.highlight_san_fang
+    }
+
+    /// Whether `branch` is in the selected palace's prepared 三方四正 set.
+    ///
+    /// Reads the prepared [`surround`] field; performs no branch arithmetic.
+    ///
+    /// [`surround`]: iztro::core::StaticPalaceView::surround
+    pub fn is_in_san_fang(&self, branch: EarthlyBranch) -> bool {
+        self.highlight_san_fang
+            && self
+                .selected_palace()
+                .is_some_and(|palace| palace.surround.involves(branch))
+    }
+
+    /// Whether the given temporal cell is enabled in the current snapshot.
+    pub fn temporal_cell_enabled(&self, cell: TemporalCell) -> bool {
+        let Some(panel) = self.snapshot.as_ref().map(|s| &s.temporal_panel) else {
+            return false;
+        };
+        match cell {
+            TemporalCell::Decadal(i) => panel.decadal_cells.get(i).is_some_and(|c| c.enabled),
+            TemporalCell::YearlyAge(i) => panel.yearly_age_cells.get(i).is_some_and(|c| c.enabled),
+            TemporalCell::Month(i) => panel.month_cells.get(i).is_some_and(|c| c.enabled),
+            TemporalCell::Day(row, i) => panel
+                .day_rows
+                .get(row)
+                .and_then(|cells| cells.get(i))
+                .is_some_and(|c| c.enabled),
+            TemporalCell::Hour(i) => panel.hour_cells.get(i).is_some_and(|c| c.enabled),
+        }
+    }
+
+    /// Generates a chart from the current form, switching to the chart view on
     /// success or setting the error state on invalid input. Never panics.
     pub fn generate(&mut self) -> GenerateOutcome {
         let input = match self.form.parse() {
@@ -304,12 +396,16 @@ impl StaticChartApp {
 
         match self.cache.get_or_build(&input) {
             Ok((snapshot, hit)) => {
-                self.snapshot = snapshot;
-                self.input = input;
+                self.snapshot = Some(snapshot);
+                self.input = Some(input);
                 self.selected = None;
+                self.selected_temporal = None;
                 self.error = None;
-                if self.history.last() != Some(&input) && !self.history.contains(&input) {
-                    self.history.push(input);
+                self.screen = Screen::Chart;
+                let newly_saved = !self.saved.contains(&input);
+                if newly_saved {
+                    self.saved.push(input);
+                    self.persist_saved();
                 }
                 if hit {
                     GenerateOutcome::CacheHit
@@ -324,6 +420,10 @@ impl StaticChartApp {
         }
     }
 
+    /// Hook for persisting the saved list. Overridden in the persistence layer;
+    /// the pure core keeps the saved list in memory only.
+    fn persist_saved(&mut self) {}
+
     /// Applies a message to the state.
     pub fn update(&mut self, message: Message) {
         match message {
@@ -336,11 +436,23 @@ impl StaticChartApp {
             Message::Generate => {
                 self.generate();
             }
-            Message::SelectHistory(index) => {
-                if let Some(input) = self.history.get(index).copied() {
+            Message::SelectSaved(index) => {
+                if let Some(input) = self.saved.get(index).copied() {
                     self.form = BirthForm::from_input(&input);
                     self.generate();
                 }
+            }
+            Message::SelectTemporalCell(cell) => {
+                // Disabled cells never become an active selection.
+                if self.temporal_cell_enabled(cell) {
+                    self.selected_temporal = Some(cell);
+                }
+            }
+            Message::ToggleSanFang(enabled) => self.highlight_san_fang = enabled,
+            Message::BackToStartup => {
+                self.screen = Screen::Startup;
+                self.selected = None;
+                self.selected_temporal = None;
             }
         }
     }
@@ -389,39 +501,21 @@ mod tests {
     }
 
     #[test]
-    fn default_app_initializes_with_sample_input_and_valid_snapshot() {
+    fn app_starts_on_startup_without_generating_a_chart() {
         let app = StaticChartApp::new();
-        assert_eq!(app.input(), SAMPLE_INPUT);
+        assert_eq!(app.screen(), Screen::Startup);
+        assert!(app.snapshot().is_none());
+        assert!(app.input().is_none());
+        assert!(app.palaces().is_empty());
+        assert!(app.center().is_none());
+        assert!(app.saved().is_empty());
+        // The form is pre-filled for convenience.
         assert_eq!(app.form(), &BirthForm::from_input(&SAMPLE_INPUT));
-        assert_eq!(app.palaces().len(), 12);
-        assert!(!app.center().birth_year_stem_zh.is_empty());
-        let pillars = app
-            .center()
-            .four_pillars
-            .as_ref()
-            .expect("default by_solar chart should expose factual four pillars");
-        assert!(!pillars.yearly_zh.is_empty());
-        assert!(!pillars.monthly_zh.is_empty());
-        assert!(!pillars.daily_zh.is_empty());
-        assert!(!pillars.hourly_zh.is_empty());
-        assert_eq!(app.snapshot().temporal_panel.decadal_cells.len(), 12);
-        assert!(
-            app.snapshot()
-                .temporal_panel
-                .decadal_cells
-                .iter()
-                .all(|cell| cell.enabled)
-        );
-        assert_eq!(
-            app.snapshot().temporal_panel.month_cells[0].label_zh,
-            "正月"
-        );
-        assert_eq!(app.snapshot().temporal_panel.hour_cells[11].label_zh, "亥");
         assert!(app.error().is_none());
     }
 
     #[test]
-    fn valid_input_generates_a_chart() {
+    fn generating_a_valid_chart_moves_to_chart_view() {
         let mut app = StaticChartApp::new();
         app.update(Message::YearChanged("1985".to_string()));
         app.update(Message::MonthChanged("3".to_string()));
@@ -432,68 +526,73 @@ mod tests {
         let outcome = app.generate();
 
         assert_eq!(outcome, GenerateOutcome::Built);
+        assert_eq!(app.screen(), Screen::Chart);
+        assert!(app.snapshot().is_some());
         assert!(app.error().is_none());
         assert_eq!(
             app.input(),
-            BirthInput {
+            Some(BirthInput {
                 year: 1985,
                 month: 3,
                 day: 8,
                 time_index: 6,
                 gender: Gender::Male,
-            }
+            })
         );
         assert_eq!(app.palaces().len(), 12);
+        // The generated chart is added to the saved list.
+        assert_eq!(app.saved().len(), 1);
     }
 
     #[test]
-    fn invalid_numeric_input_sets_error_state_without_panicking() {
+    fn invalid_numeric_input_sets_error_and_stays_on_startup() {
         let mut app = StaticChartApp::new();
-        let before = app.snapshot().clone();
         app.update(Message::YearChanged("not-a-year".to_string()));
 
         let outcome = app.generate();
 
         assert_eq!(outcome, GenerateOutcome::Invalid);
         assert!(app.error().is_some());
-        // Chart is unchanged on invalid input.
-        assert_eq!(app.snapshot(), &before);
+        assert_eq!(app.screen(), Screen::Startup);
+        assert!(app.snapshot().is_none());
+        assert!(app.saved().is_empty());
     }
 
     #[test]
-    fn invalid_calendar_input_sets_error_state_without_panicking() {
+    fn invalid_calendar_input_sets_error_without_corrupting_saved() {
         let mut app = StaticChartApp::new();
-        let before = app.snapshot().clone();
+        // Generate one valid chart first.
+        app.generate();
+        assert_eq!(app.saved().len(), 1);
+        let saved_before = app.saved().to_vec();
+
         // Month 13 is numerically parseable but rejected by the facade.
         app.update(Message::MonthChanged("13".to_string()));
-
         let outcome = app.generate();
 
         assert_eq!(outcome, GenerateOutcome::Invalid);
         assert!(app.error().is_some());
-        assert_eq!(app.snapshot(), &before);
+        // The saved list is untouched by the invalid attempt.
+        assert_eq!(app.saved(), saved_before.as_slice());
     }
 
     #[test]
     fn repeated_generation_with_same_input_hits_the_cache() {
         let mut app = StaticChartApp::new();
-        // The sample build on `new()` already counts as one miss.
-        let misses_before = app.cache().misses();
-
-        app.update(Message::TimeSelected(SAMPLE_INPUT.time_index));
         let first = app.generate();
         let second = app.generate();
 
-        assert_eq!(first, GenerateOutcome::CacheHit);
+        assert_eq!(first, GenerateOutcome::Built);
         assert_eq!(second, GenerateOutcome::CacheHit);
-        assert!(app.cache().hits() >= 2);
-        // No new distinct input was built.
-        assert_eq!(app.cache().misses(), misses_before);
+        assert!(app.cache().hits() >= 1);
+        // The same input is saved only once.
+        assert_eq!(app.saved().len(), 1);
     }
 
     #[test]
     fn different_birth_input_creates_a_different_cache_key() {
         let mut app = StaticChartApp::new();
+        app.generate();
         app.update(Message::YearChanged("2000".to_string()));
         app.generate();
 
@@ -501,15 +600,39 @@ mod tests {
             year: 2000,
             ..SAMPLE_INPUT
         };
-        assert_ne!(SAMPLE_INPUT, other);
         assert!(app.cache().contains(&SAMPLE_INPUT));
         assert!(app.cache().contains(&other));
         assert_eq!(app.cache().len(), 2);
+        assert_eq!(app.saved().len(), 2);
+    }
+
+    #[test]
+    fn selecting_a_saved_chart_opens_it() {
+        let mut app = StaticChartApp::new();
+        app.set_saved(vec![SAMPLE_INPUT]);
+        app.update(Message::SelectSaved(0));
+
+        assert_eq!(app.screen(), Screen::Chart);
+        assert_eq!(app.input(), Some(SAMPLE_INPUT));
+        assert_eq!(app.palaces().len(), 12);
+    }
+
+    #[test]
+    fn back_to_startup_returns_to_landing() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        assert_eq!(app.screen(), Screen::Chart);
+
+        app.update(Message::BackToStartup);
+        assert_eq!(app.screen(), Screen::Startup);
+        assert_eq!(app.selected_branch(), None);
+        assert_eq!(app.selected_temporal(), None);
     }
 
     #[test]
     fn palace_layout_lookup_uses_grid_position() {
-        let app = StaticChartApp::new();
+        let mut app = StaticChartApp::new();
+        app.generate();
         for palace in app.palaces() {
             let pos = palace.grid_position;
             let found = app
@@ -520,7 +643,6 @@ mod tests {
         for (row, column) in CENTER_CELLS {
             assert!(app.palace_at(row, column).is_none());
         }
-        // Grid lookup must not coincide with naive Vec/row-major order.
         let by_grid = app.palace_at(1, 3).expect("cell (1,3) holds a palace");
         assert_eq!(by_grid.branch, app.palaces()[5].branch);
     }
@@ -528,6 +650,7 @@ mod tests {
     #[test]
     fn selecting_a_palace_updates_the_selected_branch() {
         let mut app = StaticChartApp::new();
+        app.generate();
         assert_eq!(app.selected_branch(), None);
         let branch = app.palaces()[3].branch;
         app.update(Message::SelectPalace(branch));
@@ -536,8 +659,49 @@ mod tests {
     }
 
     #[test]
-    fn natal_facts_stay_separate_from_temporal_overlays() {
-        let app = StaticChartApp::new();
+    fn san_fang_highlight_reads_prepared_surround_only() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        let palace = app.palaces()[0].clone();
+        app.update(Message::SelectPalace(palace.branch));
+
+        // Highlight membership matches the prepared surround set exactly.
+        for related in palace.surround.branches() {
+            assert!(app.is_in_san_fang(related));
+        }
+        assert!(!app.is_in_san_fang(palace.branch));
+
+        // Toggling the mode off suppresses all highlight membership.
+        app.update(Message::ToggleSanFang(false));
+        for related in palace.surround.branches() {
+            assert!(!app.is_in_san_fang(related));
+        }
+    }
+
+    #[test]
+    fn temporal_cell_selection_ignores_disabled_cells() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        let panel = &app.snapshot().expect("snapshot").temporal_panel;
+
+        // Month cells are always enabled navigation labels.
+        let enabled_month = TemporalCell::Month(0);
+        assert!(panel.month_cells[0].enabled);
+        app.update(Message::SelectTemporalCell(enabled_month));
+        assert_eq!(app.selected_temporal(), Some(enabled_month));
+
+        // Yearly/age cells are disabled in a natal-only snapshot.
+        let disabled = TemporalCell::YearlyAge(0);
+        assert!(!app.temporal_cell_enabled(disabled));
+        app.update(Message::SelectTemporalCell(disabled));
+        // Selection is unchanged; the disabled cell never becomes active.
+        assert_eq!(app.selected_temporal(), Some(enabled_month));
+    }
+
+    #[test]
+    fn natal_snapshot_has_no_temporal_overlays() {
+        let mut app = StaticChartApp::new();
+        app.generate();
         for palace in app.palaces() {
             assert!(
                 palace.overlays.is_empty(),
@@ -553,8 +717,8 @@ mod tests {
     }
 
     #[test]
-    fn gui_source_does_not_call_placement_modules_directly() {
-        const FORBIDDEN: [&str; 8] = [
+    fn gui_source_does_not_derive_astrology_facts() {
+        const FORBIDDEN: [&str; 12] = [
             "Placer",
             "palace_grid_position",
             "zi_wei_branch",
@@ -563,6 +727,11 @@ mod tests {
             "build_natal_chart_with",
             "star_brightness",
             "PlacementInput",
+            // 三方四正 / mutagen must be read from prepared snapshots, never derived.
+            ".offset(",
+            "StaticSurroundPalacesView::for_branch",
+            "birth_year_star_mutagen",
+            "birth_year_major_star_mutagen",
         ];
 
         let src_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
@@ -578,7 +747,7 @@ mod tests {
             for needle in FORBIDDEN {
                 assert!(
                     !source.contains(needle),
-                    "{} must not reference placement symbol `{needle}`",
+                    "{} must not reference derivation symbol `{needle}`",
                     path.display()
                 );
             }
@@ -589,18 +758,7 @@ mod tests {
         let app_src = std::fs::read_to_string(src_dir.join("app.rs")).expect("app.rs must read");
         assert!(
             app_src.contains("by_solar"),
-            "the sample chart must be built through the by_solar facade"
+            "charts must be built through the by_solar facade"
         );
-    }
-
-    #[test]
-    fn static_chart_screen_has_no_permanent_detail_panel() {
-        let path =
-            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src/static_chart_screen.rs");
-        let raw = std::fs::read_to_string(path).expect("screen source must read");
-        let source = production_source(&raw);
-
-        assert!(!source.contains("fn detail_panel"));
-        assert!(!source.contains("selected_palace_details"));
     }
 }

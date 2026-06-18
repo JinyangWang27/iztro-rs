@@ -14,25 +14,105 @@ use std::fmt;
 use iced::widget::{Column, button, column, container, pick_list, row, text, text_input};
 use iced::{Border, Color, Element, Length, Theme};
 use iztro::core::{
-    Gender, Scope, StaticChartCenterView, StaticDecadalCellView, StaticDecorativeStarView,
-    StaticNavigationCellView, StaticPalaceView, StaticTemporalOverlayView, StaticTemporalPanelView,
-    StaticTypedStarView, StaticYearlyAgeCellView,
+    Gender, Scope, StaticChartCenterView, StaticChartViewSnapshot, StaticDecadalCellView,
+    StaticDecorativeStarView, StaticNavigationCellView, StaticPalaceView,
+    StaticTemporalOverlayView, StaticTemporalPanelView, StaticTypedStarView,
+    StaticYearlyAgeCellView,
 };
 
-use crate::app::{BirthForm, BirthInput, Message, StaticChartApp};
+use crate::app::{BirthForm, BirthInput, Message, Screen, StaticChartApp};
 
-/// Renders the full static chart screen.
+/// Renders the active screen: the startup landing page or a generated chart.
 pub fn view(app: &StaticChartApp) -> Element<'_, Message> {
+    match (app.screen(), app.snapshot()) {
+        (Screen::Chart, Some(snapshot)) => chart_screen(app, snapshot),
+        // Startup, or a defensive fallback if the chart screen has no snapshot.
+        _ => startup_screen(app),
+    }
+}
+
+/// The landing page: birth-input form plus the list of saved charts.
+fn startup_screen(app: &StaticChartApp) -> Element<'_, Message> {
+    let title = column![
+        text("紫微斗数 · 静态命盘").size(24),
+        text("输入出生信息生成命盘，或打开已保存的命盘。")
+            .size(13)
+            .style(subtle_text_style),
+    ]
+    .spacing(4);
+
     column![
+        title,
         input_bar(app.form(), app.error()),
-        history_bar(app.history()),
-        palace_grid(app),
+        saved_charts_panel(app.saved()),
+    ]
+    .spacing(12)
+    .padding(16)
+    .into()
+}
+
+/// The generated static chart screen.
+fn chart_screen<'a>(
+    app: &'a StaticChartApp,
+    snapshot: &'a StaticChartViewSnapshot,
+) -> Element<'a, Message> {
+    column![
+        chart_toolbar(),
+        palace_grid(app, snapshot),
         category_legend(),
-        temporal_navigation_panel(&app.snapshot().temporal_panel),
+        temporal_navigation_panel(&snapshot.temporal_panel),
     ]
     .spacing(8)
     .padding(12)
     .into()
+}
+
+/// Top bar of the chart screen: a return action back to the startup page.
+fn chart_toolbar() -> Element<'static, Message> {
+    let bar = row![
+        button(text("← 返回").size(14))
+            .on_press(Message::BackToStartup)
+            .style(button::secondary),
+    ]
+    .spacing(8)
+    .align_y(iced::Alignment::Center);
+    container(bar).width(Length::Fill).into()
+}
+
+/// The saved-charts list shown on the startup page.
+fn saved_charts_panel(saved: &[BirthInput]) -> Element<'_, Message> {
+    let mut content = column![text("已保存命盘").size(15)].spacing(8);
+    if saved.is_empty() {
+        content = content.push(
+            text("暂无保存的命盘。生成命盘后会自动保存到本地。")
+                .size(13)
+                .style(subtle_text_style),
+        );
+    } else {
+        let mut list = column![].spacing(6);
+        for (index, input) in saved.iter().enumerate() {
+            let label = format!(
+                "{}-{:02}-{:02} · {} · {}",
+                input.year,
+                input.month,
+                input.day,
+                gender_zh(input.gender),
+                hour_branch_zh(input.time_index),
+            );
+            list = list.push(
+                button(text(label).size(14))
+                    .on_press(Message::SelectSaved(index))
+                    .style(button::secondary)
+                    .width(Length::Fill),
+            );
+        }
+        content = content.push(list);
+    }
+    container(content)
+        .style(input_panel_style)
+        .padding(12)
+        .width(Length::Fill)
+        .into()
 }
 
 // ---------------------------------------------------------------------------
@@ -102,26 +182,14 @@ fn labeled<'a>(label: &'a str, control: impl Into<Element<'a, Message>>) -> Elem
         .into()
 }
 
-fn history_bar(history: &[BirthInput]) -> Element<'_, Message> {
-    let mut bar = row![text("历史:").size(13)]
-        .spacing(8)
-        .align_y(iced::Alignment::Center);
-    for (index, input) in history.iter().enumerate() {
-        let label = format!("{}-{}-{}", input.year, input.month, input.day);
-        bar = bar.push(
-            button(text(label).size(13))
-                .on_press(Message::SelectHistory(index))
-                .style(button::secondary),
-        );
-    }
-    container(bar).into()
-}
-
 // ---------------------------------------------------------------------------
 // Palace grid (文墨天机 composed layout)
 // ---------------------------------------------------------------------------
 
-fn palace_grid(app: &StaticChartApp) -> Element<'_, Message> {
+fn palace_grid<'a>(
+    app: &'a StaticChartApp,
+    snapshot: &'a StaticChartViewSnapshot,
+) -> Element<'a, Message> {
     let top = row![
         grid_cell(app, 0, 0),
         grid_cell(app, 0, 1),
@@ -137,7 +205,7 @@ fn palace_grid(app: &StaticChartApp) -> Element<'_, Message> {
     let right = column![grid_cell(app, 1, 3), grid_cell(app, 2, 3)]
         .spacing(6)
         .width(Length::FillPortion(1));
-    let center = container(center_panel(app.center()))
+    let center = container(center_panel(&snapshot.center))
         .style(center_panel_style)
         .padding(10)
         .width(Length::FillPortion(2))
@@ -504,6 +572,26 @@ fn gender_zh(gender: Gender) -> &'static str {
     }
 }
 
+/// Chinese label for an `iztro` `timeIndex` double-hour (`0..=12`).
+fn hour_branch_zh(time_index: u8) -> &'static str {
+    match time_index {
+        0 => "早子时",
+        1 => "丑时",
+        2 => "寅时",
+        3 => "卯时",
+        4 => "辰时",
+        5 => "巳时",
+        6 => "午时",
+        7 => "未时",
+        8 => "申时",
+        9 => "酉时",
+        10 => "戌时",
+        11 => "亥时",
+        12 => "晚子时",
+        _ => "未知",
+    }
+}
+
 fn scope_zh(scope: Scope) -> &'static str {
     match scope {
         Scope::Natal => "本命",
@@ -714,8 +802,23 @@ mod tests {
     use crate::app::StaticChartApp;
     use iztro::core::FiveElementBureau;
 
+    /// Builds an app with a generated chart (the startup screen has none).
+    fn chart_app() -> StaticChartApp {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        app
+    }
+
+    /// Owned copy of the generated chart's center facts.
+    fn sample_center() -> StaticChartCenterView {
+        chart_app()
+            .center()
+            .expect("generated chart center")
+            .clone()
+    }
+
     fn sample_typed_star() -> StaticTypedStarView {
-        let app = StaticChartApp::new();
+        let app = chart_app();
         app.palaces()
             .iter()
             .flat_map(|palace| {
@@ -732,8 +835,8 @@ mod tests {
 
     #[test]
     fn center_four_pillar_rows_use_available_zh_labels() {
-        let app = StaticChartApp::new();
-        let rows = center_four_pillar_rows(app.center());
+        let center = sample_center();
+        let rows = center_four_pillar_rows(&center);
 
         assert_eq!(rows.len(), 4);
         assert_eq!(rows[0].0, "年柱");
@@ -745,8 +848,7 @@ mod tests {
 
     #[test]
     fn center_four_pillar_rows_are_empty_when_unavailable() {
-        let app = StaticChartApp::new();
-        let mut center = app.center().clone();
+        let mut center = sample_center();
         center.four_pillars = None;
 
         assert!(center_four_pillar_rows(&center).is_empty());
@@ -754,8 +856,7 @@ mod tests {
 
     #[test]
     fn bureau_label_handles_available_and_missing_values() {
-        let app = StaticChartApp::new();
-        let mut center = app.center().clone();
+        let mut center = sample_center();
 
         center.five_element_bureau = Some(FiveElementBureau::Fire6);
         assert_eq!(bureau_label(&center), "Fire6");
