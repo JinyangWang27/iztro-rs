@@ -240,7 +240,7 @@ fn disabled_yearly_age_cells() -> Vec<StaticYearlyAgeCellView> {
 }
 
 fn yearly_age_cells(chart: &HoroscopeChart) -> Vec<StaticYearlyAgeCellView> {
-    let yearly = chart
+    let yearly: Vec<(StemBranch, i32)> = chart
         .layers()
         .iter()
         .filter_map(|layer| match layer.context() {
@@ -249,8 +249,9 @@ fn yearly_age_cells(chart: &HoroscopeChart) -> Vec<StaticYearlyAgeCellView> {
                 lunar_year,
             } => Some((*stem_branch, *lunar_year)),
             _ => None,
-        });
-    let ages = chart
+        })
+        .collect();
+    let ages: Vec<u8> = chart
         .layers()
         .iter()
         .filter_map(|layer| match layer.context() {
@@ -259,23 +260,23 @@ fn yearly_age_cells(chart: &HoroscopeChart) -> Vec<StaticYearlyAgeCellView> {
                 nominal_age,
             } => Some(*nominal_age),
             _ => None,
-        });
+        })
+        .collect();
 
-    let mut cells: Vec<StaticYearlyAgeCellView> = yearly
-        .zip(ages)
-        .take(PALACE_COUNT)
-        .map(
-            |((yearly_stem_branch, lunar_year), nominal_age)| StaticYearlyAgeCellView {
+    let mut cells = match (yearly.as_slice(), ages.as_slice()) {
+        ([(yearly_stem_branch, lunar_year)], [nominal_age]) => {
+            vec![StaticYearlyAgeCellView {
                 enabled: true,
                 year_label: Some(lunar_year.to_string()),
                 stem_branch_age_zh: Some(format!(
                     "{}{}",
-                    zh_cn::stem_branch_zh(yearly_stem_branch),
+                    zh_cn::stem_branch_zh(*yearly_stem_branch),
                     nominal_age
                 )),
-            },
-        )
-        .collect();
+            }]
+        }
+        _ => Vec::new(),
+    };
     cells.extend(
         disabled_yearly_age_cells()
             .into_iter()
@@ -1151,6 +1152,44 @@ mod tests {
         assert_eq!(cells[0].year_label.as_deref(), Some("2020"));
         assert_eq!(cells[0].stem_branch_age_zh.as_deref(), Some("庚子31"));
         assert!(cells[1..].iter().all(|cell| !cell.enabled));
+    }
+
+    #[test]
+    fn horoscope_temporal_panel_keeps_ambiguous_yearly_age_pairs_neutral() {
+        let mut chart = sample_horoscope_chart();
+        let period = StemBranch::from_lunar_year(2020);
+        chart.push_layer(
+            TemporalLayer::try_new(
+                Scope::Age,
+                TemporalContext::Age {
+                    stem_branch: period,
+                    nominal_age: 31,
+                },
+                Vec::new(),
+                Vec::new(),
+            )
+            .expect("age layer should build"),
+        );
+        let other_period = StemBranch::from_lunar_year(2021);
+        chart.push_layer(
+            TemporalLayer::try_new(
+                Scope::Yearly,
+                TemporalContext::Yearly {
+                    stem_branch: other_period,
+                    lunar_year: 2021,
+                },
+                Vec::new(),
+                Vec::new(),
+            )
+            .expect("second yearly layer should build"),
+        );
+
+        let cells = StaticChartViewSnapshot::from_horoscope_chart(&chart)
+            .temporal_panel
+            .yearly_age_cells;
+
+        assert_eq!(cells.len(), PALACE_COUNT);
+        assert!(cells.iter().all(|cell| !cell.enabled));
     }
 
     #[test]

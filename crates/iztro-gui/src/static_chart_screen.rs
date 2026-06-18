@@ -179,35 +179,21 @@ fn palace_cell(palace: &StaticPalaceView, selected: bool) -> Element<'_, Message
     .spacing(1);
 
     let mut content = column![header].spacing(4);
-    content = push_typed_badges(
-        content,
-        "主星",
-        &palace.major_stars,
-        StarGroupTone::Major,
-        4,
-    );
-    content = push_typed_badges(
-        content,
-        "辅星",
-        &palace.minor_stars,
-        StarGroupTone::Minor,
-        4,
-    );
+    content = push_typed_badges(content, "主星", &palace.major_stars, StarGroupTone::Major);
+    content = push_typed_badges(content, "辅星", &palace.minor_stars, StarGroupTone::Minor);
     content = push_typed_badges(
         content,
         "杂曜",
         &palace.adjective_stars,
         StarGroupTone::Adjective,
-        4,
     );
     content = push_typed_badges(
         content,
         "其他",
         &palace.other_typed_stars,
         StarGroupTone::Other,
-        3,
     );
-    content = push_decorative_badges(content, "神煞", &palace.decorative_stars, 3);
+    content = push_decorative_badges(content, "神煞", &palace.decorative_stars);
     for overlay in &palace.overlays {
         if overlay.temporal_palace_name_zh.is_none()
             && overlay.typed_stars.is_empty()
@@ -295,7 +281,6 @@ fn push_typed_badges<'a>(
     label: &'static str,
     stars: &[StaticTypedStarView],
     tone: StarGroupTone,
-    limit: usize,
 ) -> Column<'a, Message> {
     if stars.is_empty() {
         content
@@ -304,7 +289,6 @@ fn push_typed_badges<'a>(
             label,
             stars.iter().map(|star| star.name_zh.clone()).collect(),
             tone,
-            limit,
         ))
     }
 }
@@ -313,7 +297,6 @@ fn push_decorative_badges<'a>(
     content: Column<'a, Message>,
     label: &'static str,
     stars: &[StaticDecorativeStarView],
-    limit: usize,
 ) -> Column<'a, Message> {
     if stars.is_empty() {
         content
@@ -322,7 +305,6 @@ fn push_decorative_badges<'a>(
             label,
             stars.iter().map(|star| star.name_zh.clone()).collect(),
             StarGroupTone::Decorative,
-            limit,
         ))
     }
 }
@@ -337,7 +319,6 @@ fn overlay_badges(overlay: &StaticTemporalOverlayView) -> Element<'_, Message> {
             "流曜",
             overlay.typed_stars.iter().map(star_detail_label).collect(),
             StarGroupTone::Temporal,
-            3,
         ));
     }
     if !overlay.decorative_stars.is_empty() {
@@ -349,7 +330,6 @@ fn overlay_badges(overlay: &StaticTemporalOverlayView) -> Element<'_, Message> {
                 .map(|star| star.name_zh.clone())
                 .collect(),
             StarGroupTone::Decorative,
-            2,
         ));
     }
     if !overlay.mutagens.is_empty() {
@@ -358,7 +338,7 @@ fn overlay_badges(overlay: &StaticTemporalOverlayView) -> Element<'_, Message> {
             .iter()
             .map(|mutagen| format!("{}{}", mutagen.star_zh, mutagen.mutagen_zh))
             .collect::<Vec<_>>();
-        content = content.push(star_group("四化", labels, StarGroupTone::Temporal, 2));
+        content = content.push(star_group("四化", labels, StarGroupTone::Temporal));
     }
     content.into()
 }
@@ -461,7 +441,6 @@ fn star_group(
     label: &'static str,
     labels: Vec<String>,
     tone: StarGroupTone,
-    _limit: usize,
 ) -> Element<'static, Message> {
     row![
         star_badge(label.to_owned(), tone),
