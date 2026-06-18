@@ -39,8 +39,19 @@ saved charts.
 A generated chart renders from `StaticChartViewSnapshot` using the bundled
 Source Han Serif SC font for Chinese text. The center panel shows factual
 four-pillar labels (年柱/月柱/日柱/时柱) when the chart snapshot provides them.
-Palace cells display their own stars with category-colored labels, with a
-compact legend explaining those display categories.
+Palace cells use an iztro-like static layout: stars are zoned within each cell
+rather than shown as labeled category badges. Major stars (主星) appear in the
+upper-left in bold, larger, purple type; auxiliary/minor stars (辅星) appear in
+the upper-middle; adjective/miscellaneous stars (杂曜) appear in the upper-right.
+Brightness labels (庙旺得利平陷不) and **科 / 权 / 禄 / 忌** mutagen markers render
+inline immediately after each star name. Color and position carry the category,
+so the cells no longer show 主星/辅星/杂曜/神煞 group labels. The "twelve gods"
+decorative stars (神煞) sit along the bottom: 长生/博士 to the lower-left, 将前/岁前
+to the lower-right. A compact legend explains the tone colors. This is purely a
+renderer-side display of prepared core view models — the tone of each star is
+classified from its prepared `kind`/`family`; the GUI computes no stars, four
+pillars, decadal periods, temporal overlays, mutagens, 三方四正, readings, rules,
+成格, BaZi interpretation, or narrative.
 
 **Hovering** a palace highlights it together with its **三方四正** (opposite /
 wealth / career) related palaces: the hovered palace gets a stronger emphasis and
