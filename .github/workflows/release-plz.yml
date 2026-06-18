@@ -11,14 +11,6 @@ on:
       - 'Cargo.toml'
       - 'Cargo.lock'
       - '.github/workflows/release-plz.yml'
-
-  pull_request:
-    paths:
-      - 'crates/iztro/src/**'
-      - 'crates/iztro/Cargo.toml'
-      - 'Cargo.toml'
-      - 'Cargo.lock'
-      - '.github/workflows/release-plz.yml'
       
 permissions:
   contents: read
