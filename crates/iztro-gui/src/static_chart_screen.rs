@@ -632,37 +632,27 @@ fn temporal_navigation_panel<'a>(
     panel: &'a StaticTemporalPanelView,
     selected: Option<TemporalCell>,
 ) -> Element<'a, Message> {
-    // First row: 本命 (natal) and 限前 (pre-decadal), before the 大限 row.
-    let pre_decadal = temporal_row(
-        "本命/限前",
-        vec![
-            temporal_cell(TemporalCell::Natal, Some("本命"), None, true, selected),
-            temporal_cell(
-                TemporalCell::PreDecadal,
-                Some(panel.pre_decadal_cell.label_zh.as_str()),
-                panel.pre_decadal_cell.age_range_zh.as_deref(),
-                panel.pre_decadal_cell.enabled,
-                selected,
-            ),
-        ],
-    );
-    let decadal = temporal_row(
-        "大限",
-        panel
-            .decadal_cells
-            .iter()
-            .enumerate()
-            .map(|(i, cell)| {
-                temporal_cell(
-                    TemporalCell::Decadal(i),
-                    cell.age_range_zh.as_deref(),
-                    cell.limit_label_zh.as_deref(),
-                    cell.enabled,
-                    selected,
-                )
-            })
-            .collect(),
-    );
+    // First row: 本命 (natal) and 限前 (pre-decadal) lead the 大限 cells inline.
+    let mut decadal_cells = vec![
+        temporal_cell(TemporalCell::Natal, Some("本命"), None, true, selected),
+        temporal_cell(
+            TemporalCell::PreDecadal,
+            Some(panel.pre_decadal_cell.label_zh.as_str()),
+            panel.pre_decadal_cell.age_range_zh.as_deref(),
+            panel.pre_decadal_cell.enabled,
+            selected,
+        ),
+    ];
+    decadal_cells.extend(panel.decadal_cells.iter().enumerate().map(|(i, cell)| {
+        temporal_cell(
+            TemporalCell::Decadal(i),
+            cell.age_range_zh.as_deref(),
+            cell.limit_label_zh.as_deref(),
+            cell.enabled,
+            selected,
+        )
+    }));
+    let decadal = temporal_row("本命/限前/大限", decadal_cells);
     let yearly = temporal_row(
         "流年/小限",
         panel
@@ -685,7 +675,7 @@ fn temporal_navigation_panel<'a>(
         nav_cells(&panel.month_cells, selected, TemporalCell::Month),
     );
 
-    let mut rows = column![pre_decadal, decadal, yearly, month].spacing(4);
+    let mut rows = column![decadal, yearly, month].spacing(4);
     for (r, days) in panel.day_rows.iter().enumerate() {
         let widgets = days
             .iter()
