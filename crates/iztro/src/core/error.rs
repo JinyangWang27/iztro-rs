@@ -222,6 +222,16 @@ pub enum ChartError {
         /// Number of periods available in the derived decadal frame.
         len: usize,
     },
+    /// A temporal navigation selection carried an out-of-range child index.
+    #[error("invalid temporal selection index {field}: expected 0..={max}, got {value}")]
+    InvalidTemporalSelectionIndex {
+        /// Field name, e.g. "year_index", "month_index", "day_index", "hour_index".
+        field: &'static str,
+        /// Provided value.
+        value: u8,
+        /// Inclusive maximum valid value.
+        max: u8,
+    },
     /// A nominal age has no covering period in the derived decadal frame.
     #[error("nominal age {nominal_age} is outside the derived decadal frame")]
     NominalAgeOutsideDecadalFrame {

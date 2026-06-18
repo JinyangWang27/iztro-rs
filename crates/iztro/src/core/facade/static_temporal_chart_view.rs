@@ -48,6 +48,7 @@ pub fn static_temporal_chart_view(
     selection: StaticTemporalNavigationSelection,
 ) -> Result<StaticChartViewSnapshot, ChartError> {
     let natal = by_solar(request)?;
+    validate_selection_indices(selection)?;
 
     match selection {
         StaticTemporalNavigationSelection::Natal
@@ -67,6 +68,60 @@ pub fn static_temporal_chart_view(
                 StaticTemporalPanelView::from_selection(horoscope.natal(), selection);
             Ok(snapshot)
         }
+    }
+}
+
+fn validate_selection_indices(
+    selection: StaticTemporalNavigationSelection,
+) -> Result<(), ChartError> {
+    match selection {
+        StaticTemporalNavigationSelection::Yearly { year_index, .. } if year_index > 9 => {
+            Err(ChartError::InvalidTemporalSelectionIndex {
+                field: "year_index",
+                value: year_index,
+                max: 9,
+            })
+        }
+        StaticTemporalNavigationSelection::Monthly { year_index, .. }
+        | StaticTemporalNavigationSelection::Daily { year_index, .. }
+        | StaticTemporalNavigationSelection::Hourly { year_index, .. }
+            if year_index > 9 =>
+        {
+            Err(ChartError::InvalidTemporalSelectionIndex {
+                field: "year_index",
+                value: year_index,
+                max: 9,
+            })
+        }
+        StaticTemporalNavigationSelection::Monthly { month_index, .. }
+        | StaticTemporalNavigationSelection::Daily { month_index, .. }
+        | StaticTemporalNavigationSelection::Hourly { month_index, .. }
+            if month_index > 11 =>
+        {
+            Err(ChartError::InvalidTemporalSelectionIndex {
+                field: "month_index",
+                value: month_index,
+                max: 11,
+            })
+        }
+        StaticTemporalNavigationSelection::Daily { day_index, .. }
+        | StaticTemporalNavigationSelection::Hourly { day_index, .. }
+            if day_index > 29 =>
+        {
+            Err(ChartError::InvalidTemporalSelectionIndex {
+                field: "day_index",
+                value: day_index,
+                max: 29,
+            })
+        }
+        StaticTemporalNavigationSelection::Hourly { hour_index, .. } if hour_index > 11 => {
+            Err(ChartError::InvalidTemporalSelectionIndex {
+                field: "hour_index",
+                value: hour_index,
+                max: 11,
+            })
+        }
+        _ => Ok(()),
     }
 }
 

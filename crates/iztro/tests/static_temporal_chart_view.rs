@@ -7,8 +7,8 @@
 //! never natal facts.
 
 use iztro::core::{
-    BirthTime, ChartAlgorithmKind, Gender, MethodProfile, Scope, SolarChartRequest, SolarDay,
-    SolarMonth, StaticTemporalNavigationSelection, static_temporal_chart_view,
+    BirthTime, ChartAlgorithmKind, ChartError, Gender, MethodProfile, Scope, SolarChartRequest,
+    SolarDay, SolarMonth, StaticTemporalNavigationSelection, static_temporal_chart_view,
 };
 
 fn sample_request() -> SolarChartRequest {
@@ -341,4 +341,90 @@ fn snapshot_with_selection_flags_serializes_round_trip() {
     let back: iztro::core::StaticChartViewSnapshot =
         serde_json::from_str(&json).expect("deserialize");
     assert_eq!(snapshot, back);
+}
+
+#[test]
+fn yearly_selection_rejects_out_of_range_year_index() {
+    let result = static_temporal_chart_view(
+        sample_request(),
+        StaticTemporalNavigationSelection::Yearly {
+            decadal_index: 2,
+            year_index: 10,
+        },
+    );
+
+    assert_eq!(
+        result,
+        Err(ChartError::InvalidTemporalSelectionIndex {
+            field: "year_index",
+            value: 10,
+            max: 9,
+        })
+    );
+}
+
+#[test]
+fn monthly_selection_rejects_out_of_range_month_index() {
+    let result = static_temporal_chart_view(
+        sample_request(),
+        StaticTemporalNavigationSelection::Monthly {
+            decadal_index: 2,
+            year_index: 0,
+            month_index: 12,
+        },
+    );
+
+    assert_eq!(
+        result,
+        Err(ChartError::InvalidTemporalSelectionIndex {
+            field: "month_index",
+            value: 12,
+            max: 11,
+        })
+    );
+}
+
+#[test]
+fn daily_selection_rejects_out_of_range_day_index() {
+    let result = static_temporal_chart_view(
+        sample_request(),
+        StaticTemporalNavigationSelection::Daily {
+            decadal_index: 2,
+            year_index: 0,
+            month_index: 0,
+            day_index: 30,
+        },
+    );
+
+    assert_eq!(
+        result,
+        Err(ChartError::InvalidTemporalSelectionIndex {
+            field: "day_index",
+            value: 30,
+            max: 29,
+        })
+    );
+}
+
+#[test]
+fn hourly_selection_rejects_out_of_range_hour_index() {
+    let result = static_temporal_chart_view(
+        sample_request(),
+        StaticTemporalNavigationSelection::Hourly {
+            decadal_index: 2,
+            year_index: 0,
+            month_index: 0,
+            day_index: 0,
+            hour_index: 12,
+        },
+    );
+
+    assert_eq!(
+        result,
+        Err(ChartError::InvalidTemporalSelectionIndex {
+            field: "hour_index",
+            value: 12,
+            max: 11,
+        })
+    );
 }
