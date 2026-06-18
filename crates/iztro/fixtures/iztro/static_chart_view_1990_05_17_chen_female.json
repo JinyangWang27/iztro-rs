@@ -131,7 +131,12 @@
           }
         ],
         "stem": "xin",
-        "stem_zh": "辛"
+        "stem_zh": "辛",
+        "surround": {
+          "career": "you",
+          "opposite": "hai",
+          "wealth": "chou"
+        }
       },
       {
         "adjective_stars": [
@@ -280,7 +285,12 @@
           }
         ],
         "stem": "ren",
-        "stem_zh": "壬"
+        "stem_zh": "壬",
+        "surround": {
+          "career": "xu",
+          "opposite": "zi",
+          "wealth": "yin"
+        }
       },
       {
         "adjective_stars": [
@@ -441,7 +451,12 @@
           }
         ],
         "stem": "gui",
-        "stem_zh": "癸"
+        "stem_zh": "癸",
+        "surround": {
+          "career": "hai",
+          "opposite": "chou",
+          "wealth": "mao"
+        }
       },
       {
         "adjective_stars": [
@@ -578,7 +593,12 @@
           }
         ],
         "stem": "jia",
-        "stem_zh": "甲"
+        "stem_zh": "甲",
+        "surround": {
+          "career": "zi",
+          "opposite": "yin",
+          "wealth": "chen"
+        }
       },
       {
         "adjective_stars": [
@@ -690,7 +710,12 @@
           }
         ],
         "stem": "geng",
-        "stem_zh": "庚"
+        "stem_zh": "庚",
+        "surround": {
+          "career": "shen",
+          "opposite": "xu",
+          "wealth": "zi"
+        }
       },
       {
         "adjective_stars": [
@@ -803,7 +828,12 @@
           }
         ],
         "stem": "yi",
-        "stem_zh": "乙"
+        "stem_zh": "乙",
+        "surround": {
+          "career": "chou",
+          "opposite": "mao",
+          "wealth": "si"
+        }
       },
       {
         "adjective_stars": [
@@ -916,7 +946,12 @@
           }
         ],
         "stem": "ji",
-        "stem_zh": "己"
+        "stem_zh": "己",
+        "surround": {
+          "career": "wei",
+          "opposite": "you",
+          "wealth": "hai"
+        }
       },
       {
         "adjective_stars": [
@@ -1031,7 +1066,12 @@
           }
         ],
         "stem": "bing",
-        "stem_zh": "丙"
+        "stem_zh": "丙",
+        "surround": {
+          "career": "yin",
+          "opposite": "chen",
+          "wealth": "wu"
+        }
       },
       {
         "adjective_stars": [
@@ -1143,7 +1183,12 @@
           }
         ],
         "stem": "wu",
-        "stem_zh": "戊"
+        "stem_zh": "戊",
+        "surround": {
+          "career": "wu",
+          "opposite": "shen",
+          "wealth": "xu"
+        }
       },
       {
         "adjective_stars": [
@@ -1232,7 +1277,12 @@
           }
         ],
         "stem": "ji",
-        "stem_zh": "己"
+        "stem_zh": "己",
+        "surround": {
+          "career": "si",
+          "opposite": "wei",
+          "wealth": "you"
+        }
       },
       {
         "adjective_stars": [
@@ -1344,7 +1394,12 @@
           }
         ],
         "stem": "wu",
-        "stem_zh": "戊"
+        "stem_zh": "戊",
+        "surround": {
+          "career": "chen",
+          "opposite": "wu",
+          "wealth": "shen"
+        }
       },
       {
         "adjective_stars": [
@@ -1444,7 +1499,12 @@
           }
         ],
         "stem": "ding",
-        "stem_zh": "丁"
+        "stem_zh": "丁",
+        "surround": {
+          "career": "mao",
+          "opposite": "si",
+          "wealth": "wei"
+        }
       }
     ],
     "selectors": [

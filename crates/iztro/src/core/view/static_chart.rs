@@ -295,6 +295,43 @@ fn navigation_cells(labels: &[&str]) -> Vec<StaticNavigationCellView> {
         .collect()
 }
 
+/// The 三方四正 (san fang si zheng) related palaces for one palace, by branch.
+///
+/// These are deterministic positional facts, not interpretation. The convention
+/// matches the horoscope runtime ([`opposite`](Self::opposite) = `+6`,
+/// [`wealth`](Self::wealth) = `+8`, [`career`](Self::career) = `+4`), so a
+/// renderer never performs branch arithmetic of its own.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+pub struct StaticSurroundPalacesView {
+    /// 对宫 — the opposite palace (`+6`).
+    pub opposite: EarthlyBranch,
+    /// 财帛位 — the wealth trine palace (`+8`).
+    pub wealth: EarthlyBranch,
+    /// 官禄位 — the career trine palace (`+4`).
+    pub career: EarthlyBranch,
+}
+
+impl StaticSurroundPalacesView {
+    /// Builds the 三方四正 branch set for `branch` using the canonical offsets.
+    pub fn for_branch(branch: EarthlyBranch) -> Self {
+        Self {
+            opposite: branch.offset(6),
+            wealth: branch.offset(8),
+            career: branch.offset(4),
+        }
+    }
+
+    /// The three related branches, in `[opposite, wealth, career]` order.
+    pub fn branches(&self) -> [EarthlyBranch; 3] {
+        [self.opposite, self.wealth, self.career]
+    }
+
+    /// Whether `branch` is one of the three 三方四正 related palaces.
+    pub fn involves(&self, branch: EarthlyBranch) -> bool {
+        self.branches().contains(&branch)
+    }
+}
+
 /// One perimeter palace cell of a static chart.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct StaticPalaceView {
@@ -304,6 +341,12 @@ pub struct StaticPalaceView {
     pub branch_zh: String,
     /// Fixed 4x4 perimeter-grid position.
     pub grid_position: PalaceGridPosition,
+    /// The 三方四正 related palaces (by branch) for this palace.
+    ///
+    /// A pure positional fact derived from the palace branch; it carries no
+    /// interpretation. Renderers use it to highlight a palace's surrounding
+    /// influence set without performing any branch arithmetic themselves.
+    pub surround: StaticSurroundPalacesView,
     /// Natal palace name.
     pub name: PalaceName,
     /// Chinese label for the natal palace name.
@@ -664,6 +707,7 @@ impl StaticPalaceView {
             branch: palace.branch(),
             branch_zh: zh_cn::earthly_branch_zh(palace.branch()).to_owned(),
             grid_position: palace_grid_position(palace.branch()),
+            surround: StaticSurroundPalacesView::for_branch(palace.branch()),
             name: palace.name(),
             name_zh: zh_cn::palace_name_zh(palace.name()).to_owned(),
             stem: palace.stem(),
@@ -945,6 +989,53 @@ mod tests {
         let snapshot = StaticChartViewSnapshot::from_chart(&sample_chart());
         assert!(snapshot.highlights.is_empty());
         assert!(snapshot.palaces.iter().all(|p| p.highlights.is_empty()));
+    }
+
+    #[test]
+    fn surround_uses_canonical_offsets() {
+        let snapshot = StaticChartViewSnapshot::from_chart(&sample_chart());
+        for palace in &snapshot.palaces {
+            // 三方四正 must match the horoscope runtime offsets exactly.
+            assert_eq!(palace.surround.opposite, palace.branch.offset(6));
+            assert_eq!(palace.surround.wealth, palace.branch.offset(8));
+            assert_eq!(palace.surround.career, palace.branch.offset(4));
+            // The palace itself is never part of its own 三方四正 set.
+            assert!(!palace.surround.involves(palace.branch));
+            assert_eq!(
+                palace.surround.branches(),
+                [
+                    palace.surround.opposite,
+                    palace.surround.wealth,
+                    palace.surround.career
+                ]
+            );
+        }
+    }
+
+    #[test]
+    fn surround_roundtrips_through_json() {
+        let snapshot = StaticChartViewSnapshot::from_chart(&sample_chart());
+        let palace = &snapshot.palaces[0];
+        let encoded = serde_json::to_string(palace).expect("palace serializes");
+        let decoded: StaticPalaceView =
+            serde_json::from_str(&encoded).expect("palace deserializes");
+        assert_eq!(decoded.surround, palace.surround);
+        assert!(encoded.contains("\"surround\""));
+        assert!(encoded.contains("\"opposite\""));
+        assert!(encoded.contains("\"wealth\""));
+        assert!(encoded.contains("\"career\""));
+    }
+
+    #[test]
+    fn surround_is_a_natal_fact_independent_of_overlays() {
+        let chart = sample_horoscope_chart();
+        let natal_only = StaticChartViewSnapshot::from_chart(chart.natal());
+        let with_overlays = StaticChartViewSnapshot::from_horoscope_chart(&chart);
+        for (a, b) in natal_only.palaces.iter().zip(&with_overlays.palaces) {
+            assert_eq!(a.branch, b.branch);
+            // 三方四正 is a positional natal fact; overlays never change it.
+            assert_eq!(a.surround, b.surround);
+        }
     }
 
     #[test]

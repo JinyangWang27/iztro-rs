@@ -119,6 +119,6 @@ pub use view::static_chart::{
     HighlightView, StaticChartCenterView, StaticChartSelectorView, StaticChartViewRequest,
     StaticChartViewSnapshot, StaticDecadalCellView, StaticDecorativeStarView,
     StaticFourPillarsView, StaticNavigationCellView, StaticOverlayMutagenView, StaticPalaceRole,
-    StaticPalaceView, StaticTemporalOverlayView, StaticTemporalPanelView, StaticTypedStarView,
-    StaticYearlyAgeCellView,
+    StaticPalaceView, StaticSurroundPalacesView, StaticTemporalOverlayView,
+    StaticTemporalPanelView, StaticTypedStarView, StaticYearlyAgeCellView,
 };
