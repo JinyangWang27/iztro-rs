@@ -1332,7 +1332,7 @@ mod tests {
             assert_eq!(selector.enabled, is_natal);
             assert_eq!(selector.selected, is_natal);
         }
-        // Selectors follow the fixed 文墨天机 display order.
+        // Selectors follow the fixed display order.
         let order: Vec<Scope> = snapshot.selectors.iter().map(|s| s.scope).collect();
         assert_eq!(order, SELECTOR_ORDER.to_vec());
         // Labels are correct.

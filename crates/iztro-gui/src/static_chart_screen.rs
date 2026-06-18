@@ -1,4 +1,4 @@
-//! Iced rendering of one [`StaticChartViewSnapshot`] in a 文墨天机-style layout.
+//! Iced rendering of one [`StaticChartViewSnapshot`] in a layout.
 //!
 //! The screen is a composed grid — a top row of four palaces, a middle band with
 //! a left palace column, a center panel spanning the middle 2x2, and a right
@@ -26,7 +26,7 @@ use iztro::core::{
 use crate::app::{BirthForm, BirthInput, Message, Screen, StaticChartApp, TemporalCell};
 
 // ---------------------------------------------------------------------------
-// iztro / 文墨天机 palace-cell star tones
+// iztro palace-cell star tones
 //
 // These colors classify *display* only. The category each color encodes is
 // read from prepared core view fields (`StaticTypedStarView.kind`,
@@ -173,10 +173,7 @@ fn saved_charts_panel(saved: &[BirthInput]) -> Element<'_, Message> {
         .into()
 }
 
-// ---------------------------------------------------------------------------
 // Birth input
-// ---------------------------------------------------------------------------
-
 fn input_bar<'a>(form: &BirthForm, error: Option<&'a str>) -> Element<'a, Message> {
     let fields = row![
         labeled(
@@ -240,10 +237,7 @@ fn labeled<'a>(label: &'a str, control: impl Into<Element<'a, Message>>) -> Elem
         .into()
 }
 
-// ---------------------------------------------------------------------------
-// Palace grid (文墨天机 composed layout)
-// ---------------------------------------------------------------------------
-
+// Palace grid
 fn palace_grid<'a>(
     app: &'a StaticChartApp,
     snapshot: &'a StaticChartViewSnapshot,
@@ -961,10 +955,7 @@ impl fmt::Display for GenderChoice {
     }
 }
 
-// ---------------------------------------------------------------------------
 // Styles
-// ---------------------------------------------------------------------------
-
 fn palace_cell_style(
     highlight: PalaceHighlight,
 ) -> impl Fn(&Theme, button::Status) -> button::Style {
@@ -979,7 +970,7 @@ fn palace_cell_style(
             ),
             // 三方四正 related palaces get a subtle filled background, weaker
             // than the active palace above (a soft fill rather than only a
-            // border), matching the iztro/文墨天机 highlight feel.
+            // border), matching the iztro highlight feel.
             PalaceHighlight::Related => (
                 palette.background.weak.color,
                 palette.background.weak.text,
