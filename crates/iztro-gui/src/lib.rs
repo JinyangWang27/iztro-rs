@@ -59,4 +59,13 @@ mod tests {
              recreates a Wayland surface during resize"
         );
     }
+
+    #[test]
+    fn wsl_launch_forces_the_stable_xwayland_path() {
+        let source = include_str!("main.rs");
+
+        assert!(source.contains(concat!("var_os(\"WSL_", "DISTRO_NAME\")")));
+        assert!(source.contains(concat!("remove_var(\"WAYLAND_", "DISPLAY\")")));
+        assert!(source.contains(concat!("remove_var(\"WAYLAND_", "SOCKET\")")));
+    }
 }
