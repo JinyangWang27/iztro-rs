@@ -11,7 +11,7 @@ use super::labels::{bureau_label, center_four_pillar_rows, fact_row, gender_zh, 
 use super::style::{
     ADJ_GRAY, BRIGHTNESS_GRAY, DECOR_GOD_OLIVE, DECORATIVE_AREA_HEIGHT, LU_CUN_ORANGE,
     MAJOR_PURPLE, MINOR_MALEFIC, PEACH_MAGENTA, TIAN_MA_BLUE, center_panel_style,
-    mutagen_inline_badge, palace_cell_style, subtle_text_style,
+    mutagen_badge_color, mutagen_inline_badge, palace_cell_style, subtle_text_style,
 };
 use super::temporal::overlay_badges;
 
@@ -94,12 +94,6 @@ pub(super) fn palace_cell(
     palace: &StaticPalaceView,
     highlight: PalaceHighlight,
 ) -> Element<'_, Message> {
-    let header = column![
-        text(palace.name_zh.as_str()).size(16),
-        text(format!("{}{}", palace.stem_zh, palace.branch_zh)).size(12),
-    ]
-    .spacing(1);
-
     // Zone every prepared natal typed star by its coarse `kind.category()`:
     // major top-left, minor top-middle, adjective top-right. Routing by the
     // prepared kind keeps placement correct regardless of which source vec a
@@ -128,7 +122,7 @@ pub(super) fn palace_cell(
     .spacing(4)
     .align_y(Alignment::Start);
 
-    let mut content = column![header, star_area].spacing(4);
+    let mut content = column![star_area].spacing(4);
     for overlay in &palace.overlays {
         if overlay.temporal_palace_name_zh.is_none()
             && overlay.typed_stars.is_empty()
@@ -154,22 +148,18 @@ pub(super) fn palace_cell(
             }
         }
     }
-    let has_decorative = !gods_left.is_empty() || !gods_right.is_empty();
-    let content: Element<'_, Message> = if has_decorative {
-        let main_layer = container(content)
+    let main_layer = container(content)
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .padding(Padding {
+            bottom: DECORATIVE_AREA_HEIGHT,
+            ..Padding::ZERO
+        });
+    let content: Element<'_, Message> =
+        stack![main_layer, bottom_decorative_layer(palace, gods_left, gods_right),]
             .width(Length::Fill)
             .height(Length::Fill)
-            .padding(Padding {
-                bottom: DECORATIVE_AREA_HEIGHT,
-                ..Padding::ZERO
-            });
-        stack![main_layer, bottom_decorative_layer(gods_left, gods_right),]
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .into()
-    } else {
-        content.into()
-    };
+            .into();
 
     let cell = button(content)
         .on_press(Message::SelectPalace(palace.branch))
@@ -276,14 +266,32 @@ fn decorative_column(
 }
 
 /// Renders decorative stars independently from variable-height main/overlay
-/// content, keeping both prepared family zones visible at the cell bottom.
-fn bottom_decorative_layer(
-    gods_left: Vec<&StaticDecorativeStarView>,
-    gods_right: Vec<&StaticDecorativeStarView>,
-) -> Element<'static, Message> {
-    let decorative_area = row![
-        container(decorative_column(gods_left, DECOR_GOD_OLIVE)).width(Length::FillPortion(1)),
+/// content, keeping both prepared family zones visible above the anchored
+/// palace-name footer labels.
+fn bottom_decorative_layer<'a>(
+    palace: &'a StaticPalaceView,
+    gods_left: Vec<&'a StaticDecorativeStarView>,
+    gods_right: Vec<&'a StaticDecorativeStarView>,
+) -> Element<'a, Message> {
+    let left = column![
+        container(decorative_column(gods_left, DECOR_GOD_OLIVE)).width(Length::Fill),
+        text(palace.name_zh.as_str()).size(16).color(MAJOR_PURPLE),
+    ]
+    .spacing(1)
+    .align_x(Alignment::Start);
+    let right = column![
         container(decorative_column(gods_right, MINOR_MALEFIC))
+            .width(Length::Fill)
+            .align_x(Alignment::End),
+        text(format!("{}{}", palace.stem_zh, palace.branch_zh))
+            .size(12)
+            .color(mutagen_badge_color(Mutagen::Ke)),
+    ]
+    .spacing(1)
+    .align_x(Alignment::End);
+    let decorative_area = row![
+        container(left).width(Length::FillPortion(1)).align_x(Alignment::Start),
+        container(right)
             .width(Length::FillPortion(1))
             .align_x(Alignment::End),
     ]

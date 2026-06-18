@@ -33,8 +33,8 @@ pub(super) const PEACH_MAGENTA: Color = rgb8(0xc3, 0x1d, 0x7f);
 /// 长生十二神 / 博士十二神 decorative gods (bottom-left).
 pub(super) const DECOR_GOD_OLIVE: Color = rgb8(0x90, 0x98, 0x3c);
 /// Vertical space reserved so variable-height temporal overlays cannot cover the
-/// two decorative-star lines anchored at the bottom of a palace cell.
-pub(super) const DECORATIVE_AREA_HEIGHT: f32 = 28.0;
+/// bottom footer layer: decorative-star lines plus the anchored palace/stem labels.
+pub(super) const DECORATIVE_AREA_HEIGHT: f32 = 46.0;
 
 /// 化禄 badge background.
 const MUTAGEN_LU: Color = rgb8(0xd4, 0x38, 0x0d);

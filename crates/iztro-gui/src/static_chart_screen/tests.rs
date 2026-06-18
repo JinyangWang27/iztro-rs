@@ -195,6 +195,20 @@ fn palace_cell_uses_a_dedicated_bottom_decorative_layer() {
 }
 
 #[test]
+fn palace_footer_anchors_name_left_and_stem_branch_right() {
+    let source = include_str!("palace.rs");
+
+    assert!(source.contains("text(palace.name_zh.as_str()).size(16).color(MAJOR_PURPLE)"));
+    assert!(
+        source.contains(
+            "text(format!(\"{}{}\", palace.stem_zh, palace.branch_zh))\n            .size(12)\n            .color(mutagen_badge_color(Mutagen::Ke))"
+        )
+    );
+    assert!(source.contains("align_x(Alignment::Start)"));
+    assert!(source.contains("align_x(Alignment::End)"));
+}
+
+#[test]
 fn palace_highlight_is_disjoint_between_selected_and_related() {
     // Selected always wins over related; none/selected/related are distinct.
     assert_ne!(PalaceHighlight::Selected, PalaceHighlight::Related);
