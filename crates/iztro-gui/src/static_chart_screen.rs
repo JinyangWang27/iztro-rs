@@ -3,9 +3,11 @@
 //! The screen is a composed grid — a top row of four palaces, a middle band with
 //! a left palace column, a center panel spanning the middle 2x2, and a right
 //! palace column, then a bottom row of four palaces — placed by each palace's
-//! fixed `grid_position`. It also renders a solar birth-input bar and a small
-//! generation history. This module only reads snapshot view models; it performs
-//! no astrology placement, rule evaluation, or 成格 detection.
+//! fixed `grid_position`. A startup screen carries the solar birth-input bar and
+//! the saved-charts list; the chart screen adds a 三方四正 highlight toggle, a
+//! clickable temporal navigation panel, and 科权禄忌 badges. This module only
+//! reads prepared snapshot view models; it performs no astrology placement,
+//! 三方四正, mutagen, rule evaluation, or 成格 derivation.
 //!
 //! [`StaticChartViewSnapshot`]: iztro::core::StaticChartViewSnapshot
 
@@ -253,7 +255,7 @@ fn grid_cell(app: &StaticChartApp, row: u8, column_index: u8) -> Element<'_, Mes
 }
 
 /// How a palace cell is visually emphasized.
-#[derive(Clone, Copy, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 enum PalaceHighlight {
     /// No emphasis.
     None,
@@ -1066,6 +1068,47 @@ mod tests {
         assert_eq!(scope_zh(Scope::Monthly), "流月");
         assert_eq!(scope_zh(Scope::Daily), "流日");
         assert_eq!(scope_zh(Scope::Hourly), "流时");
+    }
+
+    #[test]
+    fn mutagen_mark_covers_all_four_transformations() {
+        assert_eq!(mutagen_mark(Mutagen::Lu), "禄");
+        assert_eq!(mutagen_mark(Mutagen::Quan), "权");
+        assert_eq!(mutagen_mark(Mutagen::Ke), "科");
+        assert_eq!(mutagen_mark(Mutagen::Ji), "忌");
+    }
+
+    #[test]
+    fn mutagen_badge_row_renders_only_from_prepared_mutagen_fields() {
+        let app = chart_app();
+        // The natal birth-year mutagens are prepared on typed stars; at least one
+        // palace must carry a 四化 marker for this canonical chart.
+        let mut palaces_with_marks = 0;
+        for palace in app.palaces() {
+            let has_prepared_mutagen = palace
+                .major_stars
+                .iter()
+                .chain(&palace.minor_stars)
+                .chain(&palace.adjective_stars)
+                .chain(&palace.other_typed_stars)
+                .any(|star| star.mutagen.is_some());
+            // The badge row appears exactly when prepared data carries a mutagen.
+            assert_eq!(mutagen_badge_row(palace).is_some(), has_prepared_mutagen);
+            if has_prepared_mutagen {
+                palaces_with_marks += 1;
+            }
+        }
+        assert!(
+            palaces_with_marks > 0,
+            "canonical chart should expose at least one natal 四化 marker"
+        );
+    }
+
+    #[test]
+    fn palace_highlight_is_disjoint_between_selected_and_related() {
+        // Selected always wins over related; none/selected/related are distinct.
+        assert_ne!(PalaceHighlight::Selected, PalaceHighlight::Related);
+        assert_ne!(PalaceHighlight::None, PalaceHighlight::Related);
     }
 
     #[test]

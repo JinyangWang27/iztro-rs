@@ -26,13 +26,31 @@ The workspace also includes a local desktop prototype:
 cargo run -p iztro-gui
 ```
 
-It renders a static natal chart from `StaticChartViewSnapshot` using the bundled
+It opens on a **startup page** rather than generating a default chart: enter
+birth details and generate a chart, or reopen one of the locally **saved
+charts**. Generated charts are persisted to a small JSON file under the
+per-user data directory (`<data_dir>/iztro-gui/charts.json`); only the
+normalized birth input is stored, and each saved chart is rebuilt
+deterministically through `by_solar` when reopened.
+
+A generated chart renders from `StaticChartViewSnapshot` using the bundled
 Source Han Serif SC font for Chinese text. The center panel shows factual
 four-pillar labels (年柱/月柱/日柱/时柱) when the chart snapshot provides them.
 Palace cells display their own stars with category-colored labels, with a
-compact legend explaining those display categories. A bottom temporal panel
-shows factual decadal cells where available plus static month, day, and hour
-navigation labels. The panel is navigation-only in this prototype: it does not
-switch temporal scopes or provide target-date controls.
+compact legend explaining those display categories.
+
+Selecting a palace subtly highlights its **三方四正** (opposite / wealth / career)
+related palaces; a toolbar toggle controls this highlight mode. The relationship
+comes entirely from a prepared, renderer-neutral `surround` field on each palace
+view — the GUI performs no branch arithmetic. Natal stars carrying a mutagen
+show compact, category-colored **科 / 权 / 禄 / 忌** badges read from the prepared
+`mutagen` fields; the GUI computes no mutagens itself.
+
+A bottom temporal panel shows factual decadal cells where available plus month,
+day, and hour navigation labels. Its enabled cells are now **clickable** and
+track a selected temporal cell in GUI state only; disabled cells stay inert. The
+panel still does not switch temporal scopes or provide target-date controls, and
+there is no permanent selected-palace detail panel.
+
 This GUI remains a prototype chart-fact viewer; it does not provide readings,
 rules, 成格 detection, BaZi interpretation, or narrative output.
