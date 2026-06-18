@@ -74,21 +74,42 @@ pub enum TemporalCell {
     Hour(usize),
 }
 
-impl TemporalCell {
-    /// Maps this renderer cell to the renderer-neutral core selection that core
-    /// resolves into a prepared snapshot.
-    pub fn selection(self) -> StaticTemporalNavigationSelection {
-        match self {
-            TemporalCell::Natal => StaticTemporalNavigationSelection::Natal,
-            TemporalCell::PreDecadal => StaticTemporalNavigationSelection::PreDecadal,
-            TemporalCell::Decadal(index) => StaticTemporalNavigationSelection::Decadal { index },
-            TemporalCell::YearlyAge(index) => {
-                StaticTemporalNavigationSelection::YearlyAge { index }
-            }
-            TemporalCell::Month(index) => StaticTemporalNavigationSelection::Month { index },
-            TemporalCell::Day(row, index) => StaticTemporalNavigationSelection::Day { row, index },
-            TemporalCell::Hour(index) => StaticTemporalNavigationSelection::Hour { index },
+/// Extends or resets the current hierarchical temporal path for one clicked cell.
+///
+/// Child cells require their parent indices to exist. Selecting an ancestor
+/// returns a shallower variant, which automatically clears invalid descendants.
+fn next_temporal_selection(
+    current: StaticTemporalNavigationSelection,
+    clicked: TemporalCell,
+) -> Option<StaticTemporalNavigationSelection> {
+    match clicked {
+        TemporalCell::Natal => Some(StaticTemporalNavigationSelection::Natal),
+        TemporalCell::PreDecadal => Some(StaticTemporalNavigationSelection::PreDecadal),
+        TemporalCell::Decadal(decadal_index) => {
+            Some(StaticTemporalNavigationSelection::Decadal { decadal_index })
         }
+        TemporalCell::YearlyAge(index) => Some(StaticTemporalNavigationSelection::Yearly {
+            decadal_index: current.decadal_index()?,
+            year_index: u8::try_from(index).ok()?,
+        }),
+        TemporalCell::Month(index) => Some(StaticTemporalNavigationSelection::Monthly {
+            decadal_index: current.decadal_index()?,
+            year_index: current.year_index()?,
+            month_index: u8::try_from(index).ok()?,
+        }),
+        TemporalCell::Day(row, column) => Some(StaticTemporalNavigationSelection::Daily {
+            decadal_index: current.decadal_index()?,
+            year_index: current.year_index()?,
+            month_index: current.month_index()?,
+            day_index: u8::try_from(row.checked_mul(10)?.checked_add(column)?).ok()?,
+        }),
+        TemporalCell::Hour(index) => Some(StaticTemporalNavigationSelection::Hourly {
+            decadal_index: current.decadal_index()?,
+            year_index: current.year_index()?,
+            month_index: current.month_index()?,
+            day_index: current.day_index()?,
+            hour_index: u8::try_from(index).ok()?,
+        }),
     }
 }
 
@@ -195,12 +216,12 @@ pub struct ChartCache {
 }
 
 impl ChartCache {
-    /// Returns the cached natal snapshot for `input`, building it on a miss.
+    /// Returns the cached pre-decadal snapshot for `input`, building it on a miss.
     pub fn get_or_build(
         &mut self,
         input: &BirthInput,
     ) -> Result<(StaticChartViewSnapshot, bool), ChartError> {
-        self.get_or_build_with(input, StaticTemporalNavigationSelection::Natal)
+        self.get_or_build_with(input, StaticTemporalNavigationSelection::PreDecadal)
     }
 
     /// Returns the cached snapshot for `(input, selection)`, building and storing
@@ -244,10 +265,10 @@ impl ChartCache {
         self.entries.is_empty()
     }
 
-    /// Whether the natal snapshot for `input` is currently cached.
+    /// Whether the default pre-decadal snapshot for `input` is currently cached.
     pub fn contains(&self, input: &BirthInput) -> bool {
         self.entries
-            .contains_key(&(*input, StaticTemporalNavigationSelection::Natal))
+            .contains_key(&(*input, StaticTemporalNavigationSelection::PreDecadal))
     }
 }
 
@@ -294,7 +315,7 @@ pub struct StaticChartApp {
     snapshot: Option<StaticChartViewSnapshot>,
     selected: Option<EarthlyBranch>,
     hovered_palace: Option<EarthlyBranch>,
-    selected_temporal: Option<TemporalCell>,
+    selected_temporal_selection: StaticTemporalNavigationSelection,
     highlight_san_fang: bool,
     error: Option<String>,
     cache: ChartCache,
@@ -315,7 +336,7 @@ impl StaticChartApp {
             snapshot: None,
             selected: None,
             hovered_palace: None,
-            selected_temporal: None,
+            selected_temporal_selection: StaticTemporalNavigationSelection::PreDecadal,
             highlight_san_fang: true,
             error: None,
             cache: ChartCache::default(),
@@ -444,9 +465,9 @@ impl StaticChartApp {
         self.palaces().iter().find(|palace| palace.branch == branch)
     }
 
-    /// Returns the currently selected temporal cell, if any.
-    pub fn selected_temporal(&self) -> Option<TemporalCell> {
-        self.selected_temporal
+    /// Returns the authoritative hierarchical temporal selection path.
+    pub fn selected_temporal_selection(&self) -> StaticTemporalNavigationSelection {
+        self.selected_temporal_selection
     }
 
     /// Whether 三方四正 highlight mode is enabled.
@@ -507,7 +528,7 @@ impl StaticChartApp {
                 self.input = Some(input);
                 self.selected = None;
                 self.hovered_palace = None;
-                self.selected_temporal = None;
+                self.selected_temporal_selection = StaticTemporalNavigationSelection::PreDecadal;
                 self.error = None;
                 self.screen = Screen::Chart;
                 let newly_saved = !self.saved.contains(&input);
@@ -557,15 +578,19 @@ impl StaticChartApp {
             Message::SelectTemporalCell(cell) => {
                 // Disabled cells stay inert: no selection, no snapshot change.
                 if self.temporal_cell_enabled(cell) {
-                    self.selected_temporal = Some(cell);
-                    // Ask core/facade for the prepared slice for this selection.
-                    // Natal facts are identical across selections; only overlays
-                    // differ. A facade error keeps the current snapshot.
+                    let Some(selection) =
+                        next_temporal_selection(self.selected_temporal_selection, cell)
+                    else {
+                        return;
+                    };
                     if let Some(input) = self.input {
-                        if let Ok((snapshot, _)) =
-                            self.cache.get_or_build_with(&input, cell.selection())
-                        {
-                            self.snapshot = Some(snapshot);
+                        match self.cache.get_or_build_with(&input, selection) {
+                            Ok((snapshot, _)) => {
+                                self.selected_temporal_selection = selection;
+                                self.snapshot = Some(snapshot);
+                                self.error = None;
+                            }
+                            Err(error) => self.error = Some(error.to_string()),
                         }
                     }
                 }
@@ -582,7 +607,7 @@ impl StaticChartApp {
                 self.screen = Screen::Startup;
                 self.selected = None;
                 self.hovered_palace = None;
-                self.selected_temporal = None;
+                self.selected_temporal_selection = StaticTemporalNavigationSelection::PreDecadal;
             }
         }
     }
@@ -817,7 +842,10 @@ mod tests {
         app.update(Message::BackToStartup);
         assert_eq!(app.screen(), Screen::Startup);
         assert_eq!(app.selected_branch(), None);
-        assert_eq!(app.selected_temporal(), None);
+        assert_eq!(
+            app.selected_temporal_selection(),
+            StaticTemporalNavigationSelection::PreDecadal
+        );
     }
 
     #[test]
@@ -930,23 +958,20 @@ mod tests {
     }
 
     #[test]
-    fn temporal_cell_selection_ignores_disabled_cells() {
+    fn generated_chart_defaults_to_pre_decadal_selection() {
         let mut app = StaticChartApp::new();
         app.generate();
         let panel = &app.snapshot().expect("snapshot").temporal_panel;
 
-        // Month cells are always enabled navigation labels.
-        let enabled_month = TemporalCell::Month(0);
-        assert!(panel.month_cells[0].enabled);
-        app.update(Message::SelectTemporalCell(enabled_month));
-        assert_eq!(app.selected_temporal(), Some(enabled_month));
-
-        // Yearly/age cells are disabled in a natal-only snapshot.
-        let disabled = TemporalCell::YearlyAge(0);
-        assert!(!app.temporal_cell_enabled(disabled));
-        app.update(Message::SelectTemporalCell(disabled));
-        // Selection is unchanged; the disabled cell never becomes active.
-        assert_eq!(app.selected_temporal(), Some(enabled_month));
+        assert_eq!(
+            app.selected_temporal_selection(),
+            StaticTemporalNavigationSelection::PreDecadal
+        );
+        assert!(panel.pre_decadal_cell.selected);
+        assert!(panel.yearly_age_cells.iter().all(|cell| !cell.enabled));
+        assert!(panel.month_cells.iter().all(|cell| !cell.enabled));
+        assert!(panel.day_rows.iter().flatten().all(|cell| !cell.enabled));
+        assert!(panel.hour_cells.iter().all(|cell| !cell.enabled));
     }
 
     #[test]
@@ -960,7 +985,10 @@ mod tests {
         assert!(app.temporal_cell_enabled(cell));
         app.update(Message::SelectTemporalCell(cell));
 
-        assert_eq!(app.selected_temporal(), Some(cell));
+        assert_eq!(
+            app.selected_temporal_selection(),
+            StaticTemporalNavigationSelection::Decadal { decadal_index: 0 }
+        );
         // The prepared snapshot now carries a decadal overlay — the click changed
         // the effective slice, not only the selection state.
         assert!(
@@ -973,17 +1001,25 @@ mod tests {
     }
 
     #[test]
-    fn clicking_a_disabled_temporal_cell_changes_neither_selection_nor_snapshot() {
+    fn child_clicks_without_the_required_parent_path_are_ignored() {
         let mut app = StaticChartApp::new();
         app.generate();
-        let before = app.snapshot().cloned();
+        let initial = app.snapshot().cloned();
 
-        let disabled = TemporalCell::YearlyAge(0);
-        assert!(!app.temporal_cell_enabled(disabled));
-        app.update(Message::SelectTemporalCell(disabled));
-
-        assert_eq!(app.selected_temporal(), None);
-        assert_eq!(app.snapshot().cloned(), before);
+        for cell in [
+            TemporalCell::YearlyAge(0),
+            TemporalCell::Month(0),
+            TemporalCell::Day(0, 0),
+            TemporalCell::Hour(0),
+        ] {
+            assert!(!app.temporal_cell_enabled(cell));
+            app.update(Message::SelectTemporalCell(cell));
+            assert_eq!(
+                app.selected_temporal_selection(),
+                StaticTemporalNavigationSelection::PreDecadal
+            );
+            assert_eq!(app.snapshot().cloned(), initial);
+        }
     }
 
     #[test]
@@ -998,8 +1034,100 @@ mod tests {
         let cell = TemporalCell::PreDecadal;
         assert!(app.temporal_cell_enabled(cell));
         app.update(Message::SelectTemporalCell(cell));
-        assert_eq!(app.selected_temporal(), Some(cell));
+        assert_eq!(
+            app.selected_temporal_selection(),
+            StaticTemporalNavigationSelection::PreDecadal
+        );
         assert!(app.palaces().iter().all(|p| p.overlays.is_empty()));
+    }
+
+    #[test]
+    fn temporal_drill_down_unlocks_each_child_row() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+
+        app.update(Message::SelectTemporalCell(TemporalCell::Decadal(0)));
+        assert_eq!(
+            app.snapshot()
+                .expect("decadal snapshot")
+                .temporal_panel
+                .yearly_age_cells
+                .iter()
+                .filter(|cell| cell.enabled)
+                .count(),
+            10
+        );
+
+        app.update(Message::SelectTemporalCell(TemporalCell::YearlyAge(0)));
+        assert!(
+            app.snapshot()
+                .expect("yearly snapshot")
+                .temporal_panel
+                .month_cells
+                .iter()
+                .all(|cell| cell.enabled)
+        );
+
+        app.update(Message::SelectTemporalCell(TemporalCell::Month(0)));
+        assert!(
+            app.snapshot()
+                .expect("monthly snapshot")
+                .temporal_panel
+                .day_rows
+                .iter()
+                .flatten()
+                .any(|cell| cell.enabled)
+        );
+
+        app.update(Message::SelectTemporalCell(TemporalCell::Day(0, 0)));
+        assert!(
+            app.snapshot()
+                .expect("daily snapshot")
+                .temporal_panel
+                .hour_cells
+                .iter()
+                .all(|cell| cell.enabled)
+        );
+
+        app.update(Message::SelectTemporalCell(TemporalCell::Hour(0)));
+        assert_eq!(
+            app.selected_temporal_selection(),
+            StaticTemporalNavigationSelection::Hourly {
+                decadal_index: 0,
+                year_index: 0,
+                month_index: 0,
+                day_index: 0,
+                hour_index: 0,
+            }
+        );
+    }
+
+    #[test]
+    fn selecting_a_new_parent_clears_descendant_path() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        for cell in [
+            TemporalCell::Decadal(0),
+            TemporalCell::YearlyAge(0),
+            TemporalCell::Month(0),
+            TemporalCell::Day(0, 0),
+            TemporalCell::Hour(0),
+        ] {
+            app.update(Message::SelectTemporalCell(cell));
+        }
+
+        app.update(Message::SelectTemporalCell(TemporalCell::Decadal(1)));
+
+        assert_eq!(
+            app.selected_temporal_selection(),
+            StaticTemporalNavigationSelection::Decadal { decadal_index: 1 }
+        );
+        let panel = &app.snapshot().expect("snapshot").temporal_panel;
+        assert!(panel.decadal_cells[1].selected);
+        assert!(panel.yearly_age_cells.iter().all(|cell| !cell.selected));
+        assert!(panel.month_cells.iter().all(|cell| !cell.enabled));
+        assert!(panel.day_rows.iter().flatten().all(|cell| !cell.enabled));
+        assert!(panel.hour_cells.iter().all(|cell| !cell.enabled));
     }
 
     #[test]

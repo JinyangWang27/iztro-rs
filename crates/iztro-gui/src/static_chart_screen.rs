@@ -109,8 +109,8 @@ fn chart_screen<'a>(
         category_legend(),
         temporal_navigation_panel(
             &snapshot.temporal_panel,
-            // The natal cell is the active default until another cell is chosen.
-            Some(app.selected_temporal().unwrap_or(TemporalCell::Natal)),
+            app.selected_temporal_selection()
+                == iztro::core::StaticTemporalNavigationSelection::Natal,
         ),
     ]
     .spacing(8)
@@ -630,17 +630,23 @@ fn overlay_badges(overlay: &StaticTemporalOverlayView) -> Element<'_, Message> {
 
 fn temporal_navigation_panel<'a>(
     panel: &'a StaticTemporalPanelView,
-    selected: Option<TemporalCell>,
+    natal_selected: bool,
 ) -> Element<'a, Message> {
     // First row: 本命 (natal) and 限前 (pre-decadal) lead the 大限 cells inline.
     let mut decadal_cells = vec![
-        temporal_cell(TemporalCell::Natal, Some("本命"), None, true, selected),
+        temporal_cell(
+            TemporalCell::Natal,
+            Some("本命"),
+            None,
+            true,
+            natal_selected,
+        ),
         temporal_cell(
             TemporalCell::PreDecadal,
             Some(panel.pre_decadal_cell.label_zh.as_str()),
             panel.pre_decadal_cell.age_range_zh.as_deref(),
             panel.pre_decadal_cell.enabled,
-            selected,
+            panel.pre_decadal_cell.selected,
         ),
     ];
     decadal_cells.extend(panel.decadal_cells.iter().enumerate().map(|(i, cell)| {
@@ -649,7 +655,7 @@ fn temporal_navigation_panel<'a>(
             cell.age_range_zh.as_deref(),
             cell.limit_label_zh.as_deref(),
             cell.enabled,
-            selected,
+            cell.selected,
         )
     }));
     let decadal = temporal_row("本命/限前/大限", decadal_cells);
@@ -665,15 +671,12 @@ fn temporal_navigation_panel<'a>(
                     cell.year_label.as_deref(),
                     cell.stem_branch_age_zh.as_deref(),
                     cell.enabled,
-                    selected,
+                    cell.selected,
                 )
             })
             .collect(),
     );
-    let month = temporal_row(
-        "流月",
-        nav_cells(&panel.month_cells, selected, TemporalCell::Month),
-    );
+    let month = temporal_row("流月", nav_cells(&panel.month_cells, TemporalCell::Month));
 
     let mut rows = column![decadal, yearly, month].spacing(4);
     for (r, days) in panel.day_rows.iter().enumerate() {
@@ -686,7 +689,7 @@ fn temporal_navigation_panel<'a>(
                     Some(cell.label_zh.as_str()),
                     None,
                     cell.enabled,
-                    selected,
+                    cell.selected,
                 )
             })
             .collect();
@@ -694,7 +697,7 @@ fn temporal_navigation_panel<'a>(
     }
     rows = rows.push(temporal_row(
         "流时",
-        nav_cells(&panel.hour_cells, selected, TemporalCell::Hour),
+        nav_cells(&panel.hour_cells, TemporalCell::Hour),
     ));
 
     container(rows)
@@ -707,7 +710,6 @@ fn temporal_navigation_panel<'a>(
 /// Builds the clickable cell widgets for a simple navigation row.
 fn nav_cells<'a>(
     cells: &'a [StaticNavigationCellView],
-    selected: Option<TemporalCell>,
     id_for: impl Fn(usize) -> TemporalCell,
 ) -> Vec<Element<'a, Message>> {
     cells
@@ -719,7 +721,7 @@ fn nav_cells<'a>(
                 Some(cell.label_zh.as_str()),
                 None,
                 cell.enabled,
-                selected,
+                cell.selected,
             )
         })
         .collect()
@@ -743,9 +745,8 @@ fn temporal_cell<'a>(
     primary: Option<&'a str>,
     secondary: Option<&'a str>,
     enabled: bool,
-    selected: Option<TemporalCell>,
+    selected: bool,
 ) -> Element<'a, Message> {
-    let is_selected = selected == Some(id);
     let primary_text = text(primary.unwrap_or("—")).size(10);
     let primary_text = if enabled {
         primary_text
@@ -764,7 +765,7 @@ fn temporal_cell<'a>(
             .on_press(Message::SelectTemporalCell(id))
             .padding([3, 2])
             .width(Length::FillPortion(1))
-            .style(move |theme, _status| temporal_cell_button_style(theme, is_selected))
+            .style(move |theme, _status| temporal_cell_button_style(theme, selected))
             .into()
     } else {
         container(content)
