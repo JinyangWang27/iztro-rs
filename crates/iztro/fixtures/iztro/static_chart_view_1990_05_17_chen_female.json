@@ -131,7 +131,12 @@
           }
         ],
         "stem": "xin",
-        "stem_zh": "辛"
+        "stem_zh": "辛",
+        "surround": {
+          "career": "you",
+          "opposite": "hai",
+          "wealth": "chou"
+        }
       },
       {
         "adjective_stars": [
@@ -280,7 +285,12 @@
           }
         ],
         "stem": "ren",
-        "stem_zh": "壬"
+        "stem_zh": "壬",
+        "surround": {
+          "career": "xu",
+          "opposite": "zi",
+          "wealth": "yin"
+        }
       },
       {
         "adjective_stars": [
@@ -441,7 +451,12 @@
           }
         ],
         "stem": "gui",
-        "stem_zh": "癸"
+        "stem_zh": "癸",
+        "surround": {
+          "career": "hai",
+          "opposite": "chou",
+          "wealth": "mao"
+        }
       },
       {
         "adjective_stars": [
@@ -578,7 +593,12 @@
           }
         ],
         "stem": "jia",
-        "stem_zh": "甲"
+        "stem_zh": "甲",
+        "surround": {
+          "career": "zi",
+          "opposite": "yin",
+          "wealth": "chen"
+        }
       },
       {
         "adjective_stars": [
@@ -690,7 +710,12 @@
           }
         ],
         "stem": "geng",
-        "stem_zh": "庚"
+        "stem_zh": "庚",
+        "surround": {
+          "career": "shen",
+          "opposite": "xu",
+          "wealth": "zi"
+        }
       },
       {
         "adjective_stars": [
@@ -803,7 +828,12 @@
           }
         ],
         "stem": "yi",
-        "stem_zh": "乙"
+        "stem_zh": "乙",
+        "surround": {
+          "career": "chou",
+          "opposite": "mao",
+          "wealth": "si"
+        }
       },
       {
         "adjective_stars": [
@@ -916,7 +946,12 @@
           }
         ],
         "stem": "ji",
-        "stem_zh": "己"
+        "stem_zh": "己",
+        "surround": {
+          "career": "wei",
+          "opposite": "you",
+          "wealth": "hai"
+        }
       },
       {
         "adjective_stars": [
@@ -1031,7 +1066,12 @@
           }
         ],
         "stem": "bing",
-        "stem_zh": "丙"
+        "stem_zh": "丙",
+        "surround": {
+          "career": "yin",
+          "opposite": "chen",
+          "wealth": "wu"
+        }
       },
       {
         "adjective_stars": [
@@ -1143,7 +1183,12 @@
           }
         ],
         "stem": "wu",
-        "stem_zh": "戊"
+        "stem_zh": "戊",
+        "surround": {
+          "career": "wu",
+          "opposite": "shen",
+          "wealth": "xu"
+        }
       },
       {
         "adjective_stars": [
@@ -1232,7 +1277,12 @@
           }
         ],
         "stem": "ji",
-        "stem_zh": "己"
+        "stem_zh": "己",
+        "surround": {
+          "career": "si",
+          "opposite": "wei",
+          "wealth": "you"
+        }
       },
       {
         "adjective_stars": [
@@ -1344,7 +1394,12 @@
           }
         ],
         "stem": "wu",
-        "stem_zh": "戊"
+        "stem_zh": "戊",
+        "surround": {
+          "career": "chen",
+          "opposite": "wu",
+          "wealth": "shen"
+        }
       },
       {
         "adjective_stars": [
@@ -1444,7 +1499,12 @@
           }
         ],
         "stem": "ding",
-        "stem_zh": "丁"
+        "stem_zh": "丁",
+        "surround": {
+          "career": "mao",
+          "opposite": "si",
+          "wealth": "wei"
+        }
       }
     ],
     "selectors": [
@@ -1495,128 +1555,158 @@
       "day_rows": [
         [
           {
-            "enabled": true,
-            "label_zh": "初一"
+            "enabled": false,
+            "label_zh": "初一",
+            "selected": false
           },
           {
-            "enabled": true,
-            "label_zh": "初二"
+            "enabled": false,
+            "label_zh": "初二",
+            "selected": false
           },
           {
-            "enabled": true,
-            "label_zh": "初三"
+            "enabled": false,
+            "label_zh": "初三",
+            "selected": false
           },
           {
-            "enabled": true,
-            "label_zh": "初四"
+            "enabled": false,
+            "label_zh": "初四",
+            "selected": false
           },
           {
-            "enabled": true,
-            "label_zh": "初五"
+            "enabled": false,
+            "label_zh": "初五",
+            "selected": false
           },
           {
-            "enabled": true,
-            "label_zh": "初六"
+            "enabled": false,
+            "label_zh": "初六",
+            "selected": false
           },
           {
-            "enabled": true,
-            "label_zh": "初七"
+            "enabled": false,
+            "label_zh": "初七",
+            "selected": false
           },
           {
-            "enabled": true,
-            "label_zh": "初八"
+            "enabled": false,
+            "label_zh": "初八",
+            "selected": false
           },
           {
-            "enabled": true,
-            "label_zh": "初九"
+            "enabled": false,
+            "label_zh": "初九",
+            "selected": false
           },
           {
-            "enabled": true,
-            "label_zh": "初十"
+            "enabled": false,
+            "label_zh": "初十",
+            "selected": false
           }
         ],
         [
           {
-            "enabled": true,
-            "label_zh": "十一"
+            "enabled": false,
+            "label_zh": "十一",
+            "selected": false
           },
           {
-            "enabled": true,
-            "label_zh": "十二"
+            "enabled": false,
+            "label_zh": "十二",
+            "selected": false
           },
           {
-            "enabled": true,
-            "label_zh": "十三"
+            "enabled": false,
+            "label_zh": "十三",
+            "selected": false
           },
           {
-            "enabled": true,
-            "label_zh": "十四"
+            "enabled": false,
+            "label_zh": "十四",
+            "selected": false
           },
           {
-            "enabled": true,
-            "label_zh": "十五"
+            "enabled": false,
+            "label_zh": "十五",
+            "selected": false
           },
           {
-            "enabled": true,
-            "label_zh": "十六"
+            "enabled": false,
+            "label_zh": "十六",
+            "selected": false
           },
           {
-            "enabled": true,
-            "label_zh": "十七"
+            "enabled": false,
+            "label_zh": "十七",
+            "selected": false
           },
           {
-            "enabled": true,
-            "label_zh": "十八"
+            "enabled": false,
+            "label_zh": "十八",
+            "selected": false
           },
           {
-            "enabled": true,
-            "label_zh": "十九"
+            "enabled": false,
+            "label_zh": "十九",
+            "selected": false
           },
           {
-            "enabled": true,
-            "label_zh": "二十"
+            "enabled": false,
+            "label_zh": "二十",
+            "selected": false
           }
         ],
         [
           {
-            "enabled": true,
-            "label_zh": "廿一"
+            "enabled": false,
+            "label_zh": "廿一",
+            "selected": false
           },
           {
-            "enabled": true,
-            "label_zh": "廿二"
+            "enabled": false,
+            "label_zh": "廿二",
+            "selected": false
           },
           {
-            "enabled": true,
-            "label_zh": "廿三"
+            "enabled": false,
+            "label_zh": "廿三",
+            "selected": false
           },
           {
-            "enabled": true,
-            "label_zh": "廿四"
+            "enabled": false,
+            "label_zh": "廿四",
+            "selected": false
           },
           {
-            "enabled": true,
-            "label_zh": "廿五"
+            "enabled": false,
+            "label_zh": "廿五",
+            "selected": false
           },
           {
-            "enabled": true,
-            "label_zh": "廿六"
+            "enabled": false,
+            "label_zh": "廿六",
+            "selected": false
           },
           {
-            "enabled": true,
-            "label_zh": "廿七"
+            "enabled": false,
+            "label_zh": "廿七",
+            "selected": false
           },
           {
-            "enabled": true,
-            "label_zh": "廿八"
+            "enabled": false,
+            "label_zh": "廿八",
+            "selected": false
           },
           {
-            "enabled": true,
-            "label_zh": "廿九"
+            "enabled": false,
+            "label_zh": "廿九",
+            "selected": false
           },
           {
-            "enabled": true,
-            "label_zh": "三十"
+            "enabled": false,
+            "label_zh": "三十",
+            "selected": false
           }
         ]
       ],
@@ -1624,222 +1714,276 @@
         {
           "age_range_zh": "5-14",
           "enabled": true,
-          "limit_label_zh": "戊寅限"
+          "limit_label_zh": "戊寅限",
+          "selected": false
         },
         {
           "age_range_zh": "15-24",
           "enabled": true,
-          "limit_label_zh": "己丑限"
+          "limit_label_zh": "己丑限",
+          "selected": false
         },
         {
           "age_range_zh": "25-34",
           "enabled": true,
-          "limit_label_zh": "戊子限"
+          "limit_label_zh": "戊子限",
+          "selected": false
         },
         {
           "age_range_zh": "35-44",
           "enabled": true,
-          "limit_label_zh": "丁亥限"
+          "limit_label_zh": "丁亥限",
+          "selected": false
         },
         {
           "age_range_zh": "45-54",
           "enabled": true,
-          "limit_label_zh": "丙戌限"
+          "limit_label_zh": "丙戌限",
+          "selected": false
         },
         {
           "age_range_zh": "55-64",
           "enabled": true,
-          "limit_label_zh": "乙酉限"
+          "limit_label_zh": "乙酉限",
+          "selected": false
         },
         {
           "age_range_zh": "65-74",
           "enabled": true,
-          "limit_label_zh": "甲申限"
+          "limit_label_zh": "甲申限",
+          "selected": false
         },
         {
           "age_range_zh": "75-84",
           "enabled": true,
-          "limit_label_zh": "癸未限"
+          "limit_label_zh": "癸未限",
+          "selected": false
         },
         {
           "age_range_zh": "85-94",
           "enabled": true,
-          "limit_label_zh": "壬午限"
+          "limit_label_zh": "壬午限",
+          "selected": false
         },
         {
           "age_range_zh": "95-104",
           "enabled": true,
-          "limit_label_zh": "辛巳限"
+          "limit_label_zh": "辛巳限",
+          "selected": false
         },
         {
           "age_range_zh": "105-114",
           "enabled": true,
-          "limit_label_zh": "庚辰限"
+          "limit_label_zh": "庚辰限",
+          "selected": false
         },
         {
           "age_range_zh": "115-124",
           "enabled": true,
-          "limit_label_zh": "己卯限"
+          "limit_label_zh": "己卯限",
+          "selected": false
         }
       ],
       "hour_cells": [
         {
-          "enabled": true,
-          "label_zh": "子"
+          "enabled": false,
+          "label_zh": "子",
+          "selected": false
         },
         {
-          "enabled": true,
-          "label_zh": "丑"
+          "enabled": false,
+          "label_zh": "丑",
+          "selected": false
         },
         {
-          "enabled": true,
-          "label_zh": "寅"
+          "enabled": false,
+          "label_zh": "寅",
+          "selected": false
         },
         {
-          "enabled": true,
-          "label_zh": "卯"
+          "enabled": false,
+          "label_zh": "卯",
+          "selected": false
         },
         {
-          "enabled": true,
-          "label_zh": "辰"
+          "enabled": false,
+          "label_zh": "辰",
+          "selected": false
         },
         {
-          "enabled": true,
-          "label_zh": "巳"
+          "enabled": false,
+          "label_zh": "巳",
+          "selected": false
         },
         {
-          "enabled": true,
-          "label_zh": "午"
+          "enabled": false,
+          "label_zh": "午",
+          "selected": false
         },
         {
-          "enabled": true,
-          "label_zh": "未"
+          "enabled": false,
+          "label_zh": "未",
+          "selected": false
         },
         {
-          "enabled": true,
-          "label_zh": "申"
+          "enabled": false,
+          "label_zh": "申",
+          "selected": false
         },
         {
-          "enabled": true,
-          "label_zh": "酉"
+          "enabled": false,
+          "label_zh": "酉",
+          "selected": false
         },
         {
-          "enabled": true,
-          "label_zh": "戌"
+          "enabled": false,
+          "label_zh": "戌",
+          "selected": false
         },
         {
-          "enabled": true,
-          "label_zh": "亥"
+          "enabled": false,
+          "label_zh": "亥",
+          "selected": false
         }
       ],
       "month_cells": [
         {
-          "enabled": true,
-          "label_zh": "正月"
+          "enabled": false,
+          "label_zh": "正月",
+          "selected": false
         },
         {
-          "enabled": true,
-          "label_zh": "二月"
+          "enabled": false,
+          "label_zh": "二月",
+          "selected": false
         },
         {
-          "enabled": true,
-          "label_zh": "三月"
+          "enabled": false,
+          "label_zh": "三月",
+          "selected": false
         },
         {
-          "enabled": true,
-          "label_zh": "四月"
+          "enabled": false,
+          "label_zh": "四月",
+          "selected": false
         },
         {
-          "enabled": true,
-          "label_zh": "五月"
+          "enabled": false,
+          "label_zh": "五月",
+          "selected": false
         },
         {
-          "enabled": true,
-          "label_zh": "六月"
+          "enabled": false,
+          "label_zh": "六月",
+          "selected": false
         },
         {
-          "enabled": true,
-          "label_zh": "七月"
+          "enabled": false,
+          "label_zh": "七月",
+          "selected": false
         },
         {
-          "enabled": true,
-          "label_zh": "八月"
+          "enabled": false,
+          "label_zh": "八月",
+          "selected": false
         },
         {
-          "enabled": true,
-          "label_zh": "九月"
+          "enabled": false,
+          "label_zh": "九月",
+          "selected": false
         },
         {
-          "enabled": true,
-          "label_zh": "十月"
+          "enabled": false,
+          "label_zh": "十月",
+          "selected": false
         },
         {
-          "enabled": true,
-          "label_zh": "冬月"
+          "enabled": false,
+          "label_zh": "冬月",
+          "selected": false
         },
         {
-          "enabled": true,
-          "label_zh": "腊月"
+          "enabled": false,
+          "label_zh": "腊月",
+          "selected": false
         }
       ],
+      "pre_decadal_cell": {
+        "age_range_zh": "1-4",
+        "enabled": true,
+        "label_zh": "限前",
+        "selected": false
+      },
       "yearly_age_cells": [
         {
           "enabled": false,
+          "selected": false,
           "stem_branch_age_zh": null,
           "year_label": null
         },
         {
           "enabled": false,
+          "selected": false,
           "stem_branch_age_zh": null,
           "year_label": null
         },
         {
           "enabled": false,
+          "selected": false,
           "stem_branch_age_zh": null,
           "year_label": null
         },
         {
           "enabled": false,
+          "selected": false,
           "stem_branch_age_zh": null,
           "year_label": null
         },
         {
           "enabled": false,
+          "selected": false,
           "stem_branch_age_zh": null,
           "year_label": null
         },
         {
           "enabled": false,
+          "selected": false,
           "stem_branch_age_zh": null,
           "year_label": null
         },
         {
           "enabled": false,
+          "selected": false,
           "stem_branch_age_zh": null,
           "year_label": null
         },
         {
           "enabled": false,
+          "selected": false,
           "stem_branch_age_zh": null,
           "year_label": null
         },
         {
           "enabled": false,
+          "selected": false,
           "stem_branch_age_zh": null,
           "year_label": null
         },
         {
           "enabled": false,
+          "selected": false,
           "stem_branch_age_zh": null,
           "year_label": null
         },
         {
           "enabled": false,
+          "selected": false,
           "stem_branch_age_zh": null,
           "year_label": null
         },
         {
           "enabled": false,
+          "selected": false,
           "stem_branch_age_zh": null,
           "year_label": null
         }

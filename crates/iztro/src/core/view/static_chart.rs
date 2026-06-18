@@ -10,13 +10,14 @@
 //! grid layout ([`palace_grid_position`]) and the deterministic facade star
 //! ordering so a renderer never has to depend on accidental `Vec` order.
 
+use crate::core::calendar::lunar_month_has_thirtieth;
 use crate::core::labels::zh_cn;
 use crate::core::model::bureau::FiveElementBureau;
 use crate::core::model::calendar::Gender;
 use crate::core::model::chart::{
-    Chart, DecorativeStarFamily, DecorativeStarPlacement, HoroscopeChart, MutagenActivation,
-    PALACE_COUNT, Palace, PalaceGridPosition, PalaceName, StarPlacement, TemporalContext,
-    TemporalLayer, VISUAL_BRANCH_ORDER, build_decadal_frame, palace_grid_position,
+    Chart, DecadalFrame, DecadalPeriod, DecorativeStarFamily, DecorativeStarPlacement,
+    HoroscopeChart, MutagenActivation, PALACE_COUNT, Palace, PalaceGridPosition, PalaceName,
+    StarPlacement, TemporalLayer, VISUAL_BRANCH_ORDER, build_decadal_frame, palace_grid_position,
 };
 use crate::core::model::star::mutagen::Scope;
 use crate::core::model::star::{Brightness, StarCategory, StarKind, StarName, mutagen::Mutagen};
@@ -129,6 +130,12 @@ pub struct StaticFourPillarsView {
 /// Renderer-neutral bottom temporal navigation panel.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct StaticTemporalPanelView {
+    /// The pre-decadal (限前) cell shown before the normal 大限 row.
+    ///
+    /// `#[serde(default)]` keeps snapshots serialized before this field existed
+    /// roundtripping: they decode to the disabled [`Default`] cell.
+    #[serde(default)]
+    pub pre_decadal_cell: StaticPreDecadalCellView,
     /// Twelve factual decadal cells in existing core period order.
     pub decadal_cells: Vec<StaticDecadalCellView>,
     /// Twelve factual or neutral flowing-year / nominal-age cells.
@@ -141,11 +148,35 @@ pub struct StaticTemporalPanelView {
     pub hour_cells: Vec<StaticNavigationCellView>,
 }
 
+/// The pre-decadal (限前) cell shown before the normal 大限 row.
+///
+/// Core has no childhood-limit (童限) palace-walk derivation yet, so this cell
+/// only truthfully represents the nominal-age span *before* the first 大限. It
+/// carries no temporal overlay: selecting it shows the natal base slice.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, Default)]
+pub struct StaticPreDecadalCellView {
+    /// Whether the span before the first decadal period is available.
+    pub enabled: bool,
+    /// Whether this cell is the current temporal selection.
+    #[serde(default)]
+    pub selected: bool,
+    /// Chinese label for the cell, such as `限前`.
+    pub label_zh: String,
+    /// Inclusive nominal-age range before the first 大限, such as `1-4`.
+    ///
+    /// `None` when the decadal frame is unavailable or the first period already
+    /// starts at age one.
+    pub age_range_zh: Option<String>,
+}
+
 /// One factual or disabled decadal-period display cell.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct StaticDecadalCellView {
     /// Whether factual display data is available.
     pub enabled: bool,
+    /// Whether this cell is the current temporal selection.
+    #[serde(default)]
+    pub selected: bool,
     /// Inclusive nominal-age range, such as `16-25`.
     pub age_range_zh: Option<String>,
     /// Chinese stem-branch limit label, such as `戊子限`.
@@ -157,6 +188,9 @@ pub struct StaticDecadalCellView {
 pub struct StaticYearlyAgeCellView {
     /// Whether an exact yearly and age fact pair is available.
     pub enabled: bool,
+    /// Whether this cell is the current temporal selection.
+    #[serde(default)]
+    pub selected: bool,
     /// Display year, such as `2024`.
     pub year_label: Option<String>,
     /// Chinese stem-branch plus nominal age, such as `甲辰17`.
@@ -170,6 +204,9 @@ pub struct StaticNavigationCellView {
     pub label_zh: String,
     /// Whether the navigation item is available for display.
     pub enabled: bool,
+    /// Whether this cell is the current temporal selection.
+    #[serde(default)]
+    pub selected: bool,
 }
 
 impl StaticFourPillarsView {
@@ -188,40 +225,123 @@ impl StaticFourPillarsView {
 }
 
 impl StaticTemporalPanelView {
-    fn from_chart(chart: &Chart) -> Self {
+    /// Builds the bottom panel for one drill-down selection.
+    ///
+    /// All enable/selected flags and lunar labels are prepared here so the
+    /// renderer reads them verbatim. Rows unlock by scope: 大限 enables 流年, a
+    /// 流年 enables 流月, a 流月 enables 流日, a 流日 enables 流时.
+    pub(crate) fn from_selection(
+        natal: &Chart,
+        selection: StaticTemporalNavigationSelection,
+    ) -> Self {
+        let frame = build_decadal_frame(natal).ok();
+        let dec_idx = selection.decadal_index();
+        let year_idx = selection.year_index();
+        let month_idx = selection.month_index();
+        let day_idx = selection.day_index();
+        let hour_idx = selection.hour_index();
+
+        let pre_decadal_cell = pre_decadal_cell(
+            natal,
+            matches!(selection, StaticTemporalNavigationSelection::PreDecadal),
+        );
+        let decadal_cells = decadal_cells(frame.as_ref(), dec_idx);
+
+        // The selected 大限 period unlocks and supplies the 10 流年 years.
+        let selected_period = match (frame.as_ref(), dec_idx) {
+            (Some(frame), Some(di)) => frame.periods().get(di),
+            _ => None,
+        };
+        let yearly_age_cells = match selected_period {
+            Some(period) => yearly_age_cells(natal, period, year_idx),
+            None => disabled_yearly_age_cells(),
+        };
+
+        // The selected lunar year/month gate the month/day rows.
+        let selected_lunar_year = match (selected_period, year_idx) {
+            (Some(period), Some(yi)) => Some(lunar_year_of(natal, period, yi)),
+            _ => None,
+        };
+        let month_cells = labeled_cells(&MONTH_LABELS, selected_lunar_year.is_some(), month_idx);
+
+        let selected_lunar_month = month_idx.map(|m| m + 1);
+        let day_rows = day_rows(selected_lunar_year, selected_lunar_month, day_idx);
+
+        let hour_cells = labeled_cells(&HOUR_LABELS, day_idx.is_some(), hour_idx);
+
         Self {
-            decadal_cells: decadal_cells(chart),
-            yearly_age_cells: disabled_yearly_age_cells(),
-            month_cells: navigation_cells(&MONTH_LABELS),
-            day_rows: DAY_LABELS
-                .iter()
-                .map(|labels| navigation_cells(labels))
-                .collect::<Vec<_>>(),
-            hour_cells: navigation_cells(&HOUR_LABELS),
+            pre_decadal_cell,
+            decadal_cells,
+            yearly_age_cells,
+            month_cells,
+            day_rows,
+            hour_cells,
         }
     }
 
+    fn from_chart(chart: &Chart) -> Self {
+        Self::from_selection(chart, StaticTemporalNavigationSelection::Natal)
+    }
+
     fn from_horoscope_chart(chart: &HoroscopeChart) -> Self {
-        let mut panel = Self::from_chart(chart.natal());
-        panel.yearly_age_cells = yearly_age_cells(chart);
-        panel
+        Self::from_chart(chart.natal())
     }
 }
 
-fn decadal_cells(chart: &Chart) -> Vec<StaticDecadalCellView> {
+/// The lunar year of the `year_index`-th 流年 (0-based) within a 大限 period.
+///
+/// The period's nominal ages run `start_age..=start_age+9`; nominal age 1 is the
+/// natal lunar year, so `lunar_year = birth_lunar_year + nominal_age - 1`.
+fn lunar_year_of(natal: &Chart, period: &DecadalPeriod, year_index: u8) -> i32 {
+    let nominal_age = period.start_age() as i32 + year_index as i32;
+    natal.birth_context().date().year() + nominal_age - 1
+}
+
+fn pre_decadal_cell(chart: &Chart, selected: bool) -> StaticPreDecadalCellView {
+    const LABEL: &str = "限前";
     match build_decadal_frame(chart) {
-        Ok(frame) => frame
+        Ok(frame) => {
+            let first_start = frame.periods().first().map(|period| period.start_age());
+            let age_range_zh = match first_start {
+                Some(start) if start > 1 => Some(format!("1-{}", start - 1)),
+                _ => None,
+            };
+            StaticPreDecadalCellView {
+                enabled: true,
+                selected,
+                label_zh: LABEL.to_owned(),
+                age_range_zh,
+            }
+        }
+        Err(_) => StaticPreDecadalCellView {
+            enabled: false,
+            selected,
+            label_zh: LABEL.to_owned(),
+            age_range_zh: None,
+        },
+    }
+}
+
+fn decadal_cells(
+    frame: Option<&DecadalFrame>,
+    selected_index: Option<usize>,
+) -> Vec<StaticDecadalCellView> {
+    match frame {
+        Some(frame) => frame
             .periods()
             .iter()
-            .map(|period| StaticDecadalCellView {
+            .enumerate()
+            .map(|(index, period)| StaticDecadalCellView {
                 enabled: true,
+                selected: selected_index == Some(index),
                 age_range_zh: Some(format!("{}-{}", period.start_age(), period.end_age())),
                 limit_label_zh: Some(format!("{}限", zh_cn::stem_branch_zh(period.stem_branch()))),
             })
             .collect(),
-        Err(_) => (0..PALACE_COUNT)
+        None => (0..PALACE_COUNT)
             .map(|_| StaticDecadalCellView {
                 enabled: false,
+                selected: false,
                 age_range_zh: None,
                 limit_label_zh: None,
             })
@@ -233,50 +353,37 @@ fn disabled_yearly_age_cells() -> Vec<StaticYearlyAgeCellView> {
     (0..PALACE_COUNT)
         .map(|_| StaticYearlyAgeCellView {
             enabled: false,
+            selected: false,
             year_label: None,
             stem_branch_age_zh: None,
         })
         .collect()
 }
 
-fn yearly_age_cells(chart: &HoroscopeChart) -> Vec<StaticYearlyAgeCellView> {
-    let yearly: Vec<(StemBranch, i32)> = chart
-        .layers()
-        .iter()
-        .filter_map(|layer| match layer.context() {
-            TemporalContext::Yearly {
-                stem_branch,
-                lunar_year,
-            } => Some((*stem_branch, *lunar_year)),
-            _ => None,
-        })
-        .collect();
-    let ages: Vec<u8> = chart
-        .layers()
-        .iter()
-        .filter_map(|layer| match layer.context() {
-            TemporalContext::Age {
-                stem_branch: _,
-                nominal_age,
-            } => Some(*nominal_age),
-            _ => None,
-        })
-        .collect();
-
-    let mut cells = match (yearly.as_slice(), ages.as_slice()) {
-        ([(yearly_stem_branch, lunar_year)], [nominal_age]) => {
-            vec![StaticYearlyAgeCellView {
+/// The 10 流年/小限 cells for the selected 大限 period (solar-year drill-down),
+/// padded with disabled cells to the 12-wide row.
+fn yearly_age_cells(
+    natal: &Chart,
+    period: &DecadalPeriod,
+    selected_index: Option<u8>,
+) -> Vec<StaticYearlyAgeCellView> {
+    let mut cells: Vec<StaticYearlyAgeCellView> = (0u8..10)
+        .map(|year_index| {
+            let nominal_age = period.start_age() + year_index;
+            let lunar_year = lunar_year_of(natal, period, year_index);
+            let stem_branch = StemBranch::from_lunar_year(lunar_year);
+            StaticYearlyAgeCellView {
                 enabled: true,
+                selected: selected_index == Some(year_index),
                 year_label: Some(lunar_year.to_string()),
                 stem_branch_age_zh: Some(format!(
                     "{}{}",
-                    zh_cn::stem_branch_zh(*yearly_stem_branch),
+                    zh_cn::stem_branch_zh(stem_branch),
                     nominal_age
                 )),
-            }]
-        }
-        _ => Vec::new(),
-    };
+            }
+        })
+        .collect();
     cells.extend(
         disabled_yearly_age_cells()
             .into_iter()
@@ -285,14 +392,93 @@ fn yearly_age_cells(chart: &HoroscopeChart) -> Vec<StaticYearlyAgeCellView> {
     cells
 }
 
-fn navigation_cells(labels: &[&str]) -> Vec<StaticNavigationCellView> {
-    labels
+/// The 流日 grid (existing 3×10 layout, 初一..三十). When enabled, the 三十 cell is
+/// disabled for a 29-day lunar month. Disabled (greyed) when no 流月 is selected.
+fn day_rows(
+    selected_lunar_year: Option<i32>,
+    selected_lunar_month: Option<u8>,
+    selected_index: Option<u8>,
+) -> Vec<Vec<StaticNavigationCellView>> {
+    let enabled = selected_lunar_month.is_some();
+    let has_thirtieth = match (selected_lunar_year, selected_lunar_month) {
+        (Some(year), Some(month)) => lunar_month_has_thirtieth(year, month),
+        _ => false,
+    };
+    DAY_LABELS
         .iter()
-        .map(|label| StaticNavigationCellView {
-            label_zh: (*label).to_owned(),
-            enabled: true,
+        .enumerate()
+        .map(|(row, labels)| {
+            labels
+                .iter()
+                .enumerate()
+                .map(|(col, label)| {
+                    let day_index = (row * labels.len() + col) as u8;
+                    // 三十 is day_index 29 (the last cell); disable it for a 29-day month.
+                    let cell_enabled = enabled && (day_index != 29 || has_thirtieth);
+                    StaticNavigationCellView {
+                        label_zh: (*label).to_owned(),
+                        enabled: cell_enabled,
+                        selected: cell_enabled && selected_index == Some(day_index),
+                    }
+                })
+                .collect()
         })
         .collect()
+}
+
+/// A single navigation row, all cells sharing one `enabled` flag, with one
+/// `selected` cell by index.
+fn labeled_cells(
+    labels: &[&str],
+    enabled: bool,
+    selected_index: Option<u8>,
+) -> Vec<StaticNavigationCellView> {
+    labels
+        .iter()
+        .enumerate()
+        .map(|(index, label)| StaticNavigationCellView {
+            label_zh: (*label).to_owned(),
+            enabled,
+            selected: enabled && selected_index == Some(index as u8),
+        })
+        .collect()
+}
+
+/// The 三方四正 (san fang si zheng) related palaces for one palace, by branch.
+///
+/// These are deterministic positional facts, not interpretation. The convention
+/// matches the horoscope runtime ([`opposite`](Self::opposite) = `+6`,
+/// [`wealth`](Self::wealth) = `+8`, [`career`](Self::career) = `+4`), so a
+/// renderer never performs branch arithmetic of its own.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+pub struct StaticSurroundPalacesView {
+    /// 对宫 — the opposite palace (`+6`).
+    pub opposite: EarthlyBranch,
+    /// 财帛位 — the wealth trine palace (`+8`).
+    pub wealth: EarthlyBranch,
+    /// 官禄位 — the career trine palace (`+4`).
+    pub career: EarthlyBranch,
+}
+
+impl StaticSurroundPalacesView {
+    /// Builds the 三方四正 branch set for `branch` using the canonical offsets.
+    pub fn for_branch(branch: EarthlyBranch) -> Self {
+        Self {
+            opposite: branch.offset(6),
+            wealth: branch.offset(8),
+            career: branch.offset(4),
+        }
+    }
+
+    /// The three related branches, in `[opposite, wealth, career]` order.
+    pub fn branches(&self) -> [EarthlyBranch; 3] {
+        [self.opposite, self.wealth, self.career]
+    }
+
+    /// Whether `branch` is one of the three 三方四正 related palaces.
+    pub fn involves(&self, branch: EarthlyBranch) -> bool {
+        self.branches().contains(&branch)
+    }
 }
 
 /// One perimeter palace cell of a static chart.
@@ -304,6 +490,12 @@ pub struct StaticPalaceView {
     pub branch_zh: String,
     /// Fixed 4x4 perimeter-grid position.
     pub grid_position: PalaceGridPosition,
+    /// The 三方四正 related palaces (by branch) for this palace.
+    ///
+    /// A pure positional fact derived from the palace branch; it carries no
+    /// interpretation. Renderers use it to highlight a palace's surrounding
+    /// influence set without performing any branch arithmetic themselves.
+    pub surround: StaticSurroundPalacesView,
     /// Natal palace name.
     pub name: PalaceName,
     /// Chinese label for the natal palace name.
@@ -510,6 +702,124 @@ pub struct StaticChartViewRequest {
     pub visible_scopes: Vec<Scope>,
 }
 
+/// A renderer-neutral, hierarchical drill-down selection for the bottom panel.
+///
+/// A renderer (TUI/GUI) reports *which* bottom-panel cell the user chose as an
+/// **index path** (大限 → 流年 → 流月 → 流日 → 流时); core resolves the indices to
+/// concrete lunar/solar coordinates and prepares the matching
+/// [`StaticChartViewSnapshot`]. Each deeper variant carries its ancestors'
+/// indices. The renderer never derives the overlay, the lunar labels, or the
+/// month/day validity itself.
+///
+/// Indices: `year_index` 0..=9 (within the 大限's 10 years); `month_index` 0..=11
+/// (lunar month 正月..腊月); `day_index` 0..=29 (lunar day 初一..三十); `hour_index`
+/// 0..=11 (double-hour 子..亥).
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum StaticTemporalNavigationSelection {
+    /// 本命 — the natal slice with no temporal overlay.
+    #[default]
+    Natal,
+    /// 限前 — the span before the first 大限. Carries no overlay; natal base.
+    PreDecadal,
+    /// 大限 — the selected decadal period; enables the 流年 row.
+    Decadal {
+        /// Zero-based index into the decadal frame periods.
+        decadal_index: usize,
+    },
+    /// 流年/小限 — a year within the selected 大限; enables the 流月 row.
+    Yearly {
+        /// Selected decadal period index.
+        decadal_index: usize,
+        /// Zero-based year within the period (0..=9).
+        year_index: u8,
+    },
+    /// 流月 — a lunar month of the selected 流年; enables the 流日 row.
+    Monthly {
+        /// Selected decadal period index.
+        decadal_index: usize,
+        /// Selected year within the period (0..=9).
+        year_index: u8,
+        /// Zero-based lunar month (0..=11 -> 正月..腊月).
+        month_index: u8,
+    },
+    /// 流日 — a lunar day of the selected 流月; enables the 流时 row.
+    Daily {
+        /// Selected decadal period index.
+        decadal_index: usize,
+        /// Selected year within the period (0..=9).
+        year_index: u8,
+        /// Selected lunar month (0..=11).
+        month_index: u8,
+        /// Zero-based lunar day (0..=29 -> 初一..三十).
+        day_index: u8,
+    },
+    /// 流时 — a double-hour of the selected 流日.
+    Hourly {
+        /// Selected decadal period index.
+        decadal_index: usize,
+        /// Selected year within the period (0..=9).
+        year_index: u8,
+        /// Selected lunar month (0..=11).
+        month_index: u8,
+        /// Selected lunar day (0..=29).
+        day_index: u8,
+        /// Zero-based double-hour (0..=11 -> 子..亥).
+        hour_index: u8,
+    },
+}
+
+impl StaticTemporalNavigationSelection {
+    /// The selected decadal period index, if the path reaches 大限.
+    pub const fn decadal_index(&self) -> Option<usize> {
+        match self {
+            Self::Natal | Self::PreDecadal => None,
+            Self::Decadal { decadal_index }
+            | Self::Yearly { decadal_index, .. }
+            | Self::Monthly { decadal_index, .. }
+            | Self::Daily { decadal_index, .. }
+            | Self::Hourly { decadal_index, .. } => Some(*decadal_index),
+        }
+    }
+
+    /// The selected year index, if the path reaches 流年.
+    pub const fn year_index(&self) -> Option<u8> {
+        match self {
+            Self::Yearly { year_index, .. }
+            | Self::Monthly { year_index, .. }
+            | Self::Daily { year_index, .. }
+            | Self::Hourly { year_index, .. } => Some(*year_index),
+            _ => None,
+        }
+    }
+
+    /// The selected lunar-month index, if the path reaches 流月.
+    pub const fn month_index(&self) -> Option<u8> {
+        match self {
+            Self::Monthly { month_index, .. }
+            | Self::Daily { month_index, .. }
+            | Self::Hourly { month_index, .. } => Some(*month_index),
+            _ => None,
+        }
+    }
+
+    /// The selected lunar-day index, if the path reaches 流日.
+    pub const fn day_index(&self) -> Option<u8> {
+        match self {
+            Self::Daily { day_index, .. } | Self::Hourly { day_index, .. } => Some(*day_index),
+            _ => None,
+        }
+    }
+
+    /// The selected double-hour index, if the path reaches 流时.
+    pub const fn hour_index(&self) -> Option<u8> {
+        match self {
+            Self::Hourly { hour_index, .. } => Some(*hour_index),
+            _ => None,
+        }
+    }
+}
+
 impl StaticChartViewSnapshot {
     /// Builds a natal-only static chart view from a natal chart.
     ///
@@ -664,6 +974,7 @@ impl StaticPalaceView {
             branch: palace.branch(),
             branch_zh: zh_cn::earthly_branch_zh(palace.branch()).to_owned(),
             grid_position: palace_grid_position(palace.branch()),
+            surround: StaticSurroundPalacesView::for_branch(palace.branch()),
             name: palace.name(),
             name_zh: zh_cn::palace_name_zh(palace.name()).to_owned(),
             stem: palace.stem(),
@@ -948,6 +1259,53 @@ mod tests {
     }
 
     #[test]
+    fn surround_uses_canonical_offsets() {
+        let snapshot = StaticChartViewSnapshot::from_chart(&sample_chart());
+        for palace in &snapshot.palaces {
+            // 三方四正 must match the horoscope runtime offsets exactly.
+            assert_eq!(palace.surround.opposite, palace.branch.offset(6));
+            assert_eq!(palace.surround.wealth, palace.branch.offset(8));
+            assert_eq!(palace.surround.career, palace.branch.offset(4));
+            // The palace itself is never part of its own 三方四正 set.
+            assert!(!palace.surround.involves(palace.branch));
+            assert_eq!(
+                palace.surround.branches(),
+                [
+                    palace.surround.opposite,
+                    palace.surround.wealth,
+                    palace.surround.career
+                ]
+            );
+        }
+    }
+
+    #[test]
+    fn surround_roundtrips_through_json() {
+        let snapshot = StaticChartViewSnapshot::from_chart(&sample_chart());
+        let palace = &snapshot.palaces[0];
+        let encoded = serde_json::to_string(palace).expect("palace serializes");
+        let decoded: StaticPalaceView =
+            serde_json::from_str(&encoded).expect("palace deserializes");
+        assert_eq!(decoded.surround, palace.surround);
+        assert!(encoded.contains("\"surround\""));
+        assert!(encoded.contains("\"opposite\""));
+        assert!(encoded.contains("\"wealth\""));
+        assert!(encoded.contains("\"career\""));
+    }
+
+    #[test]
+    fn surround_is_a_natal_fact_independent_of_overlays() {
+        let chart = sample_horoscope_chart();
+        let natal_only = StaticChartViewSnapshot::from_chart(chart.natal());
+        let with_overlays = StaticChartViewSnapshot::from_horoscope_chart(&chart);
+        for (a, b) in natal_only.palaces.iter().zip(&with_overlays.palaces) {
+            assert_eq!(a.branch, b.branch);
+            // 三方四正 is a positional natal fact; overlays never change it.
+            assert_eq!(a.surround, b.surround);
+        }
+    }
+
+    #[test]
     fn repeated_construction_serializes_identically() {
         let chart = sample_chart();
         let first = serde_json::to_string(&StaticChartViewSnapshot::from_chart(&chart))
@@ -974,7 +1332,7 @@ mod tests {
             assert_eq!(selector.enabled, is_natal);
             assert_eq!(selector.selected, is_natal);
         }
-        // Selectors follow the fixed 文墨天机 display order.
+        // Selectors follow the fixed display order.
         let order: Vec<Scope> = snapshot.selectors.iter().map(|s| s.scope).collect();
         assert_eq!(order, SELECTOR_ORDER.to_vec());
         // Labels are correct.

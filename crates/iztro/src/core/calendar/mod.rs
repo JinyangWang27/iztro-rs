@@ -6,7 +6,11 @@
 //! domain values and expose request/chart facts.
 
 mod lunar_normalize;
+mod lunar_target;
 mod solar_to_lunar;
 
 pub(crate) use lunar_normalize::resolve_lunar_date;
+pub(crate) use lunar_target::{
+    ResolvedTemporalTarget, lunar_month_has_thirtieth, resolve_non_leap_lunar,
+};
 pub(crate) use solar_to_lunar::solar_to_lunar;

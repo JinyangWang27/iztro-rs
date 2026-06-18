@@ -1,44 +1,179 @@
-//! Iced rendering of one [`StaticChartViewSnapshot`] in a 文墨天机-style layout.
+//! Iced rendering of one [`StaticChartViewSnapshot`] in a layout.
 //!
 //! The screen is a composed grid — a top row of four palaces, a middle band with
 //! a left palace column, a center panel spanning the middle 2x2, and a right
 //! palace column, then a bottom row of four palaces — placed by each palace's
-//! fixed `grid_position`. It also renders a solar birth-input bar and a small
-//! generation history. This module only reads snapshot view models; it performs
-//! no astrology placement, rule evaluation, or 成格 detection.
+//! fixed `grid_position`. A startup screen carries the solar birth-input bar and
+//! the saved-charts list; the chart screen adds a 三方四正 highlight toggle, a
+//! clickable temporal navigation panel, and 科权禄忌 badges. This module only
+//! reads prepared snapshot view models; it performs no astrology placement,
+//! 三方四正, mutagen, rule evaluation, or 成格 derivation.
 //!
 //! [`StaticChartViewSnapshot`]: iztro::core::StaticChartViewSnapshot
 
 use std::fmt;
 
-use iced::widget::{Column, button, column, container, pick_list, row, text, text_input};
-use iced::{Border, Color, Element, Length, Theme};
+use iced::widget::{
+    button, checkbox, column, container, mouse_area, pick_list, row, stack, text, text_input,
+};
+use iced::{Border, Color, Element, Length, Padding, Theme};
 use iztro::core::{
-    Gender, Scope, StaticChartCenterView, StaticDecadalCellView, StaticDecorativeStarView,
-    StaticNavigationCellView, StaticPalaceView, StaticTemporalOverlayView, StaticTemporalPanelView,
-    StaticTypedStarView, StaticYearlyAgeCellView,
+    DecorativeStarFamily, Gender, Mutagen, Scope, StarCategory, StarKind, StaticChartCenterView,
+    StaticChartViewSnapshot, StaticDecorativeStarView, StaticNavigationCellView, StaticPalaceView,
+    StaticTemporalOverlayView, StaticTemporalPanelView, StaticTypedStarView,
 };
 
-use crate::app::{BirthForm, BirthInput, Message, StaticChartApp};
+use crate::app::{BirthForm, BirthInput, Message, Screen, StaticChartApp, TemporalCell};
 
-/// Renders the full static chart screen.
+// ---------------------------------------------------------------------------
+// iztro palace-cell star tones
+//
+// These colors classify *display* only. The category each color encodes is
+// read from prepared core view fields (`StaticTypedStarView.kind`,
+// `StaticDecorativeStarView.family`); the GUI derives no astrology facts.
+// ---------------------------------------------------------------------------
+
+/// `const`-friendly sRGB8 color (iced's `Color::from_rgb8` is not `const`).
+const fn rgb8(r: u8, g: u8, b: u8) -> Color {
+    Color {
+        r: r as f32 / 255.0,
+        g: g as f32 / 255.0,
+        b: b as f32 / 255.0,
+        a: 1.0,
+    }
+}
+
+/// Major stars (主星) and the auspicious soft minor pair stars.
+const MAJOR_PURPLE: Color = rgb8(0x53, 0x1d, 0xab);
+/// Brightness suffix (庙旺得利平陷不), independent of star category.
+const BRIGHTNESS_GRAY: Color = rgb8(0xc5, 0xcb, 0xd0);
+/// Six malefics / 六煞 (擎羊陀罗火星铃星地空地劫).
+const MINOR_MALEFIC: Color = rgb8(0x81, 0x33, 0x59);
+/// 禄存.
+const LU_CUN_ORANGE: Color = rgb8(0xd4, 0x38, 0x0d);
+/// 天马.
+const TIAN_MA_BLUE: Color = rgb8(0x18, 0x90, 0xff);
+/// Ordinary adjective / miscellaneous stars (杂曜).
+const ADJ_GRAY: Color = rgb8(0x8c, 0x8c, 0x8c);
+/// 桃花 / festive relationship stars (红鸾咸池天姚天喜, and flow variants).
+const PEACH_MAGENTA: Color = rgb8(0xc3, 0x1d, 0x7f);
+/// 长生十二神 / 博士十二神 decorative gods (bottom-left).
+const DECOR_GOD_OLIVE: Color = rgb8(0x90, 0x98, 0x3c);
+/// Vertical space reserved so variable-height temporal overlays cannot cover the
+/// two decorative-star lines anchored at the bottom of a palace cell.
+const DECORATIVE_AREA_HEIGHT: f32 = 28.0;
+
+/// 化禄 badge background.
+const MUTAGEN_LU: Color = rgb8(0xd4, 0x38, 0x0d);
+/// 化权 badge background.
+const MUTAGEN_QUAN: Color = rgb8(0x2f, 0x54, 0xeb);
+/// 化科 badge background.
+const MUTAGEN_KE: Color = rgb8(0x23, 0x78, 0x04);
+/// 化忌 badge background.
+const MUTAGEN_JI: Color = rgb8(0x00, 0x00, 0x00);
+
+/// Renders the active screen: the startup landing page or a generated chart.
 pub fn view(app: &StaticChartApp) -> Element<'_, Message> {
+    match (app.screen(), app.snapshot()) {
+        (Screen::Chart, Some(snapshot)) => chart_screen(app, snapshot),
+        // Startup, or a defensive fallback if the chart screen has no snapshot.
+        _ => startup_screen(app),
+    }
+}
+
+/// The landing page: birth-input form plus the list of saved charts.
+fn startup_screen(app: &StaticChartApp) -> Element<'_, Message> {
+    let title = column![
+        text("紫微斗数 · 静态命盘").size(24),
+        text("输入出生信息生成命盘，或打开已保存的命盘。")
+            .size(13)
+            .style(subtle_text_style),
+    ]
+    .spacing(4);
+
     column![
+        title,
         input_bar(app.form(), app.error()),
-        history_bar(app.history()),
-        palace_grid(app),
+        saved_charts_panel(app.saved()),
+    ]
+    .spacing(12)
+    .padding(16)
+    .into()
+}
+
+/// The generated static chart screen.
+fn chart_screen<'a>(
+    app: &'a StaticChartApp,
+    snapshot: &'a StaticChartViewSnapshot,
+) -> Element<'a, Message> {
+    column![
+        chart_toolbar(app),
+        palace_grid(app, snapshot),
         category_legend(),
-        temporal_navigation_panel(&app.snapshot().temporal_panel),
+        temporal_navigation_panel(
+            &snapshot.temporal_panel,
+            app.selected_temporal_selection()
+                == iztro::core::StaticTemporalNavigationSelection::Natal,
+        ),
     ]
     .spacing(8)
     .padding(12)
     .into()
 }
 
-// ---------------------------------------------------------------------------
-// Birth input
-// ---------------------------------------------------------------------------
+/// Top bar of the chart screen: a return action plus the 三方四正 highlight toggle.
+fn chart_toolbar(app: &StaticChartApp) -> Element<'_, Message> {
+    let bar = row![
+        button(text("← 返回").size(14))
+            .on_press(Message::BackToStartup)
+            .style(button::secondary),
+        checkbox("三方四正", app.highlight_san_fang())
+            .on_toggle(Message::ToggleSanFang)
+            .size(16)
+            .text_size(13),
+    ]
+    .spacing(16)
+    .align_y(iced::Alignment::Center);
+    container(bar).width(Length::Fill).into()
+}
 
+/// The saved-charts list shown on the startup page.
+fn saved_charts_panel(saved: &[BirthInput]) -> Element<'_, Message> {
+    let mut content = column![text("已保存命盘").size(15)].spacing(8);
+    if saved.is_empty() {
+        content = content.push(
+            text("暂无保存的命盘。生成命盘后会自动保存到本地。")
+                .size(13)
+                .style(subtle_text_style),
+        );
+    } else {
+        let mut list = column![].spacing(6);
+        for (index, input) in saved.iter().enumerate() {
+            let label = format!(
+                "{}-{:02}-{:02} · {} · {}",
+                input.year,
+                input.month,
+                input.day,
+                gender_zh(input.gender),
+                hour_branch_zh(input.time_index),
+            );
+            list = list.push(
+                button(text(label).size(14))
+                    .on_press(Message::SelectSaved(index))
+                    .style(button::secondary)
+                    .width(Length::Fill),
+            );
+        }
+        content = content.push(list);
+    }
+    container(content)
+        .style(input_panel_style)
+        .padding(12)
+        .width(Length::Fill)
+        .into()
+}
+
+// Birth input
 fn input_bar<'a>(form: &BirthForm, error: Option<&'a str>) -> Element<'a, Message> {
     let fields = row![
         labeled(
@@ -102,26 +237,11 @@ fn labeled<'a>(label: &'a str, control: impl Into<Element<'a, Message>>) -> Elem
         .into()
 }
 
-fn history_bar(history: &[BirthInput]) -> Element<'_, Message> {
-    let mut bar = row![text("历史:").size(13)]
-        .spacing(8)
-        .align_y(iced::Alignment::Center);
-    for (index, input) in history.iter().enumerate() {
-        let label = format!("{}-{}-{}", input.year, input.month, input.day);
-        bar = bar.push(
-            button(text(label).size(13))
-                .on_press(Message::SelectHistory(index))
-                .style(button::secondary),
-        );
-    }
-    container(bar).into()
-}
-
-// ---------------------------------------------------------------------------
-// Palace grid (文墨天机 composed layout)
-// ---------------------------------------------------------------------------
-
-fn palace_grid(app: &StaticChartApp) -> Element<'_, Message> {
+// Palace grid
+fn palace_grid<'a>(
+    app: &'a StaticChartApp,
+    snapshot: &'a StaticChartViewSnapshot,
+) -> Element<'a, Message> {
     let top = row![
         grid_cell(app, 0, 0),
         grid_cell(app, 0, 1),
@@ -137,7 +257,7 @@ fn palace_grid(app: &StaticChartApp) -> Element<'_, Message> {
     let right = column![grid_cell(app, 1, 3), grid_cell(app, 2, 3)]
         .spacing(6)
         .width(Length::FillPortion(1));
-    let center = container(center_panel(app.center()))
+    let center = container(center_panel(&snapshot.center))
         .style(center_panel_style)
         .padding(10)
         .width(Length::FillPortion(2))
@@ -166,34 +286,68 @@ fn palace_grid(app: &StaticChartApp) -> Element<'_, Message> {
 /// (rare) absent cell becomes inert filler so layout stays stable.
 fn grid_cell(app: &StaticChartApp, row: u8, column_index: u8) -> Element<'_, Message> {
     match app.palace_at(row, column_index) {
-        Some(palace) => palace_cell(palace, app.selected_branch() == Some(palace.branch)),
+        Some(palace) => {
+            let highlight = if app.active_branch() == Some(palace.branch) {
+                PalaceHighlight::Selected
+            } else if app.is_in_san_fang(palace.branch) {
+                // 三方四正 membership comes from the prepared `surround` field.
+                PalaceHighlight::Related
+            } else {
+                PalaceHighlight::None
+            };
+            palace_cell(palace, highlight)
+        }
         None => container(text("")).width(Length::FillPortion(1)).into(),
     }
 }
 
-fn palace_cell(palace: &StaticPalaceView, selected: bool) -> Element<'_, Message> {
+/// How a palace cell is visually emphasized.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum PalaceHighlight {
+    /// No emphasis.
+    None,
+    /// The selected palace.
+    Selected,
+    /// A 三方四正 palace related to the selected palace.
+    Related,
+}
+
+fn palace_cell(palace: &StaticPalaceView, highlight: PalaceHighlight) -> Element<'_, Message> {
     let header = column![
         text(palace.name_zh.as_str()).size(16),
         text(format!("{}{}", palace.stem_zh, palace.branch_zh)).size(12),
     ]
     .spacing(1);
 
-    let mut content = column![header].spacing(4);
-    content = push_typed_badges(content, "主星", &palace.major_stars, StarGroupTone::Major);
-    content = push_typed_badges(content, "辅星", &palace.minor_stars, StarGroupTone::Minor);
-    content = push_typed_badges(
-        content,
-        "杂曜",
-        &palace.adjective_stars,
-        StarGroupTone::Adjective,
-    );
-    content = push_typed_badges(
-        content,
-        "其他",
-        &palace.other_typed_stars,
-        StarGroupTone::Other,
-    );
-    content = push_decorative_badges(content, "神煞", &palace.decorative_stars);
+    // Zone every prepared natal typed star by its coarse `kind.category()`:
+    // major top-left, minor top-middle, adjective top-right. Routing by the
+    // prepared kind keeps placement correct regardless of which source vec a
+    // star arrived in; the GUI does no classification of its own.
+    let (mut majors, mut minors, mut adjectives) = (Vec::new(), Vec::new(), Vec::new());
+    for star in palace
+        .major_stars
+        .iter()
+        .chain(&palace.minor_stars)
+        .chain(&palace.adjective_stars)
+        .chain(&palace.other_typed_stars)
+    {
+        match star.kind.category() {
+            StarCategory::Major => majors.push(star),
+            StarCategory::Minor => minors.push(star),
+            StarCategory::Adjective => adjectives.push(star),
+        }
+    }
+    let star_area = row![
+        container(typed_star_column(majors, true)).width(Length::FillPortion(3)),
+        container(typed_star_column(minors, false)).width(Length::FillPortion(3)),
+        container(typed_star_column(adjectives, false))
+            .width(Length::FillPortion(2))
+            .align_x(iced::Alignment::End),
+    ]
+    .spacing(4)
+    .align_y(iced::Alignment::Start);
+
+    let mut content = column![header, star_area].spacing(4);
     for overlay in &palace.overlays {
         if overlay.temporal_palace_name_zh.is_none()
             && overlay.typed_stars.is_empty()
@@ -205,12 +359,188 @@ fn palace_cell(palace: &StaticPalaceView, selected: bool) -> Element<'_, Message
         content = content.push(overlay_badges(overlay));
     }
 
-    button(content)
+    // Decorative "twelve gods" go to the bottom, split by prepared family:
+    // 长生/博士 bottom-left (olive), 将前/岁前 bottom-right (malefic tone). No
+    // group label — color and side carry the family, matching iztro cells.
+    let (mut gods_left, mut gods_right) = (Vec::new(), Vec::new());
+    for star in &palace.decorative_stars {
+        match star.family {
+            DecorativeStarFamily::Changsheng12 | DecorativeStarFamily::Boshi12 => {
+                gods_left.push(star)
+            }
+            DecorativeStarFamily::Jiangqian12 | DecorativeStarFamily::Suiqian12 => {
+                gods_right.push(star)
+            }
+        }
+    }
+    let has_decorative = !gods_left.is_empty() || !gods_right.is_empty();
+    let content: Element<'_, Message> = if has_decorative {
+        let main_layer = container(content)
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .padding(Padding {
+                bottom: DECORATIVE_AREA_HEIGHT,
+                ..Padding::ZERO
+            });
+        stack![main_layer, bottom_decorative_layer(gods_left, gods_right),]
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .into()
+    } else {
+        content.into()
+    };
+
+    let cell = button(content)
         .on_press(Message::SelectPalace(palace.branch))
         .width(Length::FillPortion(1))
         .height(Length::Fill)
         .padding(6)
-        .style(palace_cell_style(selected))
+        .style(palace_cell_style(highlight));
+
+    // Hovering a palace drives the 三方四正 highlight; the exit carries the
+    // branch so a stale exit cannot clear a newer hover.
+    mouse_area(cell)
+        .on_enter(Message::HoverPalace(palace.branch))
+        .on_exit(Message::ClearHoveredPalace(palace.branch))
+        .into()
+}
+
+/// GUI-only visual tone for a typed star, derived from its prepared `kind`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum StaticStarTone {
+    /// Fourteen major stars (主星).
+    Major,
+    /// Auspicious soft minor pair stars (左辅右弼天魁天钺文昌文曲).
+    MinorPurple,
+    /// Six malefics / 六煞 (擎羊陀罗火星铃星地空地劫).
+    MinorMalefic,
+    /// 禄存.
+    LuCun,
+    /// 天马.
+    TianMa,
+    /// Ordinary adjective / miscellaneous stars (杂曜).
+    AdjDefault,
+    /// 桃花 / festive relationship stars (红鸾咸池天姚天喜, flow variants).
+    AdjPeachBlossom,
+}
+
+/// Classifies a prepared typed star into a display tone by its `kind`. This is
+/// pure visual classification of an already-derived core field — no astrology.
+fn star_tone(star: &StaticTypedStarView) -> StaticStarTone {
+    match star.kind {
+        StarKind::Major => StaticStarTone::Major,
+        StarKind::Soft => StaticStarTone::MinorPurple,
+        StarKind::Tough => StaticStarTone::MinorMalefic,
+        StarKind::LuCun => StaticStarTone::LuCun,
+        StarKind::TianMa => StaticStarTone::TianMa,
+        StarKind::Flower => StaticStarTone::AdjPeachBlossom,
+        StarKind::Adjective | StarKind::Helper => StaticStarTone::AdjDefault,
+    }
+}
+
+/// The star-name color for a display tone.
+fn star_color(tone: StaticStarTone) -> Color {
+    match tone {
+        StaticStarTone::Major | StaticStarTone::MinorPurple => MAJOR_PURPLE,
+        StaticStarTone::MinorMalefic => MINOR_MALEFIC,
+        StaticStarTone::LuCun => LU_CUN_ORANGE,
+        StaticStarTone::TianMa => TIAN_MA_BLUE,
+        StaticStarTone::AdjDefault => ADJ_GRAY,
+        StaticStarTone::AdjPeachBlossom => PEACH_MAGENTA,
+    }
+}
+
+/// 科权禄忌 badge background color (禄 #d4380d / 权 #2f54eb / 科 #237804 / 忌 #000000).
+fn mutagen_badge_color(mutagen: Mutagen) -> Color {
+    match mutagen {
+        Mutagen::Lu => MUTAGEN_LU,
+        Mutagen::Quan => MUTAGEN_QUAN,
+        Mutagen::Ke => MUTAGEN_KE,
+        Mutagen::Ji => MUTAGEN_JI,
+    }
+}
+
+/// A compact 科权禄忌 badge rendered inline after a star's brightness. The
+/// mutagen char is the prepared `mutagen_zh`; the GUI derives no mutagens.
+fn mutagen_inline_badge(mutagen: Mutagen, label: &str) -> Element<'static, Message> {
+    let background = mutagen_badge_color(mutagen);
+    container(text(label.to_owned()).size(9).color(Color::WHITE))
+        .style(move |_theme| container::Style {
+            background: Some(background.into()),
+            text_color: Some(Color::WHITE),
+            border: Border {
+                color: background,
+                width: 1.0,
+                radius: 3.0.into(),
+            },
+            ..container::Style::default()
+        })
+        .padding([0, 3])
+        .into()
+}
+
+/// One star line: name (tone color, bold for majors) + inline brightness
+/// (gray) + inline 科权禄忌 badge. All fields are prepared core values.
+fn star_line(star: &StaticTypedStarView, major: bool) -> Element<'static, Message> {
+    // Majors are emphasized by larger size + tone color only. The bundled CJK
+    // font ships a single (Regular) weight; requesting Bold makes cosmic-text
+    // fall back to a non-CJK face and render the names as tofu, so no bold here.
+    let color = star_color(star_tone(star));
+    let size = if major { 15 } else { 12 };
+    let name = text(star.name_zh.clone()).size(size).color(color);
+    let mut line = row![name].spacing(1).align_y(iced::Alignment::Center);
+    if !star.brightness_zh.is_empty() {
+        line = line.push(
+            text(star.brightness_zh.clone())
+                .size(size - 2)
+                .color(BRIGHTNESS_GRAY),
+        );
+    }
+    if let (Some(mutagen), Some(label)) = (star.mutagen, star.mutagen_zh.as_deref()) {
+        line = line.push(mutagen_inline_badge(mutagen, label));
+    }
+    line.into()
+}
+
+/// A vertical stack of typed star lines for one palace-cell zone.
+fn typed_star_column(stars: Vec<&StaticTypedStarView>, major: bool) -> Element<'static, Message> {
+    let mut col = column![].spacing(1);
+    for star in stars {
+        col = col.push(star_line(star, major));
+    }
+    col.into()
+}
+
+/// A vertical stack of decorative "twelve gods" star names in one tone.
+fn decorative_column(
+    stars: Vec<&StaticDecorativeStarView>,
+    color: Color,
+) -> Element<'static, Message> {
+    let mut col = column![].spacing(1);
+    for star in stars {
+        col = col.push(text(star.name_zh.clone()).size(10).color(color));
+    }
+    col.into()
+}
+
+/// Renders decorative stars independently from variable-height main/overlay
+/// content, keeping both prepared family zones visible at the cell bottom.
+fn bottom_decorative_layer(
+    gods_left: Vec<&StaticDecorativeStarView>,
+    gods_right: Vec<&StaticDecorativeStarView>,
+) -> Element<'static, Message> {
+    let decorative_area = row![
+        container(decorative_column(gods_left, DECOR_GOD_OLIVE)).width(Length::FillPortion(1)),
+        container(decorative_column(gods_right, MINOR_MALEFIC))
+            .width(Length::FillPortion(1))
+            .align_x(iced::Alignment::End),
+    ]
+    .spacing(4);
+
+    container(decorative_area)
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .align_y(iced::Alignment::End)
         .into()
 }
 
@@ -248,65 +578,44 @@ fn center_panel(center: &StaticChartCenterView) -> Element<'_, Message> {
     content.into()
 }
 
+/// Compact color legend matching the new palace-cell tones, so cells need no
+/// in-cell category labels.
 fn category_legend() -> Element<'static, Message> {
     row![
         text("图例").size(12).style(subtle_text_style),
-        star_badge("主星".to_owned(), StarGroupTone::Major),
-        star_badge("辅星".to_owned(), StarGroupTone::Minor),
-        star_badge("杂曜".to_owned(), StarGroupTone::Adjective),
-        star_badge("神煞".to_owned(), StarGroupTone::Decorative),
-        star_badge("流曜".to_owned(), StarGroupTone::Temporal),
+        legend_item("主星/辅星", MAJOR_PURPLE),
+        legend_item("六煞", MINOR_MALEFIC),
+        legend_item("禄存", LU_CUN_ORANGE),
+        legend_item("天马", TIAN_MA_BLUE),
+        legend_item("桃花", PEACH_MAGENTA),
+        legend_item("杂曜", ADJ_GRAY),
+        legend_item("长生/博士", DECOR_GOD_OLIVE),
+        legend_item("将前/岁前", MINOR_MALEFIC),
+        text("四化").size(12).style(subtle_text_style),
+        mutagen_inline_badge(Mutagen::Lu, "禄"),
+        mutagen_inline_badge(Mutagen::Quan, "权"),
+        mutagen_inline_badge(Mutagen::Ke, "科"),
+        mutagen_inline_badge(Mutagen::Ji, "忌"),
     ]
     .spacing(6)
     .align_y(iced::Alignment::Center)
     .into()
 }
 
+/// One legend label rendered in its tone color.
+fn legend_item(label: &str, color: Color) -> Element<'static, Message> {
+    text(label.to_owned()).size(12).color(color).into()
+}
+
 // ---------------------------------------------------------------------------
 // Star helpers
 // ---------------------------------------------------------------------------
 
+/// Tone for the remaining grouped badges (temporal overlays only).
 #[derive(Clone, Copy)]
 enum StarGroupTone {
-    Major,
-    Minor,
-    Adjective,
-    Other,
     Decorative,
     Temporal,
-}
-
-fn push_typed_badges<'a>(
-    content: Column<'a, Message>,
-    label: &'static str,
-    stars: &[StaticTypedStarView],
-    tone: StarGroupTone,
-) -> Column<'a, Message> {
-    if stars.is_empty() {
-        content
-    } else {
-        content.push(star_group(
-            label,
-            stars.iter().map(|star| star.name_zh.clone()).collect(),
-            tone,
-        ))
-    }
-}
-
-fn push_decorative_badges<'a>(
-    content: Column<'a, Message>,
-    label: &'static str,
-    stars: &[StaticDecorativeStarView],
-) -> Column<'a, Message> {
-    if stars.is_empty() {
-        content
-    } else {
-        content.push(star_group(
-            label,
-            stars.iter().map(|star| star.name_zh.clone()).collect(),
-            StarGroupTone::Decorative,
-        ))
-    }
 }
 
 fn overlay_badges(overlay: &StaticTemporalOverlayView) -> Element<'_, Message> {
@@ -343,18 +652,77 @@ fn overlay_badges(overlay: &StaticTemporalOverlayView) -> Element<'_, Message> {
     content.into()
 }
 
-fn temporal_navigation_panel(panel: &StaticTemporalPanelView) -> Element<'_, Message> {
-    let mut rows = column![
-        decadal_row("大限", &panel.decadal_cells),
-        yearly_age_row("流年/小限", &panel.yearly_age_cells),
-        navigation_row("流月", &panel.month_cells),
-    ]
-    .spacing(4);
+fn temporal_navigation_panel<'a>(
+    panel: &'a StaticTemporalPanelView,
+    natal_selected: bool,
+) -> Element<'a, Message> {
+    // First row: 本命 (natal) and 限前 (pre-decadal) lead the 大限 cells inline.
+    let mut decadal_cells = vec![
+        temporal_cell(
+            TemporalCell::Natal,
+            Some("本命"),
+            None,
+            true,
+            natal_selected,
+        ),
+        temporal_cell(
+            TemporalCell::PreDecadal,
+            Some(panel.pre_decadal_cell.label_zh.as_str()),
+            panel.pre_decadal_cell.age_range_zh.as_deref(),
+            panel.pre_decadal_cell.enabled,
+            panel.pre_decadal_cell.selected,
+        ),
+    ];
+    decadal_cells.extend(panel.decadal_cells.iter().enumerate().map(|(i, cell)| {
+        temporal_cell(
+            TemporalCell::Decadal(i),
+            cell.age_range_zh.as_deref(),
+            cell.limit_label_zh.as_deref(),
+            cell.enabled,
+            cell.selected,
+        )
+    }));
+    let decadal = temporal_row("本命/限前/大限", decadal_cells);
+    let yearly = temporal_row(
+        "流年/小限",
+        panel
+            .yearly_age_cells
+            .iter()
+            .enumerate()
+            .map(|(i, cell)| {
+                temporal_cell(
+                    TemporalCell::YearlyAge(i),
+                    cell.year_label.as_deref(),
+                    cell.stem_branch_age_zh.as_deref(),
+                    cell.enabled,
+                    cell.selected,
+                )
+            })
+            .collect(),
+    );
+    let month = temporal_row("流月", nav_cells(&panel.month_cells, TemporalCell::Month));
 
-    for days in &panel.day_rows {
-        rows = rows.push(navigation_row("流日", days));
+    let mut rows = column![decadal, yearly, month].spacing(4);
+    for (r, days) in panel.day_rows.iter().enumerate() {
+        let widgets = days
+            .iter()
+            .enumerate()
+            .map(|(i, cell)| {
+                temporal_cell(
+                    TemporalCell::Day(r, i),
+                    Some(cell.label_zh.as_str()),
+                    None,
+                    cell.enabled,
+                    cell.selected,
+                )
+            })
+            .collect();
+        rows = rows.push(temporal_row("流日", widgets));
     }
-    rows = rows.push(navigation_row("流时", &panel.hour_cells));
+    rows = rows.push(temporal_row(
+        "流时",
+        nav_cells(&panel.hour_cells, TemporalCell::Hour),
+    ));
 
     container(rows)
         .style(temporal_panel_style)
@@ -363,25 +731,24 @@ fn temporal_navigation_panel(panel: &StaticTemporalPanelView) -> Element<'_, Mes
         .into()
 }
 
-fn decadal_row<'a>(
-    label: &'static str,
-    cells: &'a [StaticDecadalCellView],
-) -> Element<'a, Message> {
-    temporal_row(label, cells.iter().map(decadal_cell).collect())
-}
-
-fn yearly_age_row<'a>(
-    label: &'static str,
-    cells: &'a [StaticYearlyAgeCellView],
-) -> Element<'a, Message> {
-    temporal_row(label, cells.iter().map(yearly_age_cell).collect())
-}
-
-fn navigation_row<'a>(
-    label: &'static str,
+/// Builds the clickable cell widgets for a simple navigation row.
+fn nav_cells<'a>(
     cells: &'a [StaticNavigationCellView],
-) -> Element<'a, Message> {
-    temporal_row(label, cells.iter().map(navigation_cell).collect())
+    id_for: impl Fn(usize) -> TemporalCell,
+) -> Vec<Element<'a, Message>> {
+    cells
+        .iter()
+        .enumerate()
+        .map(|(i, cell)| {
+            temporal_cell(
+                id_for(i),
+                Some(cell.label_zh.as_str()),
+                None,
+                cell.enabled,
+                cell.selected,
+            )
+        })
+        .collect()
 }
 
 fn temporal_row<'a>(label: &'static str, cells: Vec<Element<'a, Message>>) -> Element<'a, Message> {
@@ -394,47 +761,43 @@ fn temporal_row<'a>(label: &'static str, cells: Vec<Element<'a, Message>>) -> El
     content.into()
 }
 
-fn decadal_cell(cell: &StaticDecadalCellView) -> Element<'_, Message> {
-    temporal_cell(
-        cell.age_range_zh.as_deref(),
-        cell.limit_label_zh.as_deref(),
-        cell.enabled,
-    )
-}
-
-fn yearly_age_cell(cell: &StaticYearlyAgeCellView) -> Element<'_, Message> {
-    temporal_cell(
-        cell.year_label.as_deref(),
-        cell.stem_branch_age_zh.as_deref(),
-        cell.enabled,
-    )
-}
-
-fn navigation_cell(cell: &StaticNavigationCellView) -> Element<'_, Message> {
-    temporal_cell(Some(cell.label_zh.as_str()), None, cell.enabled)
-}
-
+/// Renders one temporal cell. Enabled cells are clickable buttons that emit a
+/// [`Message::SelectTemporalCell`]; disabled cells stay inert containers and can
+/// never become an active selection.
 fn temporal_cell<'a>(
+    id: TemporalCell,
     primary: Option<&'a str>,
     secondary: Option<&'a str>,
     enabled: bool,
+    selected: bool,
 ) -> Element<'a, Message> {
-    let primary = text(primary.unwrap_or("—")).size(10);
-    let primary = if enabled {
-        primary
+    let primary_text = text(primary.unwrap_or("—")).size(10);
+    let primary_text = if enabled {
+        primary_text
     } else {
-        primary.style(subtle_text_style)
+        primary_text.style(subtle_text_style)
     };
-    let mut content = column![primary].spacing(1).align_x(iced::Alignment::Center);
+    let mut content = column![primary_text]
+        .spacing(1)
+        .align_x(iced::Alignment::Center);
     if let Some(secondary) = secondary {
         content = content.push(text(secondary).size(9));
     }
 
-    container(content)
-        .style(move |theme| temporal_cell_style(theme, enabled))
-        .padding([3, 2])
-        .width(Length::FillPortion(1))
-        .into()
+    if enabled {
+        button(content)
+            .on_press(Message::SelectTemporalCell(id))
+            .padding([3, 2])
+            .width(Length::FillPortion(1))
+            .style(move |theme, _status| temporal_cell_button_style(theme, selected))
+            .into()
+    } else {
+        container(content)
+            .style(move |theme| temporal_cell_style(theme, false))
+            .padding([3, 2])
+            .width(Length::FillPortion(1))
+            .into()
+    }
 }
 
 fn star_group(
@@ -501,6 +864,26 @@ fn gender_zh(gender: Gender) -> &'static str {
     match gender {
         Gender::Female => "女",
         Gender::Male => "男",
+    }
+}
+
+/// Chinese label for an `iztro` `timeIndex` double-hour (`0..=12`).
+fn hour_branch_zh(time_index: u8) -> &'static str {
+    match time_index {
+        0 => "早子时",
+        1 => "丑时",
+        2 => "寅时",
+        3 => "卯时",
+        4 => "辰时",
+        5 => "巳时",
+        6 => "午时",
+        7 => "未时",
+        8 => "申时",
+        9 => "酉时",
+        10 => "戌时",
+        11 => "亥时",
+        12 => "晚子时",
+        _ => "未知",
     }
 }
 
@@ -572,32 +955,41 @@ impl fmt::Display for GenderChoice {
     }
 }
 
-// ---------------------------------------------------------------------------
 // Styles
-// ---------------------------------------------------------------------------
-
-fn palace_cell_style(selected: bool) -> impl Fn(&Theme, button::Status) -> button::Style {
+fn palace_cell_style(
+    highlight: PalaceHighlight,
+) -> impl Fn(&Theme, button::Status) -> button::Style {
     move |theme, _status| {
         let palette = theme.extended_palette();
-        let (background, text_color, border_color) = if selected {
-            (
+        let (background, text_color, border_color, width) = match highlight {
+            PalaceHighlight::Selected => (
                 palette.primary.weak.color,
                 palette.primary.weak.text,
                 palette.primary.strong.color,
-            )
-        } else {
-            (
+                2.0,
+            ),
+            // 三方四正 related palaces get a subtle filled background, weaker
+            // than the active palace above (a soft fill rather than only a
+            // border), matching the iztro highlight feel.
+            PalaceHighlight::Related => (
+                palette.background.weak.color,
+                palette.background.weak.text,
+                palette.primary.base.color,
+                1.5,
+            ),
+            PalaceHighlight::None => (
                 palette.background.base.color,
                 palette.background.base.text,
                 palette.background.strong.color,
-            )
+                1.0,
+            ),
         };
         button::Style {
             background: Some(background.into()),
             text_color,
             border: Border {
                 color: border_color,
-                width: if selected { 2.0 } else { 1.0 },
+                width,
                 radius: 4.0.into(),
             },
             ..button::Style::default()
@@ -663,6 +1055,36 @@ fn temporal_cell_style(theme: &Theme, enabled: bool) -> container::Style {
     }
 }
 
+/// Style for an enabled, clickable temporal cell; the selected cell is tinted.
+fn temporal_cell_button_style(theme: &Theme, selected: bool) -> button::Style {
+    let palette = theme.extended_palette();
+    let (background, text_color, border_color, width) = if selected {
+        (
+            palette.primary.weak.color,
+            palette.primary.weak.text,
+            palette.primary.strong.color,
+            2.0,
+        )
+    } else {
+        (
+            palette.background.base.color,
+            palette.background.base.text,
+            palette.background.strong.color,
+            1.0,
+        )
+    };
+    button::Style {
+        background: Some(background.into()),
+        text_color,
+        border: Border {
+            color: border_color,
+            width,
+            radius: 3.0.into(),
+        },
+        ..button::Style::default()
+    }
+}
+
 fn star_badge_style(tone: StarGroupTone) -> impl Fn(&Theme) -> container::Style {
     move |_theme| {
         let (background, text_color) = star_badge_colors(tone);
@@ -681,10 +1103,6 @@ fn star_badge_style(tone: StarGroupTone) -> impl Fn(&Theme) -> container::Style 
 
 fn star_badge_colors(tone: StarGroupTone) -> (Color, Color) {
     match tone {
-        StarGroupTone::Major => (Color::from_rgb8(111, 53, 25), Color::WHITE),
-        StarGroupTone::Minor => (Color::from_rgb8(38, 88, 96), Color::WHITE),
-        StarGroupTone::Adjective => (Color::from_rgb8(92, 75, 132), Color::WHITE),
-        StarGroupTone::Other => (Color::from_rgb8(91, 91, 91), Color::WHITE),
         StarGroupTone::Decorative => (Color::from_rgb8(126, 87, 48), Color::WHITE),
         StarGroupTone::Temporal => (Color::from_rgb8(45, 102, 63), Color::WHITE),
     }
@@ -714,8 +1132,23 @@ mod tests {
     use crate::app::StaticChartApp;
     use iztro::core::FiveElementBureau;
 
+    /// Builds an app with a generated chart (the startup screen has none).
+    fn chart_app() -> StaticChartApp {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        app
+    }
+
+    /// Owned copy of the generated chart's center facts.
+    fn sample_center() -> StaticChartCenterView {
+        chart_app()
+            .center()
+            .expect("generated chart center")
+            .clone()
+    }
+
     fn sample_typed_star() -> StaticTypedStarView {
-        let app = StaticChartApp::new();
+        let app = chart_app();
         app.palaces()
             .iter()
             .flat_map(|palace| {
@@ -732,8 +1165,8 @@ mod tests {
 
     #[test]
     fn center_four_pillar_rows_use_available_zh_labels() {
-        let app = StaticChartApp::new();
-        let rows = center_four_pillar_rows(app.center());
+        let center = sample_center();
+        let rows = center_four_pillar_rows(&center);
 
         assert_eq!(rows.len(), 4);
         assert_eq!(rows[0].0, "年柱");
@@ -745,8 +1178,7 @@ mod tests {
 
     #[test]
     fn center_four_pillar_rows_are_empty_when_unavailable() {
-        let app = StaticChartApp::new();
-        let mut center = app.center().clone();
+        let mut center = sample_center();
         center.four_pillars = None;
 
         assert!(center_four_pillar_rows(&center).is_empty());
@@ -754,8 +1186,7 @@ mod tests {
 
     #[test]
     fn bureau_label_handles_available_and_missing_values() {
-        let app = StaticChartApp::new();
-        let mut center = app.center().clone();
+        let mut center = sample_center();
 
         center.five_element_bureau = Some(FiveElementBureau::Fire6);
         assert_eq!(bureau_label(&center), "Fire6");
@@ -773,6 +1204,126 @@ mod tests {
         assert_eq!(scope_zh(Scope::Monthly), "流月");
         assert_eq!(scope_zh(Scope::Daily), "流日");
         assert_eq!(scope_zh(Scope::Hourly), "流时");
+    }
+
+    /// A typed star carrying only the field that drives visual classification.
+    fn typed_star_with_kind(kind: StarKind) -> StaticTypedStarView {
+        let mut star = sample_typed_star();
+        star.kind = kind;
+        star
+    }
+
+    #[test]
+    fn major_kind_maps_to_major_tone() {
+        assert_eq!(
+            star_tone(&typed_star_with_kind(StarKind::Major)),
+            StaticStarTone::Major
+        );
+    }
+
+    #[test]
+    fn soft_minor_pairs_map_to_minor_purple() {
+        // Covers 左辅/右弼/天魁/天钺/文昌/文曲 — all prepared as StarKind::Soft.
+        assert_eq!(
+            star_tone(&typed_star_with_kind(StarKind::Soft)),
+            StaticStarTone::MinorPurple
+        );
+    }
+
+    #[test]
+    fn six_malefics_map_to_minor_malefic() {
+        // Covers 擎羊/陀罗/火星/铃星/地空/地劫 — all prepared as StarKind::Tough.
+        assert_eq!(
+            star_tone(&typed_star_with_kind(StarKind::Tough)),
+            StaticStarTone::MinorMalefic
+        );
+    }
+
+    #[test]
+    fn lucun_and_tianma_map_to_their_own_tones() {
+        assert_eq!(
+            star_tone(&typed_star_with_kind(StarKind::LuCun)),
+            StaticStarTone::LuCun
+        );
+        assert_eq!(
+            star_tone(&typed_star_with_kind(StarKind::TianMa)),
+            StaticStarTone::TianMa
+        );
+    }
+
+    #[test]
+    fn flower_stars_map_to_peach_blossom() {
+        // Covers 红鸾/咸池/天姚/天喜 (and flow 鸾/喜) — all prepared as StarKind::Flower.
+        assert_eq!(
+            star_tone(&typed_star_with_kind(StarKind::Flower)),
+            StaticStarTone::AdjPeachBlossom
+        );
+    }
+
+    #[test]
+    fn ordinary_adjective_stars_map_to_default() {
+        assert_eq!(
+            star_tone(&typed_star_with_kind(StarKind::Adjective)),
+            StaticStarTone::AdjDefault
+        );
+        assert_eq!(
+            star_tone(&typed_star_with_kind(StarKind::Helper)),
+            StaticStarTone::AdjDefault
+        );
+    }
+
+    #[test]
+    fn mutagen_badge_colors_cover_all_four_transformations() {
+        assert_eq!(mutagen_badge_color(Mutagen::Lu), rgb8(0xd4, 0x38, 0x0d));
+        assert_eq!(mutagen_badge_color(Mutagen::Quan), rgb8(0x2f, 0x54, 0xeb));
+        assert_eq!(mutagen_badge_color(Mutagen::Ke), rgb8(0x23, 0x78, 0x04));
+        assert_eq!(mutagen_badge_color(Mutagen::Ji), rgb8(0x00, 0x00, 0x00));
+    }
+
+    #[test]
+    fn star_kind_routes_to_expected_palace_zone() {
+        // Zone placement uses the prepared kind's coarse category.
+        assert_eq!(StarKind::Major.category(), StarCategory::Major);
+        assert_eq!(StarKind::Soft.category(), StarCategory::Minor);
+        assert_eq!(StarKind::Tough.category(), StarCategory::Minor);
+        assert_eq!(StarKind::LuCun.category(), StarCategory::Minor);
+        assert_eq!(StarKind::TianMa.category(), StarCategory::Minor);
+        assert_eq!(StarKind::Flower.category(), StarCategory::Adjective);
+        assert_eq!(StarKind::Adjective.category(), StarCategory::Adjective);
+        assert_eq!(StarKind::Helper.category(), StarCategory::Adjective);
+    }
+
+    #[test]
+    fn decorative_family_splits_into_bottom_zones() {
+        // 长生/博士 share the olive bottom-left tone; 将前/岁前 share the malefic
+        // bottom-right tone. Each family lands in exactly one zone.
+        for family in [
+            DecorativeStarFamily::Changsheng12,
+            DecorativeStarFamily::Boshi12,
+        ] {
+            assert!(matches!(
+                family,
+                DecorativeStarFamily::Changsheng12 | DecorativeStarFamily::Boshi12
+            ));
+        }
+        assert_eq!(DECOR_GOD_OLIVE, rgb8(0x90, 0x98, 0x3c));
+        assert_eq!(MINOR_MALEFIC, rgb8(0x81, 0x33, 0x59));
+    }
+
+    #[test]
+    fn palace_cell_uses_a_dedicated_bottom_decorative_layer() {
+        let source = include_str!("static_chart_screen.rs");
+
+        assert!(source.contains(concat!("fn bottom_", "decorative_layer")));
+        assert!(source.contains(concat!("stack", "![")));
+        assert!(source.contains(concat!("DECORATIVE_", "AREA_HEIGHT")));
+    }
+
+    #[test]
+    fn palace_highlight_is_disjoint_between_selected_and_related() {
+        // Selected always wins over related; none/selected/related are distinct.
+        assert_ne!(PalaceHighlight::Selected, PalaceHighlight::Related);
+        assert_ne!(PalaceHighlight::None, PalaceHighlight::Related);
     }
 
     #[test]

@@ -6,9 +6,11 @@
 
 pub mod app;
 pub mod fonts;
+pub mod persistence;
 pub mod static_chart_screen;
 
 use app::{Message, StaticChartApp};
+use persistence::ChartStore;
 
 const WINDOW_TITLE: &str = "iztro Static Chart";
 
@@ -22,7 +24,12 @@ pub fn run() -> iced::Result {
             min_size: Some(iced::Size::new(760.0, 680.0)),
             ..Default::default()
         })
-        .run_with(|| (StaticChartApp::new(), iced::Task::none()))
+        .run_with(|| {
+            (
+                StaticChartApp::with_optional_store(ChartStore::default_store()),
+                iced::Task::none(),
+            )
+        })
 }
 
 /// Bridges the pure [`StaticChartApp::update`] into the Iced update loop.
@@ -38,5 +45,26 @@ mod tests {
     #[test]
     fn window_title_uses_only_ascii_window_chrome_text() {
         assert!(WINDOW_TITLE.is_ascii());
+    }
+
+    #[test]
+    fn gui_manifest_uses_wgpu_without_software_fallback() {
+        let manifest = include_str!("../Cargo.toml");
+
+        assert!(
+            manifest.contains(
+                r#"iced = { version = "0.13", default-features = false, features = ["wgpu"] }"#
+            ),
+            "GUI should use GPU rendering; WSL safety comes from forcing XWayland before Iced starts"
+        );
+    }
+
+    #[test]
+    fn wsl_launch_forces_the_stable_xwayland_path() {
+        let source = include_str!("main.rs");
+
+        assert!(source.contains(concat!("var_os(\"WSL_", "DISTRO_NAME\")")));
+        assert!(source.contains(concat!("remove_var(\"WAYLAND_", "DISPLAY\")")));
+        assert!(source.contains(concat!("remove_var(\"WAYLAND_", "SOCKET\")")));
     }
 }
