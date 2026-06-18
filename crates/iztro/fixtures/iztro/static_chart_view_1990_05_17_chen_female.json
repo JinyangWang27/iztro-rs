@@ -13,6 +13,7 @@
       "body_palace_branch": "xu",
       "body_palace_branch_zh": "戌",
       "five_element_bureau": "earth5",
+      "four_pillars": null,
       "gender": "female",
       "life_palace_branch": "yin",
       "life_palace_branch_zh": "寅"
@@ -1489,7 +1490,361 @@
         "scope": "hourly",
         "selected": false
       }
-    ]
+    ],
+    "temporal_panel": {
+      "day_rows": [
+        [
+          {
+            "enabled": true,
+            "label_zh": "初一"
+          },
+          {
+            "enabled": true,
+            "label_zh": "初二"
+          },
+          {
+            "enabled": true,
+            "label_zh": "初三"
+          },
+          {
+            "enabled": true,
+            "label_zh": "初四"
+          },
+          {
+            "enabled": true,
+            "label_zh": "初五"
+          },
+          {
+            "enabled": true,
+            "label_zh": "初六"
+          },
+          {
+            "enabled": true,
+            "label_zh": "初七"
+          },
+          {
+            "enabled": true,
+            "label_zh": "初八"
+          },
+          {
+            "enabled": true,
+            "label_zh": "初九"
+          },
+          {
+            "enabled": true,
+            "label_zh": "初十"
+          }
+        ],
+        [
+          {
+            "enabled": true,
+            "label_zh": "十一"
+          },
+          {
+            "enabled": true,
+            "label_zh": "十二"
+          },
+          {
+            "enabled": true,
+            "label_zh": "十三"
+          },
+          {
+            "enabled": true,
+            "label_zh": "十四"
+          },
+          {
+            "enabled": true,
+            "label_zh": "十五"
+          },
+          {
+            "enabled": true,
+            "label_zh": "十六"
+          },
+          {
+            "enabled": true,
+            "label_zh": "十七"
+          },
+          {
+            "enabled": true,
+            "label_zh": "十八"
+          },
+          {
+            "enabled": true,
+            "label_zh": "十九"
+          },
+          {
+            "enabled": true,
+            "label_zh": "二十"
+          }
+        ],
+        [
+          {
+            "enabled": true,
+            "label_zh": "廿一"
+          },
+          {
+            "enabled": true,
+            "label_zh": "廿二"
+          },
+          {
+            "enabled": true,
+            "label_zh": "廿三"
+          },
+          {
+            "enabled": true,
+            "label_zh": "廿四"
+          },
+          {
+            "enabled": true,
+            "label_zh": "廿五"
+          },
+          {
+            "enabled": true,
+            "label_zh": "廿六"
+          },
+          {
+            "enabled": true,
+            "label_zh": "廿七"
+          },
+          {
+            "enabled": true,
+            "label_zh": "廿八"
+          },
+          {
+            "enabled": true,
+            "label_zh": "廿九"
+          },
+          {
+            "enabled": true,
+            "label_zh": "三十"
+          }
+        ]
+      ],
+      "decadal_cells": [
+        {
+          "age_range_zh": "5-14",
+          "enabled": true,
+          "limit_label_zh": "戊寅限"
+        },
+        {
+          "age_range_zh": "15-24",
+          "enabled": true,
+          "limit_label_zh": "己丑限"
+        },
+        {
+          "age_range_zh": "25-34",
+          "enabled": true,
+          "limit_label_zh": "戊子限"
+        },
+        {
+          "age_range_zh": "35-44",
+          "enabled": true,
+          "limit_label_zh": "丁亥限"
+        },
+        {
+          "age_range_zh": "45-54",
+          "enabled": true,
+          "limit_label_zh": "丙戌限"
+        },
+        {
+          "age_range_zh": "55-64",
+          "enabled": true,
+          "limit_label_zh": "乙酉限"
+        },
+        {
+          "age_range_zh": "65-74",
+          "enabled": true,
+          "limit_label_zh": "甲申限"
+        },
+        {
+          "age_range_zh": "75-84",
+          "enabled": true,
+          "limit_label_zh": "癸未限"
+        },
+        {
+          "age_range_zh": "85-94",
+          "enabled": true,
+          "limit_label_zh": "壬午限"
+        },
+        {
+          "age_range_zh": "95-104",
+          "enabled": true,
+          "limit_label_zh": "辛巳限"
+        },
+        {
+          "age_range_zh": "105-114",
+          "enabled": true,
+          "limit_label_zh": "庚辰限"
+        },
+        {
+          "age_range_zh": "115-124",
+          "enabled": true,
+          "limit_label_zh": "己卯限"
+        }
+      ],
+      "hour_cells": [
+        {
+          "enabled": true,
+          "label_zh": "子"
+        },
+        {
+          "enabled": true,
+          "label_zh": "丑"
+        },
+        {
+          "enabled": true,
+          "label_zh": "寅"
+        },
+        {
+          "enabled": true,
+          "label_zh": "卯"
+        },
+        {
+          "enabled": true,
+          "label_zh": "辰"
+        },
+        {
+          "enabled": true,
+          "label_zh": "巳"
+        },
+        {
+          "enabled": true,
+          "label_zh": "午"
+        },
+        {
+          "enabled": true,
+          "label_zh": "未"
+        },
+        {
+          "enabled": true,
+          "label_zh": "申"
+        },
+        {
+          "enabled": true,
+          "label_zh": "酉"
+        },
+        {
+          "enabled": true,
+          "label_zh": "戌"
+        },
+        {
+          "enabled": true,
+          "label_zh": "亥"
+        }
+      ],
+      "month_cells": [
+        {
+          "enabled": true,
+          "label_zh": "正月"
+        },
+        {
+          "enabled": true,
+          "label_zh": "二月"
+        },
+        {
+          "enabled": true,
+          "label_zh": "三月"
+        },
+        {
+          "enabled": true,
+          "label_zh": "四月"
+        },
+        {
+          "enabled": true,
+          "label_zh": "五月"
+        },
+        {
+          "enabled": true,
+          "label_zh": "六月"
+        },
+        {
+          "enabled": true,
+          "label_zh": "七月"
+        },
+        {
+          "enabled": true,
+          "label_zh": "八月"
+        },
+        {
+          "enabled": true,
+          "label_zh": "九月"
+        },
+        {
+          "enabled": true,
+          "label_zh": "十月"
+        },
+        {
+          "enabled": true,
+          "label_zh": "冬月"
+        },
+        {
+          "enabled": true,
+          "label_zh": "腊月"
+        }
+      ],
+      "yearly_age_cells": [
+        {
+          "enabled": false,
+          "stem_branch_age_zh": null,
+          "year_label": null
+        },
+        {
+          "enabled": false,
+          "stem_branch_age_zh": null,
+          "year_label": null
+        },
+        {
+          "enabled": false,
+          "stem_branch_age_zh": null,
+          "year_label": null
+        },
+        {
+          "enabled": false,
+          "stem_branch_age_zh": null,
+          "year_label": null
+        },
+        {
+          "enabled": false,
+          "stem_branch_age_zh": null,
+          "year_label": null
+        },
+        {
+          "enabled": false,
+          "stem_branch_age_zh": null,
+          "year_label": null
+        },
+        {
+          "enabled": false,
+          "stem_branch_age_zh": null,
+          "year_label": null
+        },
+        {
+          "enabled": false,
+          "stem_branch_age_zh": null,
+          "year_label": null
+        },
+        {
+          "enabled": false,
+          "stem_branch_age_zh": null,
+          "year_label": null
+        },
+        {
+          "enabled": false,
+          "stem_branch_age_zh": null,
+          "year_label": null
+        },
+        {
+          "enabled": false,
+          "stem_branch_age_zh": null,
+          "year_label": null
+        },
+        {
+          "enabled": false,
+          "stem_branch_age_zh": null,
+          "year_label": null
+        }
+      ]
+    }
   },
   "view_model": "StaticChartViewSnapshot"
 }
