@@ -457,11 +457,12 @@ fn mutagen_badge_color(mutagen: Mutagen) -> Color {
     }
 }
 
-/// Bold font used for major star names.
+/// Bold font for major star names. Built from the bundled CJK family so the
+/// Chinese glyphs still resolve (the default family has no CJK coverage).
 fn bold_font() -> iced::Font {
     iced::Font {
         weight: iced::font::Weight::Bold,
-        ..iced::Font::DEFAULT
+        ..crate::fonts::CJK_FONT
     }
 }
 
