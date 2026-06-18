@@ -712,6 +712,23 @@ fn error_text_style(theme: &Theme) -> text::Style {
 mod tests {
     use super::*;
     use crate::app::StaticChartApp;
+    use iztro::core::FiveElementBureau;
+
+    fn sample_typed_star() -> StaticTypedStarView {
+        let app = StaticChartApp::new();
+        app.palaces()
+            .iter()
+            .flat_map(|palace| {
+                palace
+                    .major_stars
+                    .iter()
+                    .chain(&palace.minor_stars)
+                    .chain(&palace.adjective_stars)
+            })
+            .next()
+            .expect("sample chart should contain a typed star")
+            .clone()
+    }
 
     #[test]
     fn center_four_pillar_rows_use_available_zh_labels() {
@@ -724,5 +741,74 @@ mod tests {
         assert_eq!(rows[2].0, "日柱");
         assert_eq!(rows[3].0, "时柱");
         assert!(rows.iter().all(|(_, value)| !value.is_empty()));
+    }
+
+    #[test]
+    fn center_four_pillar_rows_are_empty_when_unavailable() {
+        let app = StaticChartApp::new();
+        let mut center = app.center().clone();
+        center.four_pillars = None;
+
+        assert!(center_four_pillar_rows(&center).is_empty());
+    }
+
+    #[test]
+    fn bureau_label_handles_available_and_missing_values() {
+        let app = StaticChartApp::new();
+        let mut center = app.center().clone();
+
+        center.five_element_bureau = Some(FiveElementBureau::Fire6);
+        assert_eq!(bureau_label(&center), "Fire6");
+
+        center.five_element_bureau = None;
+        assert_eq!(bureau_label(&center), "未提供");
+    }
+
+    #[test]
+    fn scope_labels_cover_every_supported_scope() {
+        assert_eq!(scope_zh(Scope::Natal), "本命");
+        assert_eq!(scope_zh(Scope::Decadal), "大限");
+        assert_eq!(scope_zh(Scope::Age), "小限");
+        assert_eq!(scope_zh(Scope::Yearly), "流年");
+        assert_eq!(scope_zh(Scope::Monthly), "流月");
+        assert_eq!(scope_zh(Scope::Daily), "流日");
+        assert_eq!(scope_zh(Scope::Hourly), "流时");
+    }
+
+    #[test]
+    fn star_detail_label_covers_brightness_and_mutagen_combinations() {
+        let mut star = sample_typed_star();
+        star.name_zh = "测试星".to_owned();
+
+        star.brightness_zh = "庙".to_owned();
+        star.mutagen_zh = Some("化禄".to_owned());
+        assert_eq!(star_detail_label(&star), "测试星庙化禄");
+
+        star.mutagen_zh = None;
+        assert_eq!(star_detail_label(&star), "测试星庙");
+
+        star.brightness_zh.clear();
+        star.mutagen_zh = Some("化忌".to_owned());
+        assert_eq!(star_detail_label(&star), "测试星化忌");
+
+        star.mutagen_zh = None;
+        assert_eq!(star_detail_label(&star), "测试星");
+    }
+
+    #[test]
+    fn full_static_chart_view_builds_from_prepared_snapshot() {
+        let app = StaticChartApp::new();
+
+        let _: Element<'_, Message> = view(&app);
+    }
+
+    #[test]
+    fn full_static_chart_view_builds_with_visible_input_error() {
+        let mut app = StaticChartApp::new();
+        app.update(Message::YearChanged("not-a-year".to_owned()));
+        app.update(Message::Generate);
+        assert!(app.error().is_some());
+
+        let _: Element<'_, Message> = view(&app);
     }
 }

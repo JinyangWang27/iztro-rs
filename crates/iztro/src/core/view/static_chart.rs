@@ -894,6 +894,51 @@ mod tests {
     }
 
     #[test]
+    fn temporal_panel_serialization_has_stable_shape_and_lengths() {
+        let panel = StaticChartViewSnapshot::from_chart(&sample_chart()).temporal_panel;
+        let value = serde_json::to_value(&panel).expect("temporal panel should serialize");
+        let object = value
+            .as_object()
+            .expect("temporal panel should be an object");
+
+        assert_eq!(
+            object.keys().map(String::as_str).collect::<HashSet<_>>(),
+            HashSet::from([
+                "decadal_cells",
+                "yearly_age_cells",
+                "month_cells",
+                "day_rows",
+                "hour_cells",
+            ])
+        );
+        assert_eq!(
+            object["decadal_cells"].as_array().unwrap().len(),
+            PALACE_COUNT
+        );
+        assert_eq!(
+            object["yearly_age_cells"].as_array().unwrap().len(),
+            PALACE_COUNT
+        );
+        assert_eq!(
+            object["month_cells"].as_array().unwrap().len(),
+            PALACE_COUNT
+        );
+        assert_eq!(object["day_rows"].as_array().unwrap().len(), 3);
+        assert!(
+            object["day_rows"]
+                .as_array()
+                .unwrap()
+                .iter()
+                .all(|row| row.as_array().is_some_and(|cells| cells.len() == 10))
+        );
+        assert_eq!(object["hour_cells"].as_array().unwrap().len(), PALACE_COUNT);
+
+        let decoded: StaticTemporalPanelView =
+            serde_json::from_value(value).expect("temporal panel should deserialize");
+        assert_eq!(decoded, panel);
+    }
+
+    #[test]
     fn natal_temporal_panel_keeps_yearly_age_cells_neutral() {
         let cells = StaticChartViewSnapshot::from_chart(&sample_chart())
             .temporal_panel
