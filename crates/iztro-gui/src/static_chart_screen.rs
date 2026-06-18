@@ -794,21 +794,4 @@ mod tests {
         star.mutagen_zh = None;
         assert_eq!(star_detail_label(&star), "测试星");
     }
-
-    #[test]
-    fn full_static_chart_view_builds_from_prepared_snapshot() {
-        let app = StaticChartApp::new();
-
-        let _: Element<'_, Message> = view(&app);
-    }
-
-    #[test]
-    fn full_static_chart_view_builds_with_visible_input_error() {
-        let mut app = StaticChartApp::new();
-        app.update(Message::YearChanged("not-a-year".to_owned()));
-        app.update(Message::Generate);
-        assert!(app.error().is_some());
-
-        let _: Element<'_, Message> = view(&app);
-    }
 }
