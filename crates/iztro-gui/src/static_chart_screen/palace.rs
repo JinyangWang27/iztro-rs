@@ -155,11 +155,13 @@ pub(super) fn palace_cell(
             bottom: DECORATIVE_AREA_HEIGHT,
             ..Padding::ZERO
         });
-    let content: Element<'_, Message> =
-        stack![main_layer, bottom_decorative_layer(palace, gods_left, gods_right),]
-            .width(Length::Fill)
-            .height(Length::Fill)
-            .into();
+    let content: Element<'_, Message> = stack![
+        main_layer,
+        bottom_decorative_layer(palace, gods_left, gods_right),
+    ]
+    .width(Length::Fill)
+    .height(Length::Fill)
+    .into();
 
     let cell = button(content)
         .on_press(Message::SelectPalace(palace.branch))
@@ -290,7 +292,9 @@ fn bottom_decorative_layer<'a>(
     .spacing(1)
     .align_x(Alignment::End);
     let decorative_area = row![
-        container(left).width(Length::FillPortion(1)).align_x(Alignment::Start),
+        container(left)
+            .width(Length::FillPortion(1))
+            .align_x(Alignment::Start),
         container(right)
             .width(Length::FillPortion(1))
             .align_x(Alignment::End),
