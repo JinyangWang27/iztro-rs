@@ -7,6 +7,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0](https://github.com/JinyangWang27/iztro-rs/compare/v0.6.0...v0.7.0) - 2026-06-18
+
+### Added
+
+- *(gui)* refine static chart window ([#83](https://github.com/JinyangWang27/iztro-rs/pull/83))
+- *(core)* expose natal four pillars in facade snapshots ([#82](https://github.com/JinyangWang27/iztro-rs/pull/82))
+- *(core)* add natal four pillars
+
+### Fixed
+
+- *(core)* avoid let-chain in chart constructor
+
+### Other
+
+- raise coverage for supported snapshots
+
 ## [0.6.0](https://github.com/JinyangWang27/iztro-rs/compare/v0.5.0...v0.6.0) - 2026-06-17
 
 ### Added
