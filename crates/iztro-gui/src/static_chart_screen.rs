@@ -457,15 +457,6 @@ fn mutagen_badge_color(mutagen: Mutagen) -> Color {
     }
 }
 
-/// Bold font for major star names. Built from the bundled CJK family so the
-/// Chinese glyphs still resolve (the default family has no CJK coverage).
-fn bold_font() -> iced::Font {
-    iced::Font {
-        weight: iced::font::Weight::Bold,
-        ..crate::fonts::CJK_FONT
-    }
-}
-
 /// A compact 科权禄忌 badge rendered inline after a star's brightness. The
 /// mutagen char is the prepared `mutagen_zh`; the GUI derives no mutagens.
 fn mutagen_inline_badge(mutagen: Mutagen, label: &str) -> Element<'static, Message> {
@@ -488,12 +479,12 @@ fn mutagen_inline_badge(mutagen: Mutagen, label: &str) -> Element<'static, Messa
 /// One star line: name (tone color, bold for majors) + inline brightness
 /// (gray) + inline 科权禄忌 badge. All fields are prepared core values.
 fn star_line(star: &StaticTypedStarView, major: bool) -> Element<'static, Message> {
+    // Majors are emphasized by larger size + tone color only. The bundled CJK
+    // font ships a single (Regular) weight; requesting Bold makes cosmic-text
+    // fall back to a non-CJK face and render the names as tofu, so no bold here.
     let color = star_color(star_tone(star));
     let size = if major { 15 } else { 12 };
-    let mut name = text(star.name_zh.clone()).size(size).color(color);
-    if major {
-        name = name.font(bold_font());
-    }
+    let name = text(star.name_zh.clone()).size(size).color(color);
     let mut line = row![name].spacing(1).align_y(iced::Alignment::Center);
     if !star.brightness_zh.is_empty() {
         line = line.push(
