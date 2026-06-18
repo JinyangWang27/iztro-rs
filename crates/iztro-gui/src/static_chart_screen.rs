@@ -14,9 +14,9 @@
 use std::fmt;
 
 use iced::widget::{
-    button, checkbox, column, container, mouse_area, pick_list, row, text, text_input,
+    button, checkbox, column, container, mouse_area, pick_list, row, stack, text, text_input,
 };
-use iced::{Border, Color, Element, Length, Theme};
+use iced::{Border, Color, Element, Length, Padding, Theme};
 use iztro::core::{
     DecorativeStarFamily, Gender, Mutagen, Scope, StarCategory, StarKind, StaticChartCenterView,
     StaticChartViewSnapshot, StaticDecorativeStarView, StaticNavigationCellView, StaticPalaceView,
@@ -59,6 +59,9 @@ const ADJ_GRAY: Color = rgb8(0x8c, 0x8c, 0x8c);
 const PEACH_MAGENTA: Color = rgb8(0xc3, 0x1d, 0x7f);
 /// 长生十二神 / 博士十二神 decorative gods (bottom-left).
 const DECOR_GOD_OLIVE: Color = rgb8(0x90, 0x98, 0x3c);
+/// Vertical space reserved so variable-height temporal overlays cannot cover the
+/// two decorative-star lines anchored at the bottom of a palace cell.
+const DECORATIVE_AREA_HEIGHT: f32 = 28.0;
 
 /// 化禄 badge background.
 const MUTAGEN_LU: Color = rgb8(0xd4, 0x38, 0x0d);
@@ -376,16 +379,22 @@ fn palace_cell(palace: &StaticPalaceView, highlight: PalaceHighlight) -> Element
             }
         }
     }
-    if !gods_left.is_empty() || !gods_right.is_empty() {
-        let decorative_area = row![
-            container(decorative_column(gods_left, DECOR_GOD_OLIVE)).width(Length::FillPortion(1)),
-            container(decorative_column(gods_right, MINOR_MALEFIC))
-                .width(Length::FillPortion(1))
-                .align_x(iced::Alignment::End),
-        ]
-        .spacing(4);
-        content = content.push(decorative_area);
-    }
+    let has_decorative = !gods_left.is_empty() || !gods_right.is_empty();
+    let content: Element<'_, Message> = if has_decorative {
+        let main_layer = container(content)
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .padding(Padding {
+                bottom: DECORATIVE_AREA_HEIGHT,
+                ..Padding::ZERO
+            });
+        stack![main_layer, bottom_decorative_layer(gods_left, gods_right),]
+            .width(Length::Fill)
+            .height(Length::Fill)
+            .into()
+    } else {
+        content.into()
+    };
 
     let cell = button(content)
         .on_press(Message::SelectPalace(palace.branch))
@@ -518,6 +527,27 @@ fn decorative_column(
         col = col.push(text(star.name_zh.clone()).size(10).color(color));
     }
     col.into()
+}
+
+/// Renders decorative stars independently from variable-height main/overlay
+/// content, keeping both prepared family zones visible at the cell bottom.
+fn bottom_decorative_layer(
+    gods_left: Vec<&StaticDecorativeStarView>,
+    gods_right: Vec<&StaticDecorativeStarView>,
+) -> Element<'static, Message> {
+    let decorative_area = row![
+        container(decorative_column(gods_left, DECOR_GOD_OLIVE)).width(Length::FillPortion(1)),
+        container(decorative_column(gods_right, MINOR_MALEFIC))
+            .width(Length::FillPortion(1))
+            .align_x(iced::Alignment::End),
+    ]
+    .spacing(4);
+
+    container(decorative_area)
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .align_y(iced::Alignment::End)
+        .into()
 }
 
 fn center_panel(center: &StaticChartCenterView) -> Element<'_, Message> {
@@ -1287,6 +1317,15 @@ mod tests {
         }
         assert_eq!(DECOR_GOD_OLIVE, rgb8(0x90, 0x98, 0x3c));
         assert_eq!(MINOR_MALEFIC, rgb8(0x81, 0x33, 0x59));
+    }
+
+    #[test]
+    fn palace_cell_uses_a_dedicated_bottom_decorative_layer() {
+        let source = include_str!("static_chart_screen.rs");
+
+        assert!(source.contains(concat!("fn bottom_", "decorative_layer")));
+        assert!(source.contains(concat!("stack", "![")));
+        assert!(source.contains(concat!("DECORATIVE_", "AREA_HEIGHT")));
     }
 
     #[test]
