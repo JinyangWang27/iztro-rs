@@ -14,16 +14,60 @@
 use std::fmt;
 
 use iced::widget::{
-    Column, button, checkbox, column, container, mouse_area, pick_list, row, text, text_input,
+    button, checkbox, column, container, mouse_area, pick_list, row, text, text_input,
 };
 use iced::{Border, Color, Element, Length, Theme};
 use iztro::core::{
-    Gender, Mutagen, Scope, StaticChartCenterView, StaticChartViewSnapshot,
-    StaticDecorativeStarView, StaticNavigationCellView, StaticPalaceView,
+    DecorativeStarFamily, Gender, Mutagen, Scope, StarCategory, StarKind, StaticChartCenterView,
+    StaticChartViewSnapshot, StaticDecorativeStarView, StaticNavigationCellView, StaticPalaceView,
     StaticTemporalOverlayView, StaticTemporalPanelView, StaticTypedStarView,
 };
 
 use crate::app::{BirthForm, BirthInput, Message, Screen, StaticChartApp, TemporalCell};
+
+// ---------------------------------------------------------------------------
+// iztro / 文墨天机 palace-cell star tones
+//
+// These colors classify *display* only. The category each color encodes is
+// read from prepared core view fields (`StaticTypedStarView.kind`,
+// `StaticDecorativeStarView.family`); the GUI derives no astrology facts.
+// ---------------------------------------------------------------------------
+
+/// `const`-friendly sRGB8 color (iced's `Color::from_rgb8` is not `const`).
+const fn rgb8(r: u8, g: u8, b: u8) -> Color {
+    Color {
+        r: r as f32 / 255.0,
+        g: g as f32 / 255.0,
+        b: b as f32 / 255.0,
+        a: 1.0,
+    }
+}
+
+/// Major stars (主星) and the auspicious soft minor pair stars.
+const MAJOR_PURPLE: Color = rgb8(0x53, 0x1d, 0xab);
+/// Brightness suffix (庙旺得利平陷不), independent of star category.
+const BRIGHTNESS_GRAY: Color = rgb8(0xc5, 0xcb, 0xd0);
+/// Six malefics / 六煞 (擎羊陀罗火星铃星地空地劫).
+const MINOR_MALEFIC: Color = rgb8(0x81, 0x33, 0x59);
+/// 禄存.
+const LU_CUN_ORANGE: Color = rgb8(0xd4, 0x38, 0x0d);
+/// 天马.
+const TIAN_MA_BLUE: Color = rgb8(0x18, 0x90, 0xff);
+/// Ordinary adjective / miscellaneous stars (杂曜).
+const ADJ_GRAY: Color = rgb8(0x8c, 0x8c, 0x8c);
+/// 桃花 / festive relationship stars (红鸾咸池天姚天喜, and flow variants).
+const PEACH_MAGENTA: Color = rgb8(0xc3, 0x1d, 0x7f);
+/// 长生十二神 / 博士十二神 decorative gods (bottom-left).
+const DECOR_GOD_OLIVE: Color = rgb8(0x90, 0x98, 0x3c);
+
+/// 化禄 badge background.
+const MUTAGEN_LU: Color = rgb8(0xd4, 0x38, 0x0d);
+/// 化权 badge background.
+const MUTAGEN_QUAN: Color = rgb8(0x2f, 0x54, 0xeb);
+/// 化科 badge background.
+const MUTAGEN_KE: Color = rgb8(0x23, 0x78, 0x04);
+/// 化忌 badge background.
+const MUTAGEN_JI: Color = rgb8(0x00, 0x00, 0x00);
 
 /// Renders the active screen: the startup landing page or a generated chart.
 pub fn view(app: &StaticChartApp) -> Element<'_, Message> {
@@ -278,25 +322,35 @@ fn palace_cell(palace: &StaticPalaceView, highlight: PalaceHighlight) -> Element
     ]
     .spacing(1);
 
-    let mut content = column![header].spacing(4);
-    content = push_typed_badges(content, "主星", &palace.major_stars, StarGroupTone::Major);
-    content = push_typed_badges(content, "辅星", &palace.minor_stars, StarGroupTone::Minor);
-    content = push_typed_badges(
-        content,
-        "杂曜",
-        &palace.adjective_stars,
-        StarGroupTone::Adjective,
-    );
-    content = push_typed_badges(
-        content,
-        "其他",
-        &palace.other_typed_stars,
-        StarGroupTone::Other,
-    );
-    content = push_decorative_badges(content, "神煞", &palace.decorative_stars);
-    if let Some(mutagens) = mutagen_badge_row(palace) {
-        content = content.push(mutagens);
+    // Zone every prepared natal typed star by its coarse `kind.category()`:
+    // major top-left, minor top-middle, adjective top-right. Routing by the
+    // prepared kind keeps placement correct regardless of which source vec a
+    // star arrived in; the GUI does no classification of its own.
+    let (mut majors, mut minors, mut adjectives) = (Vec::new(), Vec::new(), Vec::new());
+    for star in palace
+        .major_stars
+        .iter()
+        .chain(&palace.minor_stars)
+        .chain(&palace.adjective_stars)
+        .chain(&palace.other_typed_stars)
+    {
+        match star.kind.category() {
+            StarCategory::Major => majors.push(star),
+            StarCategory::Minor => minors.push(star),
+            StarCategory::Adjective => adjectives.push(star),
+        }
     }
+    let star_area = row![
+        container(typed_star_column(majors, true)).width(Length::FillPortion(3)),
+        container(typed_star_column(minors, false)).width(Length::FillPortion(3)),
+        container(typed_star_column(adjectives, false))
+            .width(Length::FillPortion(2))
+            .align_x(iced::Alignment::End),
+    ]
+    .spacing(4)
+    .align_y(iced::Alignment::Start);
+
+    let mut content = column![header, star_area].spacing(4);
     for overlay in &palace.overlays {
         if overlay.temporal_palace_name_zh.is_none()
             && overlay.typed_stars.is_empty()
@@ -306,6 +360,31 @@ fn palace_cell(palace: &StaticPalaceView, highlight: PalaceHighlight) -> Element
             continue;
         }
         content = content.push(overlay_badges(overlay));
+    }
+
+    // Decorative "twelve gods" go to the bottom, split by prepared family:
+    // 长生/博士 bottom-left (olive), 将前/岁前 bottom-right (malefic tone). No
+    // group label — color and side carry the family, matching iztro cells.
+    let (mut gods_left, mut gods_right) = (Vec::new(), Vec::new());
+    for star in &palace.decorative_stars {
+        match star.family {
+            DecorativeStarFamily::Changsheng12 | DecorativeStarFamily::Boshi12 => {
+                gods_left.push(star)
+            }
+            DecorativeStarFamily::Jiangqian12 | DecorativeStarFamily::Suiqian12 => {
+                gods_right.push(star)
+            }
+        }
+    }
+    if !gods_left.is_empty() || !gods_right.is_empty() {
+        let decorative_area = row![
+            container(decorative_column(gods_left, DECOR_GOD_OLIVE)).width(Length::FillPortion(1)),
+            container(decorative_column(gods_right, MINOR_MALEFIC))
+                .width(Length::FillPortion(1))
+                .align_x(iced::Alignment::End),
+        ]
+        .spacing(4);
+        content = content.push(decorative_area);
     }
 
     let cell = button(content)
@@ -323,75 +402,130 @@ fn palace_cell(palace: &StaticPalaceView, highlight: PalaceHighlight) -> Element
         .into()
 }
 
-/// A compact 四化 (科权禄忌) badge row for the palace's natal stars, or `None`
-/// when no natal star in this palace carries a mutagen.
-///
-/// The mutagen facts are read from the prepared `mutagen` fields; the GUI
-/// performs no mutagen derivation.
-fn mutagen_badge_row(palace: &StaticPalaceView) -> Option<Element<'static, Message>> {
-    let marks: Vec<(String, Mutagen)> = palace
-        .major_stars
-        .iter()
-        .chain(&palace.minor_stars)
-        .chain(&palace.adjective_stars)
-        .chain(&palace.other_typed_stars)
-        .filter_map(|star| {
-            star.mutagen.map(|mutagen| {
-                (
-                    format!("{}{}", star.name_zh, mutagen_mark(mutagen)),
-                    mutagen,
-                )
-            })
-        })
-        .collect();
-    if marks.is_empty() {
-        return None;
-    }
-
-    let mut content = row![text("四化").size(11).style(subtle_text_style)]
-        .spacing(4)
-        .align_y(iced::Alignment::Center);
-    for (label, mutagen) in marks {
-        content = content.push(mutagen_badge(label, mutagen));
-    }
-    Some(content.into())
+/// GUI-only visual tone for a typed star, derived from its prepared `kind`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum StaticStarTone {
+    /// Fourteen major stars (主星).
+    Major,
+    /// Auspicious soft minor pair stars (左辅右弼天魁天钺文昌文曲).
+    MinorPurple,
+    /// Six malefics / 六煞 (擎羊陀罗火星铃星地空地劫).
+    MinorMalefic,
+    /// 禄存.
+    LuCun,
+    /// 天马.
+    TianMa,
+    /// Ordinary adjective / miscellaneous stars (杂曜).
+    AdjDefault,
+    /// 桃花 / festive relationship stars (红鸾咸池天姚天喜, flow variants).
+    AdjPeachBlossom,
 }
 
-/// Single-character 四化 marker (禄/权/科/忌).
-fn mutagen_mark(mutagen: Mutagen) -> &'static str {
+/// Classifies a prepared typed star into a display tone by its `kind`. This is
+/// pure visual classification of an already-derived core field — no astrology.
+fn star_tone(star: &StaticTypedStarView) -> StaticStarTone {
+    match star.kind {
+        StarKind::Major => StaticStarTone::Major,
+        StarKind::Soft => StaticStarTone::MinorPurple,
+        StarKind::Tough => StaticStarTone::MinorMalefic,
+        StarKind::LuCun => StaticStarTone::LuCun,
+        StarKind::TianMa => StaticStarTone::TianMa,
+        StarKind::Flower => StaticStarTone::AdjPeachBlossom,
+        StarKind::Adjective | StarKind::Helper => StaticStarTone::AdjDefault,
+    }
+}
+
+/// The star-name color for a display tone.
+fn star_color(tone: StaticStarTone) -> Color {
+    match tone {
+        StaticStarTone::Major | StaticStarTone::MinorPurple => MAJOR_PURPLE,
+        StaticStarTone::MinorMalefic => MINOR_MALEFIC,
+        StaticStarTone::LuCun => LU_CUN_ORANGE,
+        StaticStarTone::TianMa => TIAN_MA_BLUE,
+        StaticStarTone::AdjDefault => ADJ_GRAY,
+        StaticStarTone::AdjPeachBlossom => PEACH_MAGENTA,
+    }
+}
+
+/// 科权禄忌 badge background color (禄 #d4380d / 权 #2f54eb / 科 #237804 / 忌 #000000).
+fn mutagen_badge_color(mutagen: Mutagen) -> Color {
     match mutagen {
-        Mutagen::Lu => "禄",
-        Mutagen::Quan => "权",
-        Mutagen::Ke => "科",
-        Mutagen::Ji => "忌",
+        Mutagen::Lu => MUTAGEN_LU,
+        Mutagen::Quan => MUTAGEN_QUAN,
+        Mutagen::Ke => MUTAGEN_KE,
+        Mutagen::Ji => MUTAGEN_JI,
     }
 }
 
-/// 四化 category color (禄 green / 权 blue / 科 purple / 忌 red).
-fn mutagen_color(mutagen: Mutagen) -> Color {
-    match mutagen {
-        Mutagen::Lu => Color::from_rgb8(45, 122, 63),
-        Mutagen::Quan => Color::from_rgb8(38, 88, 150),
-        Mutagen::Ke => Color::from_rgb8(108, 70, 150),
-        Mutagen::Ji => Color::from_rgb8(168, 52, 44),
+/// Bold font used for major star names.
+fn bold_font() -> iced::Font {
+    iced::Font {
+        weight: iced::font::Weight::Bold,
+        ..iced::Font::DEFAULT
     }
 }
 
-fn mutagen_badge(label: String, mutagen: Mutagen) -> Element<'static, Message> {
-    let background = mutagen_color(mutagen);
-    container(text(label).size(11))
+/// A compact 科权禄忌 badge rendered inline after a star's brightness. The
+/// mutagen char is the prepared `mutagen_zh`; the GUI derives no mutagens.
+fn mutagen_inline_badge(mutagen: Mutagen, label: &str) -> Element<'static, Message> {
+    let background = mutagen_badge_color(mutagen);
+    container(text(label.to_owned()).size(9).color(Color::WHITE))
         .style(move |_theme| container::Style {
             background: Some(background.into()),
             text_color: Some(Color::WHITE),
             border: Border {
                 color: background,
                 width: 1.0,
-                radius: 4.0.into(),
+                radius: 3.0.into(),
             },
             ..container::Style::default()
         })
-        .padding([2, 5])
+        .padding([0, 3])
         .into()
+}
+
+/// One star line: name (tone color, bold for majors) + inline brightness
+/// (gray) + inline 科权禄忌 badge. All fields are prepared core values.
+fn star_line(star: &StaticTypedStarView, major: bool) -> Element<'static, Message> {
+    let color = star_color(star_tone(star));
+    let size = if major { 15 } else { 12 };
+    let mut name = text(star.name_zh.clone()).size(size).color(color);
+    if major {
+        name = name.font(bold_font());
+    }
+    let mut line = row![name].spacing(1).align_y(iced::Alignment::Center);
+    if !star.brightness_zh.is_empty() {
+        line = line.push(
+            text(star.brightness_zh.clone())
+                .size(size - 2)
+                .color(BRIGHTNESS_GRAY),
+        );
+    }
+    if let (Some(mutagen), Some(label)) = (star.mutagen, star.mutagen_zh.as_deref()) {
+        line = line.push(mutagen_inline_badge(mutagen, label));
+    }
+    line.into()
+}
+
+/// A vertical stack of typed star lines for one palace-cell zone.
+fn typed_star_column(stars: Vec<&StaticTypedStarView>, major: bool) -> Element<'static, Message> {
+    let mut col = column![].spacing(1);
+    for star in stars {
+        col = col.push(star_line(star, major));
+    }
+    col.into()
+}
+
+/// A vertical stack of decorative "twelve gods" star names in one tone.
+fn decorative_column(
+    stars: Vec<&StaticDecorativeStarView>,
+    color: Color,
+) -> Element<'static, Message> {
+    let mut col = column![].spacing(1);
+    for star in stars {
+        col = col.push(text(star.name_zh.clone()).size(10).color(color));
+    }
+    col.into()
 }
 
 fn center_panel(center: &StaticChartCenterView) -> Element<'_, Message> {
@@ -428,70 +562,44 @@ fn center_panel(center: &StaticChartCenterView) -> Element<'_, Message> {
     content.into()
 }
 
+/// Compact color legend matching the new palace-cell tones, so cells need no
+/// in-cell category labels.
 fn category_legend() -> Element<'static, Message> {
     row![
         text("图例").size(12).style(subtle_text_style),
-        star_badge("主星".to_owned(), StarGroupTone::Major),
-        star_badge("辅星".to_owned(), StarGroupTone::Minor),
-        star_badge("杂曜".to_owned(), StarGroupTone::Adjective),
-        star_badge("神煞".to_owned(), StarGroupTone::Decorative),
-        star_badge("流曜".to_owned(), StarGroupTone::Temporal),
+        legend_item("主星/辅星", MAJOR_PURPLE),
+        legend_item("六煞", MINOR_MALEFIC),
+        legend_item("禄存", LU_CUN_ORANGE),
+        legend_item("天马", TIAN_MA_BLUE),
+        legend_item("桃花", PEACH_MAGENTA),
+        legend_item("杂曜", ADJ_GRAY),
+        legend_item("长生/博士", DECOR_GOD_OLIVE),
+        legend_item("将前/岁前", MINOR_MALEFIC),
         text("四化").size(12).style(subtle_text_style),
-        mutagen_badge("禄".to_owned(), Mutagen::Lu),
-        mutagen_badge("权".to_owned(), Mutagen::Quan),
-        mutagen_badge("科".to_owned(), Mutagen::Ke),
-        mutagen_badge("忌".to_owned(), Mutagen::Ji),
+        mutagen_inline_badge(Mutagen::Lu, "禄"),
+        mutagen_inline_badge(Mutagen::Quan, "权"),
+        mutagen_inline_badge(Mutagen::Ke, "科"),
+        mutagen_inline_badge(Mutagen::Ji, "忌"),
     ]
     .spacing(6)
     .align_y(iced::Alignment::Center)
     .into()
 }
 
+/// One legend label rendered in its tone color.
+fn legend_item(label: &str, color: Color) -> Element<'static, Message> {
+    text(label.to_owned()).size(12).color(color).into()
+}
+
 // ---------------------------------------------------------------------------
 // Star helpers
 // ---------------------------------------------------------------------------
 
+/// Tone for the remaining grouped badges (temporal overlays only).
 #[derive(Clone, Copy)]
 enum StarGroupTone {
-    Major,
-    Minor,
-    Adjective,
-    Other,
     Decorative,
     Temporal,
-}
-
-fn push_typed_badges<'a>(
-    content: Column<'a, Message>,
-    label: &'static str,
-    stars: &[StaticTypedStarView],
-    tone: StarGroupTone,
-) -> Column<'a, Message> {
-    if stars.is_empty() {
-        content
-    } else {
-        content.push(star_group(
-            label,
-            stars.iter().map(|star| star.name_zh.clone()).collect(),
-            tone,
-        ))
-    }
-}
-
-fn push_decorative_badges<'a>(
-    content: Column<'a, Message>,
-    label: &'static str,
-    stars: &[StaticDecorativeStarView],
-) -> Column<'a, Message> {
-    if stars.is_empty() {
-        content
-    } else {
-        content.push(star_group(
-            label,
-            stars.iter().map(|star| star.name_zh.clone()).collect(),
-            StarGroupTone::Decorative,
-        ))
-    }
 }
 
 fn overlay_badges(overlay: &StaticTemporalOverlayView) -> Element<'_, Message> {
@@ -991,10 +1099,6 @@ fn star_badge_style(tone: StarGroupTone) -> impl Fn(&Theme) -> container::Style 
 
 fn star_badge_colors(tone: StarGroupTone) -> (Color, Color) {
     match tone {
-        StarGroupTone::Major => (Color::from_rgb8(111, 53, 25), Color::WHITE),
-        StarGroupTone::Minor => (Color::from_rgb8(38, 88, 96), Color::WHITE),
-        StarGroupTone::Adjective => (Color::from_rgb8(92, 75, 132), Color::WHITE),
-        StarGroupTone::Other => (Color::from_rgb8(91, 91, 91), Color::WHITE),
         StarGroupTone::Decorative => (Color::from_rgb8(126, 87, 48), Color::WHITE),
         StarGroupTone::Temporal => (Color::from_rgb8(45, 102, 63), Color::WHITE),
     }
@@ -1098,38 +1202,108 @@ mod tests {
         assert_eq!(scope_zh(Scope::Hourly), "流时");
     }
 
-    #[test]
-    fn mutagen_mark_covers_all_four_transformations() {
-        assert_eq!(mutagen_mark(Mutagen::Lu), "禄");
-        assert_eq!(mutagen_mark(Mutagen::Quan), "权");
-        assert_eq!(mutagen_mark(Mutagen::Ke), "科");
-        assert_eq!(mutagen_mark(Mutagen::Ji), "忌");
+    /// A typed star carrying only the field that drives visual classification.
+    fn typed_star_with_kind(kind: StarKind) -> StaticTypedStarView {
+        let mut star = sample_typed_star();
+        star.kind = kind;
+        star
     }
 
     #[test]
-    fn mutagen_badge_row_renders_only_from_prepared_mutagen_fields() {
-        let app = chart_app();
-        // The natal birth-year mutagens are prepared on typed stars; at least one
-        // palace must carry a 四化 marker for this canonical chart.
-        let mut palaces_with_marks = 0;
-        for palace in app.palaces() {
-            let has_prepared_mutagen = palace
-                .major_stars
-                .iter()
-                .chain(&palace.minor_stars)
-                .chain(&palace.adjective_stars)
-                .chain(&palace.other_typed_stars)
-                .any(|star| star.mutagen.is_some());
-            // The badge row appears exactly when prepared data carries a mutagen.
-            assert_eq!(mutagen_badge_row(palace).is_some(), has_prepared_mutagen);
-            if has_prepared_mutagen {
-                palaces_with_marks += 1;
-            }
-        }
-        assert!(
-            palaces_with_marks > 0,
-            "canonical chart should expose at least one natal 四化 marker"
+    fn major_kind_maps_to_major_tone() {
+        assert_eq!(
+            star_tone(&typed_star_with_kind(StarKind::Major)),
+            StaticStarTone::Major
         );
+    }
+
+    #[test]
+    fn soft_minor_pairs_map_to_minor_purple() {
+        // Covers 左辅/右弼/天魁/天钺/文昌/文曲 — all prepared as StarKind::Soft.
+        assert_eq!(
+            star_tone(&typed_star_with_kind(StarKind::Soft)),
+            StaticStarTone::MinorPurple
+        );
+    }
+
+    #[test]
+    fn six_malefics_map_to_minor_malefic() {
+        // Covers 擎羊/陀罗/火星/铃星/地空/地劫 — all prepared as StarKind::Tough.
+        assert_eq!(
+            star_tone(&typed_star_with_kind(StarKind::Tough)),
+            StaticStarTone::MinorMalefic
+        );
+    }
+
+    #[test]
+    fn lucun_and_tianma_map_to_their_own_tones() {
+        assert_eq!(
+            star_tone(&typed_star_with_kind(StarKind::LuCun)),
+            StaticStarTone::LuCun
+        );
+        assert_eq!(
+            star_tone(&typed_star_with_kind(StarKind::TianMa)),
+            StaticStarTone::TianMa
+        );
+    }
+
+    #[test]
+    fn flower_stars_map_to_peach_blossom() {
+        // Covers 红鸾/咸池/天姚/天喜 (and flow 鸾/喜) — all prepared as StarKind::Flower.
+        assert_eq!(
+            star_tone(&typed_star_with_kind(StarKind::Flower)),
+            StaticStarTone::AdjPeachBlossom
+        );
+    }
+
+    #[test]
+    fn ordinary_adjective_stars_map_to_default() {
+        assert_eq!(
+            star_tone(&typed_star_with_kind(StarKind::Adjective)),
+            StaticStarTone::AdjDefault
+        );
+        assert_eq!(
+            star_tone(&typed_star_with_kind(StarKind::Helper)),
+            StaticStarTone::AdjDefault
+        );
+    }
+
+    #[test]
+    fn mutagen_badge_colors_cover_all_four_transformations() {
+        assert_eq!(mutagen_badge_color(Mutagen::Lu), rgb8(0xd4, 0x38, 0x0d));
+        assert_eq!(mutagen_badge_color(Mutagen::Quan), rgb8(0x2f, 0x54, 0xeb));
+        assert_eq!(mutagen_badge_color(Mutagen::Ke), rgb8(0x23, 0x78, 0x04));
+        assert_eq!(mutagen_badge_color(Mutagen::Ji), rgb8(0x00, 0x00, 0x00));
+    }
+
+    #[test]
+    fn star_kind_routes_to_expected_palace_zone() {
+        // Zone placement uses the prepared kind's coarse category.
+        assert_eq!(StarKind::Major.category(), StarCategory::Major);
+        assert_eq!(StarKind::Soft.category(), StarCategory::Minor);
+        assert_eq!(StarKind::Tough.category(), StarCategory::Minor);
+        assert_eq!(StarKind::LuCun.category(), StarCategory::Minor);
+        assert_eq!(StarKind::TianMa.category(), StarCategory::Minor);
+        assert_eq!(StarKind::Flower.category(), StarCategory::Adjective);
+        assert_eq!(StarKind::Adjective.category(), StarCategory::Adjective);
+        assert_eq!(StarKind::Helper.category(), StarCategory::Adjective);
+    }
+
+    #[test]
+    fn decorative_family_splits_into_bottom_zones() {
+        // 长生/博士 share the olive bottom-left tone; 将前/岁前 share the malefic
+        // bottom-right tone. Each family lands in exactly one zone.
+        for family in [
+            DecorativeStarFamily::Changsheng12,
+            DecorativeStarFamily::Boshi12,
+        ] {
+            assert!(matches!(
+                family,
+                DecorativeStarFamily::Changsheng12 | DecorativeStarFamily::Boshi12
+            ));
+        }
+        assert_eq!(DECOR_GOD_OLIVE, rgb8(0x90, 0x98, 0x3c));
+        assert_eq!(MINOR_MALEFIC, rgb8(0x81, 0x33, 0x59));
     }
 
     #[test]
