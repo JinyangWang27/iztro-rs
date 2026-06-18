@@ -46,4 +46,17 @@ mod tests {
     fn window_title_uses_only_ascii_window_chrome_text() {
         assert!(WINDOW_TITLE.is_ascii());
     }
+
+    #[test]
+    fn gui_manifest_uses_tiny_skia_without_wgpu_defaults() {
+        let manifest = include_str!("../Cargo.toml");
+
+        assert!(
+            manifest.contains(
+                r#"iced = { version = "0.13", default-features = false, features = ["tiny-skia"] }"#
+            ),
+            "GUI must avoid Iced's wgpu renderer because wgpu 0.19 can panic when WSLg \
+             recreates a Wayland surface during resize"
+        );
+    }
 }
