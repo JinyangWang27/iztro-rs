@@ -6,6 +6,8 @@
 
 pub mod by_lunar;
 pub mod by_solar;
+pub mod static_temporal_chart_view;
 
 pub use by_lunar::{LunarChartRequest, LunarChartRequestBuilder, by_lunar};
 pub use by_solar::{SolarChartRequest, SolarChartRequestBuilder, by_solar};
+pub use static_temporal_chart_view::static_temporal_chart_view;

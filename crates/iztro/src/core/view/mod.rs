@@ -22,6 +22,7 @@ pub use static_chart::{
     HighlightView, StaticChartCenterView, StaticChartSelectorView, StaticChartViewRequest,
     StaticChartViewSnapshot, StaticDecadalCellView, StaticDecorativeStarView,
     StaticFourPillarsView, StaticNavigationCellView, StaticOverlayMutagenView, StaticPalaceRole,
-    StaticPalaceView, StaticSurroundPalacesView, StaticTemporalOverlayView,
-    StaticTemporalPanelView, StaticTypedStarView, StaticYearlyAgeCellView,
+    StaticPalaceView, StaticSurroundPalacesView, StaticTemporalNavigationSelection,
+    StaticTemporalOverlayView, StaticTemporalPanelView, StaticTypedStarView,
+    StaticYearlyAgeCellView,
 };

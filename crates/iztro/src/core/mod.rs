@@ -114,11 +114,13 @@ pub use placement::overlay::yearly_horoscope::build_yearly_horoscope_layer;
 
 pub use facade::by_lunar::{LunarChartRequest, LunarChartRequestBuilder, by_lunar};
 pub use facade::by_solar::{SolarChartRequest, SolarChartRequestBuilder, by_solar};
+pub use facade::static_temporal_chart_view::static_temporal_chart_view;
 
 pub use view::static_chart::{
     HighlightView, StaticChartCenterView, StaticChartSelectorView, StaticChartViewRequest,
     StaticChartViewSnapshot, StaticDecadalCellView, StaticDecorativeStarView,
     StaticFourPillarsView, StaticNavigationCellView, StaticOverlayMutagenView, StaticPalaceRole,
-    StaticPalaceView, StaticSurroundPalacesView, StaticTemporalOverlayView,
-    StaticTemporalPanelView, StaticTypedStarView, StaticYearlyAgeCellView,
+    StaticPalaceView, StaticSurroundPalacesView, StaticTemporalNavigationSelection,
+    StaticTemporalOverlayView, StaticTemporalPanelView, StaticTypedStarView,
+    StaticYearlyAgeCellView,
 };

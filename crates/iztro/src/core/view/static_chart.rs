@@ -553,6 +553,50 @@ pub struct StaticChartViewRequest {
     pub visible_scopes: Vec<Scope>,
 }
 
+/// A renderer-neutral request for which temporal slice a static chart should show.
+///
+/// A renderer (TUI/GUI) reports *which* bottom-panel navigation cell the user
+/// chose; core maps that choice to a prepared [`StaticChartViewSnapshot`]. The
+/// renderer never derives the corresponding overlay itself. Variants core cannot
+/// yet resolve from the cell coordinates alone (a concrete target date is
+/// required) resolve to the natal base slice.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize, Default)]
+#[serde(rename_all = "snake_case")]
+pub enum StaticTemporalNavigationSelection {
+    /// 本命 — the natal slice with no temporal overlay.
+    #[default]
+    Natal,
+    /// 限前 — the span before the first 大限. Carries no overlay; natal base.
+    PreDecadal,
+    /// 大限 — the zero-based decadal period to overlay.
+    Decadal {
+        /// Zero-based index into the decadal frame periods.
+        index: usize,
+    },
+    /// 流年/小限 — the zero-based yearly/age cell (natal base for now).
+    YearlyAge {
+        /// Zero-based cell index.
+        index: usize,
+    },
+    /// 流月 — the zero-based month cell (natal base for now).
+    Month {
+        /// Zero-based cell index.
+        index: usize,
+    },
+    /// 流日 — the day cell at `(row, index)` (natal base for now).
+    Day {
+        /// Zero-based day grid row.
+        row: usize,
+        /// Zero-based cell index within the row.
+        index: usize,
+    },
+    /// 流时 — the zero-based hour cell (natal base for now).
+    Hour {
+        /// Zero-based cell index.
+        index: usize,
+    },
+}
+
 impl StaticChartViewSnapshot {
     /// Builds a natal-only static chart view from a natal chart.
     ///
