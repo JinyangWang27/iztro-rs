@@ -191,13 +191,14 @@ fn resolve_partial(
 /// The lunar year of the `year_index`-th 流年 within the selected 大限 period.
 fn lunar_year_for(natal: &Chart, decadal_index: usize, year_index: u8) -> Result<i32, ChartError> {
     let frame = build_decadal_frame(natal)?;
-    let period = frame
-        .periods()
-        .get(decadal_index)
-        .ok_or(ChartError::InvalidDecadalPeriodIndex {
-            index: decadal_index,
-            len: frame.periods().len(),
-        })?;
+    let period =
+        frame
+            .periods()
+            .get(decadal_index)
+            .ok_or(ChartError::InvalidDecadalPeriodIndex {
+                index: decadal_index,
+                len: frame.periods().len(),
+            })?;
     let nominal_age = period.start_age() as i32 + year_index as i32;
     Ok(natal.birth_context().date().year() + nominal_age - 1)
 }

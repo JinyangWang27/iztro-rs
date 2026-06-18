@@ -133,7 +133,10 @@ pub(crate) fn build_partial_horoscope_chart(
         )?;
         layers.push(build_monthly_horoscope_layer(&natal, &monthly_period)?);
 
-        if matches!(spec, PartialHoroscope::Daily { .. } | PartialHoroscope::Hourly { .. }) {
+        if matches!(
+            spec,
+            PartialHoroscope::Daily { .. } | PartialHoroscope::Hourly { .. }
+        ) {
             let daily_period = build_daily_period(
                 &natal,
                 target.solar_year,

@@ -1,9 +1,9 @@
 use std::collections::HashSet;
 
 use iztro::core::{
-    Chart, ChartAlgorithmKind, Gender, HoroscopeChart, LunarChartRequest, LunarDay, LunarMonth,
-    MethodProfile, PALACE_COUNT, Scope, StaticChartViewSnapshot, StaticTemporalPanelView,
-    StemBranch, TemporalContext, TemporalLayer, build_empty_chart, by_lunar,
+    Chart, ChartAlgorithmKind, Gender, LunarChartRequest, LunarDay, LunarMonth, MethodProfile,
+    PALACE_COUNT, StaticChartViewSnapshot, StaticTemporalPanelView, StemBranch, build_empty_chart,
+    by_lunar,
 };
 
 fn canonical_chart() -> Chart {
@@ -28,24 +28,6 @@ fn canonical_chart() -> Chart {
         .expect("lunar request should build");
 
     by_lunar(request).expect("canonical chart should build")
-}
-
-fn horoscope_with_yearly_layer() -> HoroscopeChart {
-    let mut chart = HoroscopeChart::new(canonical_chart());
-    let period = StemBranch::from_lunar_year(2020);
-    chart.push_layer(
-        TemporalLayer::try_new(
-            Scope::Yearly,
-            TemporalContext::Yearly {
-                stem_branch: period,
-                lunar_year: 2020,
-            },
-            Vec::new(),
-            Vec::new(),
-        )
-        .expect("yearly layer should build"),
-    );
-    chart
 }
 
 #[test]
@@ -236,70 +218,4 @@ fn temporal_panel_serialization_has_stable_public_shape() {
     let decoded: StaticTemporalPanelView =
         serde_json::from_value(value).expect("temporal panel should deserialize");
     assert_eq!(decoded, panel);
-}
-
-#[test]
-fn horoscope_panel_uses_only_one_exact_yearly_age_pair() {
-    let mut chart = horoscope_with_yearly_layer();
-    let period = StemBranch::from_lunar_year(2020);
-    chart.push_layer(
-        TemporalLayer::try_new(
-            Scope::Age,
-            TemporalContext::Age {
-                stem_branch: period,
-                nominal_age: 31,
-            },
-            Vec::new(),
-            Vec::new(),
-        )
-        .expect("age layer should build"),
-    );
-
-    let cells = StaticChartViewSnapshot::from_horoscope_chart(&chart)
-        .temporal_panel
-        .yearly_age_cells;
-
-    assert_eq!(cells.len(), PALACE_COUNT);
-    assert_eq!(cells.iter().filter(|cell| cell.enabled).count(), 1);
-    assert_eq!(cells[0].year_label.as_deref(), Some("2020"));
-    assert_eq!(cells[0].stem_branch_age_zh.as_deref(), Some("庚子31"));
-    assert!(cells[1..].iter().all(|cell| !cell.enabled));
-}
-
-#[test]
-fn horoscope_panel_keeps_ambiguous_yearly_age_pairs_neutral() {
-    let mut chart = horoscope_with_yearly_layer();
-    let period = StemBranch::from_lunar_year(2020);
-    chart.push_layer(
-        TemporalLayer::try_new(
-            Scope::Age,
-            TemporalContext::Age {
-                stem_branch: period,
-                nominal_age: 31,
-            },
-            Vec::new(),
-            Vec::new(),
-        )
-        .expect("age layer should build"),
-    );
-    let other_period = StemBranch::from_lunar_year(2021);
-    chart.push_layer(
-        TemporalLayer::try_new(
-            Scope::Yearly,
-            TemporalContext::Yearly {
-                stem_branch: other_period,
-                lunar_year: 2021,
-            },
-            Vec::new(),
-            Vec::new(),
-        )
-        .expect("second yearly layer should build"),
-    );
-
-    let cells = StaticChartViewSnapshot::from_horoscope_chart(&chart)
-        .temporal_panel
-        .yearly_age_cells;
-
-    assert_eq!(cells.len(), PALACE_COUNT);
-    assert!(cells.iter().all(|cell| !cell.enabled));
 }

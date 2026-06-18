@@ -116,7 +116,10 @@ fn pre_decadal_default_greys_lower_rows_and_enables_decadal() {
     .unwrap()
     .temporal_panel;
 
-    assert!(panel.pre_decadal_cell.selected, "限前 is the default selection");
+    assert!(
+        panel.pre_decadal_cell.selected,
+        "限前 is the default selection"
+    );
     assert!(
         panel.decadal_cells.iter().any(|c| c.enabled),
         "大限 row is enabled by default"
@@ -172,10 +175,17 @@ fn each_parent_enables_only_the_next_child_row() {
     )
     .unwrap()
     .temporal_panel;
-    assert!(yearly.month_cells.iter().all(|c| c.enabled), "流年 enables 流月");
-    assert_eq!(yearly.month_cells.len(), 12);
     assert!(
-        yearly.day_rows.iter().all(|row| row.iter().all(|c| !c.enabled)),
+        yearly.month_cells.iter().all(|c| c.enabled),
+        "流年 enables 流月"
+    );
+    assert_eq!(yearly.month_cells.len(), 12);
+    assert!(yearly.yearly_age_cells[0].selected);
+    assert!(
+        yearly
+            .day_rows
+            .iter()
+            .all(|row| row.iter().all(|c| !c.enabled)),
         "流日 greyed until a 流月 is selected"
     );
 
@@ -190,7 +200,10 @@ fn each_parent_enables_only_the_next_child_row() {
     .unwrap()
     .temporal_panel;
     assert!(
-        monthly.day_rows.iter().any(|row| row.iter().any(|c| c.enabled)),
+        monthly
+            .day_rows
+            .iter()
+            .any(|row| row.iter().any(|c| c.enabled)),
         "流月 enables 流日"
     );
     assert!(monthly.hour_cells.iter().all(|c| !c.enabled), "流时 greyed");
@@ -207,39 +220,111 @@ fn each_parent_enables_only_the_next_child_row() {
     )
     .unwrap()
     .temporal_panel;
-    assert!(daily.hour_cells.iter().all(|c| c.enabled), "流日 enables 流时");
+    assert!(
+        daily.hour_cells.iter().all(|c| c.enabled),
+        "流日 enables 流时"
+    );
     assert_eq!(daily.hour_cells.len(), 12);
+    assert!(daily.day_rows[0][0].selected);
 }
 
 #[test]
-fn hourly_selection_activates_the_full_scope_stack() {
-    let snapshot = static_temporal_chart_view(
-        sample_request(),
-        StaticTemporalNavigationSelection::Hourly {
-            decadal_index: 2,
-            year_index: 0,
-            month_index: 0,
-            day_index: 0,
-            hour_index: 6,
-        },
-    )
-    .expect("hourly selection should build");
+fn each_selection_builds_exactly_its_partial_scope_stack() {
+    let cases = [
+        (
+            StaticTemporalNavigationSelection::Decadal { decadal_index: 2 },
+            vec![Scope::Natal, Scope::Decadal],
+        ),
+        (
+            StaticTemporalNavigationSelection::Yearly {
+                decadal_index: 2,
+                year_index: 0,
+            },
+            vec![Scope::Natal, Scope::Decadal, Scope::Age, Scope::Yearly],
+        ),
+        (
+            StaticTemporalNavigationSelection::Monthly {
+                decadal_index: 2,
+                year_index: 0,
+                month_index: 0,
+            },
+            vec![
+                Scope::Natal,
+                Scope::Decadal,
+                Scope::Age,
+                Scope::Yearly,
+                Scope::Monthly,
+            ],
+        ),
+        (
+            StaticTemporalNavigationSelection::Daily {
+                decadal_index: 2,
+                year_index: 0,
+                month_index: 0,
+                day_index: 0,
+            },
+            vec![
+                Scope::Natal,
+                Scope::Decadal,
+                Scope::Age,
+                Scope::Yearly,
+                Scope::Monthly,
+                Scope::Daily,
+            ],
+        ),
+        (
+            StaticTemporalNavigationSelection::Hourly {
+                decadal_index: 2,
+                year_index: 0,
+                month_index: 0,
+                day_index: 0,
+                hour_index: 6,
+            },
+            vec![
+                Scope::Natal,
+                Scope::Decadal,
+                Scope::Age,
+                Scope::Yearly,
+                Scope::Monthly,
+                Scope::Daily,
+                Scope::Hourly,
+            ],
+        ),
+    ];
 
-    for scope in [
-        Scope::Natal,
-        Scope::Decadal,
-        Scope::Age,
-        Scope::Yearly,
-        Scope::Monthly,
-        Scope::Daily,
-        Scope::Hourly,
-    ] {
-        assert!(
-            snapshot.active_scopes.contains(&scope),
-            "missing active scope {scope:?}"
-        );
+    for (selection, expected_scopes) in cases {
+        let snapshot = static_temporal_chart_view(sample_request(), selection)
+            .expect("partial temporal stack should build");
+        assert_eq!(snapshot.active_scopes, expected_scopes);
+        if let StaticTemporalNavigationSelection::Hourly { hour_index, .. } = selection {
+            assert!(snapshot.temporal_panel.hour_cells[hour_index as usize].selected);
+        }
     }
-    assert!(snapshot.temporal_panel.hour_cells[6].selected);
+}
+
+#[test]
+fn lunar_day_grid_stays_three_by_ten_and_disables_thirty_for_a_short_month() {
+    let panel = (0..12)
+        .map(|month_index| {
+            static_temporal_chart_view(
+                sample_request(),
+                StaticTemporalNavigationSelection::Monthly {
+                    decadal_index: 2,
+                    year_index: 0,
+                    month_index,
+                },
+            )
+            .expect("monthly selection should build")
+            .temporal_panel
+        })
+        .find(|panel| !panel.day_rows[2][9].enabled)
+        .expect("selected lunar year should contain a 29-day month");
+
+    assert_eq!(panel.day_rows.len(), 3);
+    assert!(panel.day_rows.iter().all(|row| row.len() == 10));
+    assert_eq!(panel.day_rows[0][0].label_zh, "初一");
+    assert_eq!(panel.day_rows[2][9].label_zh, "三十");
+    assert!(!panel.day_rows[2][9].enabled);
 }
 
 #[test]
