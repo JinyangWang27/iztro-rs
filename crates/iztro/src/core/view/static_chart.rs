@@ -15,8 +15,8 @@ use crate::core::model::bureau::FiveElementBureau;
 use crate::core::model::calendar::Gender;
 use crate::core::model::chart::{
     Chart, DecorativeStarFamily, DecorativeStarPlacement, HoroscopeChart, MutagenActivation,
-    Palace, PalaceGridPosition, PalaceName, StarPlacement, TemporalLayer, VISUAL_BRANCH_ORDER,
-    palace_grid_position,
+    PALACE_COUNT, Palace, PalaceGridPosition, PalaceName, StarPlacement, TemporalContext,
+    TemporalLayer, VISUAL_BRANCH_ORDER, build_decadal_frame, palace_grid_position,
 };
 use crate::core::model::star::mutagen::Scope;
 use crate::core::model::star::{Brightness, StarCategory, StarKind, StarName, mutagen::Mutagen};
@@ -39,6 +39,26 @@ const SELECTOR_ORDER: [Scope; 7] = [
     Scope::Hourly,
 ];
 
+const MONTH_LABELS: [&str; PALACE_COUNT] = [
+    "正月", "二月", "三月", "四月", "五月", "六月", "七月", "八月", "九月", "十月", "冬月", "腊月",
+];
+
+const DAY_LABELS: [[&str; 10]; 3] = [
+    [
+        "初一", "初二", "初三", "初四", "初五", "初六", "初七", "初八", "初九", "初十",
+    ],
+    [
+        "十一", "十二", "十三", "十四", "十五", "十六", "十七", "十八", "十九", "二十",
+    ],
+    [
+        "廿一", "廿二", "廿三", "廿四", "廿五", "廿六", "廿七", "廿八", "廿九", "三十",
+    ],
+];
+
+const HOUR_LABELS: [&str; PALACE_COUNT] = [
+    "子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥",
+];
+
 /// A renderer-neutral static 12-palace chart view model for one selected slice.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct StaticChartViewSnapshot {
@@ -46,6 +66,8 @@ pub struct StaticChartViewSnapshot {
     pub center: StaticChartCenterView,
     /// The twelve perimeter palaces in fixed [`VISUAL_BRANCH_ORDER`].
     pub palaces: Vec<StaticPalaceView>,
+    /// Renderer-neutral bottom temporal navigation panel.
+    pub temporal_panel: StaticTemporalPanelView,
     /// Scope-selector state in fixed [`SELECTOR_ORDER`].
     pub selectors: Vec<StaticChartSelectorView>,
     /// The scopes currently visible, in fixed [`SELECTOR_ORDER`].
@@ -104,6 +126,52 @@ pub struct StaticFourPillarsView {
     pub hourly_zh: String,
 }
 
+/// Renderer-neutral bottom temporal navigation panel.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct StaticTemporalPanelView {
+    /// Twelve factual decadal cells in existing core period order.
+    pub decadal_cells: Vec<StaticDecadalCellView>,
+    /// Twelve factual or neutral flowing-year / nominal-age cells.
+    pub yearly_age_cells: Vec<StaticYearlyAgeCellView>,
+    /// Conventional Chinese month navigation labels.
+    pub month_cells: Vec<StaticNavigationCellView>,
+    /// Three rows of ten conventional Chinese lunar-day labels.
+    pub day_rows: Vec<Vec<StaticNavigationCellView>>,
+    /// Conventional Earthly Branch double-hour labels.
+    pub hour_cells: Vec<StaticNavigationCellView>,
+}
+
+/// One factual or disabled decadal-period display cell.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct StaticDecadalCellView {
+    /// Whether factual display data is available.
+    pub enabled: bool,
+    /// Inclusive nominal-age range, such as `16-25`.
+    pub age_range_zh: Option<String>,
+    /// Chinese stem-branch limit label, such as `戊子限`.
+    pub limit_label_zh: Option<String>,
+}
+
+/// One factual or disabled flowing-year / nominal-age display cell.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct StaticYearlyAgeCellView {
+    /// Whether an exact yearly and age fact pair is available.
+    pub enabled: bool,
+    /// Display year, such as `2024`.
+    pub year_label: Option<String>,
+    /// Chinese stem-branch plus nominal age, such as `甲辰17`.
+    pub stem_branch_age_zh: Option<String>,
+}
+
+/// One static navigation label cell.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct StaticNavigationCellView {
+    /// Chinese navigation label.
+    pub label_zh: String,
+    /// Whether the navigation item is available for display.
+    pub enabled: bool,
+}
+
 impl StaticFourPillarsView {
     fn from_four_pillars(pillars: FourPillars) -> Self {
         Self {
@@ -117,6 +185,114 @@ impl StaticFourPillarsView {
             hourly_zh: zh_cn::stem_branch_zh(pillars.hourly),
         }
     }
+}
+
+impl StaticTemporalPanelView {
+    fn from_chart(chart: &Chart) -> Self {
+        Self {
+            decadal_cells: decadal_cells(chart),
+            yearly_age_cells: disabled_yearly_age_cells(),
+            month_cells: navigation_cells(&MONTH_LABELS),
+            day_rows: DAY_LABELS
+                .iter()
+                .map(|labels| navigation_cells(labels))
+                .collect::<Vec<_>>(),
+            hour_cells: navigation_cells(&HOUR_LABELS),
+        }
+    }
+
+    fn from_horoscope_chart(chart: &HoroscopeChart) -> Self {
+        let mut panel = Self::from_chart(chart.natal());
+        panel.yearly_age_cells = yearly_age_cells(chart);
+        panel
+    }
+}
+
+fn decadal_cells(chart: &Chart) -> Vec<StaticDecadalCellView> {
+    match build_decadal_frame(chart) {
+        Ok(frame) => frame
+            .periods()
+            .iter()
+            .map(|period| StaticDecadalCellView {
+                enabled: true,
+                age_range_zh: Some(format!("{}-{}", period.start_age(), period.end_age())),
+                limit_label_zh: Some(format!("{}限", zh_cn::stem_branch_zh(period.stem_branch()))),
+            })
+            .collect(),
+        Err(_) => (0..PALACE_COUNT)
+            .map(|_| StaticDecadalCellView {
+                enabled: false,
+                age_range_zh: None,
+                limit_label_zh: None,
+            })
+            .collect(),
+    }
+}
+
+fn disabled_yearly_age_cells() -> Vec<StaticYearlyAgeCellView> {
+    (0..PALACE_COUNT)
+        .map(|_| StaticYearlyAgeCellView {
+            enabled: false,
+            year_label: None,
+            stem_branch_age_zh: None,
+        })
+        .collect()
+}
+
+fn yearly_age_cells(chart: &HoroscopeChart) -> Vec<StaticYearlyAgeCellView> {
+    let yearly: Vec<(StemBranch, i32)> = chart
+        .layers()
+        .iter()
+        .filter_map(|layer| match layer.context() {
+            TemporalContext::Yearly {
+                stem_branch,
+                lunar_year,
+            } => Some((*stem_branch, *lunar_year)),
+            _ => None,
+        })
+        .collect();
+    let ages: Vec<u8> = chart
+        .layers()
+        .iter()
+        .filter_map(|layer| match layer.context() {
+            TemporalContext::Age {
+                stem_branch: _,
+                nominal_age,
+            } => Some(*nominal_age),
+            _ => None,
+        })
+        .collect();
+
+    let mut cells = match (yearly.as_slice(), ages.as_slice()) {
+        ([(yearly_stem_branch, lunar_year)], [nominal_age]) => {
+            vec![StaticYearlyAgeCellView {
+                enabled: true,
+                year_label: Some(lunar_year.to_string()),
+                stem_branch_age_zh: Some(format!(
+                    "{}{}",
+                    zh_cn::stem_branch_zh(*yearly_stem_branch),
+                    nominal_age
+                )),
+            }]
+        }
+        _ => Vec::new(),
+    };
+    cells.extend(
+        disabled_yearly_age_cells()
+            .into_iter()
+            .take(PALACE_COUNT - cells.len()),
+    );
+    cells
+}
+
+fn navigation_cells(labels: &[&str]) -> Vec<StaticNavigationCellView> {
+    labels
+        .iter()
+        .map(|label| StaticNavigationCellView {
+            label_zh: (*label).to_owned(),
+            enabled: true,
+        })
+        .collect()
 }
 
 /// One perimeter palace cell of a static chart.
@@ -346,6 +522,7 @@ impl StaticChartViewSnapshot {
         Self {
             center: StaticChartCenterView::from_chart(chart),
             palaces,
+            temporal_panel: StaticTemporalPanelView::from_chart(chart),
             selectors: build_selectors(&present, &selected),
             active_scopes: active_scopes(&selected),
             highlights: Vec::new(),
@@ -400,6 +577,7 @@ impl StaticChartViewSnapshot {
         Self {
             center: StaticChartCenterView::from_chart(natal),
             palaces: build_palaces(natal, &overlay_layers),
+            temporal_panel: StaticTemporalPanelView::from_horoscope_chart(chart),
             selectors: build_selectors(&present, &selected),
             active_scopes: active_scopes(&selected),
             highlights: Vec::new(),

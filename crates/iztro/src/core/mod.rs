@@ -117,7 +117,8 @@ pub use facade::by_solar::{SolarChartRequest, SolarChartRequestBuilder, by_solar
 
 pub use view::static_chart::{
     HighlightView, StaticChartCenterView, StaticChartSelectorView, StaticChartViewRequest,
-    StaticChartViewSnapshot, StaticDecorativeStarView, StaticFourPillarsView,
-    StaticOverlayMutagenView, StaticPalaceRole, StaticPalaceView, StaticTemporalOverlayView,
-    StaticTypedStarView,
+    StaticChartViewSnapshot, StaticDecadalCellView, StaticDecorativeStarView,
+    StaticFourPillarsView, StaticNavigationCellView, StaticOverlayMutagenView, StaticPalaceRole,
+    StaticPalaceView, StaticTemporalOverlayView, StaticTemporalPanelView, StaticTypedStarView,
+    StaticYearlyAgeCellView,
 };
