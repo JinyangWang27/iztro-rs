@@ -56,9 +56,18 @@ pub fn lunar_day_zh(day: u8) -> String {
     }
 }
 
-/// Formats a solar (Gregorian) date as `YYYY-MM-DD`, such as `1993-05-27`.
-pub fn solar_date_label(year: i32, month: u8, day: u8) -> String {
+/// Formats a solar (Gregorian) date as padded `YYYY-MM-DD`, such as `1993-05-27`.
+///
+/// This is the birth-date display style used by the static chart center.
+pub fn solar_date_label_padded(year: i32, month: u8, day: u8) -> String {
     format!("{year}-{month:02}-{day:02}")
+}
+
+/// Formats a solar (Gregorian) date as unpadded `YYYY-M-D`, such as `2008-2-10`.
+///
+/// This matches the iztro-style 运限阳历 display.
+pub fn solar_date_label_unpadded(year: i32, month: u8, day: u8) -> String {
+    format!("{year}-{month}-{day}")
 }
 
 /// Formats a lunar date as `<年>年<月><日>`, such as `一九九三年四月初七`.
@@ -132,9 +141,15 @@ mod tests {
     }
 
     #[test]
-    fn solar_date_label_is_zero_padded() {
-        assert_eq!(solar_date_label(1993, 5, 27), "1993-05-27");
-        assert_eq!(solar_date_label(2008, 2, 10), "2008-02-10");
+    fn padded_solar_date_label_keeps_birth_date_style() {
+        assert_eq!(solar_date_label_padded(1993, 5, 27), "1993-05-27");
+        assert_eq!(solar_date_label_padded(2008, 2, 10), "2008-02-10");
+    }
+
+    #[test]
+    fn unpadded_solar_date_label_matches_temporal_style() {
+        assert_eq!(solar_date_label_unpadded(2008, 2, 10), "2008-2-10");
+        assert_eq!(solar_date_label_unpadded(2026, 11, 28), "2026-11-28");
     }
 
     #[test]

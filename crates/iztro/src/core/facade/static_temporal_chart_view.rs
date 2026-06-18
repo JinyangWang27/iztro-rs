@@ -106,7 +106,7 @@ fn decorate_temporal(
     if let Some(target) = target {
         let solar = target.solar_date();
         let lunar = target.lunar_date();
-        snapshot.center.temporal_solar_label = Some(chinese_date::solar_date_label(
+        snapshot.center.temporal_solar_label = Some(chinese_date::solar_date_label_unpadded(
             solar.year(),
             solar.month(),
             solar.day(),
@@ -175,7 +175,7 @@ pub fn temporal_selection_for_local_moment(
     let year_index = (nominal_age - i32::from(period.start_age())).clamp(0, 9) as u8;
     let month_index = conversion.lunar_month().value().saturating_sub(1).min(11);
     let day_index = conversion.lunar_day().value().saturating_sub(1).min(29);
-    let hour_index = time_index_for_hour(hour).min(11);
+    let hour_index = time_index_for_hour(hour);
 
     Ok(StaticTemporalNavigationSelection::Hourly {
         decadal_index,
@@ -256,11 +256,11 @@ fn validate_selection_indices(
                 max: 29,
             })
         }
-        StaticTemporalNavigationSelection::Hourly { hour_index, .. } if hour_index > 11 => {
+        StaticTemporalNavigationSelection::Hourly { hour_index, .. } if hour_index > 12 => {
             Err(ChartError::InvalidTemporalSelectionIndex {
                 field: "hour_index",
                 value: hour_index,
-                max: 11,
+                max: 12,
             })
         }
         _ => Ok(()),

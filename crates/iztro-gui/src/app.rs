@@ -179,37 +179,44 @@ fn stepped_selection(
 ) -> Option<StaticTemporalNavigationSelection> {
     let delta = direction.delta();
     let clamp_u8 = |value: i64, max: u8| value.clamp(0, i64::from(max)) as u8;
+    let stepped_child = |selected: Option<u8>, max: u8| match (selected, direction) {
+        (Some(index), _) => Some(clamp_u8(i64::from(index) + delta, max)),
+        (None, StepDirection::Forward) => Some(0),
+        (None, StepDirection::Backward) => None,
+    };
     match unit {
-        TemporalUnit::Decadal => {
-            let index = (current.decadal_index().map_or(0, |i| i as i64) + delta).clamp(0, 11);
-            Some(StaticTemporalNavigationSelection::Decadal {
-                decadal_index: index as usize,
-            })
-        }
+        TemporalUnit::Decadal => match (current.decadal_index(), direction) {
+            (Some(index), _) => Some(StaticTemporalNavigationSelection::Decadal {
+                decadal_index: (index as i64 + delta).clamp(0, 11) as usize,
+            }),
+            (None, StepDirection::Forward) => {
+                Some(StaticTemporalNavigationSelection::Decadal { decadal_index: 0 })
+            }
+            (None, StepDirection::Backward) => None,
+        },
         TemporalUnit::Year => Some(StaticTemporalNavigationSelection::Yearly {
             decadal_index: current.decadal_index()?,
-            year_index: clamp_u8(i64::from(current.year_index().unwrap_or(0)) + delta, 9),
+            year_index: stepped_child(current.year_index(), 9)?,
         }),
         TemporalUnit::Month => Some(StaticTemporalNavigationSelection::Monthly {
             decadal_index: current.decadal_index()?,
             year_index: current.year_index()?,
-            month_index: clamp_u8(i64::from(current.month_index().unwrap_or(0)) + delta, 11),
+            month_index: stepped_child(current.month_index(), 11)?,
         }),
         TemporalUnit::Day => Some(StaticTemporalNavigationSelection::Daily {
             decadal_index: current.decadal_index()?,
             year_index: current.year_index()?,
             month_index: current.month_index()?,
-            day_index: clamp_u8(
-                i64::from(current.day_index().unwrap_or(0)) + delta,
-                max_day_index,
-            ),
+            day_index: stepped_child(current.day_index(), max_day_index)?,
         }),
         TemporalUnit::Hour => Some(StaticTemporalNavigationSelection::Hourly {
             decadal_index: current.decadal_index()?,
             year_index: current.year_index()?,
             month_index: current.month_index()?,
             day_index: current.day_index()?,
-            hour_index: clamp_u8(i64::from(current.hour_index().unwrap_or(0)) + delta, 11),
+            // The 12 visible branch cells share 子 between early Zi (0) and
+            // late Zi (12), but the authoritative core selection keeps both.
+            hour_index: stepped_child(current.hour_index(), 12)?,
         }),
     }
 }
@@ -396,6 +403,9 @@ pub enum Message {
     SelectTemporalCell(TemporalCell),
     /// A compact stepper moved a temporal unit one step.
     StepTemporal(TemporalUnit, StepDirection),
+    /// The `今` control was pressed. The Iced boundary reads the clock and
+    /// dispatches [`SelectToday`](Self::SelectToday) with explicit facts.
+    TodayPressed,
     /// The `今` control jumped to the supplied current local moment.
     SelectToday(LocalSolarMoment),
     /// The pointer entered the palace cell identified by its branch.
@@ -743,6 +753,9 @@ impl StaticChartApp {
                     }
                 }
             }
+            // The Iced boundary replaces this with SelectToday(moment). Keeping
+            // the pure app branch inert preserves deterministic direct tests.
+            Message::TodayPressed => {}
             Message::SelectToday(moment) => {
                 if let Some(input) = self.input {
                     match resolve_today_selection(&input, moment) {
@@ -1361,7 +1374,7 @@ mod tests {
     }
 
     #[test]
-    fn stepping_decadal_forward_updates_selection_and_rebuilds_through_cache() {
+    fn stepping_decadal_forward_enters_the_first_period_and_rebuilds_through_cache() {
         let mut app = StaticChartApp::new();
         app.generate();
         let misses_before = app.cache().misses();
@@ -1373,7 +1386,7 @@ mod tests {
 
         assert_eq!(
             app.selected_temporal_selection(),
-            StaticTemporalNavigationSelection::Decadal { decadal_index: 1 }
+            StaticTemporalNavigationSelection::Decadal { decadal_index: 0 }
         );
         // A fresh selection is built through the cache facade.
         assert!(app.cache().misses() > misses_before);
@@ -1405,25 +1418,217 @@ mod tests {
     }
 
     #[test]
-    fn stepping_decadal_backward_clamps_at_the_first_period() {
+    fn stepping_backward_without_a_selected_child_is_inert() {
         let mut app = StaticChartApp::new();
         app.generate();
+        let before = app.snapshot().cloned();
+
         app.update(Message::StepTemporal(
             TemporalUnit::Decadal,
             StepDirection::Backward,
         ));
-        // From the default (no decadal) a backward step lands on, and stays at, 0.
+
         assert_eq!(
             app.selected_temporal_selection(),
-            StaticTemporalNavigationSelection::Decadal { decadal_index: 0 }
+            StaticTemporalNavigationSelection::PreDecadal
         );
-        app.update(Message::StepTemporal(
-            TemporalUnit::Decadal,
-            StepDirection::Backward,
-        ));
+        assert_eq!(app.snapshot().cloned(), before);
+    }
+
+    #[test]
+    fn forward_stepping_enters_each_first_child() {
+        let cases = [
+            (
+                StaticTemporalNavigationSelection::PreDecadal,
+                TemporalUnit::Decadal,
+                StaticTemporalNavigationSelection::Decadal { decadal_index: 0 },
+            ),
+            (
+                StaticTemporalNavigationSelection::Decadal { decadal_index: 3 },
+                TemporalUnit::Year,
+                StaticTemporalNavigationSelection::Yearly {
+                    decadal_index: 3,
+                    year_index: 0,
+                },
+            ),
+            (
+                StaticTemporalNavigationSelection::Yearly {
+                    decadal_index: 3,
+                    year_index: 4,
+                },
+                TemporalUnit::Month,
+                StaticTemporalNavigationSelection::Monthly {
+                    decadal_index: 3,
+                    year_index: 4,
+                    month_index: 0,
+                },
+            ),
+            (
+                StaticTemporalNavigationSelection::Monthly {
+                    decadal_index: 3,
+                    year_index: 4,
+                    month_index: 5,
+                },
+                TemporalUnit::Day,
+                StaticTemporalNavigationSelection::Daily {
+                    decadal_index: 3,
+                    year_index: 4,
+                    month_index: 5,
+                    day_index: 0,
+                },
+            ),
+            (
+                StaticTemporalNavigationSelection::Daily {
+                    decadal_index: 3,
+                    year_index: 4,
+                    month_index: 5,
+                    day_index: 6,
+                },
+                TemporalUnit::Hour,
+                StaticTemporalNavigationSelection::Hourly {
+                    decadal_index: 3,
+                    year_index: 4,
+                    month_index: 5,
+                    day_index: 6,
+                    hour_index: 0,
+                },
+            ),
+        ];
+
+        for (current, unit, expected) in cases {
+            assert_eq!(
+                stepped_selection(current, unit, StepDirection::Forward, 29),
+                Some(expected)
+            );
+        }
+    }
+
+    #[test]
+    fn existing_child_indices_step_by_one_and_clamp() {
+        let decadal = StaticTemporalNavigationSelection::Decadal { decadal_index: 4 };
         assert_eq!(
-            app.selected_temporal_selection(),
-            StaticTemporalNavigationSelection::Decadal { decadal_index: 0 }
+            stepped_selection(decadal, TemporalUnit::Decadal, StepDirection::Forward, 29),
+            Some(StaticTemporalNavigationSelection::Decadal { decadal_index: 5 })
+        );
+        assert_eq!(
+            stepped_selection(
+                StaticTemporalNavigationSelection::Decadal { decadal_index: 0 },
+                TemporalUnit::Decadal,
+                StepDirection::Backward,
+                29
+            ),
+            Some(StaticTemporalNavigationSelection::Decadal { decadal_index: 0 })
+        );
+        assert_eq!(
+            stepped_selection(
+                StaticTemporalNavigationSelection::Decadal { decadal_index: 11 },
+                TemporalUnit::Decadal,
+                StepDirection::Forward,
+                29
+            ),
+            Some(StaticTemporalNavigationSelection::Decadal { decadal_index: 11 })
+        );
+
+        let yearly = StaticTemporalNavigationSelection::Yearly {
+            decadal_index: 2,
+            year_index: 4,
+        };
+        assert_eq!(
+            stepped_selection(yearly, TemporalUnit::Year, StepDirection::Forward, 29)
+                .and_then(|selection| selection.year_index()),
+            Some(5)
+        );
+        assert_eq!(
+            stepped_selection(yearly, TemporalUnit::Year, StepDirection::Backward, 29)
+                .and_then(|selection| selection.year_index()),
+            Some(3)
+        );
+
+        let monthly = StaticTemporalNavigationSelection::Monthly {
+            decadal_index: 2,
+            year_index: 4,
+            month_index: 5,
+        };
+        assert_eq!(
+            stepped_selection(monthly, TemporalUnit::Month, StepDirection::Forward, 29)
+                .and_then(|selection| selection.month_index()),
+            Some(6)
+        );
+        assert_eq!(
+            stepped_selection(monthly, TemporalUnit::Month, StepDirection::Backward, 29)
+                .and_then(|selection| selection.month_index()),
+            Some(4)
+        );
+
+        let daily = StaticTemporalNavigationSelection::Daily {
+            decadal_index: 2,
+            year_index: 4,
+            month_index: 5,
+            day_index: 6,
+        };
+        assert_eq!(
+            stepped_selection(daily, TemporalUnit::Day, StepDirection::Forward, 28)
+                .and_then(|selection| selection.day_index()),
+            Some(7)
+        );
+        assert_eq!(
+            stepped_selection(daily, TemporalUnit::Day, StepDirection::Backward, 28)
+                .and_then(|selection| selection.day_index()),
+            Some(5)
+        );
+        let last_day = StaticTemporalNavigationSelection::Daily {
+            decadal_index: 2,
+            year_index: 4,
+            month_index: 5,
+            day_index: 28,
+        };
+        assert_eq!(
+            stepped_selection(last_day, TemporalUnit::Day, StepDirection::Forward, 28)
+                .and_then(|selection| selection.day_index()),
+            Some(28)
+        );
+
+        let first_hour = StaticTemporalNavigationSelection::Hourly {
+            decadal_index: 2,
+            year_index: 4,
+            month_index: 5,
+            day_index: 6,
+            hour_index: 0,
+        };
+        assert_eq!(
+            stepped_selection(first_hour, TemporalUnit::Hour, StepDirection::Backward, 29)
+                .and_then(|selection| selection.hour_index()),
+            Some(0)
+        );
+
+        let last_hour = StaticTemporalNavigationSelection::Hourly {
+            decadal_index: 2,
+            year_index: 4,
+            month_index: 5,
+            day_index: 6,
+            hour_index: 11,
+        };
+        assert_eq!(
+            stepped_selection(last_hour, TemporalUnit::Hour, StepDirection::Forward, 29)
+                .and_then(|selection| selection.hour_index()),
+            Some(12)
+        );
+        let late_zi = StaticTemporalNavigationSelection::Hourly {
+            decadal_index: 2,
+            year_index: 4,
+            month_index: 5,
+            day_index: 6,
+            hour_index: 12,
+        };
+        assert_eq!(
+            stepped_selection(late_zi, TemporalUnit::Hour, StepDirection::Forward, 29)
+                .and_then(|selection| selection.hour_index()),
+            Some(12)
+        );
+        assert_eq!(
+            stepped_selection(late_zi, TemporalUnit::Hour, StepDirection::Backward, 29)
+                .and_then(|selection| selection.hour_index()),
+            Some(11)
         );
     }
 
@@ -1455,6 +1660,10 @@ mod tests {
             app.selected_temporal_selection(),
             StaticTemporalNavigationSelection::Hourly { .. }
         ));
+        assert_eq!(
+            app.center().and_then(|c| c.temporal_solar_label.as_deref()),
+            Some("2008-2-10")
+        );
     }
 
     #[test]

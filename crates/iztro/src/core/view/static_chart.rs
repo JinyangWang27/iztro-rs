@@ -304,7 +304,10 @@ impl StaticTemporalPanelView {
         let selected_lunar_month = month_idx.map(|m| m + 1);
         let day_rows = day_rows(selected_lunar_year, selected_lunar_month, day_idx);
 
-        let hour_cells = labeled_cells(&HOUR_LABELS, day_idx.is_some(), hour_idx);
+        // Early Zi (`timeIndex` 0) and late Zi (`timeIndex` 12) share the same
+        // renderer cell while retaining their distinct core selection values.
+        let selected_hour_cell = hour_idx.map(|index| if index == 12 { 0 } else { index });
+        let hour_cells = labeled_cells(&HOUR_LABELS, day_idx.is_some(), selected_hour_cell);
 
         Self {
             pre_decadal_cell,
@@ -773,7 +776,7 @@ pub struct StaticChartViewRequest {
 ///
 /// Indices: `year_index` 0..=9 (within the 大限's 10 years); `month_index` 0..=11
 /// (lunar month 正月..腊月); `day_index` 0..=29 (lunar day 初一..三十); `hour_index`
-/// 0..=11 (double-hour 子..亥).
+/// is upstream iztro `timeIndex` 0..=12 (early 子..亥, late 子).
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum StaticTemporalNavigationSelection {
@@ -824,7 +827,7 @@ pub enum StaticTemporalNavigationSelection {
         month_index: u8,
         /// Selected lunar day (0..=29).
         day_index: u8,
-        /// Zero-based double-hour (0..=11 -> 子..亥).
+        /// Upstream iztro `timeIndex` (0..=12: early 子..亥, late 子).
         hour_index: u8,
     },
 }
@@ -871,7 +874,7 @@ impl StaticTemporalNavigationSelection {
         }
     }
 
-    /// The selected double-hour index, if the path reaches 流时.
+    /// The selected upstream iztro `timeIndex`, if the path reaches 流时.
     pub const fn hour_index(&self) -> Option<u8> {
         match self {
             Self::Hourly { hour_index, .. } => Some(*hour_index),
@@ -1009,7 +1012,7 @@ fn natal_date_labels(chart: &Chart) -> (String, String, String) {
         let solar = facts.solar();
         let lunar = facts.lunar();
         return (
-            chinese_date::solar_date_label(solar.year(), solar.month(), solar.day()),
+            chinese_date::solar_date_label_padded(solar.year(), solar.month(), solar.day()),
             chinese_date::lunar_date_label(
                 lunar.year(),
                 lunar.month(),
@@ -1023,7 +1026,7 @@ fn natal_date_labels(chart: &Chart) -> (String, String, String) {
     let date = chart.birth_context().date();
     match date.kind() {
         CalendarKind::Solar => (
-            chinese_date::solar_date_label(date.year(), date.month(), date.day()),
+            chinese_date::solar_date_label_padded(date.year(), date.month(), date.day()),
             String::new(),
             chinese_date::constellation_zh(date.month(), date.day()).to_owned(),
         ),

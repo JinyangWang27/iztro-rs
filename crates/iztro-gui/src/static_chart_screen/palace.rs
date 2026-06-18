@@ -6,7 +6,7 @@ use iztro::core::{
     StaticTemporalNavigationSelection, StaticTypedStarView,
 };
 
-use crate::app::{LocalSolarMoment, Message, StaticChartApp};
+use crate::app::{Message, StaticChartApp};
 
 use super::labels::{fact_row, four_pillars_line, gender_symbol, section_title};
 use super::style::{
@@ -20,7 +20,6 @@ use super::temporal::{period_badge, temporal_controls};
 pub(super) fn palace_grid<'a>(
     app: &'a StaticChartApp,
     snapshot: &'a StaticChartViewSnapshot,
-    now: LocalSolarMoment,
 ) -> Element<'a, Message> {
     let top = row![
         grid_cell(app, 0, 0),
@@ -40,7 +39,6 @@ pub(super) fn palace_grid<'a>(
     let center = container(center_panel(
         &snapshot.center,
         app.selected_temporal_selection(),
-        now,
     ))
     .style(center_panel_style)
     .padding(10)
@@ -347,7 +345,6 @@ fn limit_middle(palace: &StaticPalaceView) -> Element<'static, Message> {
 pub(super) fn center_panel(
     center: &StaticChartCenterView,
     selection: StaticTemporalNavigationSelection,
-    now: LocalSolarMoment,
 ) -> Element<'static, Message> {
     let dash = "—";
     let basic_header = text(format!("{}基本信息", gender_symbol(center.gender)))
@@ -395,7 +392,7 @@ pub(super) fn center_panel(
             "阳历",
             center.temporal_solar_label.as_deref().unwrap_or(dash)
         ),
-        temporal_controls(selection, now),
+        temporal_controls(selection),
     ]
     .spacing(2);
 

@@ -77,11 +77,44 @@ fn nominal_age_and_run_xian_dates_update_with_navigation() {
 
     // 2008 is the nominal 16th year for a 1993 birth (虚岁).
     assert_eq!(snapshot.center.nominal_age_label.as_deref(), Some("16 岁"));
-    assert!(
-        snapshot.center.temporal_solar_label.is_some(),
-        "运限阳历 should be filled for a dated selection"
+    assert_eq!(
+        snapshot.center.temporal_solar_label.as_deref(),
+        Some("2008-2-10"),
+        "运限阳历 should use iztro-style unpadded month/day"
     );
     assert!(snapshot.center.temporal_lunar_label.is_some());
+}
+
+#[test]
+fn today_at_23_preserves_late_zi_time_index_and_selects_the_zi_cell() {
+    let chart = by_solar(spec_request()).unwrap();
+    let selection = temporal_selection_for_local_moment(&chart, 2008, 2, 10, 23, 30).unwrap();
+
+    assert!(matches!(
+        selection,
+        StaticTemporalNavigationSelection::Hourly { hour_index: 12, .. }
+    ));
+
+    let snapshot = static_temporal_chart_view(spec_request(), selection).unwrap();
+    assert_eq!(
+        snapshot
+            .temporal_panel
+            .hour_cells
+            .iter()
+            .filter(|cell| cell.selected)
+            .map(|cell| cell.label_zh.as_str())
+            .collect::<Vec<_>>(),
+        vec!["子"],
+        "late Zi keeps timeIndex 12 while rendering in the Zi branch cell"
+    );
+    assert!(
+        snapshot
+            .palaces
+            .iter()
+            .flat_map(|palace| palace.overlays.iter())
+            .any(|overlay| overlay.scope == Scope::Hourly),
+        "the late-Zi selection must build the hourly target overlay"
+    );
 }
 
 #[test]
@@ -534,7 +567,7 @@ fn daily_selection_rejects_out_of_range_day_index() {
 }
 
 #[test]
-fn hourly_selection_rejects_out_of_range_hour_index() {
+fn hourly_selection_accepts_late_zi_time_index() {
     let result = static_temporal_chart_view(
         sample_request(),
         StaticTemporalNavigationSelection::Hourly {
@@ -546,12 +579,28 @@ fn hourly_selection_rejects_out_of_range_hour_index() {
         },
     );
 
+    assert!(result.is_ok(), "timeIndex 12 is late Zi and must be valid");
+}
+
+#[test]
+fn hourly_selection_rejects_out_of_range_hour_index() {
+    let result = static_temporal_chart_view(
+        sample_request(),
+        StaticTemporalNavigationSelection::Hourly {
+            decadal_index: 2,
+            year_index: 0,
+            month_index: 0,
+            day_index: 0,
+            hour_index: 13,
+        },
+    );
+
     assert_eq!(
         result,
         Err(ChartError::InvalidTemporalSelectionIndex {
             field: "hour_index",
-            value: 12,
-            max: 11,
+            value: 13,
+            max: 12,
         })
     );
 }

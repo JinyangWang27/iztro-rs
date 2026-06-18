@@ -8,6 +8,7 @@ pub mod app;
 pub mod fonts;
 pub mod persistence;
 pub mod static_chart_screen;
+mod system_clock;
 
 use app::{Message, StaticChartApp};
 use persistence::ChartStore;
@@ -34,8 +35,21 @@ pub fn run() -> iced::Result {
 
 /// Bridges the pure [`StaticChartApp::update`] into the Iced update loop.
 fn update(app: &mut StaticChartApp, message: Message) -> iced::Task<Message> {
-    app.update(message);
+    update_with_clock(app, message, system_clock::local_solar_moment);
     iced::Task::none()
+}
+
+/// Dispatches one Iced message, reading the clock only for a click-time `今`
+/// action. The clock function is injectable so boundary behavior stays testable.
+fn update_with_clock(
+    app: &mut StaticChartApp,
+    message: Message,
+    clock: impl FnOnce() -> app::LocalSolarMoment,
+) {
+    match message {
+        Message::TodayPressed => app.update(Message::SelectToday(clock())),
+        message => app.update(message),
+    }
 }
 
 #[cfg(test)]
@@ -70,5 +84,42 @@ mod tests {
         assert!(source.contains(concat!("var_os(\"WSL_", "DISTRO_NAME\")")));
         assert!(source.contains(concat!("remove_var(\"WAYLAND_", "DISPLAY\")")));
         assert!(source.contains(concat!("remove_var(\"WAYLAND_", "SOCKET\")")));
+    }
+
+    #[test]
+    fn today_pressed_reads_the_clock_at_update_time() {
+        let mut app = StaticChartApp::new();
+        app.update(Message::Generate);
+        let expected = app::LocalSolarMoment {
+            year: 2008,
+            month: 2,
+            day: 10,
+            hour: 23,
+            minute: 30,
+        };
+        let mut reads = 0;
+
+        update_with_clock(&mut app, Message::TodayPressed, || {
+            reads += 1;
+            expected
+        });
+
+        assert_eq!(reads, 1);
+        assert!(matches!(
+            app.selected_temporal_selection(),
+            iztro::core::StaticTemporalNavigationSelection::Hourly { hour_index: 12, .. }
+        ));
+    }
+
+    #[test]
+    fn chart_view_construction_does_not_read_the_system_clock() {
+        let chart_source = include_str!("static_chart_screen/chart.rs");
+        let temporal_source = include_str!("static_chart_screen/temporal.rs");
+
+        for source in [chart_source, temporal_source] {
+            assert!(!source.contains("Local::now"));
+            assert!(!source.contains("current_moment"));
+        }
+        assert!(temporal_source.contains("Message::TodayPressed"));
     }
 }

@@ -13,9 +13,9 @@
 use crate::core::calendar::ResolvedTemporalTarget;
 use crate::core::error::ChartError;
 use crate::core::model::chart::{
-    Chart, HoroscopeChart, TemporalLayer, build_age_period, build_daily_period,
-    build_decadal_frame, build_hourly_period, build_monthly_period, build_yearly_period,
-    nominal_age_for_target_year,
+    Chart, HoroscopeChart, HoroscopeLunarDate, HoroscopeSolarDate, HoroscopeTargetContext,
+    TemporalLayer, build_age_period, build_daily_period, build_decadal_frame, build_hourly_period,
+    build_monthly_period, build_yearly_period, nominal_age_for_target_year,
 };
 use crate::core::placement::overlay::age::build_age_horoscope_layer;
 use crate::core::placement::overlay::daily_horoscope::build_daily_horoscope_layer;
@@ -159,5 +159,22 @@ pub(crate) fn build_partial_horoscope_chart(
         }
     }
 
-    Ok(HoroscopeChart::with_layers(natal, layers))
+    let chart = HoroscopeChart::with_layers(natal, layers);
+    Ok(match spec.target() {
+        Some(target) => chart.with_target_context(HoroscopeTargetContext::new(
+            HoroscopeSolarDate::new(
+                target.solar_year,
+                target.solar_month.value(),
+                target.solar_day.value(),
+            ),
+            HoroscopeLunarDate::new(
+                target.lunar_year,
+                target.lunar_month,
+                target.lunar_day,
+                target.is_leap_month,
+            ),
+            target.target_time.iztro_time_index(),
+        )),
+        None => chart,
+    })
 }
