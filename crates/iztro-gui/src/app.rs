@@ -378,6 +378,16 @@ fn build_snapshot(input: &BirthInput) -> Result<StaticChartViewSnapshot, ChartEr
 mod tests {
     use super::*;
 
+    fn production_source(raw: &str) -> String {
+        raw.split("#[cfg(test)]")
+            .next()
+            .unwrap_or(raw)
+            .lines()
+            .filter(|line| !line.trim_start().starts_with("//"))
+            .collect::<Vec<_>>()
+            .join("\n")
+    }
+
     #[test]
     fn default_app_initializes_with_sample_input_and_valid_snapshot() {
         let app = StaticChartApp::new();
@@ -394,6 +404,19 @@ mod tests {
         assert!(!pillars.monthly_zh.is_empty());
         assert!(!pillars.daily_zh.is_empty());
         assert!(!pillars.hourly_zh.is_empty());
+        assert_eq!(app.snapshot().temporal_panel.decadal_cells.len(), 12);
+        assert!(
+            app.snapshot()
+                .temporal_panel
+                .decadal_cells
+                .iter()
+                .all(|cell| cell.enabled)
+        );
+        assert_eq!(
+            app.snapshot().temporal_panel.month_cells[0].label_zh,
+            "正月"
+        );
+        assert_eq!(app.snapshot().temporal_panel.hour_cells[11].label_zh, "亥");
         assert!(app.error().is_none());
     }
 
@@ -550,8 +573,8 @@ mod tests {
                 continue;
             }
             let raw = std::fs::read_to_string(&path).expect("source file must read");
-            // Only scan production code; this very test names forbidden symbols.
-            let source = raw.split("#[cfg(test)]").next().unwrap_or(&raw);
+            // Scan production code only; tests and comments may name forbidden symbols.
+            let source = production_source(&raw);
             for needle in FORBIDDEN {
                 assert!(
                     !source.contains(needle),
@@ -568,5 +591,16 @@ mod tests {
             app_src.contains("by_solar"),
             "the sample chart must be built through the by_solar facade"
         );
+    }
+
+    #[test]
+    fn static_chart_screen_has_no_permanent_detail_panel() {
+        let path =
+            std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src/static_chart_screen.rs");
+        let raw = std::fs::read_to_string(path).expect("screen source must read");
+        let source = production_source(&raw);
+
+        assert!(!source.contains("fn detail_panel"));
+        assert!(!source.contains("selected_palace_details"));
     }
 }

@@ -14,8 +14,9 @@ use std::fmt;
 use iced::widget::{Column, button, column, container, pick_list, row, text, text_input};
 use iced::{Border, Color, Element, Length, Theme};
 use iztro::core::{
-    Gender, Scope, StaticChartCenterView, StaticDecorativeStarView, StaticPalaceView,
-    StaticTemporalOverlayView, StaticTypedStarView,
+    Gender, Scope, StaticChartCenterView, StaticDecadalCellView, StaticDecorativeStarView,
+    StaticNavigationCellView, StaticPalaceView, StaticTemporalOverlayView, StaticTemporalPanelView,
+    StaticTypedStarView, StaticYearlyAgeCellView,
 };
 
 use crate::app::{BirthForm, BirthInput, Message, StaticChartApp};
@@ -26,9 +27,10 @@ pub fn view(app: &StaticChartApp) -> Element<'_, Message> {
         input_bar(app.form(), app.error()),
         history_bar(app.history()),
         palace_grid(app),
-        detail_panel(app.selected_palace()),
+        category_legend(),
+        temporal_navigation_panel(&app.snapshot().temporal_panel),
     ]
-    .spacing(10)
+    .spacing(8)
     .padding(12)
     .into()
 }
@@ -206,6 +208,16 @@ fn palace_cell(palace: &StaticPalaceView, selected: bool) -> Element<'_, Message
         3,
     );
     content = push_decorative_badges(content, "神煞", &palace.decorative_stars, 3);
+    for overlay in &palace.overlays {
+        if overlay.temporal_palace_name_zh.is_none()
+            && overlay.typed_stars.is_empty()
+            && overlay.decorative_stars.is_empty()
+            && overlay.mutagens.is_empty()
+        {
+            continue;
+        }
+        content = content.push(overlay_badges(overlay));
+    }
 
     button(content)
         .on_press(Message::SelectPalace(palace.branch))
@@ -250,20 +262,18 @@ fn center_panel(center: &StaticChartCenterView) -> Element<'_, Message> {
     content.into()
 }
 
-fn detail_panel(selected: Option<&StaticPalaceView>) -> Element<'_, Message> {
-    let content = match selected {
-        None => column![
-            text("点击任一宫位查看详情")
-                .size(14)
-                .style(subtle_text_style)
-        ],
-        Some(palace) => selected_palace_details(palace),
-    };
-    container(content)
-        .style(detail_panel_style)
-        .width(Length::Fill)
-        .padding(10)
-        .into()
+fn category_legend() -> Element<'static, Message> {
+    row![
+        text("图例").size(12).style(subtle_text_style),
+        star_badge("主星".to_owned(), StarGroupTone::Major),
+        star_badge("辅星".to_owned(), StarGroupTone::Minor),
+        star_badge("杂曜".to_owned(), StarGroupTone::Adjective),
+        star_badge("神煞".to_owned(), StarGroupTone::Decorative),
+        star_badge("流曜".to_owned(), StarGroupTone::Temporal),
+    ]
+    .spacing(6)
+    .align_y(iced::Alignment::Center)
+    .into()
 }
 
 // ---------------------------------------------------------------------------
@@ -317,100 +327,17 @@ fn push_decorative_badges<'a>(
     }
 }
 
-fn selected_palace_details(palace: &StaticPalaceView) -> Column<'_, Message> {
-    let mut content = column![
-        text(format!(
-            "{} · {}{}",
-            palace.name_zh, palace.stem_zh, palace.branch_zh
-        ))
-        .size(18),
-        fact_row("宫名", palace.name_zh.as_str()),
-        fact_row("干支", format!("{}{}", palace.stem_zh, palace.branch_zh)),
-        fact_row("地支", palace.branch_zh.as_str()),
-    ]
-    .spacing(5);
-
-    content = push_typed_detail(content, "主星", &palace.major_stars, StarGroupTone::Major);
-    content = push_typed_detail(content, "辅星", &palace.minor_stars, StarGroupTone::Minor);
-    content = push_typed_detail(
-        content,
-        "杂曜",
-        &palace.adjective_stars,
-        StarGroupTone::Adjective,
-    );
-    content = push_typed_detail(
-        content,
-        "其他星曜",
-        &palace.other_typed_stars,
-        StarGroupTone::Other,
-    );
-    content = push_decorative_detail(content, "神煞", &palace.decorative_stars);
-
-    if palace.overlays.is_empty() {
-        content.push(text("运限叠层：无").size(13).style(subtle_text_style))
-    } else {
-        let mut overlays = column![section_title("运限叠层")].spacing(4);
-        for overlay in &palace.overlays {
-            overlays = overlays.push(overlay_detail(overlay));
-        }
-        content.push(overlays)
-    }
-}
-
-fn push_typed_detail<'a>(
-    content: Column<'a, Message>,
-    label: &'static str,
-    stars: &'a [StaticTypedStarView],
-    tone: StarGroupTone,
-) -> Column<'a, Message> {
-    if stars.is_empty() {
-        content.push(
-            text(format!("{label}：无"))
-                .size(13)
-                .style(subtle_text_style),
-        )
-    } else {
-        content.push(star_group(
-            label,
-            stars.iter().map(star_detail_label).collect(),
-            tone,
-            usize::MAX,
-        ))
-    }
-}
-
-fn push_decorative_detail<'a>(
-    content: Column<'a, Message>,
-    label: &'static str,
-    stars: &'a [StaticDecorativeStarView],
-) -> Column<'a, Message> {
-    if stars.is_empty() {
-        content.push(
-            text(format!("{label}：无"))
-                .size(13)
-                .style(subtle_text_style),
-        )
-    } else {
-        content.push(star_group(
-            label,
-            stars.iter().map(|star| star.name_zh.clone()).collect(),
-            StarGroupTone::Decorative,
-            usize::MAX,
-        ))
-    }
-}
-
-fn overlay_detail(overlay: &StaticTemporalOverlayView) -> Element<'_, Message> {
-    let mut content = column![text(scope_zh(overlay.scope)).size(13)].spacing(3);
+fn overlay_badges(overlay: &StaticTemporalOverlayView) -> Element<'_, Message> {
+    let mut content = column![text(scope_zh(overlay.scope)).size(11)].spacing(2);
     if let Some(name) = overlay.temporal_palace_name_zh.as_deref() {
-        content = content.push(fact_row("运限宫名", name));
+        content = content.push(text(name).size(11).style(subtle_text_style));
     }
     if !overlay.typed_stars.is_empty() {
         content = content.push(star_group(
             "流曜",
             overlay.typed_stars.iter().map(star_detail_label).collect(),
             StarGroupTone::Temporal,
-            usize::MAX,
+            3,
         ));
     }
     if !overlay.decorative_stars.is_empty() {
@@ -422,7 +349,7 @@ fn overlay_detail(overlay: &StaticTemporalOverlayView) -> Element<'_, Message> {
                 .map(|star| star.name_zh.clone())
                 .collect(),
             StarGroupTone::Decorative,
-            usize::MAX,
+            2,
         ));
     }
     if !overlay.mutagens.is_empty() {
@@ -431,17 +358,102 @@ fn overlay_detail(overlay: &StaticTemporalOverlayView) -> Element<'_, Message> {
             .iter()
             .map(|mutagen| format!("{}{}", mutagen.star_zh, mutagen.mutagen_zh))
             .collect::<Vec<_>>();
-        content = content.push(star_group(
-            "四化",
-            labels,
-            StarGroupTone::Temporal,
-            usize::MAX,
-        ));
+        content = content.push(star_group("四化", labels, StarGroupTone::Temporal, 2));
     }
-    container(content)
-        .style(overlay_panel_style)
-        .padding(6)
+    content.into()
+}
+
+fn temporal_navigation_panel(panel: &StaticTemporalPanelView) -> Element<'_, Message> {
+    let mut rows = column![
+        decadal_row("大限", &panel.decadal_cells),
+        yearly_age_row("流年/小限", &panel.yearly_age_cells),
+        navigation_row("流月", &panel.month_cells),
+    ]
+    .spacing(4);
+
+    for days in &panel.day_rows {
+        rows = rows.push(navigation_row("流日", days));
+    }
+    rows = rows.push(navigation_row("流时", &panel.hour_cells));
+
+    container(rows)
+        .style(temporal_panel_style)
+        .padding(8)
         .width(Length::Fill)
+        .into()
+}
+
+fn decadal_row<'a>(
+    label: &'static str,
+    cells: &'a [StaticDecadalCellView],
+) -> Element<'a, Message> {
+    temporal_row(label, cells.iter().map(decadal_cell).collect())
+}
+
+fn yearly_age_row<'a>(
+    label: &'static str,
+    cells: &'a [StaticYearlyAgeCellView],
+) -> Element<'a, Message> {
+    temporal_row(label, cells.iter().map(yearly_age_cell).collect())
+}
+
+fn navigation_row<'a>(
+    label: &'static str,
+    cells: &'a [StaticNavigationCellView],
+) -> Element<'a, Message> {
+    temporal_row(label, cells.iter().map(navigation_cell).collect())
+}
+
+fn temporal_row<'a>(label: &'static str, cells: Vec<Element<'a, Message>>) -> Element<'a, Message> {
+    let mut content = row![container(text(label).size(11)).width(72)]
+        .spacing(3)
+        .align_y(iced::Alignment::Center);
+    for cell in cells {
+        content = content.push(cell);
+    }
+    content.into()
+}
+
+fn decadal_cell(cell: &StaticDecadalCellView) -> Element<'_, Message> {
+    temporal_cell(
+        cell.age_range_zh.as_deref(),
+        cell.limit_label_zh.as_deref(),
+        cell.enabled,
+    )
+}
+
+fn yearly_age_cell(cell: &StaticYearlyAgeCellView) -> Element<'_, Message> {
+    temporal_cell(
+        cell.year_label.as_deref(),
+        cell.stem_branch_age_zh.as_deref(),
+        cell.enabled,
+    )
+}
+
+fn navigation_cell(cell: &StaticNavigationCellView) -> Element<'_, Message> {
+    temporal_cell(Some(cell.label_zh.as_str()), None, cell.enabled)
+}
+
+fn temporal_cell<'a>(
+    primary: Option<&'a str>,
+    secondary: Option<&'a str>,
+    enabled: bool,
+) -> Element<'a, Message> {
+    let primary = text(primary.unwrap_or("—")).size(10);
+    let primary = if enabled {
+        primary
+    } else {
+        primary.style(subtle_text_style)
+    };
+    let mut content = column![primary].spacing(1).align_x(iced::Alignment::Center);
+    if let Some(secondary) = secondary {
+        content = content.push(text(secondary).size(9));
+    }
+
+    container(content)
+        .style(move |theme| temporal_cell_style(theme, enabled))
+        .padding([3, 2])
+        .width(Length::FillPortion(1))
         .into()
 }
 
@@ -449,18 +461,15 @@ fn star_group(
     label: &'static str,
     labels: Vec<String>,
     tone: StarGroupTone,
-    limit: usize,
+    _limit: usize,
 ) -> Element<'static, Message> {
-    let mut chips = row![text(format!("{label}:")).size(12).style(subtle_text_style)]
-        .spacing(4)
-        .align_y(iced::Alignment::Center);
-    for value in labels.iter().take(limit) {
-        chips = chips.push(star_badge(value.clone(), tone));
-    }
-    if labels.len() > limit {
-        chips = chips.push(star_badge(format!("+{}", labels.len() - limit), tone));
-    }
-    chips.into()
+    row![
+        star_badge(label.to_owned(), tone),
+        text(labels.join(" ")).size(11).width(Length::Fill),
+    ]
+    .spacing(4)
+    .align_y(iced::Alignment::Center)
+    .into()
 }
 
 fn star_badge(label: String, tone: StarGroupTone) -> Element<'static, Message> {
@@ -644,14 +653,32 @@ fn center_panel_style(theme: &Theme) -> container::Style {
     }
 }
 
-fn overlay_panel_style(theme: &Theme) -> container::Style {
+fn temporal_panel_style(theme: &Theme) -> container::Style {
     let palette = theme.extended_palette();
     container::Style {
-        background: Some(palette.background.base.color.into()),
+        background: Some(palette.background.weak.color.into()),
         border: Border {
             color: palette.background.strong.color,
             width: 1.0,
-            radius: 4.0.into(),
+            radius: 5.0.into(),
+        },
+        ..container::Style::default()
+    }
+}
+
+fn temporal_cell_style(theme: &Theme, enabled: bool) -> container::Style {
+    let palette = theme.extended_palette();
+    let background = if enabled {
+        palette.background.base.color
+    } else {
+        palette.background.weak.color
+    };
+    container::Style {
+        background: Some(background.into()),
+        border: Border {
+            color: palette.background.strong.color,
+            width: 1.0,
+            radius: 3.0.into(),
         },
         ..container::Style::default()
     }
@@ -681,19 +708,6 @@ fn star_badge_colors(tone: StarGroupTone) -> (Color, Color) {
         StarGroupTone::Other => (Color::from_rgb8(91, 91, 91), Color::WHITE),
         StarGroupTone::Decorative => (Color::from_rgb8(126, 87, 48), Color::WHITE),
         StarGroupTone::Temporal => (Color::from_rgb8(45, 102, 63), Color::WHITE),
-    }
-}
-
-fn detail_panel_style(theme: &Theme) -> container::Style {
-    let palette = theme.extended_palette();
-    container::Style {
-        background: Some(palette.background.weak.color.into()),
-        border: Border {
-            color: palette.background.strong.color,
-            width: 1.0,
-            radius: 4.0.into(),
-        },
-        ..container::Style::default()
     }
 }
 
