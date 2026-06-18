@@ -11,12 +11,12 @@
 
 use std::fmt;
 
-use iced::widget::{Column, button, column, container, pick_list, row, text, text_input};
+use iced::widget::{Column, button, checkbox, column, container, pick_list, row, text, text_input};
 use iced::{Border, Color, Element, Length, Theme};
 use iztro::core::{
-    Gender, Scope, StaticChartCenterView, StaticChartViewSnapshot, StaticDecorativeStarView,
-    StaticNavigationCellView, StaticPalaceView, StaticTemporalOverlayView, StaticTemporalPanelView,
-    StaticTypedStarView,
+    Gender, Mutagen, Scope, StaticChartCenterView, StaticChartViewSnapshot,
+    StaticDecorativeStarView, StaticNavigationCellView, StaticPalaceView,
+    StaticTemporalOverlayView, StaticTemporalPanelView, StaticTypedStarView,
 };
 
 use crate::app::{BirthForm, BirthInput, Message, Screen, StaticChartApp, TemporalCell};
@@ -56,7 +56,7 @@ fn chart_screen<'a>(
     snapshot: &'a StaticChartViewSnapshot,
 ) -> Element<'a, Message> {
     column![
-        chart_toolbar(),
+        chart_toolbar(app),
         palace_grid(app, snapshot),
         category_legend(),
         temporal_navigation_panel(&snapshot.temporal_panel, app.selected_temporal()),
@@ -66,14 +66,18 @@ fn chart_screen<'a>(
     .into()
 }
 
-/// Top bar of the chart screen: a return action back to the startup page.
-fn chart_toolbar() -> Element<'static, Message> {
+/// Top bar of the chart screen: a return action plus the 三方四正 highlight toggle.
+fn chart_toolbar(app: &StaticChartApp) -> Element<'_, Message> {
     let bar = row![
         button(text("← 返回").size(14))
             .on_press(Message::BackToStartup)
             .style(button::secondary),
+        checkbox("三方四正", app.highlight_san_fang())
+            .on_toggle(Message::ToggleSanFang)
+            .size(16)
+            .text_size(13),
     ]
-    .spacing(8)
+    .spacing(16)
     .align_y(iced::Alignment::Center);
     container(bar).width(Length::Fill).into()
 }
@@ -233,12 +237,33 @@ fn palace_grid<'a>(
 /// (rare) absent cell becomes inert filler so layout stays stable.
 fn grid_cell(app: &StaticChartApp, row: u8, column_index: u8) -> Element<'_, Message> {
     match app.palace_at(row, column_index) {
-        Some(palace) => palace_cell(palace, app.selected_branch() == Some(palace.branch)),
+        Some(palace) => {
+            let highlight = if app.selected_branch() == Some(palace.branch) {
+                PalaceHighlight::Selected
+            } else if app.is_in_san_fang(palace.branch) {
+                // 三方四正 membership comes from the prepared `surround` field.
+                PalaceHighlight::Related
+            } else {
+                PalaceHighlight::None
+            };
+            palace_cell(palace, highlight)
+        }
         None => container(text("")).width(Length::FillPortion(1)).into(),
     }
 }
 
-fn palace_cell(palace: &StaticPalaceView, selected: bool) -> Element<'_, Message> {
+/// How a palace cell is visually emphasized.
+#[derive(Clone, Copy, PartialEq, Eq)]
+enum PalaceHighlight {
+    /// No emphasis.
+    None,
+    /// The selected palace.
+    Selected,
+    /// A 三方四正 palace related to the selected palace.
+    Related,
+}
+
+fn palace_cell(palace: &StaticPalaceView, highlight: PalaceHighlight) -> Element<'_, Message> {
     let header = column![
         text(palace.name_zh.as_str()).size(16),
         text(format!("{}{}", palace.stem_zh, palace.branch_zh)).size(12),
@@ -261,6 +286,9 @@ fn palace_cell(palace: &StaticPalaceView, selected: bool) -> Element<'_, Message
         StarGroupTone::Other,
     );
     content = push_decorative_badges(content, "神煞", &palace.decorative_stars);
+    if let Some(mutagens) = mutagen_badge_row(palace) {
+        content = content.push(mutagens);
+    }
     for overlay in &palace.overlays {
         if overlay.temporal_palace_name_zh.is_none()
             && overlay.typed_stars.is_empty()
@@ -277,7 +305,78 @@ fn palace_cell(palace: &StaticPalaceView, selected: bool) -> Element<'_, Message
         .width(Length::FillPortion(1))
         .height(Length::Fill)
         .padding(6)
-        .style(palace_cell_style(selected))
+        .style(palace_cell_style(highlight))
+        .into()
+}
+
+/// A compact 四化 (科权禄忌) badge row for the palace's natal stars, or `None`
+/// when no natal star in this palace carries a mutagen.
+///
+/// The mutagen facts are read from the prepared `mutagen` fields; the GUI
+/// performs no mutagen derivation.
+fn mutagen_badge_row(palace: &StaticPalaceView) -> Option<Element<'static, Message>> {
+    let marks: Vec<(String, Mutagen)> = palace
+        .major_stars
+        .iter()
+        .chain(&palace.minor_stars)
+        .chain(&palace.adjective_stars)
+        .chain(&palace.other_typed_stars)
+        .filter_map(|star| {
+            star.mutagen.map(|mutagen| {
+                (
+                    format!("{}{}", star.name_zh, mutagen_mark(mutagen)),
+                    mutagen,
+                )
+            })
+        })
+        .collect();
+    if marks.is_empty() {
+        return None;
+    }
+
+    let mut content = row![text("四化").size(11).style(subtle_text_style)]
+        .spacing(4)
+        .align_y(iced::Alignment::Center);
+    for (label, mutagen) in marks {
+        content = content.push(mutagen_badge(label, mutagen));
+    }
+    Some(content.into())
+}
+
+/// Single-character 四化 marker (禄/权/科/忌).
+fn mutagen_mark(mutagen: Mutagen) -> &'static str {
+    match mutagen {
+        Mutagen::Lu => "禄",
+        Mutagen::Quan => "权",
+        Mutagen::Ke => "科",
+        Mutagen::Ji => "忌",
+    }
+}
+
+/// 四化 category color (禄 green / 权 blue / 科 purple / 忌 red).
+fn mutagen_color(mutagen: Mutagen) -> Color {
+    match mutagen {
+        Mutagen::Lu => Color::from_rgb8(45, 122, 63),
+        Mutagen::Quan => Color::from_rgb8(38, 88, 150),
+        Mutagen::Ke => Color::from_rgb8(108, 70, 150),
+        Mutagen::Ji => Color::from_rgb8(168, 52, 44),
+    }
+}
+
+fn mutagen_badge(label: String, mutagen: Mutagen) -> Element<'static, Message> {
+    let background = mutagen_color(mutagen);
+    container(text(label).size(11))
+        .style(move |_theme| container::Style {
+            background: Some(background.into()),
+            text_color: Some(Color::WHITE),
+            border: Border {
+                color: background,
+                width: 1.0,
+                radius: 4.0.into(),
+            },
+            ..container::Style::default()
+        })
+        .padding([2, 5])
         .into()
 }
 
@@ -323,6 +422,11 @@ fn category_legend() -> Element<'static, Message> {
         star_badge("杂曜".to_owned(), StarGroupTone::Adjective),
         star_badge("神煞".to_owned(), StarGroupTone::Decorative),
         star_badge("流曜".to_owned(), StarGroupTone::Temporal),
+        text("四化").size(12).style(subtle_text_style),
+        mutagen_badge("禄".to_owned(), Mutagen::Lu),
+        mutagen_badge("权".to_owned(), Mutagen::Quan),
+        mutagen_badge("科".to_owned(), Mutagen::Ke),
+        mutagen_badge("忌".to_owned(), Mutagen::Ji),
     ]
     .spacing(6)
     .align_y(iced::Alignment::Center)
@@ -712,28 +816,38 @@ impl fmt::Display for GenderChoice {
 // Styles
 // ---------------------------------------------------------------------------
 
-fn palace_cell_style(selected: bool) -> impl Fn(&Theme, button::Status) -> button::Style {
+fn palace_cell_style(
+    highlight: PalaceHighlight,
+) -> impl Fn(&Theme, button::Status) -> button::Style {
     move |theme, _status| {
         let palette = theme.extended_palette();
-        let (background, text_color, border_color) = if selected {
-            (
+        let (background, text_color, border_color, width) = match highlight {
+            PalaceHighlight::Selected => (
                 palette.primary.weak.color,
                 palette.primary.weak.text,
                 palette.primary.strong.color,
-            )
-        } else {
-            (
+                2.0,
+            ),
+            // 三方四正 related palaces get a subtler emphasis than the selection.
+            PalaceHighlight::Related => (
+                palette.background.base.color,
+                palette.background.base.text,
+                palette.primary.base.color,
+                2.0,
+            ),
+            PalaceHighlight::None => (
                 palette.background.base.color,
                 palette.background.base.text,
                 palette.background.strong.color,
-            )
+                1.0,
+            ),
         };
         button::Style {
             background: Some(background.into()),
             text_color,
             border: Border {
                 color: border_color,
-                width: if selected { 2.0 } else { 1.0 },
+                width,
                 radius: 4.0.into(),
             },
             ..button::Style::default()
