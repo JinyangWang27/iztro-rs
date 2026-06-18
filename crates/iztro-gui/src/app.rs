@@ -237,6 +237,13 @@ pub enum Message {
     SelectTemporalCell(TemporalCell),
     /// The 三方四正 highlight mode was toggled.
     ToggleSanFang(bool),
+    /// The pointer entered the palace cell identified by its branch.
+    HoverPalace(EarthlyBranch),
+    /// The pointer left the palace cell identified by its branch.
+    ///
+    /// Carries the branch so a stale exit (for a palace the pointer already
+    /// left) cannot clear a newer hover.
+    ClearHoveredPalace(EarthlyBranch),
     /// Return to the startup screen.
     BackToStartup,
 }
@@ -249,6 +256,7 @@ pub struct StaticChartApp {
     input: Option<BirthInput>,
     snapshot: Option<StaticChartViewSnapshot>,
     selected: Option<EarthlyBranch>,
+    hovered_palace: Option<EarthlyBranch>,
     selected_temporal: Option<TemporalCell>,
     highlight_san_fang: bool,
     error: Option<String>,
@@ -269,6 +277,7 @@ impl StaticChartApp {
             input: None,
             snapshot: None,
             selected: None,
+            hovered_palace: None,
             selected_temporal: None,
             highlight_san_fang: true,
             error: None,
@@ -381,6 +390,23 @@ impl StaticChartApp {
         self.palaces().iter().find(|palace| palace.branch == branch)
     }
 
+    /// Returns the branch of the palace currently under the pointer, if any.
+    pub fn hovered_palace(&self) -> Option<EarthlyBranch> {
+        self.hovered_palace
+    }
+
+    /// The branch driving 三方四正 highlighting: hover takes priority over the
+    /// sticky selection while the pointer is over a palace.
+    pub fn active_branch(&self) -> Option<EarthlyBranch> {
+        self.hovered_palace.or(self.selected)
+    }
+
+    /// Returns the palace driving highlighting (hovered, else selected), if any.
+    pub fn active_palace(&self) -> Option<&StaticPalaceView> {
+        let branch = self.active_branch()?;
+        self.palaces().iter().find(|palace| palace.branch == branch)
+    }
+
     /// Returns the currently selected temporal cell, if any.
     pub fn selected_temporal(&self) -> Option<TemporalCell> {
         self.selected_temporal
@@ -391,15 +417,18 @@ impl StaticChartApp {
         self.highlight_san_fang
     }
 
-    /// Whether `branch` is in the selected palace's prepared 三方四正 set.
+    /// Whether `branch` is in the active palace's prepared 三方四正 set.
     ///
-    /// Reads the prepared [`surround`] field; performs no branch arithmetic.
+    /// The active palace is the hovered one, falling back to the sticky
+    /// selection. Reads the prepared [`surround`] field; performs no branch
+    /// arithmetic. Returns `false` while the toggle is off, so only the active
+    /// palace itself is highlighted.
     ///
     /// [`surround`]: iztro::core::StaticPalaceView::surround
     pub fn is_in_san_fang(&self, branch: EarthlyBranch) -> bool {
         self.highlight_san_fang
             && self
-                .selected_palace()
+                .active_palace()
                 .is_some_and(|palace| palace.surround.involves(branch))
     }
 
@@ -437,6 +466,7 @@ impl StaticChartApp {
                 self.snapshot = Some(snapshot);
                 self.input = Some(input);
                 self.selected = None;
+                self.hovered_palace = None;
                 self.selected_temporal = None;
                 self.error = None;
                 self.screen = Screen::Chart;
@@ -491,9 +521,17 @@ impl StaticChartApp {
                 }
             }
             Message::ToggleSanFang(enabled) => self.highlight_san_fang = enabled,
+            Message::HoverPalace(branch) => self.hovered_palace = Some(branch),
+            Message::ClearHoveredPalace(branch) => {
+                // Ignore a stale exit so it cannot clear a newer hover.
+                if self.hovered_palace == Some(branch) {
+                    self.hovered_palace = None;
+                }
+            }
             Message::BackToStartup => {
                 self.screen = Screen::Startup;
                 self.selected = None;
+                self.hovered_palace = None;
                 self.selected_temporal = None;
             }
         }
@@ -771,6 +809,66 @@ mod tests {
         assert!(!app.is_in_san_fang(palace.branch));
 
         // Toggling the mode off suppresses all highlight membership.
+        app.update(Message::ToggleSanFang(false));
+        for related in palace.surround.branches() {
+            assert!(!app.is_in_san_fang(related));
+        }
+    }
+
+    #[test]
+    fn hovering_a_palace_sets_the_hovered_branch() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        let branch = app.palaces()[2].branch;
+        app.update(Message::HoverPalace(branch));
+        assert_eq!(app.hovered_palace(), Some(branch));
+        assert_eq!(app.active_branch(), Some(branch));
+    }
+
+    #[test]
+    fn hover_takes_priority_then_clearing_restores_sticky_selection() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        let selected = app.palaces()[0].branch;
+        let hovered = app.palaces()[1].branch;
+        app.update(Message::SelectPalace(selected));
+        app.update(Message::HoverPalace(hovered));
+
+        // Hover wins over the sticky selection while the pointer is over it.
+        assert_eq!(app.active_branch(), Some(hovered));
+
+        // Clearing the current hover restores the sticky selection.
+        app.update(Message::ClearHoveredPalace(hovered));
+        assert_eq!(app.hovered_palace(), None);
+        assert_eq!(app.active_branch(), Some(selected));
+    }
+
+    #[test]
+    fn a_stale_hover_exit_does_not_clear_a_newer_hover() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        let first = app.palaces()[0].branch;
+        let second = app.palaces()[1].branch;
+        app.update(Message::HoverPalace(second));
+        // A late exit for a palace already left must not clear the newer hover.
+        app.update(Message::ClearHoveredPalace(first));
+        assert_eq!(app.hovered_palace(), Some(second));
+    }
+
+    #[test]
+    fn hover_driven_san_fang_reads_prepared_surround_only() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        let palace = app.palaces()[4].clone();
+        app.update(Message::HoverPalace(palace.branch));
+
+        for related in palace.surround.branches() {
+            assert!(app.is_in_san_fang(related));
+        }
+        assert!(!app.is_in_san_fang(palace.branch));
+
+        // Toggling the mode off suppresses related-palace highlight; only the
+        // active palace itself stays emphasized (handled by the renderer).
         app.update(Message::ToggleSanFang(false));
         for related in palace.surround.branches() {
             assert!(!app.is_in_san_fang(related));

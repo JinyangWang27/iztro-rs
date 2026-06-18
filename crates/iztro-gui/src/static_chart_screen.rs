@@ -13,7 +13,9 @@
 
 use std::fmt;
 
-use iced::widget::{Column, button, checkbox, column, container, pick_list, row, text, text_input};
+use iced::widget::{
+    Column, button, checkbox, column, container, mouse_area, pick_list, row, text, text_input,
+};
 use iced::{Border, Color, Element, Length, Theme};
 use iztro::core::{
     Gender, Mutagen, Scope, StaticChartCenterView, StaticChartViewSnapshot,
@@ -240,7 +242,7 @@ fn palace_grid<'a>(
 fn grid_cell(app: &StaticChartApp, row: u8, column_index: u8) -> Element<'_, Message> {
     match app.palace_at(row, column_index) {
         Some(palace) => {
-            let highlight = if app.selected_branch() == Some(palace.branch) {
+            let highlight = if app.active_branch() == Some(palace.branch) {
                 PalaceHighlight::Selected
             } else if app.is_in_san_fang(palace.branch) {
                 // 三方四正 membership comes from the prepared `surround` field.
@@ -302,12 +304,18 @@ fn palace_cell(palace: &StaticPalaceView, highlight: PalaceHighlight) -> Element
         content = content.push(overlay_badges(overlay));
     }
 
-    button(content)
+    let cell = button(content)
         .on_press(Message::SelectPalace(palace.branch))
         .width(Length::FillPortion(1))
         .height(Length::Fill)
         .padding(6)
-        .style(palace_cell_style(highlight))
+        .style(palace_cell_style(highlight));
+
+    // Hovering a palace drives the 三方四正 highlight; the exit carries the
+    // branch so a stale exit cannot clear a newer hover.
+    mouse_area(cell)
+        .on_enter(Message::HoverPalace(palace.branch))
+        .on_exit(Message::ClearHoveredPalace(palace.branch))
         .into()
 }
 
@@ -830,12 +838,14 @@ fn palace_cell_style(
                 palette.primary.strong.color,
                 2.0,
             ),
-            // 三方四正 related palaces get a subtler emphasis than the selection.
+            // 三方四正 related palaces get a subtle filled background, weaker
+            // than the active palace above (a soft fill rather than only a
+            // border), matching the iztro/文墨天机 highlight feel.
             PalaceHighlight::Related => (
-                palette.background.base.color,
-                palette.background.base.text,
+                palette.background.weak.color,
+                palette.background.weak.text,
                 palette.primary.base.color,
-                2.0,
+                1.5,
             ),
             PalaceHighlight::None => (
                 palette.background.base.color,
