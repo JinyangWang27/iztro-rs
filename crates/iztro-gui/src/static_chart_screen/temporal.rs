@@ -1,4 +1,4 @@
-use iced::widget::{button, column, container, row, text};
+use iced::widget::{button, container, row, text};
 use iced::{Alignment, Element};
 use iztro::core::{EarthlyBranch, StaticTemporalNavigationSelection};
 
@@ -37,7 +37,14 @@ pub(super) fn period_badge(
 pub(super) fn temporal_controls(
     selection: StaticTemporalNavigationSelection,
 ) -> Element<'static, Message> {
-    let backs = row![
+    let today = button(text("今").size(11))
+        .on_press(Message::TodayPressed)
+        .padding([2, 8])
+        .style(stepper_button_style);
+
+    // One horizontal line: `◀限 ◀年 ◀月 ◀日 ◀时 今 时▶ 日▶ 月▶ 年▶ 限▶`. The tight
+    // spacing keeps all eleven controls inside the center panel on one row.
+    row![
         step_button("◀限", TemporalUnit::Decadal, StepDirection::Backward, true),
         step_button(
             "◀年",
@@ -63,15 +70,7 @@ pub(super) fn temporal_controls(
             StepDirection::Backward,
             selection.day_index().is_some()
         ),
-    ]
-    .spacing(3);
-
-    let today = button(text("今").size(11))
-        .on_press(Message::TodayPressed)
-        .padding([2, 8])
-        .style(stepper_button_style);
-
-    let forwards = row![
+        today,
         step_button(
             "时▶",
             TemporalUnit::Hour,
@@ -98,13 +97,8 @@ pub(super) fn temporal_controls(
         ),
         step_button("限▶", TemporalUnit::Decadal, StepDirection::Forward, true),
     ]
-    .spacing(3);
-
-    column![
-        row![backs, today].spacing(8).align_y(Alignment::Center),
-        forwards,
-    ]
-    .spacing(4)
+    .spacing(3)
+    .align_y(Alignment::Center)
     .into()
 }
 

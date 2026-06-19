@@ -321,3 +321,27 @@ fn period_badge_takes_a_prepared_label_not_an_overlay() {
         "the badge renderer must not fall back to temporal palace-name metadata"
     );
 }
+
+#[test]
+fn temporal_controls_render_on_a_single_row() {
+    let source = include_str!("temporal.rs");
+
+    // The compact stepper must be one horizontal row, not the old two-line
+    // `column![ row![backs, today], forwards ]` layout that wrapped controls.
+    assert!(
+        !source.contains(concat!("column", "![")),
+        "temporal controls must be a single row, not a two-line column"
+    );
+    // The single row keeps the `◀限 … 今 … 限▶` ordering with the `今` control
+    // between the backward and forward steppers.
+    assert!(source.contains("Message::TodayPressed"));
+    // The `今` control is a row item between the backward 时 step and the
+    // forward 时 step, keeping `◀时 今 时▶` adjacent on the single line.
+    let backward_hour = source.find("\"◀时\"").expect("◀时 backstep");
+    let today_item = source.find("\n        today,").expect("今 row item");
+    let forward_hour = source.find("\"时▶\"").expect("时▶ forward step");
+    assert!(
+        backward_hour < today_item && today_item < forward_hour,
+        "the 今 control sits between the backward and forward steppers"
+    );
+}
