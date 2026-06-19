@@ -1,22 +1,26 @@
 //! Local persistence of generated birth charts.
 //!
-//! The GUI persists only the normalized [`BirthInput`] records that produced a
-//! chart, never rendered widgets or derived astrology facts: a saved chart is
-//! deterministically rebuilt from its input through the `by_solar` facade. The
-//! on-disk format is a simple JSON array, and the persistence boundary is an
-//! explicit, path-injectable [`ChartStore`] so tests never touch a real home
-//! directory.
+//! The GUI persists only named [`SavedChart`] records (a display name plus the
+//! normalized [`BirthInput`]), never rendered widgets or derived astrology
+//! facts: a saved chart is deterministically rebuilt from its input through the
+//! `by_solar` facade. The on-disk format is a JSON array, and the persistence
+//! boundary is an explicit, path-injectable [`ChartStore`] so tests never touch
+//! a real home directory.
+//!
+//! Loads are backward compatible: the legacy format was a plain array of
+//! [`BirthInput`]; such files are migrated in memory to named records using
+//! [`default_chart_name`].
 
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use crate::app::BirthInput;
+use crate::app::{BirthInput, SavedChart, default_chart_name};
 
 /// Default on-disk file name for saved charts under the data directory.
 const STORE_DIR: &str = "iztro-gui";
 const STORE_FILE: &str = "charts.json";
 
-/// A file-backed store of saved [`BirthInput`] records.
+/// A file-backed store of saved [`SavedChart`] records.
 ///
 /// Reads are tolerant: a missing or corrupt file loads as an empty list rather
 /// than panicking, so a damaged store never blocks startup.
@@ -51,16 +55,32 @@ impl ChartStore {
 
     /// Loads the saved charts, returning an empty list if the file is missing or
     /// cannot be parsed. Never panics.
-    pub fn load(&self) -> Vec<BirthInput> {
+    ///
+    /// The new named format ([`Vec<SavedChart>`]) is tried first; on failure the
+    /// legacy [`Vec<BirthInput>`] format is parsed and migrated in memory to
+    /// named records via [`default_chart_name`]; if both fail the list is empty.
+    pub fn load(&self) -> Vec<SavedChart> {
         let Ok(text) = fs::read_to_string(&self.path) else {
             return Vec::new();
         };
-        serde_json::from_str(&text).unwrap_or_default()
+        if let Ok(charts) = serde_json::from_str::<Vec<SavedChart>>(&text) {
+            return charts;
+        }
+        match serde_json::from_str::<Vec<BirthInput>>(&text) {
+            Ok(legacy) => legacy
+                .into_iter()
+                .map(|input| SavedChart {
+                    name: default_chart_name(&input),
+                    input,
+                })
+                .collect(),
+            Err(_) => Vec::new(),
+        }
     }
 
-    /// Persists the saved charts as pretty JSON, creating the parent directory
-    /// if needed.
-    pub fn save(&self, charts: &[BirthInput]) -> std::io::Result<()> {
+    /// Persists the saved charts as pretty JSON in the named format, creating the
+    /// parent directory if needed.
+    pub fn save(&self, charts: &[SavedChart]) -> std::io::Result<()> {
         if let Some(parent) = self.path.parent() {
             fs::create_dir_all(parent)?;
         }
@@ -86,14 +106,59 @@ mod tests {
         }
     }
 
+    fn named(year: i32, name: &str) -> SavedChart {
+        SavedChart {
+            name: name.to_owned(),
+            input: sample(year),
+        }
+    }
+
     #[test]
     fn save_then_load_roundtrips() {
         let dir = tempfile::tempdir().expect("temp dir");
         let store = ChartStore::new(dir.path().join("nested").join("charts.json"));
-        let charts = vec![sample(1990), sample(2000)];
+        let charts = vec![named(1990, "甲"), named(2000, "乙")];
 
         store.save(&charts).expect("save should succeed");
         assert_eq!(store.load(), charts);
+    }
+
+    #[test]
+    fn loading_the_legacy_birth_input_array_migrates_to_named_records() {
+        // The legacy format was a plain array of `BirthInput`. Such a file must
+        // load as named records using the generated default name.
+        let dir = tempfile::tempdir().expect("temp dir");
+        let path = dir.path().join("charts.json");
+        let legacy = vec![sample(1990), sample(2000)];
+        fs::write(&path, serde_json::to_string_pretty(&legacy).unwrap())
+            .expect("write legacy file");
+        let store = ChartStore::new(path);
+
+        let loaded = store.load();
+        assert_eq!(
+            loaded,
+            legacy
+                .into_iter()
+                .map(|input| SavedChart {
+                    name: default_chart_name(&input),
+                    input,
+                })
+                .collect::<Vec<_>>()
+        );
+    }
+
+    #[test]
+    fn saving_always_writes_the_new_named_format() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let path = dir.path().join("charts.json");
+        let store = ChartStore::new(path.clone());
+        store.save(&[named(1990, "甲")]).expect("save");
+
+        let text = fs::read_to_string(&path).expect("read back");
+        // The named format serializes name + input objects, not a bare array of
+        // birth inputs.
+        assert!(text.contains("\"name\""));
+        assert!(text.contains("\"input\""));
     }
 
     #[test]

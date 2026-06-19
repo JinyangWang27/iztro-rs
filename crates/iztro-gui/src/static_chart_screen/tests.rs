@@ -233,6 +233,29 @@ fn palace_cell_uses_a_dedicated_bottom_decorative_layer() {
 }
 
 #[test]
+fn palace_middle_band_is_deliberately_reserved() {
+    use super::style::{PALACE_MIDDLE_BAND_HEIGHT, PERIOD_BADGE_ROW_HEIGHT};
+
+    // The badge row reserves real height, and the full middle band is taller
+    // still (badge row + 大限/小限 line).
+    const {
+        assert!(PERIOD_BADGE_ROW_HEIGHT > 0.0);
+        assert!(PALACE_MIDDLE_BAND_HEIGHT > PERIOD_BADGE_ROW_HEIGHT);
+    }
+
+    let source = include_str!("palace.rs");
+    // The badge row keeps a fixed height even with no badge, and the middle band
+    // is a fixed-height layer centered vertically, so 大限/小限 aligns across
+    // palaces whether or not a period badge is present.
+    assert!(source.contains("Length::Fixed(PERIOD_BADGE_ROW_HEIGHT)"));
+    assert!(source.contains("Length::Fixed(PALACE_MIDDLE_BAND_HEIGHT)"));
+    assert!(source.contains("align_y(Alignment::Center)"));
+    // Three independent stacked layers: top stars, centered middle band, footer.
+    assert!(source.contains("star_layer,"));
+    assert!(source.contains("middle_layer,"));
+}
+
+#[test]
 fn palace_footer_anchors_name_left_and_stem_branch_right() {
     let source = include_str!("palace.rs");
 
@@ -319,5 +342,45 @@ fn period_badge_takes_a_prepared_label_not_an_overlay() {
     assert!(
         !source.contains("temporal_palace_name_zh"),
         "the badge renderer must not fall back to temporal palace-name metadata"
+    );
+}
+
+#[test]
+fn startup_exposes_name_input_and_saved_chart_actions() {
+    let source = include_str!("startup.rs");
+
+    // A 名称 input drives the chart name.
+    assert!(source.contains("\"名称\""));
+    assert!(source.contains("Message::NameChanged"));
+    // Saved rows can be opened, edited, and deleted.
+    assert!(source.contains("Message::SelectSaved(index)"));
+    assert!(source.contains("Message::EditSaved(index)"));
+    assert!(source.contains("Message::DeleteSaved(index)"));
+    // The primary button reads as an update while editing a saved chart.
+    assert!(source.contains("更新命盘"));
+    assert!(source.contains("生成命盘"));
+}
+
+#[test]
+fn temporal_controls_render_on_a_single_row() {
+    let source = include_str!("temporal.rs");
+
+    // The compact stepper must be one horizontal row, not the old two-line
+    // `column![ row![backs, today], forwards ]` layout that wrapped controls.
+    assert!(
+        !source.contains(concat!("column", "![")),
+        "temporal controls must be a single row, not a two-line column"
+    );
+    // The single row keeps the `◀限 … 今 … 限▶` ordering with the `今` control
+    // between the backward and forward steppers.
+    assert!(source.contains("Message::TodayPressed"));
+    // The `今` control is a row item between the backward 时 step and the
+    // forward 时 step, keeping `◀时 今 时▶` adjacent on the single line.
+    let backward_hour = source.find("\"◀时\"").expect("◀时 backstep");
+    let today_item = source.find("\n        today,").expect("今 row item");
+    let forward_hour = source.find("\"时▶\"").expect("时▶ forward step");
+    assert!(
+        backward_hour < today_item && today_item < forward_hour,
+        "the 今 control sits between the backward and forward steppers"
     );
 }
