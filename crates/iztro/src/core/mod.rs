@@ -17,6 +17,7 @@ pub mod facade;
 pub mod feature;
 pub mod labels;
 pub mod model;
+pub mod pattern;
 pub mod placement;
 pub mod view;
 
@@ -69,6 +70,11 @@ pub use model::star::{
     StarKind, StarMetadata, StarName, flow_star_name, known_star_metadata,
     known_star_metadata_table, represented_star_metadata_table, star_metadata, try_flow_star_parts,
     try_known_star_metadata, try_star_metadata,
+};
+pub use pattern::{
+    PalaceRelation, PatternAnchor, PatternCondition, PatternContext, PatternDetection,
+    PatternDetectionRequest, PatternEvidence, PatternFamily, PatternId, PatternPolarity,
+    PatternScope, PatternStatus, PatternStrength, detect_patterns,
 };
 
 pub use placement::natal::adjective::{

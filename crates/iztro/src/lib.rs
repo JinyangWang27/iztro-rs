@@ -74,3 +74,8 @@ pub use core::{
     try_flow_star_parts, try_known_star_metadata, try_major_star_metadata, try_minor_star_metadata,
     try_star_metadata, zi_wei_branch,
 };
+pub use core::{
+    PalaceRelation, PatternAnchor, PatternContext, PatternDetection, PatternDetectionRequest,
+    PatternEvidence, PatternFamily, PatternId, PatternPolarity, PatternScope, PatternStatus,
+    PatternStrength, detect_patterns,
+};
