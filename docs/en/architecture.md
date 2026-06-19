@@ -124,6 +124,11 @@ Rules should not directly emit final narrative text. A rule should emit:
 
 This makes rule matching testable and allows multiple rules to be aggregated before generating a report.
 
+A first read-only slice of this layer is `core::pattern`, which recognizes
+classical patterns (格局) as structured, explainable facts over chart facts
+without mutating them and without producing prose. See
+[`patterns.md`](patterns.md) for the rule catalog and guarantees.
+
 ## 6. Narrative Layer
 
 The Narrative Layer turns structured claims into human-readable reports.
