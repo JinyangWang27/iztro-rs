@@ -11,8 +11,9 @@ use crate::app::{Message, StaticChartApp};
 use super::labels::{fact_row, four_pillars_line, gender_symbol, section_title};
 use super::style::{
     ADJ_GRAY, BRIGHTNESS_GRAY, DECOR_GOD_OLIVE, DECORATIVE_AREA_HEIGHT, LIMIT_ACTIVE, LIMIT_GRAY,
-    LU_CUN_ORANGE, MAJOR_PURPLE, MINOR_MALEFIC, PEACH_MAGENTA, TIAN_MA_BLUE, center_panel_style,
-    mutagen_badge_color, mutagen_inline_badge, palace_cell_style, section_title_style,
+    LU_CUN_ORANGE, MAJOR_PURPLE, MINOR_MALEFIC, PALACE_MIDDLE_BAND_HEIGHT, PEACH_MAGENTA,
+    PERIOD_BADGE_ROW_HEIGHT, TIAN_MA_BLUE, center_panel_style, mutagen_badge_color,
+    mutagen_inline_badge, palace_cell_style, section_title_style,
 };
 use super::temporal::{period_badge, temporal_controls};
 
@@ -126,25 +127,48 @@ pub(super) fn palace_cell(
     .spacing(4)
     .align_y(Alignment::Start);
 
-    let mut content = column![star_area].spacing(3);
+    // Top star content is anchored to the top of the cell.
+    let star_layer = container(star_area)
+        .width(Length::Fill)
+        .height(Length::Fill);
 
-    // 流年/流月/流日/流时 badges sit above the 大限/小限 middle area.
-    // Only overlays core marked as a period anchor (`period_label_zh.is_some()`)
-    // get a badge; non-marker palaces carry the overlay's stars but no badge.
+    // 流年/流月/流日/流时 badges sit in the reserved middle band, above the
+    // 大限/小限 line. Only overlays core marked as a period anchor
+    // (`period_label_zh.is_some()`) get a badge; non-marker palaces carry the
+    // overlay's stars but no badge.
     let is_source = matches!(highlight, PalaceHighlight::Selected);
     let mut badges = row![].spacing(3);
-    let mut has_badge = false;
     for overlay in &palace.overlays {
         if let Some(label) = overlay.period_label_zh.as_deref() {
             badges = badges.push(period_badge(label, palace.branch, is_source));
-            has_badge = true;
         }
     }
-    if has_badge {
-        content = content.push(badges);
-    }
+    // Always reserve the badge-row height (an empty placeholder when there is no
+    // badge) so the 大限/小限 line keeps the same y-position whether or not a
+    // palace has a period badge.
+    let badge_row = container(badges)
+        .width(Length::Fill)
+        .height(Length::Fixed(PERIOD_BADGE_ROW_HEIGHT))
+        .align_x(Alignment::Center);
 
-    content = content.push(limit_middle(palace));
+    // The middle band is a fixed-height layer centered vertically in the cell
+    // (above the anchored bottom footer), so the badge row and 大限/小限 line
+    // align across every palace regardless of how many stars sit above them.
+    let middle_band = container(
+        column![badge_row, limit_middle(palace)]
+            .spacing(2)
+            .align_x(Alignment::Center),
+    )
+    .width(Length::Fill)
+    .height(Length::Fixed(PALACE_MIDDLE_BAND_HEIGHT));
+    let middle_layer = container(middle_band)
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .align_y(Alignment::Center)
+        .padding(Padding {
+            bottom: DECORATIVE_AREA_HEIGHT,
+            ..Padding::ZERO
+        });
 
     // Decorative "twelve gods" go to the bottom, split by prepared family:
     // 长生/博士 bottom-left (olive), 将前/岁前 bottom-right (malefic tone). No
@@ -160,15 +184,9 @@ pub(super) fn palace_cell(
             }
         }
     }
-    let main_layer = container(content)
-        .width(Length::Fill)
-        .height(Length::Fill)
-        .padding(Padding {
-            bottom: DECORATIVE_AREA_HEIGHT,
-            ..Padding::ZERO
-        });
     let content: Element<'_, Message> = stack![
-        main_layer,
+        star_layer,
+        middle_layer,
         bottom_decorative_layer(palace, gods_left, gods_right),
     ]
     .width(Length::Fill)

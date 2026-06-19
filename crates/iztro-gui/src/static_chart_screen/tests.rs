@@ -233,6 +233,29 @@ fn palace_cell_uses_a_dedicated_bottom_decorative_layer() {
 }
 
 #[test]
+fn palace_middle_band_is_deliberately_reserved() {
+    use super::style::{PALACE_MIDDLE_BAND_HEIGHT, PERIOD_BADGE_ROW_HEIGHT};
+
+    // The badge row reserves real height, and the full middle band is taller
+    // still (badge row + 大限/小限 line).
+    const {
+        assert!(PERIOD_BADGE_ROW_HEIGHT > 0.0);
+        assert!(PALACE_MIDDLE_BAND_HEIGHT > PERIOD_BADGE_ROW_HEIGHT);
+    }
+
+    let source = include_str!("palace.rs");
+    // The badge row keeps a fixed height even with no badge, and the middle band
+    // is a fixed-height layer centered vertically, so 大限/小限 aligns across
+    // palaces whether or not a period badge is present.
+    assert!(source.contains("Length::Fixed(PERIOD_BADGE_ROW_HEIGHT)"));
+    assert!(source.contains("Length::Fixed(PALACE_MIDDLE_BAND_HEIGHT)"));
+    assert!(source.contains("align_y(Alignment::Center)"));
+    // Three independent stacked layers: top stars, centered middle band, footer.
+    assert!(source.contains("star_layer,"));
+    assert!(source.contains("middle_layer,"));
+}
+
+#[test]
 fn palace_footer_anchors_name_left_and_stem_branch_right() {
     let source = include_str!("palace.rs");
 
