@@ -1488,7 +1488,7 @@ mod tests {
 
         app.update(Message::DeleteSaved(1));
 
-        assert_eq!(app.saved(), &[keep.clone()]);
+        assert_eq!(app.saved(), std::slice::from_ref(&keep));
         // The deletion is durable: a fresh app over the same store agrees.
         assert_eq!(store.load(), vec![keep]);
     }
