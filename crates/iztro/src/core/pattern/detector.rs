@@ -23,6 +23,10 @@ pub fn detect_patterns(
     rules::zi_fu_chao_yuan::detect(ctx, request, &mut out);
     rules::ji_yue_tong_liang::detect(ctx, request, &mut out);
     rules::yang_tuo_jia_ji::detect(ctx, request, &mut out);
+    rules::zuo_you_jia_ming::detect(ctx, request, &mut out);
+    rules::chang_qu_jia_ming::detect(ctx, request, &mut out);
+    rules::ri_yue_bing_ming::detect(ctx, request, &mut out);
+    rules::ri_yue_fan_bei::detect(ctx, request, &mut out);
 
     filter_and_sort(out, request)
 }
@@ -157,7 +161,10 @@ mod tests {
             Scope::Daily,
             Scope::Hourly,
         ]);
-        assert!(!scope_allowed(&PatternScope::Combined(Vec::new()), &request));
+        assert!(!scope_allowed(
+            &PatternScope::Combined(Vec::new()),
+            &request
+        ));
     }
 
     #[test]
@@ -176,7 +183,10 @@ mod tests {
 
     #[test]
     fn empty_request_scopes_allow_nothing() {
-        assert!(!scope_allowed(&PatternScope::Natal, &request_with(Vec::new())));
+        assert!(!scope_allowed(
+            &PatternScope::Natal,
+            &request_with(Vec::new())
+        ));
         assert!(!scope_allowed(
             &PatternScope::Combined(vec![Scope::Natal]),
             &request_with(Vec::new()),

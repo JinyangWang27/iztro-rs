@@ -27,6 +27,14 @@ pub enum PatternId {
     YangTuoJiaJi,
     /// 铃昌陀武.
     LingChangTuoWu,
+    /// 左右夹命.
+    ZuoYouJiaMing,
+    /// 昌曲夹命.
+    ChangQuJiaMing,
+    /// 日月并明.
+    RiYueBingMing,
+    /// 日月反背.
+    RiYueFanBei,
 }
 
 /// Coarse family a pattern belongs to.
@@ -35,6 +43,9 @@ pub enum PatternId {
 pub enum PatternFamily {
     /// Combination of major stars.
     MajorStarCombination,
+    /// Combination of auxiliary/assistant stars (辅佐星), e.g. 左辅/右弼,
+    /// 文昌/文曲 clamping a palace.
+    AuxiliaryStarCombination,
     /// Mutagen-driven pattern.
     Mutagen,
     /// Three-sides-four-directions (三方四正) structure.
