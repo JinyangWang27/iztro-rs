@@ -176,10 +176,14 @@ pub enum PatternEvidence {
         branch: EarthlyBranch,
     },
     /// Two palaces stand in a relation.
+    ///
+    /// `from` is the anchor/target palace, `to` is the related palace, and
+    /// `relation` describes the relation of `to` to `from`. For example, a
+    /// [`PalaceRelation::ClampedBy`] entry reads as "`to` clamps `from`".
     PalaceRelation {
-        /// The source branch.
+        /// The anchor/target branch.
         from: EarthlyBranch,
-        /// The target branch.
+        /// The related branch.
         to: EarthlyBranch,
         /// The relation of `to` to `from`.
         relation: PalaceRelation,

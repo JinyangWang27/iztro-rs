@@ -4,7 +4,9 @@
 //! [`PatternStatus::Fulfilled`] when all four stars appear in the Life 三方四正.
 //! When some are missing, nothing is emitted unless `request.include_partial`,
 //! in which case a [`PatternStatus::Partial`] (近格 / 条件不足) detection is emitted
-//! with the missing stars recorded in `missing_conditions`.
+//! with the missing stars recorded in `missing_conditions` — but only when at
+//! least two of the four required stars are present, so a near-empty chart never
+//! produces a partial detection.
 
 use crate::core::pattern::context::{PatternContext, PatternDetectionRequest};
 use crate::core::pattern::model::{
@@ -49,6 +51,11 @@ pub fn detect(
 
     let all_present = missing.is_empty();
     if !all_present && !request.include_partial {
+        return;
+    }
+    // A meaningful 近格 requires at least two of the four stars; fewer than two
+    // is too weak to assert even a partial pattern.
+    if !all_present && involved_stars.len() < 2 {
         return;
     }
 

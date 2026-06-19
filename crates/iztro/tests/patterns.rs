@@ -10,7 +10,7 @@ use iztro::core::pattern::query::{find_star_branch, palace_has_star, stars_in_sa
 use iztro::{
     BirthContext, Brightness, CalendarDate, Chart, EarthlyBranch, Gender, HeavenlyStem,
     MethodProfile, Mutagen, PALACE_NAMES, Palace, PatternContext, PatternDetectionRequest,
-    PatternId, PatternStatus, Scope, StarKind, StarName, StarPlacement, StemBranch,
+    PatternFamily, PatternId, PatternStatus, Scope, StarKind, StarName, StarPlacement, StemBranch,
 };
 
 /// One synthetic star placement: (branch, star, kind, optional mutagen).
@@ -327,4 +327,187 @@ fn yang_tuo_jia_ji_negative_when_not_clamping() {
         &PatternDetectionRequest::default(),
     );
     assert!(detections.iter().all(|d| d.id != PatternId::YangTuoJiaJi));
+}
+
+#[test]
+fn yang_tuo_jia_ji_checks_all_ji_targets() {
+    // Two 化忌 targets. The first encountered (TaiYang@Zi) is not clamped;
+    // the later one (JuMen@Wu) is clamped by QingYang@Si and TuoLuo@Wei.
+    // A naive `.find()` would stop at the unclamped target and miss this.
+    let chart = build_chart(
+        EarthlyBranch::Zi,
+        &[
+            (
+                EarthlyBranch::Zi,
+                StarName::TaiYang,
+                StarKind::Major,
+                Some(Mutagen::Ji),
+            ),
+            (
+                EarthlyBranch::Wu,
+                StarName::JuMen,
+                StarKind::Major,
+                Some(Mutagen::Ji),
+            ),
+            (EarthlyBranch::Si, StarName::QingYang, StarKind::Tough, None),
+            (EarthlyBranch::Wei, StarName::TuoLuo, StarKind::Tough, None),
+        ],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&chart),
+        &PatternDetectionRequest::default(),
+    );
+    let detection = detections
+        .iter()
+        .find(|d| d.id == PatternId::YangTuoJiaJi)
+        .expect("expected 羊陀夹忌 for the clamped target");
+    assert_eq!(detection.status, PatternStatus::Fulfilled);
+    assert_eq!(
+        star_set(&detection.involved_stars),
+        star_set(&[StarName::QingYang, StarName::TuoLuo, StarName::JuMen])
+    );
+    assert_eq!(
+        branch_set(&detection.involved_palaces),
+        branch_set(&[EarthlyBranch::Si, EarthlyBranch::Wei, EarthlyBranch::Wu])
+    );
+}
+
+// ---- request filters: scope, family, ordering ----------------------------
+
+/// A chart where all three initial patterns are simultaneously fulfilled.
+///
+/// Life at Zi, SFSZ(Zi) = {Zi, Wu, Chen, Shen}:
+/// - ZiWei@Zi, TianFu@Wu (紫府朝垣);
+/// - TianJi@Zi, TaiYin@Wu, TianTong@Chen, TianLiang@Shen (机月同梁);
+/// - TaiYang+化忌@Mao clamped by QingYang@Yin and TuoLuo@Chen (羊陀夹忌).
+fn all_patterns_chart() -> Chart {
+    build_chart(
+        EarthlyBranch::Zi,
+        &[
+            major(EarthlyBranch::Zi, StarName::ZiWei),
+            major(EarthlyBranch::Zi, StarName::TianJi),
+            major(EarthlyBranch::Wu, StarName::TianFu),
+            major(EarthlyBranch::Wu, StarName::TaiYin),
+            major(EarthlyBranch::Chen, StarName::TianTong),
+            major(EarthlyBranch::Shen, StarName::TianLiang),
+            (
+                EarthlyBranch::Mao,
+                StarName::TaiYang,
+                StarKind::Major,
+                Some(Mutagen::Ji),
+            ),
+            (
+                EarthlyBranch::Yin,
+                StarName::QingYang,
+                StarKind::Tough,
+                None,
+            ),
+            (EarthlyBranch::Chen, StarName::TuoLuo, StarKind::Tough, None),
+        ],
+    )
+}
+
+#[test]
+fn default_request_returns_natal_detections() {
+    let chart = all_patterns_chart();
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&chart),
+        &PatternDetectionRequest::default(),
+    );
+    assert!(!detections.is_empty());
+    assert!(detections.iter().any(|d| d.id == PatternId::ZiFuChaoYuan));
+}
+
+#[test]
+fn non_natal_scope_request_returns_no_natal_detections() {
+    let chart = all_patterns_chart();
+    let request = PatternDetectionRequest {
+        scopes: vec![Scope::Yearly],
+        ..PatternDetectionRequest::default()
+    };
+    let detections = iztro::detect_patterns(&PatternContext::natal(&chart), &request);
+    assert!(detections.is_empty());
+}
+
+#[test]
+fn empty_scope_request_returns_nothing() {
+    let chart = all_patterns_chart();
+    let request = PatternDetectionRequest {
+        scopes: Vec::new(),
+        ..PatternDetectionRequest::default()
+    };
+    let detections = iztro::detect_patterns(&PatternContext::natal(&chart), &request);
+    assert!(detections.is_empty());
+}
+
+#[test]
+fn detections_are_deterministically_ordered() {
+    let chart = all_patterns_chart();
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&chart),
+        &PatternDetectionRequest::default(),
+    );
+    let ids: Vec<PatternId> = detections.iter().map(|d| d.id).collect();
+    // All natal scope; ordered by family then id: the two MajorStarCombination
+    // patterns (ZiFu before JiYue) precede the ShaJi pattern.
+    assert_eq!(
+        ids,
+        vec![
+            PatternId::ZiFuChaoYuan,
+            PatternId::JiYueTongLiang,
+            PatternId::YangTuoJiaJi,
+        ]
+    );
+}
+
+#[test]
+fn family_filter_includes_only_requested_families() {
+    let chart = all_patterns_chart();
+
+    let sha_ji = iztro::detect_patterns(
+        &PatternContext::natal(&chart),
+        &PatternDetectionRequest {
+            families: vec![PatternFamily::ShaJi],
+            ..PatternDetectionRequest::default()
+        },
+    );
+    assert!(sha_ji.iter().any(|d| d.id == PatternId::YangTuoJiaJi));
+    assert!(sha_ji.iter().all(|d| d.id != PatternId::ZiFuChaoYuan));
+    assert!(sha_ji.iter().all(|d| d.id != PatternId::JiYueTongLiang));
+
+    let major = iztro::detect_patterns(
+        &PatternContext::natal(&chart),
+        &PatternDetectionRequest {
+            families: vec![PatternFamily::MajorStarCombination],
+            ..PatternDetectionRequest::default()
+        },
+    );
+    assert!(major.iter().all(|d| d.id != PatternId::YangTuoJiaJi));
+    assert!(major.iter().any(|d| d.id == PatternId::ZiFuChaoYuan));
+}
+
+// ---- 机月同梁 partial guard ---------------------------------------------
+
+#[test]
+fn ji_yue_tong_liang_partial_requires_two_stars() {
+    let request = PatternDetectionRequest {
+        include_partial: true,
+        ..PatternDetectionRequest::default()
+    };
+
+    // Zero required stars present: no detection even with partials enabled.
+    let none = build_chart(
+        EarthlyBranch::Zi,
+        &[major(EarthlyBranch::Zi, StarName::ZiWei)],
+    );
+    let detections = iztro::detect_patterns(&PatternContext::natal(&none), &request);
+    assert!(detections.iter().all(|d| d.id != PatternId::JiYueTongLiang));
+
+    // Only one required star present: still no partial detection.
+    let one = build_chart(
+        EarthlyBranch::Zi,
+        &[major(EarthlyBranch::Zi, StarName::TianJi)],
+    );
+    let detections = iztro::detect_patterns(&PatternContext::natal(&one), &request);
+    assert!(detections.iter().all(|d| d.id != PatternId::JiYueTongLiang));
 }

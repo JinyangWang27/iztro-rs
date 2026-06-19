@@ -44,7 +44,8 @@ fn filter_and_sort(
     detections
 }
 
-/// Returns whether a detection passes the request status and family filters.
+/// Returns whether a detection passes the request status, family, and scope
+/// filters.
 fn keep(detection: &PatternDetection, request: &PatternDetectionRequest) -> bool {
     let status_ok = match detection.status {
         PatternStatus::Fulfilled => true,
@@ -53,15 +54,40 @@ fn keep(detection: &PatternDetection, request: &PatternDetectionRequest) -> bool
         PatternStatus::Broken => request.include_broken,
     };
     let family_ok = request.families.is_empty() || request.families.contains(&detection.family);
-    status_ok && family_ok
+    let scope_ok = scope_allowed(&detection.scope, request);
+    status_ok && family_ok && scope_ok
+}
+
+/// Returns whether a detection's scope is permitted by `request.scopes`.
+///
+/// An empty `request.scopes` permits nothing. A [`PatternScope::Combined`] is
+/// permitted only when every contained scope is requested.
+fn scope_allowed(scope: &PatternScope, request: &PatternDetectionRequest) -> bool {
+    if request.scopes.is_empty() {
+        return false;
+    }
+
+    match scope {
+        PatternScope::Natal => request.scopes.contains(&Scope::Natal),
+        PatternScope::Decadal => request.scopes.contains(&Scope::Decadal),
+        PatternScope::Age => request.scopes.contains(&Scope::Age),
+        PatternScope::Yearly => request.scopes.contains(&Scope::Yearly),
+        PatternScope::Monthly => request.scopes.contains(&Scope::Monthly),
+        PatternScope::Daily => request.scopes.contains(&Scope::Daily),
+        PatternScope::Hourly => request.scopes.contains(&Scope::Hourly),
+        PatternScope::Combined(scopes) => scopes.iter().all(|scope| request.scopes.contains(scope)),
+    }
 }
 
 /// Stable ordering rank for a single scope.
+///
+/// Mirrors the variant order used by [`scope_key`] so the two stay consistent:
+/// `Natal, Decadal, Age, Yearly, Monthly, Daily, Hourly`.
 fn scope_rank(scope: Scope) -> u8 {
     match scope {
         Scope::Natal => 0,
-        Scope::Age => 1,
-        Scope::Decadal => 2,
+        Scope::Decadal => 1,
+        Scope::Age => 2,
         Scope::Yearly => 3,
         Scope::Monthly => 4,
         Scope::Daily => 5,

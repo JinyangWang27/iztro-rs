@@ -51,8 +51,10 @@ pub fn is_opposite(anchor: EarthlyBranch, target: EarthlyBranch) -> bool {
 
 /// Returns whether `target` is in the trine (三合) group of `anchor`.
 ///
-/// The trine group includes `anchor` itself, so `is_trine(b, b)` is `true`.
-pub fn is_trine(anchor: EarthlyBranch, target: EarthlyBranch) -> bool {
+/// The trine group includes `anchor` itself, so `is_in_trine_group(b, b)` is
+/// `true`. The name makes that inclusion explicit, distinguishing it from
+/// [`PalaceRelation::Same`].
+pub fn is_in_trine_group(anchor: EarthlyBranch, target: EarthlyBranch) -> bool {
     trine_branches(anchor).contains(&target)
 }
 
@@ -108,6 +110,14 @@ mod tests {
         for b in [Chen, Si, Wei, You] {
             assert!(!is_in_san_fang_si_zheng(Yin, b));
         }
+    }
+
+    #[test]
+    fn is_in_trine_group_includes_anchor() {
+        assert!(is_in_trine_group(Yin, Yin)); // self
+        assert!(is_in_trine_group(Yin, EarthlyBranch::Wu)); // +4
+        assert!(is_in_trine_group(Yin, EarthlyBranch::Xu)); // +8
+        assert!(!is_in_trine_group(Yin, Shen)); // opposite is not a trine member
     }
 
     #[test]
