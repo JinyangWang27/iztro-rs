@@ -37,6 +37,42 @@ fn sample_typed_star() -> iztro::core::StaticTypedStarView {
 }
 
 #[test]
+fn chart_screen_pins_a_minimum_size_and_scrolls_when_smaller() {
+    let source = include_str!("chart.rs");
+
+    // The grid + overlay stack is pinned to the fixed minimum chart size, not
+    // Length::Fill, so a small window cannot squeeze it below legibility.
+    assert!(source.contains("Length::Fixed(MIN_CHART_WIDTH)"));
+    assert!(source.contains("Length::Fixed(MIN_CHART_HEIGHT)"));
+    // A scrollable wrapper lets a smaller window scroll instead of shrinking.
+    assert!(source.contains("scrollable(grid)"));
+    assert!(source.contains("scrollable::Direction::Both"));
+}
+
+#[test]
+fn palace_grid_layout_constants_exist_and_derive_the_chart_size() {
+    use super::chart::{
+        MIN_CHART_HEIGHT, MIN_CHART_WIDTH, MIN_PALACE_CELL_HEIGHT, MIN_PALACE_CELL_WIDTH,
+    };
+
+    // Per-cell minimums keep palace text legible, and the whole 4x4 canvas
+    // minimum is derived from them (four columns wide, four rows tall).
+    const {
+        assert!(MIN_PALACE_CELL_WIDTH > 0.0);
+        assert!(MIN_PALACE_CELL_HEIGHT > 0.0);
+        assert!(MIN_CHART_WIDTH == MIN_PALACE_CELL_WIDTH * 4.0);
+        assert!(MIN_CHART_HEIGHT == MIN_PALACE_CELL_HEIGHT * 4.0);
+    }
+}
+
+#[test]
+fn window_sets_a_minimum_size_to_complement_chart_scrolling() {
+    let source = include_str!("../lib.rs");
+
+    assert!(source.contains("min_size: Some("));
+}
+
+#[test]
 fn four_pillars_line_joins_prepared_pillar_labels() {
     let center = sample_center();
     let line = four_pillars_line(&center).expect("four pillars present");

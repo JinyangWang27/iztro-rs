@@ -21,7 +21,11 @@ pub fn run() -> iced::Result {
         .font(fonts::CJK_FONT_BYTES)
         .default_font(fonts::CJK_FONT)
         .window(iced::window::Settings {
-            size: iced::Size::new(980.0, 840.0),
+            // Default large enough to show the full fixed-size chart canvas
+            // (MIN_CHART_WIDTH x MIN_CHART_HEIGHT) plus toolbar and padding.
+            size: iced::Size::new(1180.0, 900.0),
+            // The window may shrink below the chart's minimum layout; the chart
+            // area then scrolls rather than squeezing text into dash lines.
             min_size: Some(iced::Size::new(760.0, 680.0)),
             ..Default::default()
         })
