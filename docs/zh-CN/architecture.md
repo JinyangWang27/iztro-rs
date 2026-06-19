@@ -52,6 +52,10 @@ Rule Engine Layer 把特征映射成结构化判断。
 
 这样规则匹配可以测试，也方便多个规则先聚合，再生成报告。
 
+本层的第一个只读切片是 `core::pattern`：它把传统格局识别为基于命盘事实的结构化、可解释
+事实，既不修改命盘事实，也不产生文字。规则目录与保证见
+[`patterns.md`](patterns.md)。
+
 ## 4. Narrative Layer
 
 Narrative Layer 把结构化判断渲染成人类可读报告。
