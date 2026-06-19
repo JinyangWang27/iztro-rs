@@ -138,15 +138,6 @@ pub enum StepDirection {
     Forward,
 }
 
-impl StepDirection {
-    const fn delta(self) -> i64 {
-        match self {
-            Self::Backward => -1,
-            Self::Forward => 1,
-        }
-    }
-}
-
 /// Plain current-moment facts the renderer reads from the system clock for the
 /// `今` control. All calendar/age mapping happens in core; the GUI never
 /// performs date math itself.
@@ -164,60 +155,68 @@ pub struct LocalSolarMoment {
     pub minute: u8,
 }
 
-/// Steps the hierarchical temporal selection by one `unit` in `direction`,
-/// clamped to valid index ranges (`day_index` to `max_day_index`).
+/// Carries a `(decadal_index, year_index)` pair one 流年 step in `direction`,
+/// rolling across the 大限 boundary: forward past year 9 enters the next 大限 at
+/// year 0, backward past year 0 enters the previous 大限 at year 9.
 ///
-/// Returns `None` when the step needs a parent index the current path lacks
-/// (for example stepping 流年 before any 大限 is chosen), which keeps that
-/// control inert. All index ranges are renderer-neutral; the core facade still
-/// validates and builds the resulting snapshot.
-fn stepped_selection(
-    current: StaticTemporalNavigationSelection,
-    unit: TemporalUnit,
+/// Returns `None` at the absolute first/last year of the supported navigation
+/// range so the caller can stay on the current valid selection. `max_decadal`
+/// is the last enabled 大限 index.
+fn carry_year_pair(
+    decadal: usize,
+    year: u8,
     direction: StepDirection,
-    max_day_index: u8,
-) -> Option<StaticTemporalNavigationSelection> {
-    let delta = direction.delta();
-    let clamp_u8 = |value: i64, max: u8| value.clamp(0, i64::from(max)) as u8;
-    let stepped_child = |selected: Option<u8>, max: u8| match (selected, direction) {
-        (Some(index), _) => Some(clamp_u8(i64::from(index) + delta, max)),
-        (None, StepDirection::Forward) => Some(0),
-        (None, StepDirection::Backward) => None,
-    };
-    match unit {
-        TemporalUnit::Decadal => match (current.decadal_index(), direction) {
-            (Some(index), _) => Some(StaticTemporalNavigationSelection::Decadal {
-                decadal_index: (index as i64 + delta).clamp(0, 11) as usize,
-            }),
-            (None, StepDirection::Forward) => {
-                Some(StaticTemporalNavigationSelection::Decadal { decadal_index: 0 })
+    max_decadal: usize,
+) -> Option<(usize, u8)> {
+    match direction {
+        StepDirection::Forward => {
+            if year < 9 {
+                Some((decadal, year + 1))
+            } else if decadal < max_decadal {
+                Some((decadal + 1, 0))
+            } else {
+                None
             }
-            (None, StepDirection::Backward) => None,
-        },
-        TemporalUnit::Year => Some(StaticTemporalNavigationSelection::Yearly {
-            decadal_index: current.decadal_index()?,
-            year_index: stepped_child(current.year_index(), 9)?,
-        }),
-        TemporalUnit::Month => Some(StaticTemporalNavigationSelection::Monthly {
-            decadal_index: current.decadal_index()?,
-            year_index: current.year_index()?,
-            month_index: stepped_child(current.month_index(), 11)?,
-        }),
-        TemporalUnit::Day => Some(StaticTemporalNavigationSelection::Daily {
-            decadal_index: current.decadal_index()?,
-            year_index: current.year_index()?,
-            month_index: current.month_index()?,
-            day_index: stepped_child(current.day_index(), max_day_index)?,
-        }),
-        TemporalUnit::Hour => Some(StaticTemporalNavigationSelection::Hourly {
-            decadal_index: current.decadal_index()?,
-            year_index: current.year_index()?,
-            month_index: current.month_index()?,
-            day_index: current.day_index()?,
-            // The 12 visible branch cells share 子 between early Zi (0) and
-            // late Zi (12), but the authoritative core selection keeps both.
-            hour_index: stepped_child(current.hour_index(), 12)?,
-        }),
+        }
+        StepDirection::Backward => {
+            if year > 0 {
+                Some((decadal, year - 1))
+            } else if decadal > 0 {
+                Some((decadal - 1, 9))
+            } else {
+                None
+            }
+        }
+    }
+}
+
+/// Carries a `(decadal, year, month)` tuple one 流月 step in `direction`, rolling
+/// across both the 流年 and 大限 boundaries (forward past month 11 enters the next
+/// 流年 month 0, backward past month 0 enters the previous 流年 month 11).
+///
+/// Returns `None` at the absolute boundary of the supported navigation range.
+fn carry_month_tuple(
+    decadal: usize,
+    year: u8,
+    month: u8,
+    direction: StepDirection,
+    max_decadal: usize,
+) -> Option<(usize, u8, u8)> {
+    match direction {
+        StepDirection::Forward => {
+            if month < 11 {
+                Some((decadal, year, month + 1))
+            } else {
+                carry_year_pair(decadal, year, direction, max_decadal).map(|(d, y)| (d, y, 0))
+            }
+        }
+        StepDirection::Backward => {
+            if month > 0 {
+                Some((decadal, year, month - 1))
+            } else {
+                carry_year_pair(decadal, year, direction, max_decadal).map(|(d, y)| (d, y, 11))
+            }
+        }
     }
 }
 
@@ -608,21 +607,46 @@ impl StaticChartApp {
         }
     }
 
-    /// Number of enabled 流日 cells in the current snapshot, used to clamp day
-    /// stepping to a valid range.
-    fn enabled_day_count(&self) -> usize {
+    /// Number of enabled 大限 cells in the current snapshot, used to roll/clamp
+    /// decadal navigation at the final available period.
+    fn enabled_decadal_count(&self) -> usize {
         self.snapshot
             .as_ref()
             .map(|snapshot| {
                 snapshot
                     .temporal_panel
-                    .day_rows
+                    .decadal_cells
                     .iter()
-                    .flatten()
                     .filter(|cell| cell.enabled)
                     .count()
             })
             .unwrap_or(0)
+    }
+
+    /// Number of enabled 流日 cells for the lunar month named by
+    /// `(decadal, year, month)`, read from that month's prepared snapshot through
+    /// the cache. Used to find a month's last valid day when rolling day/hour
+    /// navigation across a month boundary (29- vs 30-day lunar months). Returns
+    /// `0` when no chart is loaded or the month snapshot cannot be built.
+    fn enabled_day_count_for(&mut self, decadal: usize, year: u8, month: u8) -> usize {
+        let Some(input) = self.input else {
+            return 0;
+        };
+        let selection = StaticTemporalNavigationSelection::Monthly {
+            decadal_index: decadal,
+            year_index: year,
+            month_index: month,
+        };
+        match self.cache.get_or_build_with(&input, selection) {
+            Ok((snapshot, _)) => snapshot
+                .temporal_panel
+                .day_rows
+                .iter()
+                .flatten()
+                .filter(|cell| cell.enabled)
+                .count(),
+            Err(_) => 0,
+        }
     }
 
     /// Whether the given temporal cell is enabled in the current snapshot.
@@ -703,6 +727,191 @@ impl StaticChartApp {
         }
     }
 
+    /// Carries a `(decadal, year, month, day)` tuple one 流日 step in `direction`,
+    /// rolling across month/年/大限 boundaries. A month's last valid day is read
+    /// from the prepared month snapshot, so 29- vs 30-day lunar months are
+    /// handled by core, not the GUI. Returns `None` at the absolute boundary.
+    fn carry_day_tuple(
+        &mut self,
+        decadal: usize,
+        year: u8,
+        month: u8,
+        day: u8,
+        direction: StepDirection,
+        max_decadal: usize,
+    ) -> Option<(usize, u8, u8, u8)> {
+        match direction {
+            StepDirection::Forward => {
+                let count = self.enabled_day_count_for(decadal, year, month);
+                if usize::from(day) + 1 < count {
+                    Some((decadal, year, month, day + 1))
+                } else {
+                    carry_month_tuple(decadal, year, month, direction, max_decadal)
+                        .map(|(d, y, m)| (d, y, m, 0))
+                }
+            }
+            StepDirection::Backward => {
+                if day > 0 {
+                    Some((decadal, year, month, day - 1))
+                } else {
+                    carry_month_tuple(decadal, year, month, direction, max_decadal).map(
+                        |(d, y, m)| {
+                            let last = self.enabled_day_count_for(d, y, m).saturating_sub(1) as u8;
+                            (d, y, m, last)
+                        },
+                    )
+                }
+            }
+        }
+    }
+
+    /// Computes the temporal selection one `unit` step from the current selection
+    /// in `direction`, rolling across period boundaries instead of clamping
+    /// inside the current parent. Decadal navigation still clamps at the
+    /// first/last 大限.
+    ///
+    /// Returns `None` when the step needs a parent index the current path lacks
+    /// (keeping that control inert), and the current selection unchanged when
+    /// already at the absolute first/last navigable moment.
+    fn carry_stepped_selection(
+        &mut self,
+        unit: TemporalUnit,
+        direction: StepDirection,
+    ) -> Option<StaticTemporalNavigationSelection> {
+        use StaticTemporalNavigationSelection as Sel;
+        let current = self.selected_temporal_selection;
+        let max_decadal = self.enabled_decadal_count().saturating_sub(1);
+        match unit {
+            TemporalUnit::Decadal => match (current.decadal_index(), direction) {
+                (Some(index), StepDirection::Forward) => Some(Sel::Decadal {
+                    decadal_index: (index + 1).min(max_decadal),
+                }),
+                (Some(index), StepDirection::Backward) => Some(Sel::Decadal {
+                    decadal_index: index.saturating_sub(1),
+                }),
+                (None, StepDirection::Forward) => Some(Sel::Decadal { decadal_index: 0 }),
+                (None, StepDirection::Backward) => None,
+            },
+            TemporalUnit::Year => {
+                let decadal = current.decadal_index()?;
+                match (current.year_index(), direction) {
+                    (None, StepDirection::Forward) => Some(Sel::Yearly {
+                        decadal_index: decadal,
+                        year_index: 0,
+                    }),
+                    (None, StepDirection::Backward) => None,
+                    (Some(year), _) => Some(
+                        carry_year_pair(decadal, year, direction, max_decadal)
+                            .map(|(d, y)| Sel::Yearly {
+                                decadal_index: d,
+                                year_index: y,
+                            })
+                            .unwrap_or(current),
+                    ),
+                }
+            }
+            TemporalUnit::Month => {
+                let decadal = current.decadal_index()?;
+                let year = current.year_index()?;
+                match (current.month_index(), direction) {
+                    (None, StepDirection::Forward) => Some(Sel::Monthly {
+                        decadal_index: decadal,
+                        year_index: year,
+                        month_index: 0,
+                    }),
+                    (None, StepDirection::Backward) => None,
+                    (Some(month), _) => Some(
+                        carry_month_tuple(decadal, year, month, direction, max_decadal)
+                            .map(|(d, y, m)| Sel::Monthly {
+                                decadal_index: d,
+                                year_index: y,
+                                month_index: m,
+                            })
+                            .unwrap_or(current),
+                    ),
+                }
+            }
+            TemporalUnit::Day => {
+                let decadal = current.decadal_index()?;
+                let year = current.year_index()?;
+                let month = current.month_index()?;
+                match (current.day_index(), direction) {
+                    (None, StepDirection::Forward) => Some(Sel::Daily {
+                        decadal_index: decadal,
+                        year_index: year,
+                        month_index: month,
+                        day_index: 0,
+                    }),
+                    (None, StepDirection::Backward) => None,
+                    (Some(day), _) => Some(
+                        self.carry_day_tuple(decadal, year, month, day, direction, max_decadal)
+                            .map(|(d, y, m, dy)| Sel::Daily {
+                                decadal_index: d,
+                                year_index: y,
+                                month_index: m,
+                                day_index: dy,
+                            })
+                            .unwrap_or(current),
+                    ),
+                }
+            }
+            TemporalUnit::Hour => {
+                let decadal = current.decadal_index()?;
+                let year = current.year_index()?;
+                let month = current.month_index()?;
+                let day = current.day_index()?;
+                match (current.hour_index(), direction) {
+                    (None, StepDirection::Forward) => Some(Sel::Hourly {
+                        decadal_index: decadal,
+                        year_index: year,
+                        month_index: month,
+                        day_index: day,
+                        hour_index: 0,
+                    }),
+                    (None, StepDirection::Backward) => None,
+                    // The authoritative selection keeps 13 hour slots (0..=12:
+                    // early 子..亥, late 子); forward past late 子 rolls to the next day.
+                    (Some(hour), StepDirection::Forward) if hour < 12 => Some(Sel::Hourly {
+                        decadal_index: decadal,
+                        year_index: year,
+                        month_index: month,
+                        day_index: day,
+                        hour_index: hour + 1,
+                    }),
+                    (Some(_), StepDirection::Forward) => Some(
+                        self.carry_day_tuple(decadal, year, month, day, direction, max_decadal)
+                            .map(|(d, y, m, dy)| Sel::Hourly {
+                                decadal_index: d,
+                                year_index: y,
+                                month_index: m,
+                                day_index: dy,
+                                hour_index: 0,
+                            })
+                            .unwrap_or(current),
+                    ),
+                    (Some(hour), StepDirection::Backward) if hour > 0 => Some(Sel::Hourly {
+                        decadal_index: decadal,
+                        year_index: year,
+                        month_index: month,
+                        day_index: day,
+                        hour_index: hour - 1,
+                    }),
+                    (Some(_), StepDirection::Backward) => Some(
+                        self.carry_day_tuple(decadal, year, month, day, direction, max_decadal)
+                            .map(|(d, y, m, dy)| Sel::Hourly {
+                                decadal_index: d,
+                                year_index: y,
+                                month_index: m,
+                                day_index: dy,
+                                hour_index: 12,
+                            })
+                            .unwrap_or(current),
+                    ),
+                }
+            }
+        }
+    }
+
     /// Persists the saved list to the backing store, if one is configured. A
     /// write failure is non-fatal: the in-memory list stays authoritative.
     fn persist_saved(&mut self) {
@@ -740,14 +949,9 @@ impl StaticChartApp {
                 }
             }
             Message::StepTemporal(unit, direction) => {
-                let max_day_index = self.enabled_day_count().saturating_sub(1) as u8;
-                // A step that needs a missing parent index stays inert.
-                if let Some(selection) = stepped_selection(
-                    self.selected_temporal_selection,
-                    unit,
-                    direction,
-                    max_day_index,
-                ) {
+                // A step that needs a missing parent index stays inert; a step at
+                // the absolute boundary returns the current selection unchanged.
+                if let Some(selection) = self.carry_stepped_selection(unit, direction) {
                     if selection != self.selected_temporal_selection {
                         self.apply_temporal_selection(selection);
                     }
@@ -1436,199 +1640,363 @@ mod tests {
     }
 
     #[test]
-    fn forward_stepping_enters_each_first_child() {
-        let cases = [
-            (
-                StaticTemporalNavigationSelection::PreDecadal,
-                TemporalUnit::Decadal,
-                StaticTemporalNavigationSelection::Decadal { decadal_index: 0 },
-            ),
-            (
-                StaticTemporalNavigationSelection::Decadal { decadal_index: 3 },
-                TemporalUnit::Year,
-                StaticTemporalNavigationSelection::Yearly {
-                    decadal_index: 3,
-                    year_index: 0,
-                },
-            ),
-            (
-                StaticTemporalNavigationSelection::Yearly {
-                    decadal_index: 3,
-                    year_index: 4,
-                },
-                TemporalUnit::Month,
-                StaticTemporalNavigationSelection::Monthly {
-                    decadal_index: 3,
-                    year_index: 4,
-                    month_index: 0,
-                },
-            ),
-            (
-                StaticTemporalNavigationSelection::Monthly {
-                    decadal_index: 3,
-                    year_index: 4,
-                    month_index: 5,
-                },
-                TemporalUnit::Day,
-                StaticTemporalNavigationSelection::Daily {
-                    decadal_index: 3,
-                    year_index: 4,
-                    month_index: 5,
-                    day_index: 0,
-                },
-            ),
-            (
-                StaticTemporalNavigationSelection::Daily {
-                    decadal_index: 3,
-                    year_index: 4,
-                    month_index: 5,
-                    day_index: 6,
-                },
-                TemporalUnit::Hour,
-                StaticTemporalNavigationSelection::Hourly {
-                    decadal_index: 3,
-                    year_index: 4,
-                    month_index: 5,
-                    day_index: 6,
-                    hour_index: 0,
-                },
-            ),
-        ];
-
-        for (current, unit, expected) in cases {
-            assert_eq!(
-                stepped_selection(current, unit, StepDirection::Forward, 29),
-                Some(expected)
-            );
-        }
+    fn carry_year_pair_rolls_across_the_decadal_boundary() {
+        // Within a 大限 the year just steps by one.
+        assert_eq!(
+            carry_year_pair(2, 4, StepDirection::Forward, 11),
+            Some((2, 5))
+        );
+        assert_eq!(
+            carry_year_pair(2, 4, StepDirection::Backward, 11),
+            Some((2, 3))
+        );
+        // Year 9 forward enters the next 大限 at year 0.
+        assert_eq!(
+            carry_year_pair(2, 9, StepDirection::Forward, 11),
+            Some((3, 0))
+        );
+        // Year 0 backward enters the previous 大限 at year 9.
+        assert_eq!(
+            carry_year_pair(2, 0, StepDirection::Backward, 11),
+            Some((1, 9))
+        );
+        // Final 大限 last year forward / first 大限 first year backward: no roll.
+        assert_eq!(carry_year_pair(11, 9, StepDirection::Forward, 11), None);
+        assert_eq!(carry_year_pair(0, 0, StepDirection::Backward, 11), None);
     }
 
     #[test]
-    fn existing_child_indices_step_by_one_and_clamp() {
-        let decadal = StaticTemporalNavigationSelection::Decadal { decadal_index: 4 };
+    fn carry_month_tuple_rolls_across_year_and_decadal_boundaries() {
+        // Within a 流年 the month steps by one.
         assert_eq!(
-            stepped_selection(decadal, TemporalUnit::Decadal, StepDirection::Forward, 29),
-            Some(StaticTemporalNavigationSelection::Decadal { decadal_index: 5 })
+            carry_month_tuple(2, 4, 5, StepDirection::Forward, 11),
+            Some((2, 4, 6))
         );
         assert_eq!(
-            stepped_selection(
-                StaticTemporalNavigationSelection::Decadal { decadal_index: 0 },
-                TemporalUnit::Decadal,
-                StepDirection::Backward,
-                29
-            ),
-            Some(StaticTemporalNavigationSelection::Decadal { decadal_index: 0 })
+            carry_month_tuple(2, 4, 5, StepDirection::Backward, 11),
+            Some((2, 4, 4))
+        );
+        // Month 11 forward enters the next 流年 month 0.
+        assert_eq!(
+            carry_month_tuple(2, 4, 11, StepDirection::Forward, 11),
+            Some((2, 5, 0))
+        );
+        // Month 11 forward at year 9 carries through to the next 大限.
+        assert_eq!(
+            carry_month_tuple(2, 9, 11, StepDirection::Forward, 11),
+            Some((3, 0, 0))
+        );
+        // Month 0 backward enters the previous 流年 month 11.
+        assert_eq!(
+            carry_month_tuple(2, 4, 0, StepDirection::Backward, 11),
+            Some((2, 3, 11))
+        );
+        // Month 0 backward at year 0 carries to the previous 大限 year 9.
+        assert_eq!(
+            carry_month_tuple(2, 0, 0, StepDirection::Backward, 11),
+            Some((1, 9, 11))
+        );
+        // Absolute boundary: no roll.
+        assert_eq!(
+            carry_month_tuple(11, 9, 11, StepDirection::Forward, 11),
+            None
         );
         assert_eq!(
-            stepped_selection(
-                StaticTemporalNavigationSelection::Decadal { decadal_index: 11 },
-                TemporalUnit::Decadal,
-                StepDirection::Forward,
-                29
-            ),
-            Some(StaticTemporalNavigationSelection::Decadal { decadal_index: 11 })
+            carry_month_tuple(0, 0, 0, StepDirection::Backward, 11),
+            None
+        );
+    }
+
+    /// The last enabled decadal index of the freshly generated sample chart.
+    fn last_decadal_index(app: &StaticChartApp) -> usize {
+        app.snapshot()
+            .expect("snapshot")
+            .temporal_panel
+            .decadal_cells
+            .iter()
+            .filter(|cell| cell.enabled)
+            .count()
+            - 1
+    }
+
+    /// Number of enabled 流日 cells of the month named by `(decadal, year, month)`.
+    fn month_day_count(app: &mut StaticChartApp, decadal: usize, year: u8, month: u8) -> u8 {
+        app.apply_temporal_selection(StaticTemporalNavigationSelection::Monthly {
+            decadal_index: decadal,
+            year_index: year,
+            month_index: month,
+        });
+        app.snapshot()
+            .expect("month snapshot")
+            .temporal_panel
+            .day_rows
+            .iter()
+            .flatten()
+            .filter(|cell| cell.enabled)
+            .count() as u8
+    }
+
+    #[test]
+    fn decadal_stepping_still_clamps_at_the_first_and_last_period() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        let last = last_decadal_index(&app);
+
+        app.apply_temporal_selection(StaticTemporalNavigationSelection::Decadal {
+            decadal_index: last,
+        });
+        app.update(Message::StepTemporal(
+            TemporalUnit::Decadal,
+            StepDirection::Forward,
+        ));
+        assert_eq!(
+            app.selected_temporal_selection(),
+            StaticTemporalNavigationSelection::Decadal {
+                decadal_index: last
+            }
         );
 
-        let yearly = StaticTemporalNavigationSelection::Yearly {
-            decadal_index: 2,
-            year_index: 4,
-        };
+        app.apply_temporal_selection(StaticTemporalNavigationSelection::Decadal {
+            decadal_index: 0,
+        });
+        app.update(Message::StepTemporal(
+            TemporalUnit::Decadal,
+            StepDirection::Backward,
+        ));
         assert_eq!(
-            stepped_selection(yearly, TemporalUnit::Year, StepDirection::Forward, 29)
-                .and_then(|selection| selection.year_index()),
-            Some(5)
+            app.selected_temporal_selection(),
+            StaticTemporalNavigationSelection::Decadal { decadal_index: 0 }
         );
+    }
+
+    #[test]
+    fn year_stepping_rolls_across_the_decadal_boundary() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+
+        // 年▶ from the last 流年 of a 大限 advances into the next 大限 year 0.
+        app.apply_temporal_selection(StaticTemporalNavigationSelection::Yearly {
+            decadal_index: 0,
+            year_index: 9,
+        });
+        app.update(Message::StepTemporal(
+            TemporalUnit::Year,
+            StepDirection::Forward,
+        ));
         assert_eq!(
-            stepped_selection(yearly, TemporalUnit::Year, StepDirection::Backward, 29)
-                .and_then(|selection| selection.year_index()),
-            Some(3)
+            app.selected_temporal_selection(),
+            StaticTemporalNavigationSelection::Yearly {
+                decadal_index: 1,
+                year_index: 0,
+            }
         );
 
-        let monthly = StaticTemporalNavigationSelection::Monthly {
-            decadal_index: 2,
-            year_index: 4,
-            month_index: 5,
-        };
+        // ◀年 from the first 流年 of a 大限 steps back into the previous 大限 year 9.
+        app.apply_temporal_selection(StaticTemporalNavigationSelection::Yearly {
+            decadal_index: 1,
+            year_index: 0,
+        });
+        app.update(Message::StepTemporal(
+            TemporalUnit::Year,
+            StepDirection::Backward,
+        ));
         assert_eq!(
-            stepped_selection(monthly, TemporalUnit::Month, StepDirection::Forward, 29)
-                .and_then(|selection| selection.month_index()),
-            Some(6)
+            app.selected_temporal_selection(),
+            StaticTemporalNavigationSelection::Yearly {
+                decadal_index: 0,
+                year_index: 9,
+            }
         );
+    }
+
+    #[test]
+    fn year_stepping_stays_at_the_absolute_first_year() {
+        // The upper-boundary "stay" semantics are covered by the pure
+        // `carry_year_pair` test; the topmost 大限's final 流年 (ages 111-120) is
+        // beyond the chart's supported lunar range and cannot be selected anyway.
+        let mut app = StaticChartApp::new();
+        app.generate();
+
+        app.apply_temporal_selection(StaticTemporalNavigationSelection::Yearly {
+            decadal_index: 0,
+            year_index: 0,
+        });
+        app.update(Message::StepTemporal(
+            TemporalUnit::Year,
+            StepDirection::Backward,
+        ));
         assert_eq!(
-            stepped_selection(monthly, TemporalUnit::Month, StepDirection::Backward, 29)
-                .and_then(|selection| selection.month_index()),
-            Some(4)
+            app.selected_temporal_selection(),
+            StaticTemporalNavigationSelection::Yearly {
+                decadal_index: 0,
+                year_index: 0,
+            }
+        );
+    }
+
+    #[test]
+    fn month_stepping_rolls_across_year_and_decadal_boundaries() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+
+        // 月▶ from month 11 carries into the next 流年 month 0.
+        app.apply_temporal_selection(StaticTemporalNavigationSelection::Monthly {
+            decadal_index: 0,
+            year_index: 0,
+            month_index: 11,
+        });
+        app.update(Message::StepTemporal(
+            TemporalUnit::Month,
+            StepDirection::Forward,
+        ));
+        assert_eq!(
+            app.selected_temporal_selection(),
+            StaticTemporalNavigationSelection::Monthly {
+                decadal_index: 0,
+                year_index: 1,
+                month_index: 0,
+            }
         );
 
-        let daily = StaticTemporalNavigationSelection::Daily {
-            decadal_index: 2,
-            year_index: 4,
-            month_index: 5,
-            day_index: 6,
-        };
+        // 月▶ from month 11 of year 9 carries through to the next 大限.
+        app.apply_temporal_selection(StaticTemporalNavigationSelection::Monthly {
+            decadal_index: 0,
+            year_index: 9,
+            month_index: 11,
+        });
+        app.update(Message::StepTemporal(
+            TemporalUnit::Month,
+            StepDirection::Forward,
+        ));
         assert_eq!(
-            stepped_selection(daily, TemporalUnit::Day, StepDirection::Forward, 28)
-                .and_then(|selection| selection.day_index()),
-            Some(7)
-        );
-        assert_eq!(
-            stepped_selection(daily, TemporalUnit::Day, StepDirection::Backward, 28)
-                .and_then(|selection| selection.day_index()),
-            Some(5)
-        );
-        let last_day = StaticTemporalNavigationSelection::Daily {
-            decadal_index: 2,
-            year_index: 4,
-            month_index: 5,
-            day_index: 28,
-        };
-        assert_eq!(
-            stepped_selection(last_day, TemporalUnit::Day, StepDirection::Forward, 28)
-                .and_then(|selection| selection.day_index()),
-            Some(28)
+            app.selected_temporal_selection(),
+            StaticTemporalNavigationSelection::Monthly {
+                decadal_index: 1,
+                year_index: 0,
+                month_index: 0,
+            }
         );
 
-        let first_hour = StaticTemporalNavigationSelection::Hourly {
-            decadal_index: 2,
-            year_index: 4,
-            month_index: 5,
-            day_index: 6,
-            hour_index: 0,
-        };
+        // ◀月 from month 0 carries into the previous 流年 month 11.
+        app.apply_temporal_selection(StaticTemporalNavigationSelection::Monthly {
+            decadal_index: 0,
+            year_index: 1,
+            month_index: 0,
+        });
+        app.update(Message::StepTemporal(
+            TemporalUnit::Month,
+            StepDirection::Backward,
+        ));
         assert_eq!(
-            stepped_selection(first_hour, TemporalUnit::Hour, StepDirection::Backward, 29)
-                .and_then(|selection| selection.hour_index()),
-            Some(0)
+            app.selected_temporal_selection(),
+            StaticTemporalNavigationSelection::Monthly {
+                decadal_index: 0,
+                year_index: 0,
+                month_index: 11,
+            }
+        );
+    }
+
+    #[test]
+    fn day_stepping_rolls_across_the_month_boundary_using_prepared_day_counts() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+
+        // 日▶ from the last enabled day of month 0 carries into month 1 day 0.
+        let count = month_day_count(&mut app, 0, 0, 0);
+        app.apply_temporal_selection(StaticTemporalNavigationSelection::Daily {
+            decadal_index: 0,
+            year_index: 0,
+            month_index: 0,
+            day_index: count - 1,
+        });
+        app.update(Message::StepTemporal(
+            TemporalUnit::Day,
+            StepDirection::Forward,
+        ));
+        assert_eq!(
+            app.selected_temporal_selection(),
+            StaticTemporalNavigationSelection::Daily {
+                decadal_index: 0,
+                year_index: 0,
+                month_index: 1,
+                day_index: 0,
+            }
         );
 
-        let last_hour = StaticTemporalNavigationSelection::Hourly {
-            decadal_index: 2,
-            year_index: 4,
-            month_index: 5,
-            day_index: 6,
-            hour_index: 11,
-        };
+        // ◀日 from day 0 of month 1 carries back to month 0's last valid day,
+        // whose length (29 vs 30) comes from the prepared month snapshot.
+        let prev_count = month_day_count(&mut app, 0, 0, 0);
+        app.apply_temporal_selection(StaticTemporalNavigationSelection::Daily {
+            decadal_index: 0,
+            year_index: 0,
+            month_index: 1,
+            day_index: 0,
+        });
+        app.update(Message::StepTemporal(
+            TemporalUnit::Day,
+            StepDirection::Backward,
+        ));
         assert_eq!(
-            stepped_selection(last_hour, TemporalUnit::Hour, StepDirection::Forward, 29)
-                .and_then(|selection| selection.hour_index()),
-            Some(12)
+            app.selected_temporal_selection(),
+            StaticTemporalNavigationSelection::Daily {
+                decadal_index: 0,
+                year_index: 0,
+                month_index: 0,
+                day_index: prev_count - 1,
+            }
         );
-        let late_zi = StaticTemporalNavigationSelection::Hourly {
-            decadal_index: 2,
-            year_index: 4,
-            month_index: 5,
-            day_index: 6,
+    }
+
+    #[test]
+    fn hour_stepping_rolls_across_the_day_boundary() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+
+        // 时▶ from the late-子 slot (index 12) carries into the next day hour 0.
+        app.apply_temporal_selection(StaticTemporalNavigationSelection::Hourly {
+            decadal_index: 0,
+            year_index: 0,
+            month_index: 0,
+            day_index: 0,
             hour_index: 12,
-        };
+        });
+        app.update(Message::StepTemporal(
+            TemporalUnit::Hour,
+            StepDirection::Forward,
+        ));
         assert_eq!(
-            stepped_selection(late_zi, TemporalUnit::Hour, StepDirection::Forward, 29)
-                .and_then(|selection| selection.hour_index()),
-            Some(12)
+            app.selected_temporal_selection(),
+            StaticTemporalNavigationSelection::Hourly {
+                decadal_index: 0,
+                year_index: 0,
+                month_index: 0,
+                day_index: 1,
+                hour_index: 0,
+            }
         );
+
+        // ◀时 from hour 0 carries back to the previous day's late-子 slot (12).
+        app.apply_temporal_selection(StaticTemporalNavigationSelection::Hourly {
+            decadal_index: 0,
+            year_index: 0,
+            month_index: 0,
+            day_index: 1,
+            hour_index: 0,
+        });
+        app.update(Message::StepTemporal(
+            TemporalUnit::Hour,
+            StepDirection::Backward,
+        ));
         assert_eq!(
-            stepped_selection(late_zi, TemporalUnit::Hour, StepDirection::Backward, 29)
-                .and_then(|selection| selection.hour_index()),
-            Some(11)
+            app.selected_temporal_selection(),
+            StaticTemporalNavigationSelection::Hourly {
+                decadal_index: 0,
+                year_index: 0,
+                month_index: 0,
+                day_index: 0,
+                hour_index: 12,
+            }
         );
     }
 
