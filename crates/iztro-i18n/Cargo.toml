@@ -1,0 +1,14 @@
+[package]
+name = "iztro-i18n"
+description = "Fluent-based localization layer for iztro-rs (UI strings and typed domain labels)"
+authors.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+version.workspace = true
+
+[dependencies]
+iztro = { path = "../iztro" }
+fluent-bundle = { workspace = true }
+unic-langid = { workspace = true }
