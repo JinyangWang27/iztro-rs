@@ -61,7 +61,10 @@ fn keep(detection: &PatternDetection, request: &PatternDetectionRequest) -> bool
 /// Returns whether a detection's scope is permitted by `request.scopes`.
 ///
 /// An empty `request.scopes` permits nothing. A [`PatternScope::Combined`] is
-/// permitted only when every contained scope is requested.
+/// permitted only when it spans at least one scope and every contained scope is
+/// requested. An empty `Combined(vec![])` is never permitted: `Iterator::all`
+/// over an empty set returns `true`, so the explicit `is_empty` guard is what
+/// keeps a degenerate combined scope from matching.
 fn scope_allowed(scope: &PatternScope, request: &PatternDetectionRequest) -> bool {
     if request.scopes.is_empty() {
         return false;
@@ -75,7 +78,9 @@ fn scope_allowed(scope: &PatternScope, request: &PatternDetectionRequest) -> boo
         PatternScope::Monthly => request.scopes.contains(&Scope::Monthly),
         PatternScope::Daily => request.scopes.contains(&Scope::Daily),
         PatternScope::Hourly => request.scopes.contains(&Scope::Hourly),
-        PatternScope::Combined(scopes) => scopes.iter().all(|scope| request.scopes.contains(scope)),
+        PatternScope::Combined(scopes) => {
+            !scopes.is_empty() && scopes.iter().all(|scope| request.scopes.contains(scope))
+        }
     }
 }
 
@@ -122,4 +127,59 @@ fn anchor_key(anchor: &PatternAnchor) -> (u8, usize) {
 /// Stable ordering key for an ordered set of involved palaces.
 fn palaces_key(branches: &[crate::core::EarthlyBranch]) -> Vec<usize> {
     branches.iter().map(|branch| branch.index()).collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::core::pattern::model::PatternFamily;
+
+    fn request_with(scopes: Vec<Scope>) -> PatternDetectionRequest {
+        PatternDetectionRequest {
+            scopes,
+            include_partial: false,
+            include_weakened: true,
+            include_broken: true,
+            families: Vec::<PatternFamily>::new(),
+        }
+    }
+
+    #[test]
+    fn empty_combined_scope_is_never_allowed() {
+        // An empty Combined must not slip through via `Iterator::all` on an empty
+        // set, even when the request asks for every scope.
+        let request = request_with(vec![
+            Scope::Natal,
+            Scope::Decadal,
+            Scope::Age,
+            Scope::Yearly,
+            Scope::Monthly,
+            Scope::Daily,
+            Scope::Hourly,
+        ]);
+        assert!(!scope_allowed(&PatternScope::Combined(Vec::new()), &request));
+    }
+
+    #[test]
+    fn combined_scope_requires_every_member_requested() {
+        let combined = PatternScope::Combined(vec![Scope::Natal, Scope::Yearly]);
+
+        // Both members requested: allowed.
+        assert!(scope_allowed(
+            &combined,
+            &request_with(vec![Scope::Natal, Scope::Yearly]),
+        ));
+
+        // Missing one member: not allowed.
+        assert!(!scope_allowed(&combined, &request_with(vec![Scope::Natal])));
+    }
+
+    #[test]
+    fn empty_request_scopes_allow_nothing() {
+        assert!(!scope_allowed(&PatternScope::Natal, &request_with(Vec::new())));
+        assert!(!scope_allowed(
+            &PatternScope::Combined(vec![Scope::Natal]),
+            &request_with(Vec::new()),
+        ));
+    }
 }
