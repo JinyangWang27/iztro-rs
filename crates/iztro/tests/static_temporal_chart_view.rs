@@ -60,6 +60,22 @@ fn center_carries_prepared_iztro_style_natal_labels() {
     assert_eq!(center.constellation_zh, "双子座");
     assert!(center.soul_master_zh.is_some(), "命主 should be prepared");
     assert!(center.body_master_zh.is_some(), "身主 should be prepared");
+
+    // The additive typed fields mirror the prepared Chinese labels so a
+    // presentation layer can render them in any locale.
+    assert_eq!(
+        center.birth_lunar_date,
+        Some(iztro::core::LunarDateView {
+            year: 1993,
+            month: 4,
+            day: 7,
+            is_leap_month: false,
+        }),
+    );
+    assert_eq!(center.birth_time_index, Some(9));
+    assert_eq!(center.western_zodiac, Some(iztro::core::WesternZodiac::Gemini));
+    assert!(center.soul_master.is_some(), "命主 star should be typed");
+    assert!(center.body_master.is_some(), "身主 star should be typed");
 }
 
 #[test]
@@ -69,6 +85,9 @@ fn nominal_age_and_run_xian_dates_update_with_navigation() {
             .unwrap();
     assert!(natal.center.nominal_age_label.is_none());
     assert!(natal.center.temporal_solar_label.is_none());
+    assert!(natal.center.nominal_age.is_none());
+    assert!(natal.center.temporal_lunar_date.is_none());
+    assert!(natal.center.temporal_lunar_year.is_none());
 
     // Resolve "today" → a Hourly selection, then render it.
     let chart = by_solar(spec_request()).unwrap();
@@ -77,12 +96,15 @@ fn nominal_age_and_run_xian_dates_update_with_navigation() {
 
     // 2008 is the nominal 16th year for a 1993 birth (虚岁).
     assert_eq!(snapshot.center.nominal_age_label.as_deref(), Some("16 岁"));
+    assert_eq!(snapshot.center.nominal_age, Some(16));
     assert_eq!(
         snapshot.center.temporal_solar_label.as_deref(),
         Some("2008-2-10"),
         "运限阳历 should use iztro-style unpadded month/day"
     );
     assert!(snapshot.center.temporal_lunar_label.is_some());
+    // A concrete-day (流时) selection also exposes the typed run-limit lunar date.
+    assert!(snapshot.center.temporal_lunar_date.is_some());
 }
 
 #[test]
@@ -354,6 +376,9 @@ fn temporal_selection_changes_overlays_only_not_natal_facts() {
         center.nominal_age_label = None;
         center.temporal_lunar_label = None;
         center.temporal_solar_label = None;
+        center.nominal_age = None;
+        center.temporal_lunar_date = None;
+        center.temporal_lunar_year = None;
         center
     };
     assert_eq!(stable(&natal.center), stable(&decadal.center));

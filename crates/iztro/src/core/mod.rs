@@ -62,6 +62,7 @@ pub use model::chart::{
 pub use model::master::{body_master, soul_master};
 pub use model::nayin::{NaYinElement, nayin_element};
 pub use model::profile::{ChartAlgorithmKind, MethodProfile};
+pub use model::zodiac::{WesternZodiac, western_zodiac};
 pub use model::star::mutagen::{
     Mutagen, Scope, birth_year_major_star_mutagen, birth_year_star_mutagen,
 };
@@ -127,10 +128,10 @@ pub use facade::static_temporal_chart_view::{
 };
 
 pub use view::static_chart::{
-    HighlightView, StaticChartCenterView, StaticChartSelectorView, StaticChartViewRequest,
-    StaticChartViewSnapshot, StaticDecadalCellView, StaticDecorativeStarView,
-    StaticFourPillarsView, StaticNavigationCellView, StaticOverlayMutagenView, StaticPalaceRole,
-    StaticPalaceView, StaticPreDecadalCellView, StaticSurroundPalacesView,
-    StaticTemporalNavigationSelection, StaticTemporalOverlayView, StaticTemporalPanelView,
-    StaticTypedStarView, StaticYearlyAgeCellView,
+    HighlightView, LunarDateView, StaticChartCenterView, StaticChartSelectorView,
+    StaticChartViewRequest, StaticChartViewSnapshot, StaticDecadalCellView,
+    StaticDecorativeStarView, StaticFourPillarsView, StaticNavigationCellView,
+    StaticOverlayMutagenView, StaticPalaceRole, StaticPalaceView, StaticPreDecadalCellView,
+    StaticSurroundPalacesView, StaticTemporalNavigationSelection, StaticTemporalOverlayView,
+    StaticTemporalPanelView, StaticTypedStarView, StaticYearlyAgeCellView,
 };

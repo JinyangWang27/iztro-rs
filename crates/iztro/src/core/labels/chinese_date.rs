@@ -6,6 +6,8 @@
 //! (for example `一九九三年四月初七`, `酉时(17:00~19:00)`, `双子座`). They never
 //! perform calendar conversion themselves; callers supply the numeric facts.
 
+use crate::core::model::zodiac::{WesternZodiac, western_zodiac};
+
 /// Chinese digits used for digit-by-digit year rendering (`〇` for zero).
 const YEAR_DIGITS: [&str; 10] = ["〇", "一", "二", "三", "四", "五", "六", "七", "八", "九"];
 
@@ -111,21 +113,32 @@ pub fn birth_time_label(time_index: u8) -> String {
 
 /// Returns the Western constellation (星座) for a solar month and day, such as
 /// `双子座` for 27 May.
+///
+/// The sign boundaries live in the language-neutral
+/// [`western_zodiac`](crate::core::model::zodiac::western_zodiac); this is the
+/// Chinese display table for that enum.
 pub fn constellation_zh(solar_month: u8, solar_day: u8) -> &'static str {
-    match (solar_month, solar_day) {
-        (3, 21..=31) | (4, 1..=19) => "白羊座",
-        (4, 20..=30) | (5, 1..=20) => "金牛座",
-        (5, 21..=31) | (6, 1..=21) => "双子座",
-        (6, 22..=30) | (7, 1..=22) => "巨蟹座",
-        (7, 23..=31) | (8, 1..=22) => "狮子座",
-        (8, 23..=31) | (9, 1..=22) => "处女座",
-        (9, 23..=30) | (10, 1..=23) => "天秤座",
-        (10, 24..=31) | (11, 1..=22) => "天蝎座",
-        (11, 23..=30) | (12, 1..=21) => "射手座",
-        (12, 22..=31) | (1, 1..=19) => "摩羯座",
-        (1, 20..=31) | (2, 1..=18) => "水瓶座",
-        (2, 19..=29) | (3, 1..=20) => "双鱼座",
-        _ => "未知",
+    match western_zodiac(solar_month, solar_day) {
+        Some(sign) => western_zodiac_zh(sign),
+        None => "未知",
+    }
+}
+
+/// Returns the conventional Chinese label (星座) for a [`WesternZodiac`] sign.
+pub const fn western_zodiac_zh(sign: WesternZodiac) -> &'static str {
+    match sign {
+        WesternZodiac::Aries => "白羊座",
+        WesternZodiac::Taurus => "金牛座",
+        WesternZodiac::Gemini => "双子座",
+        WesternZodiac::Cancer => "巨蟹座",
+        WesternZodiac::Leo => "狮子座",
+        WesternZodiac::Virgo => "处女座",
+        WesternZodiac::Libra => "天秤座",
+        WesternZodiac::Scorpio => "天蝎座",
+        WesternZodiac::Sagittarius => "射手座",
+        WesternZodiac::Capricorn => "摩羯座",
+        WesternZodiac::Aquarius => "水瓶座",
+        WesternZodiac::Pisces => "双鱼座",
     }
 }
 

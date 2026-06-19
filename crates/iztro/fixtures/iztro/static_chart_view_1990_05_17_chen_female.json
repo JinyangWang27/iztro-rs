@@ -6,13 +6,21 @@
       "natal"
     ],
     "center": {
+      "birth_lunar_date": {
+        "day": 17,
+        "is_leap_month": false,
+        "month": 5,
+        "year": 1990
+      },
       "birth_lunar_label": "一九九〇年五月十七",
       "birth_solar_label": "",
+      "birth_time_index": 4,
       "birth_time_label": "辰时(07:00~09:00)",
       "birth_year_branch": "wu",
       "birth_year_branch_zh": "午",
       "birth_year_stem": "geng",
       "birth_year_stem_zh": "庚",
+      "body_master": "huo_xing",
       "body_master_zh": "火星",
       "body_palace_branch": "xu",
       "body_palace_branch_zh": "戌",
@@ -23,10 +31,15 @@
       "gender": "female",
       "life_palace_branch": "yin",
       "life_palace_branch_zh": "寅",
+      "nominal_age": null,
       "nominal_age_label": null,
+      "soul_master": "lu_cun",
       "soul_master_zh": "禄存",
+      "temporal_lunar_date": null,
       "temporal_lunar_label": null,
+      "temporal_lunar_year": null,
       "temporal_solar_label": null,
+      "western_zodiac": null,
       "zodiac_zh": "马"
     },
     "highlights": [],

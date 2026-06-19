@@ -38,7 +38,8 @@ pub use core::{
     HoroscopeYearlyDecorativeStarSupportedField, HoroscopeYearlyDecorativeSupportedFields,
     HoroscopeYearlySupportedFields, HourlyPeriod, KnownStarFamily, KnownStarMetadata,
     LifeBodyPalaceIndices, LunarBirthContext, LunarChartRequest, LunarChartRequestBuilder,
-    LunarDay, LunarMonth, MajorStarPlacementInput, MajorStarPlacementRef, MajorStarPlacer,
+    LunarDateView, LunarDay, LunarMonth, MajorStarPlacementInput, MajorStarPlacementRef,
+    MajorStarPlacer,
     MethodProfile, MinorStarPlacementInput, MinorStarPlacer, MonthlyPeriod, Mutagen,
     MutagenActivation, MutagenActivationSnapshot, NaYinElement, NatalChartInput,
     NatalChartWithMajorStarsInput, NatalChartWithSupportedStarsInput, NatalDateFacts,
@@ -55,7 +56,8 @@ pub use core::{
     StaticTemporalNavigationSelection, StaticTemporalOverlayView, StaticTemporalPanelView,
     StaticTypedStarView, StaticYearlyAgeCellView, StemBranch, TemporalContext, TemporalLayer,
     TemporalPalaceLayout, TemporalPalaceName, TypedStarSnapshot, VISUAL_BRANCH_ORDER,
-    YearlyMutagenLayerInput, YearlyPeriod, adjective_star_metadata, adjective_star_metadata_table,
+    WesternZodiac, YearlyMutagenLayerInput, YearlyPeriod, adjective_star_metadata,
+    adjective_star_metadata_table,
     birth_year_major_star_mutagen, birth_year_star_mutagen, body_master, build_age_horoscope_layer,
     build_age_period, build_daily_horoscope_layer, build_daily_period, build_decadal_frame,
     build_decadal_horoscope_chart, build_decadal_horoscope_layer, build_decadal_mutagen_layer,
@@ -72,7 +74,7 @@ pub use core::{
     static_temporal_chart_view, temporal_selection_for_local_moment,
     temporal_selection_for_solar_moment, tian_fu_branch, try_adjective_star_metadata,
     try_flow_star_parts, try_known_star_metadata, try_major_star_metadata, try_minor_star_metadata,
-    try_star_metadata, zi_wei_branch,
+    try_star_metadata, western_zodiac, zi_wei_branch,
 };
 pub use core::{
     PalaceRelation, PatternAnchor, PatternContext, PatternDetection, PatternDetectionRequest,
