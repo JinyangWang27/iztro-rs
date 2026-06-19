@@ -1,0 +1,33 @@
+//! Pattern (格局) detection: a read-only analytical layer over chart facts.
+//!
+//! This module recognizes classical Zi Wei Dou Shu patterns (格局) as
+//! **structured, explainable facts** over already-computed chart facts. It is an
+//! analytical layer, not a narrative one:
+//!
+//! - detection is **read-only** — it never mutates [`Chart`], palaces, star
+//!   placements, temporal layers, or mutagen activations;
+//! - detections are **not** narrative readings — they carry structured evidence
+//!   and conditions, never interpretive prose;
+//! - temporal facts remain **overlays** — a temporal [`PatternScope`] never folds
+//!   temporal placement into natal facts.
+//!
+//! The output is intended for downstream consumers (e.g. the GUI's
+//! `HighlightView` or a future static pattern view), which render the structured
+//! data without parsing prose.
+//!
+//! [`Chart`]: crate::core::Chart
+
+pub mod context;
+pub mod detector;
+pub mod model;
+pub mod query;
+pub mod relation;
+pub mod rules;
+
+pub use context::{PatternContext, PatternDetectionRequest};
+pub use detector::detect_patterns;
+pub use model::{
+    PatternAnchor, PatternCondition, PatternDetection, PatternEvidence, PatternFamily, PatternId,
+    PatternPolarity, PatternScope, PatternStatus, PatternStrength,
+};
+pub use relation::PalaceRelation;
