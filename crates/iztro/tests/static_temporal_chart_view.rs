@@ -159,8 +159,19 @@ fn every_palace_carries_a_decadal_age_range() {
     );
 }
 
+/// Counts, across all palaces, the overlays of `scope` whose `period_label_zh`
+/// marks the palace as that scope's period anchor.
+fn marker_count(snapshot: &iztro::core::StaticChartViewSnapshot, scope: Scope) -> usize {
+    snapshot
+        .palaces
+        .iter()
+        .flat_map(|p| p.overlays.iter())
+        .filter(|o| o.scope == scope && o.period_label_zh.is_some())
+        .count()
+}
+
 #[test]
-fn temporal_overlay_carries_a_period_label() {
+fn temporal_overlay_carries_a_period_label_only_on_the_marker_palace() {
     let snapshot = static_temporal_chart_view(
         spec_request(),
         StaticTemporalNavigationSelection::Yearly {
@@ -169,14 +180,105 @@ fn temporal_overlay_carries_a_period_label() {
         },
     )
     .unwrap();
-    let label = snapshot
+
+    // Exactly one palace carries the 流年 period marker.
+    let markers: Vec<_> = snapshot
         .palaces
         .iter()
         .flat_map(|p| p.overlays.iter())
-        .find(|o| o.scope == Scope::Yearly)
-        .and_then(|o| o.period_label_zh.clone())
-        .expect("流年 overlay carries a period label");
-    assert!(label.starts_with("流年·"), "got {label}");
+        .filter(|o| o.scope == Scope::Yearly && o.period_label_zh.is_some())
+        .collect();
+    assert_eq!(
+        markers.len(),
+        1,
+        "the 流年 marker sits on exactly one palace"
+    );
+    assert!(
+        markers[0]
+            .period_label_zh
+            .as_deref()
+            .unwrap()
+            .starts_with("流年·"),
+        "got {:?}",
+        markers[0].period_label_zh
+    );
+
+    // The 流年 overlay still attaches to multiple palaces (stars/mutagens),
+    // but only one of them is the marker.
+    let overlay_palaces = snapshot
+        .palaces
+        .iter()
+        .filter(|p| p.overlays.iter().any(|o| o.scope == Scope::Yearly))
+        .count();
+    assert!(
+        overlay_palaces > 1,
+        "the 流年 overlay spans more than one palace, but only one is a marker"
+    );
+}
+
+#[test]
+fn decadal_selection_marks_exactly_one_period_palace() {
+    let snapshot = static_temporal_chart_view(
+        spec_request(),
+        StaticTemporalNavigationSelection::Decadal { decadal_index: 1 },
+    )
+    .unwrap();
+    assert_eq!(marker_count(&snapshot, Scope::Decadal), 1);
+}
+
+#[test]
+fn yearly_selection_marks_exactly_one_period_palace() {
+    let snapshot = static_temporal_chart_view(
+        spec_request(),
+        StaticTemporalNavigationSelection::Yearly {
+            decadal_index: 1,
+            year_index: 0,
+        },
+    )
+    .unwrap();
+    assert_eq!(marker_count(&snapshot, Scope::Yearly), 1);
+}
+
+#[test]
+fn hourly_selection_marks_exactly_one_palace_per_active_scope() {
+    let snapshot = static_temporal_chart_view(
+        spec_request(),
+        StaticTemporalNavigationSelection::Hourly {
+            decadal_index: 1,
+            year_index: 0,
+            month_index: 0,
+            day_index: 0,
+            hour_index: 6,
+        },
+    )
+    .unwrap();
+
+    for scope in [
+        Scope::Decadal,
+        Scope::Age,
+        Scope::Yearly,
+        Scope::Monthly,
+        Scope::Daily,
+        Scope::Hourly,
+    ] {
+        assert_eq!(
+            marker_count(&snapshot, scope),
+            1,
+            "{scope:?} must mark exactly one palace"
+        );
+    }
+
+    // Regression: no active temporal scope may stamp a marker on all 12 palaces.
+    assert!(
+        snapshot
+            .palaces
+            .iter()
+            .flat_map(|p| p.overlays.iter())
+            .filter(|o| o.period_label_zh.is_some())
+            .count()
+            < snapshot.palaces.len(),
+        "period markers must never appear on every palace"
+    );
 }
 
 #[test]

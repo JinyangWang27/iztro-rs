@@ -17,8 +17,8 @@ use crate::core::model::calendar::{CalendarKind, Gender};
 use crate::core::model::chart::{
     Chart, DecadalFrame, DecadalPeriod, DecorativeStarFamily, DecorativeStarPlacement,
     HoroscopeChart, MutagenActivation, PALACE_COUNT, Palace, PalaceGridPosition, PalaceName,
-    StarPlacement, TemporalLayer, VISUAL_BRANCH_ORDER, build_age_period, build_decadal_frame,
-    palace_grid_position,
+    StarPlacement, TemporalLayer, TemporalPalaceName, VISUAL_BRANCH_ORDER, build_age_period,
+    build_decadal_frame, palace_grid_position,
 };
 use crate::core::model::master::{body_master, soul_master};
 use crate::core::model::star::mutagen::Scope;
@@ -1200,11 +1200,17 @@ impl StaticTemporalOverlayView {
             .map(StaticOverlayMutagenView::from_activation)
             .collect();
 
-        let period_label_zh = Some(format!(
-            "{}·{}",
-            zh_cn::scope_zh(layer.scope()),
-            zh_cn::heavenly_stem_zh(layer.context().stem_branch().stem())
-        ));
+        // A period's compact badge belongs only on its anchor palace — the branch
+        // the period relabels as 命宫 (Life). Every other branch carries the
+        // overlay's stars/mutagens but no period marker, so `period_label_zh`
+        // stays `None` there.
+        let period_label_zh = (period_marker_branch(layer) == Some(branch)).then(|| {
+            format!(
+                "{}·{}",
+                zh_cn::scope_zh(layer.scope()),
+                zh_cn::heavenly_stem_zh(layer.context().stem_branch().stem())
+            )
+        });
 
         Self {
             scope: layer.scope(),
@@ -1217,6 +1223,22 @@ impl StaticTemporalOverlayView {
             mutagens,
         }
     }
+}
+
+/// Returns the branch of the palace that should display a temporal layer's
+/// compact period badge: the period's anchor palace, i.e. the branch the
+/// period's palace layout relabels as 命宫 ([`PalaceName::Life`]).
+///
+/// This is the single core decision of which palace is a period marker; the GUI
+/// renders a badge only where this yields the overlay's branch. Returns `None`
+/// when the layer carries no palace layout, so no badge is shown for it.
+fn period_marker_branch(layer: &TemporalLayer) -> Option<EarthlyBranch> {
+    layer
+        .palace_layout()?
+        .names()
+        .iter()
+        .find(|name| name.palace_name() == PalaceName::Life)
+        .map(TemporalPalaceName::branch)
 }
 
 /// Returns the scopes present in a horoscope chart, including [`Scope::Natal`],

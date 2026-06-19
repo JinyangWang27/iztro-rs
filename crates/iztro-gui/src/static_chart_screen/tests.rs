@@ -258,3 +258,30 @@ fn period_badge_label_comes_from_prepared_overlay_field() {
         .expect("a prepared period label");
     assert!(label.contains('·'), "got {label}");
 }
+
+#[test]
+fn palace_badges_are_gated_on_prepared_period_label_only() {
+    let source = include_str!("palace.rs");
+
+    // The badge row is built only from overlays whose `period_label_zh` is set;
+    // non-marker overlays (and their temporal palace-name metadata) never yield
+    // a badge.
+    assert!(source.contains("overlay.period_label_zh.as_deref()"));
+    assert!(
+        !source.contains("temporal_palace_name_zh"),
+        "the GUI must not derive a badge from temporal palace-name metadata"
+    );
+}
+
+#[test]
+fn period_badge_takes_a_prepared_label_not_an_overlay() {
+    let source = include_str!("temporal.rs");
+
+    // `period_badge` renders the core-prepared label string directly; it no
+    // longer inspects an overlay or falls back to `temporal_palace_name_zh`.
+    assert!(source.contains("pub(super) fn period_badge(\n    label: &str,"));
+    assert!(
+        !source.contains("temporal_palace_name_zh"),
+        "the badge renderer must not fall back to temporal palace-name metadata"
+    );
+}

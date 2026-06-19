@@ -1,27 +1,27 @@
 use iced::widget::{button, column, container, row, text};
 use iced::{Alignment, Element};
-use iztro::core::{EarthlyBranch, StaticTemporalNavigationSelection, StaticTemporalOverlayView};
+use iztro::core::{EarthlyBranch, StaticTemporalNavigationSelection};
 
 use crate::app::{Message, StepDirection, TemporalUnit};
 
 use super::style::{period_badge_button_style, stepper_button_style, temporal_cell_style};
 
-/// Renders the compact temporal badges for one palace overlay, iztro-style:
-/// a single clickable `MAJOR_PURPLE` label such as `流年·丁`. Clicking it makes
-/// this palace branch the active 三方四正 source.
+/// Renders one compact temporal period badge, iztro-style: a single clickable
+/// `MAJOR_PURPLE` label such as `流年·丁`. Clicking it makes this palace branch
+/// the active 三方四正 source.
+///
+/// The caller passes the prepared `label` only for overlays core marked as the
+/// period's anchor palace (`period_label_zh.is_some()`); the GUI never derives a
+/// label from temporal palace-name metadata or branch arithmetic.
 ///
 /// `is_source` is `true` when this palace is the active selection, which gives
 /// the badge the stronger filled styling.
 pub(super) fn period_badge(
-    overlay: &StaticTemporalOverlayView,
+    label: &str,
     branch: EarthlyBranch,
     is_source: bool,
 ) -> Element<'_, Message> {
-    let label = overlay
-        .period_label_zh
-        .clone()
-        .unwrap_or_else(|| overlay.temporal_palace_name_zh.clone().unwrap_or_default());
-    button(text(label).size(10))
+    button(text(label.to_owned()).size(10))
         .on_press(Message::SelectPalace(branch))
         .padding([1, 4])
         .style(move |_theme, _status| period_badge_button_style(is_source))

@@ -129,12 +129,18 @@ pub(super) fn palace_cell(
     let mut content = column![star_area].spacing(3);
 
     // 流年/流月/流日/流时 badges sit above the 大限/小限 middle area.
+    // Only overlays core marked as a period anchor (`period_label_zh.is_some()`)
+    // get a badge; non-marker palaces carry the overlay's stars but no badge.
     let is_source = matches!(highlight, PalaceHighlight::Selected);
-    if !palace.overlays.is_empty() {
-        let mut badges = row![].spacing(3);
-        for overlay in &palace.overlays {
-            badges = badges.push(period_badge(overlay, palace.branch, is_source));
+    let mut badges = row![].spacing(3);
+    let mut has_badge = false;
+    for overlay in &palace.overlays {
+        if let Some(label) = overlay.period_label_zh.as_deref() {
+            badges = badges.push(period_badge(label, palace.branch, is_source));
+            has_badge = true;
         }
+    }
+    if has_badge {
         content = content.push(badges);
     }
 
