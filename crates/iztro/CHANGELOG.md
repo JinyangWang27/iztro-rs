@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0](https://github.com/JinyangWang27/iztro-rs/compare/v0.7.0...v0.8.0) - 2026-06-19
+
+### Added
+
+- *(core)* prepare iztro-style center, palace-limit, and temporal labels ([#87](https://github.com/JinyangWang27/iztro-rs/pull/87))
+
+### Other
+
+- Address PR #90 review: scope filtering, rule guards, evidence clarity
+- Add read-only pattern (格局) detection layer
+
 ## [0.7.0](https://github.com/JinyangWang27/iztro-rs/compare/v0.6.0...v0.7.0) - 2026-06-18
 
 ### Added
