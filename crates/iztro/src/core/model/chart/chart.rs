@@ -3,6 +3,7 @@ use crate::core::{
     model::{
         bureau::FiveElementBureau,
         calendar::BirthContext,
+        chart::horoscope::{HoroscopeLunarDate, HoroscopeSolarDate},
         chart::palace::PalaceName,
         chart::snapshot::ChartStackSnapshot,
         profile::MethodProfile,
@@ -29,6 +30,41 @@ pub struct Chart {
     palaces: Vec<Palace>,
     body_palace_branch: Option<EarthlyBranch>,
     five_element_bureau: Option<FiveElementBureau>,
+    /// Retained natal solar/lunar display dates, when the facade could derive
+    /// both (currently only the solar facade). Skipped when absent so charts
+    /// built without them serialize unchanged.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    natal_date_facts: Option<NatalDateFacts>,
+}
+
+/// Retained natal display dates: the original Gregorian/solar date and the
+/// converted Chinese lunisolar date.
+///
+/// These are presentation facts: the canonical chart-generation inputs remain
+/// the [`BirthContext`] and birth-year stem-branch. They are retained because a
+/// solar-input chart otherwise loses its original Gregorian date once it is
+/// converted to lunar facts for star placement.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct NatalDateFacts {
+    solar: HoroscopeSolarDate,
+    lunar: HoroscopeLunarDate,
+}
+
+impl NatalDateFacts {
+    /// Creates retained natal display dates.
+    pub const fn new(solar: HoroscopeSolarDate, lunar: HoroscopeLunarDate) -> Self {
+        Self { solar, lunar }
+    }
+
+    /// Returns the original Gregorian/solar natal date.
+    pub const fn solar(&self) -> HoroscopeSolarDate {
+        self.solar
+    }
+
+    /// Returns the converted Chinese lunisolar natal date.
+    pub const fn lunar(&self) -> HoroscopeLunarDate {
+        self.lunar
+    }
 }
 
 impl Chart {
@@ -86,7 +122,19 @@ impl Chart {
             palaces,
             body_palace_branch,
             five_element_bureau,
+            natal_date_facts: None,
         })
+    }
+
+    /// Returns this chart with retained natal solar/lunar display dates attached.
+    pub fn with_natal_date_facts(mut self, facts: NatalDateFacts) -> Self {
+        self.natal_date_facts = Some(facts);
+        self
+    }
+
+    /// Returns the retained natal solar/lunar display dates, if attached.
+    pub const fn natal_date_facts(&self) -> Option<&NatalDateFacts> {
+        self.natal_date_facts.as_ref()
     }
 
     /// Returns the birth context used by this chart.

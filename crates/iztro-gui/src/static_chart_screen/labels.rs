@@ -2,43 +2,21 @@ use std::fmt;
 
 use iced::Element;
 use iced::widget::text;
-use iztro::core::{Gender, Scope, StaticChartCenterView, StaticTypedStarView};
+use iztro::core::{Gender, StaticChartCenterView};
 
 use crate::app::Message;
 
 use super::style::section_title_style;
 
-pub(super) fn star_detail_label(star: &StaticTypedStarView) -> String {
-    match (&star.brightness_zh.is_empty(), star.mutagen_zh.as_deref()) {
-        (false, Some(mutagen)) => format!("{}{}{}", star.name_zh, star.brightness_zh, mutagen),
-        (false, None) => format!("{}{}", star.name_zh, star.brightness_zh),
-        (true, Some(mutagen)) => format!("{}{}", star.name_zh, mutagen),
-        (true, None) => star.name_zh.clone(),
-    }
-}
-
-pub(super) fn center_four_pillar_rows(
-    center: &StaticChartCenterView,
-) -> Vec<(&'static str, String)> {
-    center
-        .four_pillars
-        .as_ref()
-        .map(|pillars| {
-            vec![
-                ("年柱", pillars.yearly_zh.clone()),
-                ("月柱", pillars.monthly_zh.clone()),
-                ("日柱", pillars.daily_zh.clone()),
-                ("时柱", pillars.hourly_zh.clone()),
-            ]
-        })
-        .unwrap_or_default()
-}
-
-pub(super) fn bureau_label(center: &StaticChartCenterView) -> String {
-    center
-        .five_element_bureau
-        .map(|bureau| format!("{bureau:?}"))
-        .unwrap_or_else(|| "未提供".to_string())
+/// The single-row 四柱 label, such as `癸酉 丁巳 戊申 辛酉`, joined from the
+/// prepared pillar labels. `None` when the chart carries no four pillars.
+pub(super) fn four_pillars_line(center: &StaticChartCenterView) -> Option<String> {
+    center.four_pillars.as_ref().map(|pillars| {
+        format!(
+            "{} {} {} {}",
+            pillars.yearly_zh, pillars.monthly_zh, pillars.daily_zh, pillars.hourly_zh
+        )
+    })
 }
 
 pub(super) fn fact_row<'a>(label: &'a str, value: impl Into<String>) -> Element<'a, Message> {
@@ -53,6 +31,14 @@ pub(super) fn gender_zh(gender: Gender) -> &'static str {
     match gender {
         Gender::Female => "女",
         Gender::Male => "男",
+    }
+}
+
+/// The gender symbol shown before `基本信息` (`♂` male / `♀` female).
+pub(super) fn gender_symbol(gender: Gender) -> &'static str {
+    match gender {
+        Gender::Female => "♀",
+        Gender::Male => "♂",
     }
 }
 
@@ -73,18 +59,6 @@ pub(super) fn hour_branch_zh(time_index: u8) -> &'static str {
         11 => "亥时",
         12 => "晚子时",
         _ => "未知",
-    }
-}
-
-pub(super) fn scope_zh(scope: Scope) -> &'static str {
-    match scope {
-        Scope::Natal => "本命",
-        Scope::Decadal => "大限",
-        Scope::Age => "小限",
-        Scope::Yearly => "流年",
-        Scope::Monthly => "流月",
-        Scope::Daily => "流日",
-        Scope::Hourly => "流时",
     }
 }
 

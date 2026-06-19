@@ -12,4 +12,5 @@
 //! snapshots. Full multilingual support and complete upstream localized-string
 //! parity are deferred.
 
+pub mod chinese_date;
 pub mod zh_cn;

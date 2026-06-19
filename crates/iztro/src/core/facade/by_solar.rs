@@ -10,7 +10,7 @@ use crate::core::calendar::solar_to_lunar;
 use crate::core::error::ChartError;
 use crate::core::facade::by_lunar::{LunarChartRequest, by_lunar};
 use crate::core::model::calendar::{BirthTime, Gender, SolarDay, SolarMonth};
-use crate::core::model::chart::Chart;
+use crate::core::model::chart::{Chart, HoroscopeLunarDate, HoroscopeSolarDate, NatalDateFacts};
 use crate::core::model::profile::MethodProfile;
 use lunar_lite::EarthlyBranch;
 
@@ -212,7 +212,20 @@ pub fn by_solar(request: SolarChartRequest) -> Result<Chart, ChartError> {
         .build()?;
 
     let chart = by_lunar(lunar_request)?;
-    Chart::try_new_with_four_pillars(
+    let natal_dates = NatalDateFacts::new(
+        HoroscopeSolarDate::new(
+            request.solar_year(),
+            request.solar_month().value(),
+            request.solar_day().value(),
+        ),
+        HoroscopeLunarDate::new(
+            conversion.lunar_year(),
+            conversion.lunar_month().value(),
+            conversion.lunar_day().value(),
+            conversion.is_leap_month(),
+        ),
+    );
+    Ok(Chart::try_new_with_four_pillars(
         chart.birth_context().clone(),
         chart.birth_year(),
         Some(conversion.four_pillars()),
@@ -220,5 +233,6 @@ pub fn by_solar(request: SolarChartRequest) -> Result<Chart, ChartError> {
         chart.palaces().to_vec(),
         chart.body_palace_branch(),
         chart.five_element_bureau(),
-    )
+    )?
+    .with_natal_date_facts(natal_dates))
 }

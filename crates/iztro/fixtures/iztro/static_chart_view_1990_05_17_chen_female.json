@@ -6,17 +6,28 @@
       "natal"
     ],
     "center": {
+      "birth_lunar_label": "一九九〇年五月十七",
+      "birth_solar_label": "",
+      "birth_time_label": "辰时(07:00~09:00)",
       "birth_year_branch": "wu",
       "birth_year_branch_zh": "午",
       "birth_year_stem": "geng",
       "birth_year_stem_zh": "庚",
+      "body_master_zh": "火星",
       "body_palace_branch": "xu",
       "body_palace_branch_zh": "戌",
+      "constellation_zh": "",
       "five_element_bureau": "earth5",
+      "five_element_bureau_zh": "土五局",
       "four_pillars": null,
       "gender": "female",
       "life_palace_branch": "yin",
-      "life_palace_branch_zh": "寅"
+      "life_palace_branch_zh": "寅",
+      "nominal_age_label": null,
+      "soul_master_zh": "禄存",
+      "temporal_lunar_label": null,
+      "temporal_solar_label": null,
+      "zodiac_zh": "马"
     },
     "highlights": [],
     "palaces": [
@@ -92,6 +103,22 @@
           "row": 0
         },
         "highlights": [],
+        "limit": {
+          "decadal_age_range_zh": "95-104",
+          "is_active_decadal": false,
+          "small_limit_ages_zh": [
+            "12",
+            "24",
+            "36",
+            "48",
+            "60",
+            "72",
+            "84",
+            "96",
+            "108",
+            "120"
+          ]
+        },
         "major_stars": [
           {
             "brightness": "prosperous",
@@ -222,6 +249,22 @@
           "row": 0
         },
         "highlights": [],
+        "limit": {
+          "decadal_age_range_zh": "85-94",
+          "is_active_decadal": false,
+          "small_limit_ages_zh": [
+            "11",
+            "23",
+            "35",
+            "47",
+            "59",
+            "71",
+            "83",
+            "95",
+            "107",
+            "119"
+          ]
+        },
         "major_stars": [
           {
             "brightness": "flat",
@@ -376,6 +419,22 @@
           "row": 0
         },
         "highlights": [],
+        "limit": {
+          "decadal_age_range_zh": "75-84",
+          "is_active_decadal": false,
+          "small_limit_ages_zh": [
+            "10",
+            "22",
+            "34",
+            "46",
+            "58",
+            "70",
+            "82",
+            "94",
+            "106",
+            "118"
+          ]
+        },
         "major_stars": [
           {
             "brightness": "prosperous",
@@ -518,6 +577,22 @@
           "row": 0
         },
         "highlights": [],
+        "limit": {
+          "decadal_age_range_zh": "65-74",
+          "is_active_decadal": false,
+          "small_limit_ages_zh": [
+            "9",
+            "21",
+            "33",
+            "45",
+            "57",
+            "69",
+            "81",
+            "93",
+            "105",
+            "117"
+          ]
+        },
         "major_stars": [
           {
             "brightness": "temple",
@@ -684,6 +759,22 @@
           "row": 1
         },
         "highlights": [],
+        "limit": {
+          "decadal_age_range_zh": "105-114",
+          "is_active_decadal": false,
+          "small_limit_ages_zh": [
+            "1",
+            "13",
+            "25",
+            "37",
+            "49",
+            "61",
+            "73",
+            "85",
+            "97",
+            "109"
+          ]
+        },
         "major_stars": [
           {
             "brightness": "temple",
@@ -789,6 +880,22 @@
           "row": 1
         },
         "highlights": [],
+        "limit": {
+          "decadal_age_range_zh": "55-64",
+          "is_active_decadal": false,
+          "small_limit_ages_zh": [
+            "8",
+            "20",
+            "32",
+            "44",
+            "56",
+            "68",
+            "80",
+            "92",
+            "104",
+            "116"
+          ]
+        },
         "major_stars": [
           {
             "brightness": "flat",
@@ -907,6 +1014,22 @@
           "row": 2
         },
         "highlights": [],
+        "limit": {
+          "decadal_age_range_zh": "115-124",
+          "is_active_decadal": false,
+          "small_limit_ages_zh": [
+            "2",
+            "14",
+            "26",
+            "38",
+            "50",
+            "62",
+            "74",
+            "86",
+            "98",
+            "110"
+          ]
+        },
         "major_stars": [
           {
             "brightness": "trapped",
@@ -1037,6 +1160,22 @@
           "row": 2
         },
         "highlights": [],
+        "limit": {
+          "decadal_age_range_zh": "45-54",
+          "is_active_decadal": false,
+          "small_limit_ages_zh": [
+            "7",
+            "19",
+            "31",
+            "43",
+            "55",
+            "67",
+            "79",
+            "91",
+            "103",
+            "115"
+          ]
+        },
         "major_stars": [
           {
             "brightness": "temple",
@@ -1145,6 +1284,22 @@
           "row": 3
         },
         "highlights": [],
+        "limit": {
+          "decadal_age_range_zh": "5-14",
+          "is_active_decadal": false,
+          "small_limit_ages_zh": [
+            "3",
+            "15",
+            "27",
+            "39",
+            "51",
+            "63",
+            "75",
+            "87",
+            "99",
+            "111"
+          ]
+        },
         "major_stars": [
           {
             "brightness": "prosperous",
@@ -1238,6 +1393,22 @@
           "row": 3
         },
         "highlights": [],
+        "limit": {
+          "decadal_age_range_zh": "15-24",
+          "is_active_decadal": false,
+          "small_limit_ages_zh": [
+            "4",
+            "16",
+            "28",
+            "40",
+            "52",
+            "64",
+            "76",
+            "88",
+            "100",
+            "112"
+          ]
+        },
         "major_stars": [
           {
             "brightness": "trapped",
@@ -1368,6 +1539,22 @@
           "row": 3
         },
         "highlights": [],
+        "limit": {
+          "decadal_age_range_zh": "25-34",
+          "is_active_decadal": false,
+          "small_limit_ages_zh": [
+            "5",
+            "17",
+            "29",
+            "41",
+            "53",
+            "65",
+            "77",
+            "89",
+            "101",
+            "113"
+          ]
+        },
         "major_stars": [
           {
             "brightness": "temple",
@@ -1473,6 +1660,22 @@
           "row": 3
         },
         "highlights": [],
+        "limit": {
+          "decadal_age_range_zh": "35-44",
+          "is_active_decadal": false,
+          "small_limit_ages_zh": [
+            "6",
+            "18",
+            "30",
+            "42",
+            "54",
+            "66",
+            "78",
+            "90",
+            "102",
+            "114"
+          ]
+        },
         "major_stars": [
           {
             "brightness": "trapped",

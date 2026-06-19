@@ -1,9 +1,7 @@
 use crate::app::StaticChartApp;
-use iztro::core::{
-    DecorativeStarFamily, FiveElementBureau, Mutagen, Scope, StarCategory, StarKind,
-};
+use iztro::core::{DecorativeStarFamily, Gender, Mutagen, StarCategory, StarKind};
 
-use super::labels::{bureau_label, center_four_pillar_rows, scope_zh, star_detail_label};
+use super::labels::{four_pillars_line, gender_symbol};
 use super::palace::{PalaceHighlight, StaticStarTone, star_tone};
 use super::style::{DECOR_GOD_OLIVE, MINOR_MALEFIC, mutagen_badge_color, rgb8};
 
@@ -39,46 +37,86 @@ fn sample_typed_star() -> iztro::core::StaticTypedStarView {
 }
 
 #[test]
-fn center_four_pillar_rows_use_available_zh_labels() {
-    let center = sample_center();
-    let rows = center_four_pillar_rows(&center);
+fn chart_screen_pins_a_minimum_size_and_scrolls_when_smaller() {
+    let source = include_str!("chart.rs");
 
-    assert_eq!(rows.len(), 4);
-    assert_eq!(rows[0].0, "年柱");
-    assert_eq!(rows[1].0, "月柱");
-    assert_eq!(rows[2].0, "日柱");
-    assert_eq!(rows[3].0, "时柱");
-    assert!(rows.iter().all(|(_, value)| !value.is_empty()));
+    // The grid + overlay stack is pinned to the fixed minimum chart size, not
+    // Length::Fill, so a small window cannot squeeze it below legibility.
+    assert!(source.contains("Length::Fixed(MIN_CHART_WIDTH)"));
+    assert!(source.contains("Length::Fixed(MIN_CHART_HEIGHT)"));
+    // A scrollable wrapper lets a smaller window scroll instead of shrinking.
+    assert!(source.contains("scrollable(grid)"));
+    assert!(source.contains("scrollable::Direction::Both"));
 }
 
 #[test]
-fn center_four_pillar_rows_are_empty_when_unavailable() {
+fn palace_grid_layout_constants_exist_and_derive_the_chart_size() {
+    use super::chart::{
+        MIN_CHART_HEIGHT, MIN_CHART_WIDTH, MIN_PALACE_CELL_HEIGHT, MIN_PALACE_CELL_WIDTH,
+    };
+
+    // Per-cell minimums keep palace text legible, and the whole 4x4 canvas
+    // minimum is derived from them (four columns wide, four rows tall).
+    const {
+        assert!(MIN_PALACE_CELL_WIDTH > 0.0);
+        assert!(MIN_PALACE_CELL_HEIGHT > 0.0);
+        assert!(MIN_CHART_WIDTH == MIN_PALACE_CELL_WIDTH * 4.0);
+        assert!(MIN_CHART_HEIGHT == MIN_PALACE_CELL_HEIGHT * 4.0);
+    }
+}
+
+#[test]
+fn window_sets_a_minimum_size_to_complement_chart_scrolling() {
+    let source = include_str!("../lib.rs");
+
+    assert!(source.contains("min_size: Some("));
+}
+
+#[test]
+fn four_pillars_line_joins_prepared_pillar_labels() {
+    let center = sample_center();
+    let line = four_pillars_line(&center).expect("four pillars present");
+    // One row of four space-separated stem-branch pairs, not four labeled rows.
+    assert_eq!(line.split(' ').count(), 4);
+    assert!(!line.contains('年') && !line.contains('柱'));
+}
+
+#[test]
+fn four_pillars_line_is_none_when_unavailable() {
     let mut center = sample_center();
     center.four_pillars = None;
-
-    assert!(center_four_pillar_rows(&center).is_empty());
+    assert!(four_pillars_line(&center).is_none());
 }
 
 #[test]
-fn bureau_label_handles_available_and_missing_values() {
-    let mut center = sample_center();
-
-    center.five_element_bureau = Some(FiveElementBureau::Fire6);
-    assert_eq!(bureau_label(&center), "Fire6");
-
-    center.five_element_bureau = None;
-    assert_eq!(bureau_label(&center), "未提供");
+fn gender_symbol_uses_mars_and_venus_glyphs() {
+    assert_eq!(gender_symbol(Gender::Male), "♂");
+    assert_eq!(gender_symbol(Gender::Female), "♀");
 }
 
 #[test]
-fn scope_labels_cover_every_supported_scope() {
-    assert_eq!(scope_zh(Scope::Natal), "本命");
-    assert_eq!(scope_zh(Scope::Decadal), "大限");
-    assert_eq!(scope_zh(Scope::Age), "小限");
-    assert_eq!(scope_zh(Scope::Yearly), "流年");
-    assert_eq!(scope_zh(Scope::Monthly), "流月");
-    assert_eq!(scope_zh(Scope::Daily), "流日");
-    assert_eq!(scope_zh(Scope::Hourly), "流时");
+fn bureau_label_is_a_prepared_chinese_core_field() {
+    // The GUI no longer Debug-formats the bureau; it reads the prepared label.
+    let center = sample_center();
+    let label = center
+        .five_element_bureau_zh
+        .as_deref()
+        .expect("prepared bureau label");
+    assert!(label.ends_with('局'), "got {label}");
+}
+
+#[test]
+fn basic_information_uses_two_alternating_columns() {
+    let source = include_str!("palace.rs");
+
+    assert!(source.contains("row![basic_left, basic_right]"));
+    assert!(
+        source.contains("let basic_left = column![\n        fact_row(\n            \"五行局\"")
+    );
+    assert!(
+        source
+            .contains("let basic_right = column![\n        fact_row(\n            \"年龄(虚岁)\"")
+    );
 }
 
 /// A typed star carrying only the field that drives visual classification.
@@ -216,21 +254,70 @@ fn palace_highlight_is_disjoint_between_selected_and_related() {
 }
 
 #[test]
-fn star_detail_label_covers_brightness_and_mutagen_combinations() {
-    let mut star = sample_typed_star();
-    star.name_zh = "测试星".to_owned();
+fn period_badge_label_comes_from_prepared_overlay_field() {
+    use iztro::core::{StaticTemporalNavigationSelection, static_temporal_chart_view};
 
-    star.brightness_zh = "庙".to_owned();
-    star.mutagen_zh = Some("化禄".to_owned());
-    assert_eq!(star_detail_label(&star), "测试星庙化禄");
+    // A 流年 selection attaches an overlay whose compact badge label is prepared
+    // by core (e.g. `流年·丁`); the GUI renders it verbatim.
+    let request = {
+        use iztro::core::{
+            BirthTime, ChartAlgorithmKind, Gender, MethodProfile, SolarChartRequest, SolarDay,
+            SolarMonth,
+        };
+        SolarChartRequest::builder()
+            .solar_year(1993)
+            .solar_month(SolarMonth::new(5).unwrap())
+            .solar_day(SolarDay::new(27).unwrap())
+            .birth_time_variant(BirthTime::from_iztro_time_index(9).unwrap())
+            .gender(Gender::Male)
+            .method_profile(MethodProfile::new(
+                "iztro_gui_test",
+                ChartAlgorithmKind::QuanShu,
+                "period badge label test",
+            ))
+            .build()
+            .unwrap()
+    };
+    let snapshot = static_temporal_chart_view(
+        request,
+        StaticTemporalNavigationSelection::Yearly {
+            decadal_index: 1,
+            year_index: 0,
+        },
+    )
+    .unwrap();
+    let label = snapshot
+        .palaces
+        .iter()
+        .flat_map(|p| p.overlays.iter())
+        .find_map(|o| o.period_label_zh.clone())
+        .expect("a prepared period label");
+    assert!(label.contains('·'), "got {label}");
+}
 
-    star.mutagen_zh = None;
-    assert_eq!(star_detail_label(&star), "测试星庙");
+#[test]
+fn palace_badges_are_gated_on_prepared_period_label_only() {
+    let source = include_str!("palace.rs");
 
-    star.brightness_zh.clear();
-    star.mutagen_zh = Some("化忌".to_owned());
-    assert_eq!(star_detail_label(&star), "测试星化忌");
+    // The badge row is built only from overlays whose `period_label_zh` is set;
+    // non-marker overlays (and their temporal palace-name metadata) never yield
+    // a badge.
+    assert!(source.contains("overlay.period_label_zh.as_deref()"));
+    assert!(
+        !source.contains("temporal_palace_name_zh"),
+        "the GUI must not derive a badge from temporal palace-name metadata"
+    );
+}
 
-    star.mutagen_zh = None;
-    assert_eq!(star_detail_label(&star), "测试星");
+#[test]
+fn period_badge_takes_a_prepared_label_not_an_overlay() {
+    let source = include_str!("temporal.rs");
+
+    // `period_badge` renders the core-prepared label string directly; it no
+    // longer inspects an overlay or falls back to `temporal_palace_name_zh`.
+    assert!(source.contains("pub(super) fn period_badge(\n    label: &str,"));
+    assert!(
+        !source.contains("temporal_palace_name_zh"),
+        "the badge renderer must not fall back to temporal palace-name metadata"
+    );
 }

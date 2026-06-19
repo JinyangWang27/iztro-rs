@@ -4,15 +4,18 @@
 //! a left palace column, a center panel spanning the middle 2x2, and a right
 //! palace column, then a bottom row of four palaces — placed by each palace's
 //! fixed `grid_position`. A startup screen carries the solar birth-input bar and
-//! the saved-charts list; the chart screen adds a 三方四正 highlight toggle, a
-//! clickable temporal navigation panel, and 科权禄忌 badges. This module only
-//! reads prepared snapshot view models; it performs no astrology placement,
-//! 三方四正, mutagen, rule evaluation, or 成格 derivation.
+//! the saved-charts list. The chart screen follows the original iztro layout: an
+//! iztro-style center information block with a compact temporal stepper, 大限/小限
+//! limits and 流年/流月/流日/流时 badges in each palace, and a transparent canvas
+//! overlay drawing the 三方四正 connecting lines. This module only reads prepared
+//! snapshot view models; it performs no astrology placement, 三方四正, mutagen,
+//! rule evaluation, or 成格 derivation.
 //!
 //! [`StaticChartViewSnapshot`]: iztro::core::StaticChartViewSnapshot
 
 mod chart;
 mod labels;
+mod lines;
 mod palace;
 mod startup;
 mod style;

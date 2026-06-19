@@ -8,7 +8,8 @@
 
 use iztro::core::{
     BirthTime, ChartAlgorithmKind, ChartError, Gender, MethodProfile, Scope, SolarChartRequest,
-    SolarDay, SolarMonth, StaticTemporalNavigationSelection, static_temporal_chart_view,
+    SolarDay, SolarMonth, StaticTemporalNavigationSelection, by_solar, static_temporal_chart_view,
+    temporal_selection_for_local_moment,
 };
 
 fn sample_request() -> SolarChartRequest {
@@ -25,6 +26,259 @@ fn sample_request() -> SolarChartRequest {
         ))
         .build()
         .unwrap()
+}
+
+/// The spec reference birth data: solar 1993-05-27, 酉 hour (timeIndex 9), male.
+fn spec_request() -> SolarChartRequest {
+    SolarChartRequest::builder()
+        .solar_year(1993)
+        .solar_month(SolarMonth::new(5).unwrap())
+        .solar_day(SolarDay::new(27).unwrap())
+        .birth_time_variant(BirthTime::from_iztro_time_index(9).unwrap())
+        .gender(Gender::Male)
+        .method_profile(MethodProfile::new(
+            "iztro_test",
+            ChartAlgorithmKind::QuanShu,
+            "static temporal chart view spec test",
+        ))
+        .build()
+        .unwrap()
+}
+
+#[test]
+fn center_carries_prepared_iztro_style_natal_labels() {
+    let center =
+        static_temporal_chart_view(spec_request(), StaticTemporalNavigationSelection::Natal)
+            .unwrap()
+            .center;
+
+    assert_eq!(center.five_element_bureau_zh.as_deref(), Some("木三局"));
+    assert_eq!(center.birth_solar_label, "1993-05-27");
+    assert_eq!(center.birth_lunar_label, "一九九三年四月初七");
+    assert_eq!(center.birth_time_label, "酉时(17:00~19:00)");
+    assert_eq!(center.zodiac_zh, "鸡");
+    assert_eq!(center.constellation_zh, "双子座");
+    assert!(center.soul_master_zh.is_some(), "命主 should be prepared");
+    assert!(center.body_master_zh.is_some(), "身主 should be prepared");
+}
+
+#[test]
+fn nominal_age_and_run_xian_dates_update_with_navigation() {
+    let natal =
+        static_temporal_chart_view(spec_request(), StaticTemporalNavigationSelection::Natal)
+            .unwrap();
+    assert!(natal.center.nominal_age_label.is_none());
+    assert!(natal.center.temporal_solar_label.is_none());
+
+    // Resolve "today" → a Hourly selection, then render it.
+    let chart = by_solar(spec_request()).unwrap();
+    let selection = temporal_selection_for_local_moment(&chart, 2008, 2, 10, 10, 0).unwrap();
+    let snapshot = static_temporal_chart_view(spec_request(), selection).unwrap();
+
+    // 2008 is the nominal 16th year for a 1993 birth (虚岁).
+    assert_eq!(snapshot.center.nominal_age_label.as_deref(), Some("16 岁"));
+    assert_eq!(
+        snapshot.center.temporal_solar_label.as_deref(),
+        Some("2008-2-10"),
+        "运限阳历 should use iztro-style unpadded month/day"
+    );
+    assert!(snapshot.center.temporal_lunar_label.is_some());
+}
+
+#[test]
+fn today_at_23_preserves_late_zi_time_index_and_selects_the_zi_cell() {
+    let chart = by_solar(spec_request()).unwrap();
+    let selection = temporal_selection_for_local_moment(&chart, 2008, 2, 10, 23, 30).unwrap();
+
+    assert!(matches!(
+        selection,
+        StaticTemporalNavigationSelection::Hourly { hour_index: 12, .. }
+    ));
+
+    let snapshot = static_temporal_chart_view(spec_request(), selection).unwrap();
+    assert_eq!(
+        snapshot
+            .temporal_panel
+            .hour_cells
+            .iter()
+            .filter(|cell| cell.selected)
+            .map(|cell| cell.label_zh.as_str())
+            .collect::<Vec<_>>(),
+        vec!["子"],
+        "late Zi keeps timeIndex 12 while rendering in the Zi branch cell"
+    );
+    assert!(
+        snapshot
+            .palaces
+            .iter()
+            .flat_map(|palace| palace.overlays.iter())
+            .any(|overlay| overlay.scope == Scope::Hourly),
+        "the late-Zi selection must build the hourly target overlay"
+    );
+}
+
+#[test]
+fn selecting_a_decadal_marks_exactly_one_active_palace() {
+    let snapshot = static_temporal_chart_view(
+        spec_request(),
+        StaticTemporalNavigationSelection::Decadal { decadal_index: 1 },
+    )
+    .unwrap();
+
+    let active: Vec<_> = snapshot
+        .palaces
+        .iter()
+        .filter(|p| p.limit.is_active_decadal)
+        .collect();
+    assert_eq!(active.len(), 1, "exactly one palace is the active 大限");
+    // The natal snapshot marks none.
+    let natal =
+        static_temporal_chart_view(spec_request(), StaticTemporalNavigationSelection::Natal)
+            .unwrap();
+    assert!(natal.palaces.iter().all(|p| !p.limit.is_active_decadal));
+}
+
+#[test]
+fn every_palace_carries_a_decadal_age_range() {
+    let snapshot =
+        static_temporal_chart_view(spec_request(), StaticTemporalNavigationSelection::Natal)
+            .unwrap();
+    assert!(
+        snapshot
+            .palaces
+            .iter()
+            .all(|p| p.limit.decadal_age_range_zh.is_some()),
+        "each palace has a prepared 大限 age range"
+    );
+    assert!(
+        snapshot
+            .palaces
+            .iter()
+            .all(|p| !p.limit.small_limit_ages_zh.is_empty()),
+        "each palace has prepared 小限 ages"
+    );
+}
+
+/// Counts, across all palaces, the overlays of `scope` whose `period_label_zh`
+/// marks the palace as that scope's period anchor.
+fn marker_count(snapshot: &iztro::core::StaticChartViewSnapshot, scope: Scope) -> usize {
+    snapshot
+        .palaces
+        .iter()
+        .flat_map(|p| p.overlays.iter())
+        .filter(|o| o.scope == scope && o.period_label_zh.is_some())
+        .count()
+}
+
+#[test]
+fn temporal_overlay_carries_a_period_label_only_on_the_marker_palace() {
+    let snapshot = static_temporal_chart_view(
+        spec_request(),
+        StaticTemporalNavigationSelection::Yearly {
+            decadal_index: 1,
+            year_index: 0,
+        },
+    )
+    .unwrap();
+
+    // Exactly one palace carries the 流年 period marker.
+    let markers: Vec<_> = snapshot
+        .palaces
+        .iter()
+        .flat_map(|p| p.overlays.iter())
+        .filter(|o| o.scope == Scope::Yearly && o.period_label_zh.is_some())
+        .collect();
+    assert_eq!(
+        markers.len(),
+        1,
+        "the 流年 marker sits on exactly one palace"
+    );
+    assert!(
+        markers[0]
+            .period_label_zh
+            .as_deref()
+            .unwrap()
+            .starts_with("流年·"),
+        "got {:?}",
+        markers[0].period_label_zh
+    );
+
+    // The 流年 overlay still attaches to multiple palaces (stars/mutagens),
+    // but only one of them is the marker.
+    let overlay_palaces = snapshot
+        .palaces
+        .iter()
+        .filter(|p| p.overlays.iter().any(|o| o.scope == Scope::Yearly))
+        .count();
+    assert!(
+        overlay_palaces > 1,
+        "the 流年 overlay spans more than one palace, but only one is a marker"
+    );
+}
+
+#[test]
+fn decadal_selection_marks_exactly_one_period_palace() {
+    let snapshot = static_temporal_chart_view(
+        spec_request(),
+        StaticTemporalNavigationSelection::Decadal { decadal_index: 1 },
+    )
+    .unwrap();
+    assert_eq!(marker_count(&snapshot, Scope::Decadal), 1);
+}
+
+#[test]
+fn yearly_selection_marks_exactly_one_period_palace() {
+    let snapshot = static_temporal_chart_view(
+        spec_request(),
+        StaticTemporalNavigationSelection::Yearly {
+            decadal_index: 1,
+            year_index: 0,
+        },
+    )
+    .unwrap();
+    assert_eq!(marker_count(&snapshot, Scope::Yearly), 1);
+}
+
+#[test]
+fn hourly_selection_marks_exactly_one_palace_per_active_scope() {
+    let snapshot = static_temporal_chart_view(
+        spec_request(),
+        StaticTemporalNavigationSelection::Hourly {
+            decadal_index: 1,
+            year_index: 0,
+            month_index: 0,
+            day_index: 0,
+            hour_index: 6,
+        },
+    )
+    .unwrap();
+
+    for scope in [
+        Scope::Decadal,
+        Scope::Age,
+        Scope::Yearly,
+        Scope::Monthly,
+        Scope::Daily,
+        Scope::Hourly,
+    ] {
+        assert_eq!(
+            marker_count(&snapshot, scope),
+            1,
+            "{scope:?} must mark exactly one palace"
+        );
+    }
+
+    // Regression: no active temporal scope may stamp a marker on all 12 palaces.
+    assert!(
+        snapshot
+            .palaces
+            .iter()
+            .flat_map(|p| p.overlays.iter())
+            .filter(|o| o.period_label_zh.is_some())
+            .count()
+            < snapshot.palaces.len(),
+        "period markers must never appear on every palace"
+    );
 }
 
 #[test]
@@ -93,8 +347,16 @@ fn temporal_selection_changes_overlays_only_not_natal_facts() {
     )
     .unwrap();
 
-    // Center natal facts are identical regardless of temporal selection.
-    assert_eq!(natal.center, decadal.center);
+    // Natal center facts are identical regardless of temporal selection; only
+    // the navigation-dependent labels (年龄(虚岁), 运限农历/阳历) may differ.
+    let stable = |center: &iztro::core::StaticChartCenterView| {
+        let mut center = center.clone();
+        center.nominal_age_label = None;
+        center.temporal_lunar_label = None;
+        center.temporal_solar_label = None;
+        center
+    };
+    assert_eq!(stable(&natal.center), stable(&decadal.center));
 
     // Natal palace identity, surround (三方四正) and natal star lists are
     // byte-identical; only overlays may differ.
@@ -407,7 +669,7 @@ fn daily_selection_rejects_out_of_range_day_index() {
 }
 
 #[test]
-fn hourly_selection_rejects_out_of_range_hour_index() {
+fn hourly_selection_accepts_late_zi_time_index() {
     let result = static_temporal_chart_view(
         sample_request(),
         StaticTemporalNavigationSelection::Hourly {
@@ -419,12 +681,28 @@ fn hourly_selection_rejects_out_of_range_hour_index() {
         },
     );
 
+    assert!(result.is_ok(), "timeIndex 12 is late Zi and must be valid");
+}
+
+#[test]
+fn hourly_selection_rejects_out_of_range_hour_index() {
+    let result = static_temporal_chart_view(
+        sample_request(),
+        StaticTemporalNavigationSelection::Hourly {
+            decadal_index: 2,
+            year_index: 0,
+            month_index: 0,
+            day_index: 0,
+            hour_index: 13,
+        },
+    );
+
     assert_eq!(
         result,
         Err(ChartError::InvalidTemporalSelectionIndex {
             field: "hour_index",
-            value: 12,
-            max: 11,
+            value: 13,
+            max: 12,
         })
     );
 }
