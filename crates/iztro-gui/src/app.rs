@@ -236,9 +236,66 @@ pub struct BirthInput {
     pub gender: Gender,
 }
 
+/// A saved chart record: a user-provided display name plus the normalized birth
+/// input that deterministically rebuilds the chart. The name is metadata only;
+/// the chart cache is keyed by [`BirthInput`], never the name.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct SavedChart {
+    /// User-provided display name shown in the saved-charts list.
+    pub name: String,
+    /// The normalized birth input that produced the chart.
+    pub input: BirthInput,
+}
+
+/// A default display name for a saved chart, used to pre-fill the form and to
+/// migrate legacy unnamed records, e.g. `1990-05-17 女 辰时`.
+///
+/// This is plain label formatting, not astrology derivation; it stays in the
+/// renderer-agnostic layer so persistence migration can reuse it.
+pub fn default_chart_name(input: &BirthInput) -> String {
+    format!(
+        "{}-{:02}-{:02} {} {}",
+        input.year,
+        input.month,
+        input.day,
+        gender_name(input.gender),
+        hour_name(input.time_index),
+    )
+}
+
+/// Chinese gender label for a default chart name.
+fn gender_name(gender: Gender) -> &'static str {
+    match gender {
+        Gender::Female => "女",
+        Gender::Male => "男",
+    }
+}
+
+/// Chinese double-hour label for an iztro `timeIndex` (`0..=12`).
+fn hour_name(time_index: u8) -> &'static str {
+    match time_index {
+        0 => "早子时",
+        1 => "丑时",
+        2 => "寅时",
+        3 => "卯时",
+        4 => "辰时",
+        5 => "巳时",
+        6 => "午时",
+        7 => "未时",
+        8 => "申时",
+        9 => "酉时",
+        10 => "戌时",
+        11 => "亥时",
+        12 => "晚子时",
+        _ => "未知",
+    }
+}
+
 /// Editable, renderer-facing birth-input form (raw text plus typed choices).
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct BirthForm {
+    /// User-provided chart name.
+    pub name: String,
     /// Raw year text field.
     pub year: String,
     /// Raw month text field.
@@ -252,14 +309,24 @@ pub struct BirthForm {
 }
 
 impl BirthForm {
-    /// Builds a form pre-filled from a normalized input.
+    /// Builds a form pre-filled from a normalized input, defaulting the name to
+    /// [`default_chart_name`].
     pub fn from_input(input: &BirthInput) -> Self {
         Self {
+            name: default_chart_name(input),
             year: input.year.to_string(),
             month: input.month.to_string(),
             day: input.day.to_string(),
             time_index: input.time_index,
             gender: input.gender,
+        }
+    }
+
+    /// Builds a form pre-filled from a saved chart, preserving its display name.
+    pub fn from_saved(saved: &SavedChart) -> Self {
+        Self {
+            name: saved.name.clone(),
+            ..Self::from_input(&saved.input)
         }
     }
 
@@ -394,10 +461,19 @@ pub enum Message {
     TimeSelected(u8),
     /// Gender selected.
     GenderSelected(Gender),
+    /// Chart-name text field changed.
+    NameChanged(String),
     /// Generate-chart action triggered.
     Generate,
     /// A saved chart selected by index; opens it in the chart view.
     SelectSaved(usize),
+    /// A saved chart selected for editing; loads it into the form without
+    /// generating, entering update mode for that record.
+    EditSaved(usize),
+    /// A saved chart removed from the list and persisted.
+    DeleteSaved(usize),
+    /// Leaves edit mode and resets the form to its default sample input.
+    CancelEditSaved,
     /// A bottom temporal-navigation cell was clicked.
     SelectTemporalCell(TemporalCell),
     /// A compact stepper moved a temporal unit one step.
@@ -430,7 +506,10 @@ pub struct StaticChartApp {
     selected_temporal_selection: StaticTemporalNavigationSelection,
     error: Option<String>,
     cache: ChartCache,
-    saved: Vec<BirthInput>,
+    saved: Vec<SavedChart>,
+    /// Index into `saved` currently being edited, if any. When set, generating
+    /// updates that record in place instead of appending a new one.
+    editing_saved_index: Option<usize>,
     store: Option<ChartStore>,
 }
 
@@ -451,6 +530,7 @@ impl StaticChartApp {
             error: None,
             cache: ChartCache::default(),
             saved: Vec::new(),
+            editing_saved_index: None,
             store: None,
         }
     }
@@ -483,7 +563,7 @@ impl StaticChartApp {
     }
 
     /// Replaces the saved-charts list (e.g. when seeding from persistence).
-    pub fn set_saved(&mut self, saved: Vec<BirthInput>) {
+    pub fn set_saved(&mut self, saved: Vec<SavedChart>) {
         self.saved = saved;
     }
 
@@ -517,9 +597,16 @@ impl StaticChartApp {
         &self.cache
     }
 
-    /// Returns the saved generated-chart inputs, most recent last.
-    pub fn saved(&self) -> &[BirthInput] {
+    /// Returns the saved charts, most recent last.
+    pub fn saved(&self) -> &[SavedChart] {
         &self.saved
+    }
+
+    /// The index of the saved chart currently being edited, if any. When set,
+    /// the next [`generate`](Self::generate) updates that record in place and
+    /// the primary action should read as an update.
+    pub fn editing_saved_index(&self) -> Option<usize> {
+        self.editing_saved_index
     }
 
     /// Returns the twelve perimeter palaces of the current snapshot, if any.
@@ -672,7 +759,18 @@ impl StaticChartApp {
 
     /// Generates a chart from the current form, switching to the chart view on
     /// success or setting the error state on invalid input. Never panics.
+    ///
+    /// A non-empty trimmed name is required; a blank name is reported without
+    /// building. On success the named record is saved: editing an existing chart
+    /// updates that record in place, otherwise a same-named record is updated and
+    /// a new name is appended, then edit mode is cleared.
     pub fn generate(&mut self) -> GenerateOutcome {
+        let name = self.form.name.trim().to_owned();
+        if name.is_empty() {
+            self.error = Some("请为命盘输入名称".to_owned());
+            return GenerateOutcome::Invalid;
+        }
+
         let input = match self.form.parse() {
             Ok(input) => input,
             Err(message) => {
@@ -692,11 +790,7 @@ impl StaticChartApp {
                 self.selected_temporal_selection = StaticTemporalNavigationSelection::PreDecadal;
                 self.error = None;
                 self.screen = Screen::Chart;
-                let newly_saved = !self.saved.contains(&input);
-                if newly_saved {
-                    self.saved.push(input);
-                    self.persist_saved();
-                }
+                self.save_record(SavedChart { name, input });
                 if hit {
                     GenerateOutcome::CacheHit
                 } else {
@@ -708,6 +802,21 @@ impl StaticChartApp {
                 GenerateOutcome::Invalid
             }
         }
+    }
+
+    /// Stores a freshly generated record, then persists. Editing an existing
+    /// chart updates that row in place; otherwise an existing same-named record
+    /// is updated and a new name is appended, avoiding duplicate rows. Edit mode
+    /// is cleared either way.
+    fn save_record(&mut self, record: SavedChart) {
+        match self.editing_saved_index.take() {
+            Some(index) if index < self.saved.len() => self.saved[index] = record,
+            _ => match self.saved.iter_mut().find(|s| s.name == record.name) {
+                Some(existing) => *existing = record,
+                None => self.saved.push(record),
+            },
+        }
+        self.persist_saved();
     }
 
     /// Rebuilds the snapshot for a new temporal selection through the cache, so
@@ -929,14 +1038,43 @@ impl StaticChartApp {
             Message::DayChanged(value) => self.form.day = value,
             Message::TimeSelected(index) => self.form.time_index = index,
             Message::GenderSelected(gender) => self.form.gender = gender,
+            Message::NameChanged(value) => self.form.name = value,
             Message::Generate => {
                 self.generate();
             }
             Message::SelectSaved(index) => {
-                if let Some(input) = self.saved.get(index).copied() {
-                    self.form = BirthForm::from_input(&input);
+                if let Some(saved) = self.saved.get(index).cloned() {
+                    // Opening a saved chart is not an edit: the same-named record
+                    // is left untouched by the generate that follows.
+                    self.editing_saved_index = None;
+                    self.form = BirthForm::from_saved(&saved);
                     self.generate();
                 }
+            }
+            Message::EditSaved(index) => {
+                if let Some(saved) = self.saved.get(index) {
+                    self.form = BirthForm::from_saved(saved);
+                    self.editing_saved_index = Some(index);
+                    self.error = None;
+                }
+            }
+            Message::DeleteSaved(index) => {
+                if index < self.saved.len() {
+                    self.saved.remove(index);
+                    // Keep the edit cursor valid: clear it if the edited row was
+                    // removed, or shift it left if an earlier row was removed.
+                    self.editing_saved_index = match self.editing_saved_index {
+                        Some(editing) if editing == index => None,
+                        Some(editing) if editing > index => Some(editing - 1),
+                        other => other,
+                    };
+                    self.persist_saved();
+                }
+            }
+            Message::CancelEditSaved => {
+                self.editing_saved_index = None;
+                self.form = BirthForm::default();
+                self.error = None;
             }
             Message::SelectTemporalCell(cell) => {
                 // Disabled cells stay inert: no selection, no snapshot change.
@@ -1048,6 +1186,14 @@ mod tests {
             .join("\n")
     }
 
+    /// A saved record for `input` carrying its default chart name.
+    fn saved_default(input: BirthInput) -> SavedChart {
+        SavedChart {
+            name: default_chart_name(&input),
+            input,
+        }
+    }
+
     #[test]
     fn app_starts_on_startup_without_generating_a_chart() {
         let app = StaticChartApp::new();
@@ -1142,6 +1288,8 @@ mod tests {
         let mut app = StaticChartApp::new();
         app.generate();
         app.update(Message::YearChanged("2000".to_string()));
+        // A distinct name keeps this a separate saved row (saves dedupe by name).
+        app.update(Message::NameChanged("第二张命盘".to_string()));
         app.generate();
 
         let other = BirthInput {
@@ -1183,7 +1331,7 @@ mod tests {
         // Generation still works; the chart is tracked in memory only.
         assert_eq!(app.generate(), GenerateOutcome::Built);
         assert_eq!(app.screen(), Screen::Chart);
-        assert_eq!(app.saved(), &[SAMPLE_INPUT]);
+        assert_eq!(app.saved(), &[saved_default(SAMPLE_INPUT)]);
         assert!(
             app.error().is_none(),
             "a successful build clears the notice"
@@ -1211,13 +1359,13 @@ mod tests {
 
         // The on-disk store still parses and holds exactly the valid chart.
         let reloaded = store.load();
-        assert_eq!(reloaded, vec![SAMPLE_INPUT]);
+        assert_eq!(reloaded, vec![saved_default(SAMPLE_INPUT)]);
     }
 
     #[test]
     fn selecting_a_saved_chart_opens_it() {
         let mut app = StaticChartApp::new();
-        app.set_saved(vec![SAMPLE_INPUT]);
+        app.set_saved(vec![saved_default(SAMPLE_INPUT)]);
         app.update(Message::SelectSaved(0));
 
         assert_eq!(app.screen(), Screen::Chart);
@@ -1234,6 +1382,132 @@ mod tests {
                 .pre_decadal_cell
                 .selected
         );
+    }
+
+    #[test]
+    fn generating_requires_a_non_empty_name() {
+        let mut app = StaticChartApp::new();
+        app.update(Message::NameChanged("   ".to_string()));
+
+        let outcome = app.generate();
+
+        assert_eq!(outcome, GenerateOutcome::Invalid);
+        assert!(app.error().is_some());
+        assert_eq!(app.screen(), Screen::Startup);
+        assert!(app.saved().is_empty());
+    }
+
+    #[test]
+    fn generating_a_named_chart_saves_a_named_record() {
+        let mut app = StaticChartApp::new();
+        app.update(Message::NameChanged("我的命盘".to_string()));
+
+        assert_eq!(app.generate(), GenerateOutcome::Built);
+        assert_eq!(
+            app.saved(),
+            &[SavedChart {
+                name: "我的命盘".to_string(),
+                input: SAMPLE_INPUT,
+            }]
+        );
+    }
+
+    #[test]
+    fn generating_trims_whitespace_around_the_name() {
+        let mut app = StaticChartApp::new();
+        app.update(Message::NameChanged("  命盘甲  ".to_string()));
+        app.generate();
+        assert_eq!(app.saved()[0].name, "命盘甲");
+    }
+
+    #[test]
+    fn selecting_a_saved_chart_fills_the_form_including_its_name() {
+        let mut app = StaticChartApp::new();
+        let record = SavedChart {
+            name: "命名命盘".to_string(),
+            input: BirthInput {
+                year: 1985,
+                ..SAMPLE_INPUT
+            },
+        };
+        app.set_saved(vec![record.clone()]);
+
+        app.update(Message::SelectSaved(0));
+
+        assert_eq!(app.form().name, "命名命盘");
+        assert_eq!(app.form().year, "1985");
+        assert_eq!(app.input(), Some(record.input));
+        // Opening is not editing, and it leaves the single row untouched.
+        assert_eq!(app.editing_saved_index(), None);
+        assert_eq!(app.saved(), &[record]);
+    }
+
+    #[test]
+    fn modifying_a_saved_chart_loads_it_and_updates_the_same_row() {
+        let mut app = StaticChartApp::new();
+        app.set_saved(vec![
+            saved_default(SAMPLE_INPUT),
+            saved_default(BirthInput {
+                year: 2001,
+                ..SAMPLE_INPUT
+            }),
+        ]);
+
+        // Editing the second row loads it into the form in update mode.
+        app.update(Message::EditSaved(1));
+        assert_eq!(app.editing_saved_index(), Some(1));
+        assert_eq!(app.form().year, "2001");
+        assert_eq!(app.screen(), Screen::Startup);
+
+        // Change the name and regenerate: the same row is updated in place, the
+        // list length is unchanged, and edit mode is cleared.
+        app.update(Message::NameChanged("改名命盘".to_string()));
+        app.update(Message::YearChanged("2002".to_string()));
+        app.update(Message::Generate);
+
+        assert_eq!(app.saved().len(), 2);
+        assert_eq!(app.saved()[1].name, "改名命盘");
+        assert_eq!(app.saved()[1].input.year, 2002);
+        assert_eq!(app.editing_saved_index(), None);
+        assert_eq!(app.screen(), Screen::Chart);
+    }
+
+    #[test]
+    fn deleting_a_saved_chart_removes_it_and_persists() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let store = crate::persistence::ChartStore::new(dir.path().join("charts.json"));
+
+        let mut app = StaticChartApp::with_store(store.clone());
+        let keep = saved_default(SAMPLE_INPUT);
+        let drop = saved_default(BirthInput {
+            year: 2001,
+            ..SAMPLE_INPUT
+        });
+        app.set_saved(vec![keep.clone(), drop]);
+        app.persist_saved();
+
+        app.update(Message::DeleteSaved(1));
+
+        assert_eq!(app.saved(), &[keep.clone()]);
+        // The deletion is durable: a fresh app over the same store agrees.
+        assert_eq!(store.load(), vec![keep]);
+    }
+
+    #[test]
+    fn cancelling_edit_clears_edit_mode_and_resets_the_form() {
+        let mut app = StaticChartApp::new();
+        app.set_saved(vec![saved_default(BirthInput {
+            year: 1985,
+            ..SAMPLE_INPUT
+        })]);
+        app.update(Message::EditSaved(0));
+        assert_eq!(app.editing_saved_index(), Some(0));
+
+        app.update(Message::CancelEditSaved);
+
+        assert_eq!(app.editing_saved_index(), None);
+        assert_eq!(app.form(), &BirthForm::default());
+        assert!(app.error().is_none());
     }
 
     #[test]

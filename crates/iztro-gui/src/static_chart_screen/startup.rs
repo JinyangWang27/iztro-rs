@@ -1,7 +1,7 @@
 use iced::widget::{button, column, container, pick_list, row, text, text_input};
 use iced::{Alignment, Element, Length};
 
-use crate::app::{BirthForm, BirthInput, Message, StaticChartApp};
+use crate::app::{BirthForm, Message, SavedChart, StaticChartApp};
 
 use super::labels::{
     GENDER_CHOICES, GenderChoice, TIME_CHOICES, TimeChoice, gender_zh, hour_branch_zh,
@@ -18,9 +18,10 @@ pub(super) fn startup_screen(app: &StaticChartApp) -> Element<'_, Message> {
     ]
     .spacing(4);
 
+    let editing = app.editing_saved_index().is_some();
     column![
         title,
-        input_bar(app.form(), app.error()),
+        input_bar(app.form(), app.error(), editing),
         saved_charts_panel(app.saved()),
     ]
     .spacing(12)
@@ -28,8 +29,9 @@ pub(super) fn startup_screen(app: &StaticChartApp) -> Element<'_, Message> {
     .into()
 }
 
-/// The saved-charts list shown on the startup page.
-pub(super) fn saved_charts_panel(saved: &[BirthInput]) -> Element<'_, Message> {
+/// The saved-charts list shown on the startup page. Each row shows the saved
+/// name prominently with birth metadata, plus open / edit / delete actions.
+pub(super) fn saved_charts_panel(saved: &[SavedChart]) -> Element<'_, Message> {
     let mut content = column![text("已保存命盘").size(15)].spacing(8);
     if saved.is_empty() {
         content = content.push(
@@ -39,21 +41,8 @@ pub(super) fn saved_charts_panel(saved: &[BirthInput]) -> Element<'_, Message> {
         );
     } else {
         let mut list = column![].spacing(6);
-        for (index, input) in saved.iter().enumerate() {
-            let label = format!(
-                "{}-{:02}-{:02} · {} · {}",
-                input.year,
-                input.month,
-                input.day,
-                gender_zh(input.gender),
-                hour_branch_zh(input.time_index),
-            );
-            list = list.push(
-                button(text(label).size(14))
-                    .on_press(Message::SelectSaved(index))
-                    .style(button::secondary)
-                    .width(Length::Fill),
-            );
+        for (index, saved) in saved.iter().enumerate() {
+            list = list.push(saved_chart_row(index, saved));
         }
         content = content.push(list);
     }
@@ -64,9 +53,56 @@ pub(super) fn saved_charts_panel(saved: &[BirthInput]) -> Element<'_, Message> {
         .into()
 }
 
+/// One saved-chart row: the name (click to open) over its birth metadata, with
+/// 修改 / 删除 actions.
+fn saved_chart_row(index: usize, saved: &SavedChart) -> Element<'_, Message> {
+    let input = &saved.input;
+    let meta = format!(
+        "{}-{:02}-{:02} · {} · {}",
+        input.year,
+        input.month,
+        input.day,
+        gender_zh(input.gender),
+        hour_branch_zh(input.time_index),
+    );
+    let info = column![
+        text(saved.name.clone()).size(15),
+        text(meta).size(12).style(subtle_text_style),
+    ]
+    .spacing(2);
+
+    row![
+        button(info)
+            .on_press(Message::SelectSaved(index))
+            .style(button::secondary)
+            .width(Length::Fill),
+        button(text("修改").size(13))
+            .on_press(Message::EditSaved(index))
+            .style(button::secondary)
+            .padding([6, 12]),
+        button(text("删除").size(13))
+            .on_press(Message::DeleteSaved(index))
+            .style(button::danger)
+            .padding([6, 12]),
+    ]
+    .spacing(6)
+    .align_y(Alignment::Center)
+    .into()
+}
+
 // Birth input
-pub(super) fn input_bar<'a>(form: &BirthForm, error: Option<&'a str>) -> Element<'a, Message> {
-    let fields = row![
+pub(super) fn input_bar<'a>(
+    form: &'a BirthForm,
+    error: Option<&'a str>,
+    editing: bool,
+) -> Element<'a, Message> {
+    let mut fields = row![
+        labeled(
+            "名称",
+            text_input("命盘名称", &form.name)
+                .on_input(Message::NameChanged)
+                .width(150)
+        ),
         labeled(
             "年",
             text_input("1990", &form.year)
@@ -99,13 +135,30 @@ pub(super) fn input_bar<'a>(form: &BirthForm, error: Option<&'a str>) -> Element
             })
             .width(82),
         ),
-        button(text("生成命盘").size(15))
-            .on_press(Message::Generate)
-            .style(button::primary)
-            .padding([8, 16]),
+        // In edit mode the primary action updates the chosen saved record.
+        button(
+            text(if editing {
+                "更新命盘"
+            } else {
+                "生成命盘"
+            })
+            .size(15)
+        )
+        .on_press(Message::Generate)
+        .style(button::primary)
+        .padding([8, 16]),
     ]
     .spacing(12)
     .align_y(Alignment::End);
+
+    if editing {
+        fields = fields.push(
+            button(text("取消").size(15))
+                .on_press(Message::CancelEditSaved)
+                .style(button::secondary)
+                .padding([8, 16]),
+        );
+    }
 
     let mut bar = column![fields].spacing(6);
     if let Some(message) = error {

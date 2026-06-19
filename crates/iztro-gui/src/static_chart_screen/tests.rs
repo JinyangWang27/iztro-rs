@@ -346,6 +346,22 @@ fn period_badge_takes_a_prepared_label_not_an_overlay() {
 }
 
 #[test]
+fn startup_exposes_name_input_and_saved_chart_actions() {
+    let source = include_str!("startup.rs");
+
+    // A 名称 input drives the chart name.
+    assert!(source.contains("\"名称\""));
+    assert!(source.contains("Message::NameChanged"));
+    // Saved rows can be opened, edited, and deleted.
+    assert!(source.contains("Message::SelectSaved(index)"));
+    assert!(source.contains("Message::EditSaved(index)"));
+    assert!(source.contains("Message::DeleteSaved(index)"));
+    // The primary button reads as an update while editing a saved chart.
+    assert!(source.contains("更新命盘"));
+    assert!(source.contains("生成命盘"));
+}
+
+#[test]
 fn temporal_controls_render_on_a_single_row() {
     let source = include_str!("temporal.rs");
 
