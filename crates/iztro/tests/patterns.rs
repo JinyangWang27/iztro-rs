@@ -10,8 +10,10 @@ use iztro::core::pattern::query::{find_star_branch, palace_has_star, stars_in_sa
 use iztro::{
     BirthContext, Brightness, CalendarDate, Chart, EarthlyBranch, Gender, HeavenlyStem,
     MethodProfile, Mutagen, PALACE_NAMES, Palace, PatternContext, PatternDetectionRequest,
-    PatternFamily, PatternId, PatternStatus, Scope, StarKind, StarName, StarPlacement, StemBranch,
+    PatternFamily, PatternId, PatternPolarity, PatternStatus, Scope, StarKind, StarName,
+    StarPlacement, StemBranch,
 };
+use iztro::{PalaceRelation, PatternEvidence};
 
 /// One synthetic star placement: (branch, star, kind, optional mutagen).
 type Spec = (EarthlyBranch, StarName, StarKind, Option<Mutagen>);
@@ -52,6 +54,48 @@ fn build_chart(life_branch: EarthlyBranch, placements: &[Spec]) -> Chart {
 
 fn major(branch: EarthlyBranch, star: StarName) -> Spec {
     (branch, star, StarKind::Major, None)
+}
+
+/// A soft/auxiliary (辅佐) star placement, e.g. 左辅/右弼, 文昌/文曲.
+fn soft(branch: EarthlyBranch, star: StarName) -> Spec {
+    (branch, star, StarKind::Soft, None)
+}
+
+/// One synthetic star placement carrying an explicit brightness:
+/// (branch, star, kind, brightness).
+type BrightSpec = (EarthlyBranch, StarName, StarKind, Brightness);
+
+/// Like [`build_chart`] but lets each placement carry an explicit
+/// [`Brightness`], so brightness-gated rules can be exercised deterministically.
+fn build_chart_bright(life_branch: EarthlyBranch, placements: &[BrightSpec]) -> Chart {
+    let palaces: Vec<Palace> = (0..12)
+        .map(|index| {
+            let name = PALACE_NAMES[index];
+            let branch = life_branch.offset(index as isize);
+            let stars: Vec<StarPlacement> = placements
+                .iter()
+                .filter(|(spec_branch, ..)| *spec_branch == branch)
+                .map(|(_, star, kind, brightness)| {
+                    StarPlacement::new(*star, *kind, *brightness, None, Scope::Natal)
+                })
+                .collect();
+            Palace::new(name, branch, HeavenlyStem::Jia, stars)
+        })
+        .collect();
+
+    Chart::try_new(
+        BirthContext::new(
+            CalendarDate::solar(1990, 5, 17),
+            EarthlyBranch::Chen,
+            Gender::Female,
+        ),
+        StemBranch::try_new(HeavenlyStem::Geng, EarthlyBranch::Wu).expect("valid stem-branch"),
+        MethodProfile::placeholder("pattern_test"),
+        palaces,
+        None,
+        None,
+    )
+    .expect("synthetic chart should build")
 }
 
 fn branch_set(branches: &[EarthlyBranch]) -> BTreeSet<usize> {
@@ -510,4 +554,492 @@ fn ji_yue_tong_liang_partial_requires_two_stars() {
     );
     let detections = iztro::detect_patterns(&PatternContext::natal(&one), &request);
     assert!(detections.iter().all(|d| d.id != PatternId::JiYueTongLiang));
+}
+
+// ---- 左右夹命 -------------------------------------------------------------
+
+/// `detection.evidence` contains a `StarInPalace` for `star` at `branch`.
+fn evidence_has_star_in_palace(
+    detection: &iztro::PatternDetection,
+    star: StarName,
+    branch: EarthlyBranch,
+) -> bool {
+    detection.evidence.iter().any(|e| {
+        matches!(
+            e,
+            PatternEvidence::StarInPalace { star: s, branch: b } if *s == star && *b == branch
+        )
+    })
+}
+
+/// `detection.evidence` contains a `ClampedBy` relation from `from` to `to`.
+fn evidence_has_clamp(
+    detection: &iztro::PatternDetection,
+    from: EarthlyBranch,
+    to: EarthlyBranch,
+) -> bool {
+    detection.evidence.iter().any(|e| {
+        matches!(
+            e,
+            PatternEvidence::PalaceRelation { from: f, to: t, relation } if
+                *f == from && *t == to && *relation == PalaceRelation::ClampedBy
+        )
+    })
+}
+
+#[test]
+fn zuo_you_jia_ming_positive() {
+    // Life at Zi; clamp(Zi) = {Hai, Chou}. ZuoFu@Hai, YouBi@Chou.
+    let chart = build_chart(
+        EarthlyBranch::Zi,
+        &[
+            soft(EarthlyBranch::Hai, StarName::ZuoFu),
+            soft(EarthlyBranch::Chou, StarName::YouBi),
+        ],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&chart),
+        &PatternDetectionRequest::default(),
+    );
+    let detection = detections
+        .iter()
+        .find(|d| d.id == PatternId::ZuoYouJiaMing)
+        .expect("expected 左右夹命");
+
+    assert_eq!(detection.status, PatternStatus::Fulfilled);
+    assert_eq!(detection.polarity, PatternPolarity::Auspicious);
+    assert_eq!(detection.family, PatternFamily::AuxiliaryStarCombination);
+    assert_eq!(
+        star_set(&detection.involved_stars),
+        star_set(&[StarName::ZuoFu, StarName::YouBi])
+    );
+    assert_eq!(
+        branch_set(&detection.involved_palaces),
+        branch_set(&[EarthlyBranch::Zi, EarthlyBranch::Hai, EarthlyBranch::Chou])
+    );
+    assert!(evidence_has_star_in_palace(
+        detection,
+        StarName::ZuoFu,
+        EarthlyBranch::Hai
+    ));
+    assert!(evidence_has_star_in_palace(
+        detection,
+        StarName::YouBi,
+        EarthlyBranch::Chou
+    ));
+    assert!(evidence_has_clamp(
+        detection,
+        EarthlyBranch::Zi,
+        EarthlyBranch::Hai
+    ));
+    assert!(evidence_has_clamp(
+        detection,
+        EarthlyBranch::Zi,
+        EarthlyBranch::Chou
+    ));
+}
+
+#[test]
+fn zuo_you_jia_ming_positive_reversed_orientation() {
+    // The clamp helper accepts either orientation: YouBi@Hai, ZuoFu@Chou.
+    let chart = build_chart(
+        EarthlyBranch::Zi,
+        &[
+            soft(EarthlyBranch::Hai, StarName::YouBi),
+            soft(EarthlyBranch::Chou, StarName::ZuoFu),
+        ],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&chart),
+        &PatternDetectionRequest::default(),
+    );
+    let detection = detections
+        .iter()
+        .find(|d| d.id == PatternId::ZuoYouJiaMing)
+        .expect("expected 左右夹命 in reversed orientation");
+    assert!(evidence_has_star_in_palace(
+        detection,
+        StarName::YouBi,
+        EarthlyBranch::Hai
+    ));
+    assert!(evidence_has_star_in_palace(
+        detection,
+        StarName::ZuoFu,
+        EarthlyBranch::Chou
+    ));
+}
+
+#[test]
+fn zuo_you_jia_ming_negative_when_one_star_outside_clamp() {
+    // ZuoFu@Hai clamps, but YouBi@Wu is not a clamp palace of Zi.
+    let chart = build_chart(
+        EarthlyBranch::Zi,
+        &[
+            soft(EarthlyBranch::Hai, StarName::ZuoFu),
+            soft(EarthlyBranch::Wu, StarName::YouBi),
+        ],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&chart),
+        &PatternDetectionRequest::default(),
+    );
+    assert!(detections.iter().all(|d| d.id != PatternId::ZuoYouJiaMing));
+}
+
+#[test]
+fn zuo_you_jia_ming_negative_when_only_one_clamp_side() {
+    // Only ZuoFu@Hai present; the other clamp palace (Chou) is empty.
+    let chart = build_chart(
+        EarthlyBranch::Zi,
+        &[soft(EarthlyBranch::Hai, StarName::ZuoFu)],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&chart),
+        &PatternDetectionRequest::default(),
+    );
+    assert!(detections.iter().all(|d| d.id != PatternId::ZuoYouJiaMing));
+}
+
+// ---- 昌曲夹命 -------------------------------------------------------------
+
+#[test]
+fn chang_qu_jia_ming_positive() {
+    // Life at Zi; clamp(Zi) = {Hai, Chou}. WenChang@Hai, WenQu@Chou.
+    let chart = build_chart(
+        EarthlyBranch::Zi,
+        &[
+            soft(EarthlyBranch::Hai, StarName::WenChang),
+            soft(EarthlyBranch::Chou, StarName::WenQu),
+        ],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&chart),
+        &PatternDetectionRequest::default(),
+    );
+    let detection = detections
+        .iter()
+        .find(|d| d.id == PatternId::ChangQuJiaMing)
+        .expect("expected 昌曲夹命");
+
+    assert_eq!(detection.status, PatternStatus::Fulfilled);
+    assert_eq!(detection.polarity, PatternPolarity::Auspicious);
+    assert_eq!(detection.family, PatternFamily::AuxiliaryStarCombination);
+    assert_eq!(
+        star_set(&detection.involved_stars),
+        star_set(&[StarName::WenChang, StarName::WenQu])
+    );
+    assert_eq!(
+        branch_set(&detection.involved_palaces),
+        branch_set(&[EarthlyBranch::Zi, EarthlyBranch::Hai, EarthlyBranch::Chou])
+    );
+    assert!(evidence_has_star_in_palace(
+        detection,
+        StarName::WenChang,
+        EarthlyBranch::Hai
+    ));
+    assert!(evidence_has_star_in_palace(
+        detection,
+        StarName::WenQu,
+        EarthlyBranch::Chou
+    ));
+    assert!(evidence_has_clamp(
+        detection,
+        EarthlyBranch::Zi,
+        EarthlyBranch::Hai
+    ));
+    assert!(evidence_has_clamp(
+        detection,
+        EarthlyBranch::Zi,
+        EarthlyBranch::Chou
+    ));
+}
+
+#[test]
+fn chang_qu_jia_ming_negative_when_one_star_outside_clamp() {
+    // WenChang@Hai clamps, but WenQu@Wu is outside the clamp palaces of Zi.
+    let chart = build_chart(
+        EarthlyBranch::Zi,
+        &[
+            soft(EarthlyBranch::Hai, StarName::WenChang),
+            soft(EarthlyBranch::Wu, StarName::WenQu),
+        ],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&chart),
+        &PatternDetectionRequest::default(),
+    );
+    assert!(detections.iter().all(|d| d.id != PatternId::ChangQuJiaMing));
+}
+
+#[test]
+fn chang_qu_jia_ming_negative_when_only_one_clamp_side() {
+    // Only WenQu@Chou present; the other clamp palace (Hai) is empty.
+    let chart = build_chart(
+        EarthlyBranch::Zi,
+        &[soft(EarthlyBranch::Chou, StarName::WenQu)],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&chart),
+        &PatternDetectionRequest::default(),
+    );
+    assert!(detections.iter().all(|d| d.id != PatternId::ChangQuJiaMing));
+}
+
+// ---- 日月并明 -------------------------------------------------------------
+
+#[test]
+fn ri_yue_bing_ming_positive() {
+    // Both 太阳 and 太阴 in clearly bright states (庙/旺).
+    let chart = build_chart_bright(
+        EarthlyBranch::Zi,
+        &[
+            (
+                EarthlyBranch::Si,
+                StarName::TaiYang,
+                StarKind::Major,
+                Brightness::Temple,
+            ),
+            (
+                EarthlyBranch::Hai,
+                StarName::TaiYin,
+                StarKind::Major,
+                Brightness::Prosperous,
+            ),
+        ],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&chart),
+        &PatternDetectionRequest::default(),
+    );
+    let detection = detections
+        .iter()
+        .find(|d| d.id == PatternId::RiYueBingMing)
+        .expect("expected 日月并明");
+    assert_eq!(detection.status, PatternStatus::Fulfilled);
+    assert_eq!(detection.polarity, PatternPolarity::Auspicious);
+    assert_eq!(
+        star_set(&detection.involved_stars),
+        star_set(&[StarName::TaiYang, StarName::TaiYin])
+    );
+    assert!(evidence_has_star_in_palace(
+        detection,
+        StarName::TaiYang,
+        EarthlyBranch::Si
+    ));
+    assert!(evidence_has_star_in_palace(
+        detection,
+        StarName::TaiYin,
+        EarthlyBranch::Hai
+    ));
+}
+
+#[test]
+fn ri_yue_bing_ming_negative_when_brightness_unknown() {
+    // 太阴 brightness Unknown: never emit on an uncalculated brightness.
+    let chart = build_chart_bright(
+        EarthlyBranch::Zi,
+        &[
+            (
+                EarthlyBranch::Si,
+                StarName::TaiYang,
+                StarKind::Major,
+                Brightness::Temple,
+            ),
+            (
+                EarthlyBranch::Hai,
+                StarName::TaiYin,
+                StarKind::Major,
+                Brightness::Unknown,
+            ),
+        ],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&chart),
+        &PatternDetectionRequest::default(),
+    );
+    assert!(detections.iter().all(|d| d.id != PatternId::RiYueBingMing));
+}
+
+#[test]
+fn ri_yue_bing_ming_negative_when_one_star_dim() {
+    // 太阳 bright but 太阴 trapped: not both bright.
+    let chart = build_chart_bright(
+        EarthlyBranch::Zi,
+        &[
+            (
+                EarthlyBranch::Si,
+                StarName::TaiYang,
+                StarKind::Major,
+                Brightness::Temple,
+            ),
+            (
+                EarthlyBranch::Hai,
+                StarName::TaiYin,
+                StarKind::Major,
+                Brightness::Trapped,
+            ),
+        ],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&chart),
+        &PatternDetectionRequest::default(),
+    );
+    assert!(detections.iter().all(|d| d.id != PatternId::RiYueBingMing));
+}
+
+// ---- 日月反背 -------------------------------------------------------------
+
+#[test]
+fn ri_yue_fan_bei_positive() {
+    // Both 太阳 and 太阴 in clearly dim states (陷/不).
+    let chart = build_chart_bright(
+        EarthlyBranch::Zi,
+        &[
+            (
+                EarthlyBranch::Si,
+                StarName::TaiYang,
+                StarKind::Major,
+                Brightness::Trapped,
+            ),
+            (
+                EarthlyBranch::Hai,
+                StarName::TaiYin,
+                StarKind::Major,
+                Brightness::Weak,
+            ),
+        ],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&chart),
+        &PatternDetectionRequest::default(),
+    );
+    let detection = detections
+        .iter()
+        .find(|d| d.id == PatternId::RiYueFanBei)
+        .expect("expected 日月反背");
+    assert_eq!(detection.status, PatternStatus::Fulfilled);
+    assert_eq!(detection.polarity, PatternPolarity::Inauspicious);
+    assert_eq!(
+        star_set(&detection.involved_stars),
+        star_set(&[StarName::TaiYang, StarName::TaiYin])
+    );
+    assert!(evidence_has_star_in_palace(
+        detection,
+        StarName::TaiYang,
+        EarthlyBranch::Si
+    ));
+    assert!(evidence_has_star_in_palace(
+        detection,
+        StarName::TaiYin,
+        EarthlyBranch::Hai
+    ));
+}
+
+#[test]
+fn ri_yue_fan_bei_negative_when_brightness_unknown() {
+    // 太阳 brightness Unknown: never emit on an uncalculated brightness.
+    let chart = build_chart_bright(
+        EarthlyBranch::Zi,
+        &[
+            (
+                EarthlyBranch::Si,
+                StarName::TaiYang,
+                StarKind::Major,
+                Brightness::Unknown,
+            ),
+            (
+                EarthlyBranch::Hai,
+                StarName::TaiYin,
+                StarKind::Major,
+                Brightness::Trapped,
+            ),
+        ],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&chart),
+        &PatternDetectionRequest::default(),
+    );
+    assert!(detections.iter().all(|d| d.id != PatternId::RiYueFanBei));
+}
+
+#[test]
+fn ri_yue_fan_bei_negative_when_one_star_bright() {
+    // 太阳 dim but 太阴 prosperous: not both dim. `Flat` is also treated as
+    // neutral, so a flat star never satisfies the dim condition either.
+    let chart = build_chart_bright(
+        EarthlyBranch::Zi,
+        &[
+            (
+                EarthlyBranch::Si,
+                StarName::TaiYang,
+                StarKind::Major,
+                Brightness::Trapped,
+            ),
+            (
+                EarthlyBranch::Hai,
+                StarName::TaiYin,
+                StarKind::Major,
+                Brightness::Prosperous,
+            ),
+        ],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&chart),
+        &PatternDetectionRequest::default(),
+    );
+    assert!(detections.iter().all(|d| d.id != PatternId::RiYueFanBei));
+
+    // Flat brightness is neutral, not dim.
+    let flat = build_chart_bright(
+        EarthlyBranch::Zi,
+        &[
+            (
+                EarthlyBranch::Si,
+                StarName::TaiYang,
+                StarKind::Major,
+                Brightness::Flat,
+            ),
+            (
+                EarthlyBranch::Hai,
+                StarName::TaiYin,
+                StarKind::Major,
+                Brightness::Trapped,
+            ),
+        ],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&flat),
+        &PatternDetectionRequest::default(),
+    );
+    assert!(detections.iter().all(|d| d.id != PatternId::RiYueFanBei));
+}
+
+// ---- AuxiliaryStarCombination family filter -------------------------------
+
+#[test]
+fn auxiliary_family_filter_includes_only_clamp_patterns() {
+    // A chart fulfilling 左右夹命 (auxiliary) plus 紫府朝垣 (major).
+    let chart = build_chart(
+        EarthlyBranch::Zi,
+        &[
+            soft(EarthlyBranch::Hai, StarName::ZuoFu),
+            soft(EarthlyBranch::Chou, StarName::YouBi),
+            major(EarthlyBranch::Zi, StarName::ZiWei),
+            major(EarthlyBranch::Wu, StarName::TianFu),
+        ],
+    );
+
+    let aux = iztro::detect_patterns(
+        &PatternContext::natal(&chart),
+        &PatternDetectionRequest {
+            families: vec![PatternFamily::AuxiliaryStarCombination],
+            ..PatternDetectionRequest::default()
+        },
+    );
+    assert!(aux.iter().any(|d| d.id == PatternId::ZuoYouJiaMing));
+    assert!(aux.iter().all(|d| d.id != PatternId::ZiFuChaoYuan));
+    assert!(
+        aux.iter()
+            .all(|d| d.family == PatternFamily::AuxiliaryStarCombination)
+    );
 }
