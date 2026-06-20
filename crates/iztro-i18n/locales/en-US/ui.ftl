@@ -45,6 +45,10 @@ name-required = Please enter a name for the chart
 error-year = Year must be a whole number
 error-month = Month must be a whole number
 error-day = Day must be a whole number
+error-invalid-calendar-date = That date does not exist on the calendar
+error-invalid-birth-time = The selected birth time is not valid
+error-invalid-temporal-selection = The selected period is out of range
+error-chart-generation-failed = Could not generate the chart from this input
 persistence-unavailable = Persistent storage unavailable; generated charts won't be saved this session.
 
 # Center panel — section headers and row labels

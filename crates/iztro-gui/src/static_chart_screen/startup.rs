@@ -214,17 +214,11 @@ pub(super) fn input_bar<'a>(
         .into()
 }
 
-/// Localizes a [`FormError`] into its display message. Core chart errors carry
-/// their own (English) description.
+/// Localizes a [`FormError`] into its display message. Every variant — including
+/// chart-generation failures — resolves through a Fluent key, so no raw core
+/// error string ever reaches the UI.
 fn format_error(error: &FormError, i18n: &I18n) -> String {
-    match error {
-        FormError::NameRequired => i18n.text("name-required"),
-        FormError::YearInvalid => i18n.text("error-year"),
-        FormError::MonthInvalid => i18n.text("error-month"),
-        FormError::DayInvalid => i18n.text("error-day"),
-        FormError::Chart(message) => message.clone(),
-        FormError::PersistenceUnavailable => i18n.text("persistence-unavailable"),
-    }
+    i18n.text(error.fluent_key())
 }
 
 fn fluent_args() -> iztro_i18n::FluentArgs<'static> {

@@ -45,6 +45,10 @@ name-required = 请为命盘输入名称
 error-year = 年份必须是整数
 error-month = 月份必须是整数
 error-day = 日期必须是整数
+error-invalid-calendar-date = 该日期在日历中不存在
+error-invalid-birth-time = 所选出生时辰无效
+error-invalid-temporal-selection = 所选运限超出范围
+error-chart-generation-failed = 无法根据该输入生成命盘
 persistence-unavailable = 无法访问本地存储，本次生成的命盘将不会被保存。
 
 # 中宫面板——分区标题与行标签

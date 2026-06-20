@@ -338,7 +338,7 @@ impl Default for BirthForm {
 
 /// A user-facing form/generation error, kept as a typed value so the renderer
 /// resolves the localized message at the presentation boundary.
-#[derive(Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum FormError {
     /// The chart name was left blank.
     NameRequired,
@@ -348,10 +348,58 @@ pub enum FormError {
     MonthInvalid,
     /// The day field was not a whole number.
     DayInvalid,
-    /// Chart generation failed; carries the core error's English description.
-    Chart(String),
+    /// The date does not exist on the calendar (e.g. 31 February).
+    InvalidCalendarDate,
+    /// The selected birth time is out of the supported range.
+    InvalidBirthTime,
+    /// The selected temporal period/navigation is out of range.
+    InvalidTemporalSelection,
+    /// Chart generation failed for an otherwise-unspecified reason.
+    ChartGenerationFailed,
     /// No local data directory is available, so charts can't be persisted.
     PersistenceUnavailable,
+}
+
+impl FormError {
+    /// The stable Fluent key for this error, resolved by the renderer at the
+    /// presentation boundary. Keeping errors typed (rather than carrying a raw
+    /// core error string) is what lets the GUI localize them.
+    pub fn fluent_key(self) -> &'static str {
+        match self {
+            FormError::NameRequired => "name-required",
+            FormError::YearInvalid => "error-year",
+            FormError::MonthInvalid => "error-month",
+            FormError::DayInvalid => "error-day",
+            FormError::InvalidCalendarDate => "error-invalid-calendar-date",
+            FormError::InvalidBirthTime => "error-invalid-birth-time",
+            FormError::InvalidTemporalSelection => "error-invalid-temporal-selection",
+            FormError::ChartGenerationFailed => "error-chart-generation-failed",
+            FormError::PersistenceUnavailable => "persistence-unavailable",
+        }
+    }
+}
+
+/// Maps a core [`ChartError`] to the most specific GUI [`FormError`], keeping the
+/// error typed (never stringly-typed) across the GUI boundary so it localizes.
+fn form_error_from_chart_error(error: ChartError) -> FormError {
+    match error {
+        ChartError::InvalidSolarMonth { .. } | ChartError::InvalidLunarMonth { .. } => {
+            FormError::MonthInvalid
+        }
+        ChartError::InvalidSolarDay { .. } | ChartError::InvalidLunarDay { .. } => {
+            FormError::DayInvalid
+        }
+        ChartError::InvalidBirthTimeIndex { .. } => FormError::InvalidBirthTime,
+        ChartError::InvalidSolarDate { .. }
+        | ChartError::UnsupportedCalendarDate { .. }
+        | ChartError::CalendarConversionFailed { .. }
+        | ChartError::UnsupportedLeapMonthCombination { .. }
+        | ChartError::UnresolvableLunarDate { .. } => FormError::InvalidCalendarDate,
+        ChartError::InvalidTemporalSelectionIndex { .. }
+        | ChartError::InvalidDecadalPeriodIndex { .. }
+        | ChartError::NominalAgeOutsideDecadalFrame { .. } => FormError::InvalidTemporalSelection,
+        _ => FormError::ChartGenerationFailed,
+    }
 }
 
 /// Outcome of a [`StaticChartApp::generate`] call.
@@ -794,7 +842,7 @@ impl StaticChartApp {
                 }
             }
             Err(error) => {
-                self.error = Some(FormError::Chart(error.to_string()));
+                self.error = Some(form_error_from_chart_error(error));
                 GenerateOutcome::Invalid
             }
         }
@@ -828,7 +876,7 @@ impl StaticChartApp {
                 self.snapshot = Some(snapshot);
                 self.error = None;
             }
-            Err(error) => self.error = Some(FormError::Chart(error.to_string())),
+            Err(error) => self.error = Some(form_error_from_chart_error(error)),
         }
     }
 
@@ -1098,7 +1146,7 @@ impl StaticChartApp {
                 if let Some(input) = self.input {
                     match resolve_today_selection(&input, moment) {
                         Ok(selection) => self.apply_temporal_selection(selection),
-                        Err(error) => self.error = Some(FormError::Chart(error.to_string())),
+                        Err(error) => self.error = Some(form_error_from_chart_error(error)),
                     }
                 }
             }
@@ -1213,7 +1261,10 @@ mod tests {
         assert!(app.center().is_none());
         assert!(app.saved().is_empty());
         // The form is pre-filled for convenience.
-        assert_eq!(app.form(), &BirthForm::from_input(&SAMPLE_INPUT, Locale::EnUs));
+        assert_eq!(
+            app.form(),
+            &BirthForm::from_input(&SAMPLE_INPUT, Locale::EnUs)
+        );
         assert!(app.error().is_none());
     }
 
