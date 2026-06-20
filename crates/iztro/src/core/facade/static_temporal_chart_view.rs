@@ -58,7 +58,7 @@ pub fn static_temporal_chart_view(
         | StaticTemporalNavigationSelection::PreDecadal => {
             let mut snapshot = StaticChartViewSnapshot::from_chart(&natal);
             snapshot.temporal_panel = StaticTemporalPanelView::from_selection(&natal, selection);
-            decorate_temporal(&mut snapshot, &natal, selection, None);
+            decorate_temporal(&mut snapshot, &natal, selection, None)?;
             Ok(snapshot)
         }
         _ => {
@@ -71,7 +71,7 @@ pub fn static_temporal_chart_view(
             snapshot.temporal_panel =
                 StaticTemporalPanelView::from_selection(horoscope.natal(), selection);
             let target = horoscope.target_context().cloned();
-            decorate_temporal(&mut snapshot, horoscope.natal(), selection, target.as_ref());
+            decorate_temporal(&mut snapshot, horoscope.natal(), selection, target.as_ref())?;
             Ok(snapshot)
         }
     }
@@ -87,7 +87,7 @@ fn decorate_temporal(
     natal: &Chart,
     selection: StaticTemporalNavigationSelection,
     target: Option<&HoroscopeTargetContext>,
-) {
+) -> Result<(), ChartError> {
     if let Some(decadal_index) = selection.decadal_index() {
         if let Ok(frame) = build_decadal_frame(natal) {
             if let Some(period) = frame.periods().get(decadal_index) {
@@ -108,7 +108,7 @@ fn decorate_temporal(
                 // Decadal-only / PreDecadal selection carries no selected year
                 // and therefore no active 小限.
                 if selection.year_index().is_some() {
-                    decorate_active_small_limit(snapshot, natal, nominal_age);
+                    decorate_active_small_limit(snapshot, natal, nominal_age)?;
                 }
             }
         }
@@ -145,6 +145,8 @@ fn decorate_temporal(
             snapshot.center.temporal_lunar_year = Some(year);
         }
     }
+
+    Ok(())
 }
 
 /// Marks the active 小限 (Minor Limit) palace for `nominal_age`.
@@ -155,23 +157,24 @@ fn decorate_temporal(
 /// ([`Scope::Yearly`]), which is selected-year / stem-branch / 太岁 based.
 ///
 /// Exactly one palace (the one whose branch matches the resolved 小限 branch) is
-/// marked active; all others are left inactive. An out-of-range or unbuildable
-/// age is skipped defensively so a bad selection never breaks the snapshot.
+/// marked active; all others are left inactive.
+///
+/// A nominal age outside the modeled 小限 range (`1..=120`, reachable for the
+/// final 大限) carries no 小限 and is left clear; this is a valid navigation
+/// state, not an error. Any genuine inconsistency surfaced by
+/// [`build_age_period`] (an unbuildable palace stem-branch) is propagated.
 fn decorate_active_small_limit(
     snapshot: &mut StaticChartViewSnapshot,
     natal: &Chart,
     nominal_age: u16,
-) {
+) -> Result<(), ChartError> {
     let Some(age) = u8::try_from(nominal_age)
         .ok()
         .filter(|age| (1..=120).contains(age))
     else {
-        return;
+        return Ok(());
     };
-    let Ok(period) = build_age_period(natal, age) else {
-        return;
-    };
-    let branch = period.palace_branch();
+    let branch = build_age_period(natal, age)?.palace_branch();
     snapshot.center.small_limit_age = Some(nominal_age);
     snapshot.center.small_limit_branch = Some(branch);
     for palace in &mut snapshot.palaces {
@@ -179,6 +182,16 @@ fn decorate_active_small_limit(
         palace.limit.is_active_small_limit = active;
         palace.limit.active_small_limit_age = active.then_some(nominal_age);
     }
+    debug_assert_eq!(
+        snapshot
+            .palaces
+            .iter()
+            .filter(|palace| palace.limit.is_active_small_limit)
+            .count(),
+        1,
+        "the resolved 小限 branch must match exactly one palace",
+    );
+    Ok(())
 }
 
 /// Resolves the temporal navigation selection that points at a given local

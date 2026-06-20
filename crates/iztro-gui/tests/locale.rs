@@ -218,29 +218,40 @@ fn minor_limit_renders_localized_from_typed_fields() {
         .small_limit_branch
         .expect("a selected year exposes a 小限 branch");
 
+    // The center 小限 row carries only the landing branch (the age is the
+    // nominal age shown above), and the active palace middle band renders the
+    // localized label plus the selected age — both through the same helpers.
     let en = I18n::new(Locale::EnUs);
     assert_eq!(en.temporal_label(Scope::Age), "Minor Limit");
-    let en_value = format!("{} / {}", en.nominal_age(age), en.branch(branch));
+    let en_center = en.branch(branch);
     assert!(
-        !has_cjk(&en_value),
-        "English 小限 value has CJK: {en_value}"
+        !has_cjk(&en_center),
+        "English 小限 row has CJK: {en_center}"
     );
+    let en_band = format!("{} {age}", en.temporal_label(Scope::Age));
+    assert!(!has_cjk(&en_band), "English 小限 band has CJK: {en_band}");
 
     let zh = I18n::new(Locale::ZhHans);
     assert_eq!(zh.temporal_label(Scope::Age), "小限");
-    let zh_value = format!("{} / {}", zh.nominal_age(age), zh.branch(branch));
+    let zh_center = zh.branch(branch);
     assert!(
-        has_cjk(&zh_value),
-        "zh 小限 value should be Chinese: {zh_value}"
+        has_cjk(&zh_center),
+        "zh 小限 row should be Chinese: {zh_center}"
+    );
+    let zh_band = format!("{} {age}", zh.temporal_label(Scope::Age));
+    assert!(
+        has_cjk(&zh_band),
+        "zh 小限 band should be Chinese: {zh_band}"
     );
 
-    // The active 小限 palace exposes typed ages, so the middle band no longer
-    // depends on the Chinese-string fallback to render 小限.
+    // The active 小限 palace exposes the typed selected age, so the middle band
+    // renders 小限 without depending on the Chinese-string fallback.
     let active = app
         .palaces()
         .iter()
         .find(|p| p.limit.is_active_small_limit)
         .expect("exactly one active 小限 palace");
+    assert_eq!(active.limit.active_small_limit_age, Some(age));
     assert!(!active.limit.small_limit_ages.is_empty());
 }
 

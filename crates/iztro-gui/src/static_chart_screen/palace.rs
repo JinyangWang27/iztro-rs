@@ -380,31 +380,32 @@ fn limit_middle(palace: &StaticPalaceView, i18n: &I18n) -> Element<'static, Mess
                 .color(decadal_color),
         );
     }
-    // 小限 ages from the typed field; the Chinese-string field is only a
-    // transitional fallback when the typed ages are absent.
-    let small_limit_ages = if !palace.limit.small_limit_ages.is_empty() {
-        palace
-            .limit
-            .small_limit_ages
-            .iter()
-            .map(u16::to_string)
-            .collect::<Vec<_>>()
-            .join(" ")
+    // 小限 (Minor Limit) middle-band marker. The active palace shows the
+    // localized label plus only the selected age (e.g. `小限 34` / `Minor
+    // Limit 34`); inactive palaces show just their compact age list with no
+    // prefix, so an English label never widens all twelve cells. The
+    // Chinese-string field is only a transitional fallback for the age list.
+    let small_limit = if palace.limit.is_active_small_limit {
+        palace.limit.active_small_limit_age.map(|age| {
+            let prefix = i18n.temporal_label(Scope::Age);
+            (format!("{prefix} {age}"), LIMIT_ACTIVE)
+        })
     } else {
-        palace.limit.small_limit_ages_zh.join(" ")
-    };
-    if !small_limit_ages.is_empty() {
-        let small_limit_color = if palace.limit.is_active_small_limit {
-            LIMIT_ACTIVE
+        let ages = if !palace.limit.small_limit_ages.is_empty() {
+            palace
+                .limit
+                .small_limit_ages
+                .iter()
+                .map(u16::to_string)
+                .collect::<Vec<_>>()
+                .join(" ")
         } else {
-            LIMIT_GRAY
+            palace.limit.small_limit_ages_zh.join(" ")
         };
-        let prefix = i18n.temporal_label(Scope::Age);
-        col = col.push(
-            text(format!("{prefix} {small_limit_ages}"))
-                .size(8)
-                .color(small_limit_color),
-        );
+        (!ages.is_empty()).then_some((ages, LIMIT_GRAY))
+    };
+    if let Some((label, color)) = small_limit {
+        col = col.push(text(label).size(8).color(color));
     }
     container(col)
         .width(Length::Fill)
@@ -514,15 +515,15 @@ pub(super) fn center_panel(
         .unwrap_or_else(dash);
     let temporal_solar = center.temporal_solar_label.clone().unwrap_or_else(dash);
 
-    // 小限 (Minor Limit): the selected nominal age and the palace branch it
-    // lands on. Both are typed facts from core; the label is localized. This is
-    // an annual age marker (Scope::Age), distinct from the 流年 run-limit above.
-    let small_limit = match (center.small_limit_age, center.small_limit_branch) {
-        (Some(age), Some(branch)) => {
-            format!("{} / {}", i18n.nominal_age(age), i18n.branch(branch))
-        }
-        _ => dash(),
-    };
+    // 小限 (Minor Limit): the palace branch the selected nominal age lands on.
+    // The age itself is the nominal age already shown above, so this row carries
+    // only the branch to stay compact and avoid wrapping the one-line stepper
+    // below. It is an annual age marker (Scope::Age), distinct from the 流年
+    // run-limit above; both are typed facts from core and the label is localized.
+    let small_limit = center
+        .small_limit_branch
+        .map(|branch| i18n.branch(branch))
+        .unwrap_or_else(dash);
 
     let run_xian = column![
         section_title(&i18n.text("center-temporal-info")),
