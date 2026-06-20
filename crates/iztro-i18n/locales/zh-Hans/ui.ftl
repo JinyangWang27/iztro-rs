@@ -42,6 +42,10 @@ gender-female = 女
 # 错误与空状态提示
 input-error = 输入错误：{ $message }
 name-required = 请为命盘输入名称
+error-year = 年份必须是整数
+error-month = 月份必须是整数
+error-day = 日期必须是整数
+persistence-unavailable = 无法访问本地存储，本次生成的命盘将不会被保存。
 
 # 中宫面板——分区标题与行标签
 center-basic-info = 基本信息

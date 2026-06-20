@@ -753,6 +753,11 @@ pub struct StaticTemporalOverlayView {
     /// Compact prepared badge label for this period, such as `流年·丁`.
     #[serde(default)]
     pub period_label_zh: Option<String>,
+    /// The period's Heavenly Stem, set only on the anchor palace that carries the
+    /// period badge (mirrors [`period_label_zh`](Self::period_label_zh)). Lets a
+    /// presentation layer build the badge in any locale from typed facts.
+    #[serde(default)]
+    pub period_stem: Option<HeavenlyStem>,
     /// The temporal palace name this period assigns to the branch, if any.
     pub temporal_palace_name: Option<PalaceName>,
     /// Chinese label for the temporal palace name, if any.
@@ -1304,17 +1309,20 @@ impl StaticTemporalOverlayView {
         // the period relabels as 命宫 (Life). Every other branch carries the
         // overlay's stars/mutagens but no period marker, so `period_label_zh`
         // stays `None` there.
-        let period_label_zh = (period_marker_branch(layer) == Some(branch)).then(|| {
+        let is_marker = period_marker_branch(layer) == Some(branch);
+        let period_stem = layer.context().stem_branch().stem();
+        let period_label_zh = is_marker.then(|| {
             format!(
                 "{}·{}",
                 zh_cn::scope_zh(layer.scope()),
-                zh_cn::heavenly_stem_zh(layer.context().stem_branch().stem())
+                zh_cn::heavenly_stem_zh(period_stem)
             )
         });
 
         Self {
             scope: layer.scope(),
             period_label_zh,
+            period_stem: is_marker.then_some(period_stem),
             temporal_palace_name,
             temporal_palace_name_zh: temporal_palace_name
                 .map(|name| zh_cn::palace_name_zh(name).to_owned()),

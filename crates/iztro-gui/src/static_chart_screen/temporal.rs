@@ -1,6 +1,7 @@
 use iced::widget::{button, container, row, text};
 use iced::{Alignment, Element};
-use iztro::core::{EarthlyBranch, StaticTemporalNavigationSelection};
+use iztro::core::{EarthlyBranch, Scope, StaticTemporalNavigationSelection};
+use iztro_i18n::I18n;
 
 use crate::app::{Message, StepDirection, TemporalUnit};
 
@@ -20,7 +21,7 @@ pub(super) fn period_badge(
     label: &str,
     branch: EarthlyBranch,
     is_source: bool,
-) -> Element<'_, Message> {
+) -> Element<'static, Message> {
     button(text(label.to_owned()).size(10))
         .on_press(Message::SelectPalace(branch))
         .padding([1, 4])
@@ -34,68 +35,83 @@ pub(super) fn period_badge(
 /// Steps whose parent index is missing are rendered inert; the `今` control
 /// emits a clock-free message so the Iced update boundary reads the click-time
 /// local moment.
-pub(super) fn temporal_controls(
+pub(super) fn temporal_controls<'a>(
     selection: StaticTemporalNavigationSelection,
-) -> Element<'static, Message> {
-    let today = button(text("今").size(11))
+    i18n: &I18n,
+) -> Element<'a, Message> {
+    let today = button(text(i18n.text("temporal-today")).size(11))
         .on_press(Message::TodayPressed)
         .padding([2, 8])
         .style(stepper_button_style);
 
-    // One horizontal line: `◀限 ◀年 ◀月 ◀日 ◀时 今 时▶ 日▶ 月▶ 年▶ 限▶`. The tight
-    // spacing keeps all eleven controls inside the center panel on one row.
+    // `◀` + short label for backward steps, short label + `▶` for forward steps.
+    let back = |scope: Scope| format!("◀{}", i18n.temporal_short(scope));
+    let fwd = |scope: Scope| format!("{}▶", i18n.temporal_short(scope));
+
+    // One horizontal line: `◀限 ◀年 ◀月 ◀日 ◀时 今 时▶ 日▶ 月▶ 年▶ 限▶` (or the
+    // English equivalent). The tight spacing keeps all eleven controls on one row.
     row![
-        step_button("◀限", TemporalUnit::Decadal, StepDirection::Backward, true),
         step_button(
-            "◀年",
+            back(Scope::Decadal),
+            TemporalUnit::Decadal,
+            StepDirection::Backward,
+            true
+        ),
+        step_button(
+            back(Scope::Yearly),
             TemporalUnit::Year,
             StepDirection::Backward,
             selection.decadal_index().is_some()
         ),
         step_button(
-            "◀月",
+            back(Scope::Monthly),
             TemporalUnit::Month,
             StepDirection::Backward,
             selection.year_index().is_some()
         ),
         step_button(
-            "◀日",
+            back(Scope::Daily),
             TemporalUnit::Day,
             StepDirection::Backward,
             selection.month_index().is_some()
         ),
         step_button(
-            "◀时",
+            back(Scope::Hourly),
             TemporalUnit::Hour,
             StepDirection::Backward,
             selection.day_index().is_some()
         ),
         today,
         step_button(
-            "时▶",
+            fwd(Scope::Hourly),
             TemporalUnit::Hour,
             StepDirection::Forward,
             selection.day_index().is_some()
         ),
         step_button(
-            "日▶",
+            fwd(Scope::Daily),
             TemporalUnit::Day,
             StepDirection::Forward,
             selection.month_index().is_some()
         ),
         step_button(
-            "月▶",
+            fwd(Scope::Monthly),
             TemporalUnit::Month,
             StepDirection::Forward,
             selection.year_index().is_some()
         ),
         step_button(
-            "年▶",
+            fwd(Scope::Yearly),
             TemporalUnit::Year,
             StepDirection::Forward,
             selection.decadal_index().is_some()
         ),
-        step_button("限▶", TemporalUnit::Decadal, StepDirection::Forward, true),
+        step_button(
+            fwd(Scope::Decadal),
+            TemporalUnit::Decadal,
+            StepDirection::Forward,
+            true
+        ),
     ]
     .spacing(3)
     .align_y(Alignment::Center)
@@ -105,7 +121,7 @@ pub(super) fn temporal_controls(
 /// One stepper control. Enabled steps are clickable buttons; disabled steps stay
 /// inert containers so an unavailable step can never change state.
 fn step_button<'a>(
-    label: &'a str,
+    label: String,
     unit: TemporalUnit,
     direction: StepDirection,
     enabled: bool,

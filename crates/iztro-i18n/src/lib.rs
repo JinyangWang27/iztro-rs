@@ -22,13 +22,13 @@ mod localizer;
 #[cfg(test)]
 mod star_table;
 
-use fluent_bundle::FluentArgs;
 use iztro::core::labels::chinese_date;
 use iztro::core::{
     Brightness, EarthlyBranch, FiveElementBureau, Gender, HeavenlyStem, LunarDateView, Mutagen,
     PalaceName, Scope, StarName, WesternZodiac,
 };
 
+pub use fluent_bundle::FluentArgs;
 pub use locale::{Locale, UnsupportedLocale};
 pub use localizer::I18n;
 
@@ -149,6 +149,58 @@ impl I18n {
         }
     }
 
+    /// Compact double-hour (时辰) branch label without its clock range, by
+    /// `iztro` `timeIndex` (`0..=12`), for chart names and saved-chart metadata.
+    ///
+    /// Simplified Chinese preserves the existing GUI form (`辰时`, with early/late
+    /// Zi distinguished); English uses the branch pinyin.
+    pub fn hour_branch(&self, time_index: u8) -> String {
+        let label = match self.locale() {
+            Locale::ZhHans => match time_index {
+                0 => "早子时",
+                1 => "丑时",
+                2 => "寅时",
+                3 => "卯时",
+                4 => "辰时",
+                5 => "巳时",
+                6 => "午时",
+                7 => "未时",
+                8 => "申时",
+                9 => "酉时",
+                10 => "戌时",
+                11 => "亥时",
+                12 => "晚子时",
+                _ => "未知",
+            },
+            Locale::EnUs => match time_index {
+                0 => "Early Zi",
+                1 => "Chou",
+                2 => "Yin",
+                3 => "Mao",
+                4 => "Chen",
+                5 => "Si",
+                6 => "Wu",
+                7 => "Wei",
+                8 => "Shen",
+                9 => "You",
+                10 => "Xu",
+                11 => "Hai",
+                12 => "Late Zi",
+                _ => "Unknown",
+            },
+        };
+        label.to_owned()
+    }
+
+    /// Localized lunisolar (农历) year only, for a 流年-only run-limit selection
+    /// that has no concrete day. English `Lunar 2008`; Chinese `二〇〇八年`.
+    pub fn lunar_year(&self, year: i32) -> String {
+        match self.locale() {
+            Locale::ZhHans => format!("{}年", chinese_date::chinese_year_digits(year)),
+            Locale::EnUs => format!("Lunar {year}"),
+        }
+    }
+
     /// Localized double-hour (时辰) label with its clock range, by `iztro`
     /// `timeIndex` (`0..=12`).
     pub fn double_hour(&self, time_index: u8) -> String {
@@ -211,6 +263,10 @@ mod tests {
         assert_eq!(en.nominal_age(16), "Age 16");
         assert_eq!(zh.nominal_age(16), "16岁");
         assert_eq!(en.brightness(Brightness::Unknown), "");
+        assert_eq!(en.hour_branch(4), "Chen");
+        assert_eq!(zh.hour_branch(4), "辰时");
+        assert_eq!(en.hour_branch(0), "Early Zi");
+        assert_eq!(zh.hour_branch(12), "晚子时");
     }
 
     #[test]

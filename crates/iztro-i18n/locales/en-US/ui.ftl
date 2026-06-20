@@ -42,6 +42,10 @@ gender-female = Female
 # Error / empty-state messages
 input-error = Input error: { $message }
 name-required = Please enter a name for the chart
+error-year = Year must be a whole number
+error-month = Month must be a whole number
+error-day = Day must be a whole number
+persistence-unavailable = Persistent storage unavailable; generated charts won't be saved this session.
 
 # Center panel — section headers and row labels
 center-basic-info = Basic Info

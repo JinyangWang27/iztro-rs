@@ -1,6 +1,7 @@
 use iced::widget::{button, column, container, scrollable, stack, text};
 use iced::{Element, Length};
 use iztro::core::StaticChartViewSnapshot;
+use iztro_i18n::I18n;
 
 use crate::app::{Message, StaticChartApp};
 
@@ -28,8 +29,9 @@ pub(super) const MIN_CHART_HEIGHT: f32 = MIN_PALACE_CELL_HEIGHT * 4.0;
 pub(super) fn chart_screen<'a>(
     app: &'a StaticChartApp,
     snapshot: &'a StaticChartViewSnapshot,
+    i18n: &I18n,
 ) -> Element<'a, Message> {
-    let grid = stack![palace_grid(app, snapshot), san_fang_overlay(app)]
+    let grid = stack![palace_grid(app, snapshot, i18n), san_fang_overlay(app)]
         .width(Length::Fixed(MIN_CHART_WIDTH))
         .height(Length::Fixed(MIN_CHART_HEIGHT));
 
@@ -41,7 +43,7 @@ pub(super) fn chart_screen<'a>(
         .width(Length::Fill)
         .height(Length::Fill);
 
-    column![chart_toolbar(app), chart_area]
+    column![chart_toolbar(i18n), chart_area]
         .spacing(8)
         .padding(12)
         .into()
@@ -49,9 +51,9 @@ pub(super) fn chart_screen<'a>(
 
 /// Top bar of the chart screen: just a return action. 三方四正 is always shown as
 /// connecting lines, matching the original iztro chart, so there is no toggle.
-pub(super) fn chart_toolbar(_app: &StaticChartApp) -> Element<'_, Message> {
+pub(super) fn chart_toolbar<'a>(i18n: &I18n) -> Element<'a, Message> {
     container(
-        button(text("← 返回").size(14))
+        button(text(i18n.text("button-back")).size(14))
             .on_press(Message::BackToStartup)
             .style(button::secondary),
     )

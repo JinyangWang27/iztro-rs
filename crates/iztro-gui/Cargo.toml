@@ -11,6 +11,7 @@ rust-version.workspace = true
 
 [dependencies]
 iztro = { path = "../iztro" }
+iztro-i18n = { path = "../iztro-i18n" }
 # WSL uses XWayland at process startup, avoiding wgpu's unstable WSLg Wayland path.
 # `canvas` powers the transparent 三方四正 connecting-line overlay.
 iced = { version = "0.13", default-features = false, features = ["wgpu", "canvas"] }

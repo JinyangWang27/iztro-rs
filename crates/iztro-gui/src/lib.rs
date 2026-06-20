@@ -13,7 +13,7 @@ mod system_clock;
 use app::{Message, StaticChartApp};
 use persistence::ChartStore;
 
-const WINDOW_TITLE: &str = "iztro Static Chart";
+const WINDOW_TITLE: &str = "iztro-rs";
 
 /// Launches the local Iced desktop window rendering the static chart.
 pub fn run() -> iced::Result {
