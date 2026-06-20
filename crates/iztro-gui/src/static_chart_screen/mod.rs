@@ -25,14 +25,20 @@ mod temporal;
 mod tests;
 
 use iced::Element;
+use iztro_i18n::I18n;
 
 use crate::app::{Message, Screen, StaticChartApp};
 
 /// Renders the active screen: the startup landing page or a generated chart.
+///
+/// The localizer is built once per frame from the app's current locale and
+/// threaded into the render functions, so all user-facing strings resolve at
+/// this presentation boundary.
 pub fn view(app: &StaticChartApp) -> Element<'_, Message> {
+    let i18n = I18n::new(app.locale());
     match (app.screen(), app.snapshot()) {
-        (Screen::Chart, Some(snapshot)) => chart::chart_screen(app, snapshot),
+        (Screen::Chart, Some(snapshot)) => chart::chart_screen(app, snapshot, &i18n),
         // Startup, or a defensive fallback if the chart screen has no snapshot.
-        _ => startup::startup_screen(app),
+        _ => startup::startup_screen(app, &i18n),
     }
 }

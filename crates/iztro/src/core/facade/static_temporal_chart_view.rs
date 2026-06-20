@@ -26,8 +26,8 @@ use crate::core::placement::overlay::partial_horoscope::{
     PartialHoroscope, build_partial_horoscope_chart,
 };
 use crate::core::view::static_chart::{
-    StaticChartViewRequest, StaticChartViewSnapshot, StaticTemporalNavigationSelection,
-    StaticTemporalPanelView,
+    LunarDateView, StaticChartViewRequest, StaticChartViewSnapshot,
+    StaticTemporalNavigationSelection, StaticTemporalPanelView,
 };
 
 /// A representative lunar day used when only a 流月 (not a 流日) is selected.
@@ -99,6 +99,7 @@ fn decorate_temporal(
                 let nominal_age =
                     u16::from(period.start_age()) + selection.year_index().map_or(0, u16::from);
                 snapshot.center.nominal_age_label = Some(format!("{nominal_age} 岁"));
+                snapshot.center.nominal_age = Some(nominal_age);
             }
         }
     }
@@ -117,6 +118,12 @@ fn decorate_temporal(
             lunar.day(),
             lunar.is_leap_month(),
         ));
+        snapshot.center.temporal_lunar_date = Some(LunarDateView {
+            year: lunar.year(),
+            month: lunar.month(),
+            day: lunar.day(),
+            is_leap_month: lunar.is_leap_month(),
+        });
     } else if let (Some(decadal_index), Some(year_index)) =
         (selection.decadal_index(), selection.year_index())
     {
@@ -125,6 +132,7 @@ fn decorate_temporal(
             snapshot.center.temporal_lunar_label =
                 Some(format!("{}年", chinese_date::chinese_year_digits(year)));
             snapshot.center.temporal_solar_label = Some(format!("{year}"));
+            snapshot.center.temporal_lunar_year = Some(year);
         }
     }
 }

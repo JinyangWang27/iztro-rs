@@ -13,3 +13,4 @@ pub mod master;
 pub mod nayin;
 pub mod profile;
 pub mod star;
+pub mod zodiac;

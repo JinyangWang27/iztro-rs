@@ -23,6 +23,7 @@ use crate::core::model::chart::{
 use crate::core::model::master::{body_master, soul_master};
 use crate::core::model::star::mutagen::Scope;
 use crate::core::model::star::{Brightness, StarCategory, StarKind, StarName, mutagen::Mutagen};
+use crate::core::model::zodiac::{WesternZodiac, western_zodiac};
 use lunar_lite::{EarthlyBranch, FourPillars, HeavenlyStem, StemBranch};
 use serde::{Deserialize, Serialize};
 
@@ -78,6 +79,23 @@ pub struct StaticChartViewSnapshot {
     /// Reserved highlight annotations. Always empty until feature/rule layers
     /// populate it; this PR performs no 成格 detection.
     pub highlights: Vec<HighlightView>,
+}
+
+/// A language-neutral lunisolar (农历) date, for presentation-layer formatting.
+///
+/// This carries the typed lunar date parts so a renderer/i18n layer can format
+/// them in any locale. The conventional Chinese string form is still available
+/// via [`chinese_date::lunar_date_label`](crate::core::labels::chinese_date::lunar_date_label).
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct LunarDateView {
+    /// Lunar year.
+    pub year: i32,
+    /// One-based lunar month (`1..=12`).
+    pub month: u8,
+    /// One-based lunar day (`1..=30`).
+    pub day: u8,
+    /// Whether the month is a leap month (闰月).
+    pub is_leap_month: bool,
 }
 
 /// Center panel facts for a static chart.
@@ -141,6 +159,46 @@ pub struct StaticChartCenterView {
     pub body_palace_branch: Option<EarthlyBranch>,
     /// Chinese label for the Body Palace branch, if modeled.
     pub body_palace_branch_zh: Option<String>,
+    /// Typed lunar (农历) birth date, for locale-neutral formatting.
+    ///
+    /// Mirrors [`birth_lunar_label`](Self::birth_lunar_label); `None` when the
+    /// chart carries no retained lunar date.
+    #[serde(default)]
+    pub birth_lunar_date: Option<LunarDateView>,
+    /// Upstream `iztro` double-hour `timeIndex` (`0..=12`) for the birth time.
+    ///
+    /// Mirrors [`birth_time_label`](Self::birth_time_label) as typed data so the
+    /// presentation layer can render the 时辰 in any locale.
+    #[serde(default)]
+    pub birth_time_index: Option<u8>,
+    /// Typed Western zodiac sign (星座), for locale-neutral formatting.
+    ///
+    /// Mirrors [`constellation_zh`](Self::constellation_zh).
+    #[serde(default)]
+    pub western_zodiac: Option<WesternZodiac>,
+    /// Soul master (命主) star, typed. Mirrors [`soul_master_zh`](Self::soul_master_zh).
+    #[serde(default)]
+    pub soul_master: Option<StarName>,
+    /// Body master (身主) star, typed. Mirrors [`body_master_zh`](Self::body_master_zh).
+    #[serde(default)]
+    pub body_master: Option<StarName>,
+    /// Selected period nominal age (虚岁) as a number.
+    ///
+    /// Mirrors [`nominal_age_label`](Self::nominal_age_label); filled by the
+    /// temporal facade because it depends on navigation state.
+    #[serde(default)]
+    pub nominal_age: Option<u16>,
+    /// Selected period lunar (运限农历) date, typed, when a concrete day is known.
+    ///
+    /// Mirrors [`temporal_lunar_label`](Self::temporal_lunar_label) for 流月/流日/流时
+    /// selections. A 流年-only selection resolves to a lunar year only, exposed via
+    /// [`temporal_lunar_year`](Self::temporal_lunar_year) instead.
+    #[serde(default)]
+    pub temporal_lunar_date: Option<LunarDateView>,
+    /// Selected period lunar year for a 流年-only selection, when no concrete day
+    /// is known. Mirrors the year portion of [`temporal_lunar_label`](Self::temporal_lunar_label).
+    #[serde(default)]
+    pub temporal_lunar_year: Option<i32>,
 }
 
 /// Presentation-friendly natal four-pillar facts.
@@ -695,6 +753,11 @@ pub struct StaticTemporalOverlayView {
     /// Compact prepared badge label for this period, such as `流年·丁`.
     #[serde(default)]
     pub period_label_zh: Option<String>,
+    /// The period's Heavenly Stem, set only on the anchor palace that carries the
+    /// period badge (mirrors [`period_label_zh`](Self::period_label_zh)). Lets a
+    /// presentation layer build the badge in any locale from typed facts.
+    #[serde(default)]
+    pub period_stem: Option<HeavenlyStem>,
     /// The temporal palace name this period assigns to the branch, if any.
     pub temporal_palace_name: Option<PalaceName>,
     /// Chinese label for the temporal palace name, if any.
@@ -968,6 +1031,7 @@ impl StaticChartCenterView {
             .birth_time_variant()
             .iztro_time_index();
         let (birth_solar_label, birth_lunar_label, constellation_zh) = natal_date_labels(chart);
+        let (birth_lunar_date, western_zodiac_sign) = natal_typed_dates(chart);
         Self {
             gender: chart.birth_context().gender(),
             birth_year_stem: chart.birth_year().stem(),
@@ -1000,7 +1064,48 @@ impl StaticChartCenterView {
             body_palace_branch,
             body_palace_branch_zh: body_palace_branch
                 .map(|branch| zh_cn::earthly_branch_zh(branch).to_owned()),
+            birth_lunar_date,
+            birth_time_index: Some(time_index),
+            western_zodiac: western_zodiac_sign,
+            soul_master: life_palace_branch.map(soul_master),
+            body_master: Some(body_master(birth_year_branch)),
+            // Temporal (navigation-dependent) typed facts are filled by the facade.
+            nominal_age: None,
+            temporal_lunar_date: None,
+            temporal_lunar_year: None,
         }
+    }
+}
+
+/// Returns `(birth_lunar_date, western_zodiac)` for a natal chart, mirroring the
+/// string labels from [`natal_date_labels`] as typed, language-neutral facts.
+fn natal_typed_dates(chart: &Chart) -> (Option<LunarDateView>, Option<WesternZodiac>) {
+    if let Some(facts) = chart.natal_date_facts() {
+        let solar = facts.solar();
+        let lunar = facts.lunar();
+        return (
+            Some(LunarDateView {
+                year: lunar.year(),
+                month: lunar.month(),
+                day: lunar.day(),
+                is_leap_month: lunar.is_leap_month(),
+            }),
+            western_zodiac(solar.month(), solar.day()),
+        );
+    }
+
+    let date = chart.birth_context().date();
+    match date.kind() {
+        CalendarKind::Solar => (None, western_zodiac(date.month(), date.day())),
+        CalendarKind::Lunar => (
+            Some(LunarDateView {
+                year: date.year(),
+                month: date.month(),
+                day: date.day(),
+                is_leap_month: false,
+            }),
+            None,
+        ),
     }
 }
 
@@ -1204,17 +1309,20 @@ impl StaticTemporalOverlayView {
         // the period relabels as 命宫 (Life). Every other branch carries the
         // overlay's stars/mutagens but no period marker, so `period_label_zh`
         // stays `None` there.
-        let period_label_zh = (period_marker_branch(layer) == Some(branch)).then(|| {
+        let is_marker = period_marker_branch(layer) == Some(branch);
+        let period_stem = layer.context().stem_branch().stem();
+        let period_label_zh = is_marker.then(|| {
             format!(
                 "{}·{}",
                 zh_cn::scope_zh(layer.scope()),
-                zh_cn::heavenly_stem_zh(layer.context().stem_branch().stem())
+                zh_cn::heavenly_stem_zh(period_stem)
             )
         });
 
         Self {
             scope: layer.scope(),
             period_label_zh,
+            period_stem: is_marker.then_some(period_stem),
             temporal_palace_name,
             temporal_palace_name_zh: temporal_palace_name
                 .map(|name| zh_cn::palace_name_zh(name).to_owned()),

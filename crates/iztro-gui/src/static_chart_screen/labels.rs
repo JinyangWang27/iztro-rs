@@ -3,38 +3,54 @@ use std::fmt;
 use iced::Element;
 use iced::widget::text;
 use iztro::core::{Gender, StaticChartCenterView};
+use iztro_i18n::{I18n, Locale};
 
 use crate::app::Message;
 
 use super::style::section_title_style;
 
-/// The single-row 四柱 label, such as `癸酉 丁巳 戊申 辛酉`, joined from the
-/// prepared pillar labels. `None` when the chart carries no four pillars.
-pub(super) fn four_pillars_line(center: &StaticChartCenterView) -> Option<String> {
+/// The single-row 四柱 label, such as `癸酉 丁巳 戊申 辛酉` / `Gui You Ding Si …`,
+/// built from the typed pillar stem-branches. `None` when the chart carries no
+/// four pillars.
+pub(super) fn four_pillars_line(center: &StaticChartCenterView, i18n: &I18n) -> Option<String> {
     center.four_pillars.as_ref().map(|pillars| {
+        let pillar = |sb| i18n.stem_branch_value(sb);
         format!(
             "{} {} {} {}",
-            pillars.yearly_zh, pillars.monthly_zh, pillars.daily_zh, pillars.hourly_zh
+            pillar(pillars.yearly),
+            pillar(pillars.monthly),
+            pillar(pillars.daily),
+            pillar(pillars.hourly)
         )
     })
 }
 
-pub(super) fn fact_row<'a>(label: &'a str, value: impl Into<String>) -> Element<'a, Message> {
-    text(format!("{label}：{}", value.into())).size(13).into()
+/// One labeled fact row, such as `五行局：木三局` / `Bureau: Wood 3`. The label is
+/// already localized; the separator follows the locale (full-width colon for
+/// Simplified Chinese, ASCII colon for English).
+pub(super) fn fact_row(
+    i18n: &I18n,
+    label: &str,
+    value: impl Into<String>,
+) -> Element<'static, Message> {
+    let sep = match i18n.locale() {
+        Locale::ZhHans => "：",
+        Locale::EnUs => ": ",
+    };
+    text(format!("{label}{sep}{}", value.into()))
+        .size(13)
+        .into()
 }
 
-pub(super) fn section_title(label: &str) -> Element<'_, Message> {
-    text(label).size(13).style(section_title_style).into()
+pub(super) fn section_title(label: &str) -> Element<'static, Message> {
+    text(label.to_owned())
+        .size(13)
+        .style(section_title_style)
+        .into()
 }
 
-pub(super) fn gender_zh(gender: Gender) -> &'static str {
-    match gender {
-        Gender::Female => "女",
-        Gender::Male => "男",
-    }
-}
-
-/// The gender symbol shown before `基本信息` (`♂` male / `♀` female).
+/// The gender symbol shown before the basic-info header (`♂` male / `♀` female).
+/// Symbols are locale-neutral.
 pub(super) fn gender_symbol(gender: Gender) -> &'static str {
     match gender {
         Gender::Female => "♀",
@@ -42,75 +58,42 @@ pub(super) fn gender_symbol(gender: Gender) -> &'static str {
     }
 }
 
-/// Chinese label for an `iztro` `timeIndex` double-hour (`0..=12`).
-pub(super) fn hour_branch_zh(time_index: u8) -> &'static str {
-    match time_index {
-        0 => "早子时",
-        1 => "丑时",
-        2 => "寅时",
-        3 => "卯时",
-        4 => "辰时",
-        5 => "巳时",
-        6 => "午时",
-        7 => "未时",
-        8 => "申时",
-        9 => "酉时",
-        10 => "戌时",
-        11 => "亥时",
-        12 => "晚子时",
-        _ => "未知",
-    }
+/// A locale-aware birth-time pick-list option for the double-hour (时辰) `0..=12`.
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub(super) struct TimeChoice {
+    pub(super) index: u8,
+    pub(super) locale: Locale,
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub(super) struct TimeChoice(pub(super) u8);
-
-pub(super) const TIME_CHOICES: &[TimeChoice] = &[
-    TimeChoice(0),
-    TimeChoice(1),
-    TimeChoice(2),
-    TimeChoice(3),
-    TimeChoice(4),
-    TimeChoice(5),
-    TimeChoice(6),
-    TimeChoice(7),
-    TimeChoice(8),
-    TimeChoice(9),
-    TimeChoice(10),
-    TimeChoice(11),
-    TimeChoice(12),
-];
+/// Builds the thirteen birth-time options for `locale`.
+pub(super) fn time_choices(locale: Locale) -> Vec<TimeChoice> {
+    (0..=12).map(|index| TimeChoice { index, locale }).collect()
+}
 
 impl fmt::Display for TimeChoice {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        let label = match self.0 {
-            0 => "子(早)",
-            1 => "丑",
-            2 => "寅",
-            3 => "卯",
-            4 => "辰",
-            5 => "巳",
-            6 => "午",
-            7 => "未",
-            8 => "申",
-            9 => "酉",
-            10 => "戌",
-            11 => "亥",
-            12 => "子(晚)",
-            _ => "?",
-        };
-        write!(f, "{label} ({})", self.0)
+        let label = I18n::new(self.locale).hour_branch(self.index);
+        write!(f, "{label} ({})", self.index)
     }
 }
 
+/// A locale-aware gender pick-list option.
 #[derive(Clone, Copy, PartialEq, Eq)]
-pub(super) struct GenderChoice(pub(super) Gender);
+pub(super) struct GenderChoice {
+    pub(super) gender: Gender,
+    pub(super) locale: Locale,
+}
 
-pub(super) const GENDER_CHOICES: &[GenderChoice] =
-    &[GenderChoice(Gender::Female), GenderChoice(Gender::Male)];
+/// Builds the gender options for `locale`.
+pub(super) fn gender_choices(locale: Locale) -> Vec<GenderChoice> {
+    [Gender::Female, Gender::Male]
+        .into_iter()
+        .map(|gender| GenderChoice { gender, locale })
+        .collect()
+}
 
 impl fmt::Display for GenderChoice {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        f.write_str(gender_zh(self.0))
+        f.write_str(&I18n::new(self.locale).gender(self.gender))
     }
 }

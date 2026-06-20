@@ -1,10 +1,11 @@
 use iced::widget::{button, column, container, mouse_area, row, stack, text};
 use iced::{Alignment, Color, Element, Length, Padding};
 use iztro::core::{
-    DecorativeStarFamily, Mutagen, StarCategory, StarKind, StaticChartCenterView,
+    DecorativeStarFamily, Mutagen, Scope, StarCategory, StarKind, StaticChartCenterView,
     StaticChartViewSnapshot, StaticDecorativeStarView, StaticPalaceView,
     StaticTemporalNavigationSelection, StaticTypedStarView,
 };
+use iztro_i18n::I18n;
 
 use crate::app::{Message, StaticChartApp};
 
@@ -21,25 +22,27 @@ use super::temporal::{period_badge, temporal_controls};
 pub(super) fn palace_grid<'a>(
     app: &'a StaticChartApp,
     snapshot: &'a StaticChartViewSnapshot,
+    i18n: &I18n,
 ) -> Element<'a, Message> {
     let top = row![
-        grid_cell(app, 0, 0),
-        grid_cell(app, 0, 1),
-        grid_cell(app, 0, 2),
-        grid_cell(app, 0, 3),
+        grid_cell(app, 0, 0, i18n),
+        grid_cell(app, 0, 1, i18n),
+        grid_cell(app, 0, 2, i18n),
+        grid_cell(app, 0, 3, i18n),
     ]
     .spacing(6)
     .height(Length::FillPortion(1));
 
-    let left = column![grid_cell(app, 1, 0), grid_cell(app, 2, 0)]
+    let left = column![grid_cell(app, 1, 0, i18n), grid_cell(app, 2, 0, i18n)]
         .spacing(6)
         .width(Length::FillPortion(1));
-    let right = column![grid_cell(app, 1, 3), grid_cell(app, 2, 3)]
+    let right = column![grid_cell(app, 1, 3, i18n), grid_cell(app, 2, 3, i18n)]
         .spacing(6)
         .width(Length::FillPortion(1));
     let center = container(center_panel(
         &snapshot.center,
         app.selected_temporal_selection(),
+        i18n,
     ))
     .style(center_panel_style)
     .padding(10)
@@ -50,10 +53,10 @@ pub(super) fn palace_grid<'a>(
         .height(Length::FillPortion(2));
 
     let bottom = row![
-        grid_cell(app, 3, 0),
-        grid_cell(app, 3, 1),
-        grid_cell(app, 3, 2),
-        grid_cell(app, 3, 3),
+        grid_cell(app, 3, 0, i18n),
+        grid_cell(app, 3, 1, i18n),
+        grid_cell(app, 3, 2, i18n),
+        grid_cell(app, 3, 3, i18n),
     ]
     .spacing(6)
     .height(Length::FillPortion(1));
@@ -67,7 +70,12 @@ pub(super) fn palace_grid<'a>(
 
 /// Builds one grid cell by grid position. Perimeter cells are palaces; the
 /// (rare) absent cell becomes inert filler so layout stays stable.
-pub(super) fn grid_cell(app: &StaticChartApp, row: u8, column_index: u8) -> Element<'_, Message> {
+pub(super) fn grid_cell<'a>(
+    app: &'a StaticChartApp,
+    row: u8,
+    column_index: u8,
+    i18n: &I18n,
+) -> Element<'a, Message> {
     match app.palace_at(row, column_index) {
         Some(palace) => {
             let highlight = if app.active_branch() == Some(palace.branch) {
@@ -78,7 +86,7 @@ pub(super) fn grid_cell(app: &StaticChartApp, row: u8, column_index: u8) -> Elem
             } else {
                 PalaceHighlight::None
             };
-            palace_cell(palace, highlight)
+            palace_cell(palace, highlight, i18n)
         }
         None => container(text("")).width(Length::FillPortion(1)).into(),
     }
@@ -95,10 +103,11 @@ pub(super) enum PalaceHighlight {
     Related,
 }
 
-pub(super) fn palace_cell(
-    palace: &StaticPalaceView,
+pub(super) fn palace_cell<'a>(
+    palace: &'a StaticPalaceView,
     highlight: PalaceHighlight,
-) -> Element<'_, Message> {
+    i18n: &I18n,
+) -> Element<'a, Message> {
     // Zone every prepared natal typed star by its coarse `kind.category()`:
     // major top-left, minor top-middle, adjective top-right. Routing by the
     // prepared kind keeps placement correct regardless of which source vec a
@@ -118,9 +127,9 @@ pub(super) fn palace_cell(
         }
     }
     let star_area = row![
-        container(typed_star_column(majors, true)).width(Length::FillPortion(3)),
-        container(typed_star_column(minors, false)).width(Length::FillPortion(3)),
-        container(typed_star_column(adjectives, false))
+        container(typed_star_column(majors, true, i18n)).width(Length::FillPortion(3)),
+        container(typed_star_column(minors, false, i18n)).width(Length::FillPortion(3)),
+        container(typed_star_column(adjectives, false, i18n))
             .width(Length::FillPortion(2))
             .align_x(Alignment::End),
     ]
@@ -139,8 +148,11 @@ pub(super) fn palace_cell(
     let is_source = matches!(highlight, PalaceHighlight::Selected);
     let mut badges = row![].spacing(3);
     for overlay in &palace.overlays {
-        if let Some(label) = overlay.period_label_zh.as_deref() {
-            badges = badges.push(period_badge(label, palace.branch, is_source));
+        // The badge appears only on the period's anchor palace, where core sets
+        // the typed period stem. Built from typed facts so it localizes.
+        if let Some(stem) = overlay.period_stem {
+            let label = format!("{}·{}", i18n.temporal_label(overlay.scope), i18n.stem(stem));
+            badges = badges.push(period_badge(&label, palace.branch, is_source));
         }
     }
     // Always reserve the badge-row height (an empty placeholder when there is no
@@ -155,7 +167,7 @@ pub(super) fn palace_cell(
     // (above the anchored bottom footer), so the badge row and 大限/小限 line
     // align across every palace regardless of how many stars sit above them.
     let middle_band = container(
-        column![badge_row, limit_middle(palace)]
+        column![badge_row, limit_middle(palace, i18n)]
             .spacing(2)
             .align_x(Alignment::Center),
     )
@@ -187,7 +199,7 @@ pub(super) fn palace_cell(
     let content: Element<'_, Message> = stack![
         star_layer,
         middle_layer,
-        bottom_decorative_layer(palace, gods_left, gods_right),
+        bottom_decorative_layer(palace, gods_left, gods_right, i18n),
     ]
     .width(Length::Fill)
     .height(Length::Fill)
@@ -254,33 +266,36 @@ fn star_color(tone: StaticStarTone) -> Color {
 }
 
 /// One star line: name (tone color, bold for majors) + inline brightness
-/// (gray) + inline 科权禄忌 badge. All fields are prepared core values.
-fn star_line(star: &StaticTypedStarView, major: bool) -> Element<'static, Message> {
+/// (gray) + inline mutagen badge. Star name, brightness, and mutagen are
+/// localized from the prepared typed fields.
+fn star_line(star: &StaticTypedStarView, major: bool, i18n: &I18n) -> Element<'static, Message> {
     // Majors are emphasized by larger size + tone color only. The bundled CJK
     // font ships a single (Regular) weight; requesting Bold makes cosmic-text
     // fall back to a non-CJK face and render the names as tofu, so no bold here.
     let color = star_color(star_tone(star));
     let size = if major { 15 } else { 12 };
-    let name = text(star.name_zh.clone()).size(size).color(color);
+    let name = text(i18n.star_name(star.name)).size(size).color(color);
     let mut line = row![name].spacing(1).align_y(Alignment::Center);
-    if !star.brightness_zh.is_empty() {
-        line = line.push(
-            text(star.brightness_zh.clone())
-                .size(size - 2)
-                .color(BRIGHTNESS_GRAY),
-        );
+    let brightness = i18n.brightness(star.brightness);
+    if !brightness.is_empty() {
+        line = line.push(text(brightness).size(size - 2).color(BRIGHTNESS_GRAY));
     }
-    if let (Some(mutagen), Some(label)) = (star.mutagen, star.mutagen_zh.as_deref()) {
-        line = line.push(mutagen_inline_badge(mutagen, label));
+    if let Some(mutagen) = star.mutagen {
+        let label = i18n.mutagen(mutagen);
+        line = line.push(mutagen_inline_badge(mutagen, &label));
     }
     line.into()
 }
 
 /// A vertical stack of typed star lines for one palace-cell zone.
-fn typed_star_column(stars: Vec<&StaticTypedStarView>, major: bool) -> Element<'static, Message> {
+fn typed_star_column(
+    stars: Vec<&StaticTypedStarView>,
+    major: bool,
+    i18n: &I18n,
+) -> Element<'static, Message> {
     let mut col = column![].spacing(1);
     for star in stars {
-        col = col.push(star_line(star, major));
+        col = col.push(star_line(star, major, i18n));
     }
     col.into()
 }
@@ -289,10 +304,11 @@ fn typed_star_column(stars: Vec<&StaticTypedStarView>, major: bool) -> Element<'
 fn decorative_column(
     stars: Vec<&StaticDecorativeStarView>,
     color: Color,
+    i18n: &I18n,
 ) -> Element<'static, Message> {
     let mut col = column![].spacing(1);
     for star in stars {
-        col = col.push(text(star.name_zh.clone()).size(10).color(color));
+        col = col.push(text(i18n.star_name(star.name)).size(10).color(color));
     }
     col.into()
 }
@@ -304,18 +320,21 @@ fn bottom_decorative_layer<'a>(
     palace: &'a StaticPalaceView,
     gods_left: Vec<&'a StaticDecorativeStarView>,
     gods_right: Vec<&'a StaticDecorativeStarView>,
+    i18n: &I18n,
 ) -> Element<'a, Message> {
     let left = column![
-        container(decorative_column(gods_left, DECOR_GOD_OLIVE)).width(Length::Fill),
-        text(palace.name_zh.as_str()).size(16).color(MAJOR_PURPLE),
+        container(decorative_column(gods_left, DECOR_GOD_OLIVE, i18n)).width(Length::Fill),
+        text(i18n.palace_name(palace.name))
+            .size(16)
+            .color(MAJOR_PURPLE),
     ]
     .spacing(1)
     .align_x(Alignment::Start);
     let right = column![
-        container(decorative_column(gods_right, MINOR_MALEFIC))
+        container(decorative_column(gods_right, MINOR_MALEFIC, i18n))
             .width(Length::Fill)
             .align_x(Alignment::End),
-        text(format!("{}{}", palace.stem_zh, palace.branch_zh))
+        text(i18n.stem_branch(palace.stem, palace.branch))
             .size(12)
             .color(mutagen_badge_color(Mutagen::Ke)),
     ]
@@ -339,8 +358,9 @@ fn bottom_decorative_layer<'a>(
 }
 
 /// The 大限 / 小限 limit facts shown in the middle of a palace cell, between the
-/// top stars and the bottom decorative footer. All values are prepared by core.
-fn limit_middle(palace: &StaticPalaceView) -> Element<'static, Message> {
+/// top stars and the bottom decorative footer. All values are prepared by core;
+/// only the 大限 prefix is localized.
+fn limit_middle(palace: &StaticPalaceView, i18n: &I18n) -> Element<'static, Message> {
     let decadal_color = if palace.limit.is_active_decadal {
         LIMIT_ACTIVE
     } else {
@@ -348,7 +368,12 @@ fn limit_middle(palace: &StaticPalaceView) -> Element<'static, Message> {
     };
     let mut col = column![].spacing(0).align_x(Alignment::Center);
     if let Some(range) = palace.limit.decadal_age_range_zh.as_deref() {
-        col = col.push(text(format!("大限 {range}")).size(9).color(decadal_color));
+        let prefix = i18n.temporal_label(Scope::Decadal);
+        col = col.push(
+            text(format!("{prefix} {range}"))
+                .size(9)
+                .color(decadal_color),
+        );
     }
     if !palace.limit.small_limit_ages_zh.is_empty() {
         col = col.push(
@@ -363,49 +388,87 @@ fn limit_middle(palace: &StaticPalaceView) -> Element<'static, Message> {
         .into()
 }
 
-/// The iztro-style center information block: a `♂/♀基本信息` panel followed by a
-/// `运限信息` panel with the compact temporal stepper. Every value is a prepared
-/// core field; the GUI computes none of them.
+/// The iztro-style center information block: a `♂/♀` basic-info panel followed by
+/// a period-info panel with the compact temporal stepper. Data values come from
+/// prepared typed fields; labels are localized.
 pub(super) fn center_panel(
     center: &StaticChartCenterView,
     selection: StaticTemporalNavigationSelection,
+    i18n: &I18n,
 ) -> Element<'static, Message> {
-    let dash = "—";
-    let basic_header = text(format!("{}基本信息", gender_symbol(center.gender)))
-        .size(14)
-        .style(section_title_style);
+    let dash = || "—".to_owned();
+    let basic_header = text(format!(
+        "{}{}",
+        gender_symbol(center.gender),
+        i18n.text("center-basic-info")
+    ))
+    .size(14)
+    .style(section_title_style);
+
+    let bureau = center
+        .five_element_bureau
+        .map(|b| i18n.bureau(b))
+        .unwrap_or_else(dash);
+    let four_pillars = four_pillars_line(center, i18n).unwrap_or_else(dash);
+    let birth_lunar = center
+        .birth_lunar_date
+        .as_ref()
+        .map(|d| i18n.lunar_date(d))
+        .unwrap_or_else(dash);
+    let zodiac = i18n.zodiac_animal(center.birth_year_branch);
+    let soul_master = center
+        .soul_master
+        .map(|s| i18n.master(s))
+        .unwrap_or_else(dash);
+    let life_palace = center
+        .life_palace_branch
+        .map(|b| i18n.branch(b))
+        .unwrap_or_else(dash);
+
     let basic_left = column![
-        fact_row(
-            "五行局",
-            center.five_element_bureau_zh.as_deref().unwrap_or(dash)
-        ),
-        fact_row(
-            "四柱",
-            four_pillars_line(center).unwrap_or_else(|| dash.to_owned())
-        ),
-        fact_row("农历", center.birth_lunar_label.as_str()),
-        fact_row("生肖", center.zodiac_zh.as_str()),
-        fact_row("命主", center.soul_master_zh.as_deref().unwrap_or(dash)),
-        fact_row(
-            "命宫",
-            center.life_palace_branch_zh.as_deref().unwrap_or(dash)
-        ),
+        fact_row(i18n, &i18n.text("center-five-element-bureau"), bureau),
+        fact_row(i18n, &i18n.text("center-four-pillars"), four_pillars),
+        fact_row(i18n, &i18n.text("center-lunar"), birth_lunar),
+        fact_row(i18n, &i18n.text("center-zodiac"), zodiac),
+        fact_row(i18n, &i18n.text("center-soul-master"), soul_master),
+        fact_row(i18n, &i18n.text("center-life-palace"), life_palace),
     ]
     .spacing(2)
     .width(Length::FillPortion(1));
+
+    let nominal_age = center
+        .nominal_age
+        .map(|n| i18n.nominal_age(n))
+        .unwrap_or_else(dash);
+    let birth_time = center
+        .birth_time_index
+        .map(|t| i18n.double_hour(t))
+        .unwrap_or_else(dash);
+    let constellation = center
+        .western_zodiac
+        .map(|s| i18n.constellation(s))
+        .unwrap_or_else(dash);
+    let body_master = center
+        .body_master
+        .map(|s| i18n.master(s))
+        .unwrap_or_else(dash);
+    let body_palace = center
+        .body_palace_branch
+        .map(|b| i18n.branch(b))
+        .unwrap_or_else(dash);
+    let birth_solar = if center.birth_solar_label.is_empty() {
+        dash()
+    } else {
+        center.birth_solar_label.clone()
+    };
+
     let basic_right = column![
-        fact_row(
-            "年龄(虚岁)",
-            center.nominal_age_label.as_deref().unwrap_or(dash)
-        ),
-        fact_row("阳历", center.birth_solar_label.as_str()),
-        fact_row("时辰", center.birth_time_label.as_str()),
-        fact_row("星座", center.constellation_zh.as_str()),
-        fact_row("身主", center.body_master_zh.as_deref().unwrap_or(dash)),
-        fact_row(
-            "身宫",
-            center.body_palace_branch_zh.as_deref().unwrap_or(dash)
-        ),
+        fact_row(i18n, &i18n.text("center-nominal-age"), nominal_age),
+        fact_row(i18n, &i18n.text("center-solar"), birth_solar),
+        fact_row(i18n, &i18n.text("center-birth-time"), birth_time),
+        fact_row(i18n, &i18n.text("center-constellation"), constellation),
+        fact_row(i18n, &i18n.text("center-body-master"), body_master),
+        fact_row(i18n, &i18n.text("center-body-palace"), body_palace),
     ]
     .spacing(2)
     .width(Length::FillPortion(1));
@@ -417,17 +480,21 @@ pub(super) fn center_panel(
     ]
     .spacing(2);
 
+    // Run-limit (运限) lunar: full typed date when known, else the year-only
+    // fallback, else a dash. The solar label is already locale-neutral.
+    let temporal_lunar = center
+        .temporal_lunar_date
+        .as_ref()
+        .map(|d| i18n.lunar_date(d))
+        .or_else(|| center.temporal_lunar_year.map(|y| i18n.lunar_year(y)))
+        .unwrap_or_else(dash);
+    let temporal_solar = center.temporal_solar_label.clone().unwrap_or_else(dash);
+
     let run_xian = column![
-        section_title("运限信息"),
-        fact_row(
-            "农历",
-            center.temporal_lunar_label.as_deref().unwrap_or(dash)
-        ),
-        fact_row(
-            "阳历",
-            center.temporal_solar_label.as_deref().unwrap_or(dash)
-        ),
-        temporal_controls(selection),
+        section_title(&i18n.text("center-temporal-info")),
+        fact_row(i18n, &i18n.text("center-lunar"), temporal_lunar),
+        fact_row(i18n, &i18n.text("center-solar"), temporal_solar),
+        temporal_controls(selection, i18n),
     ]
     .spacing(2);
 

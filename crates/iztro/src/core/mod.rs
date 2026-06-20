@@ -71,6 +71,7 @@ pub use model::star::{
     known_star_metadata_table, represented_star_metadata_table, star_metadata, try_flow_star_parts,
     try_known_star_metadata, try_star_metadata,
 };
+pub use model::zodiac::{WesternZodiac, western_zodiac};
 pub use pattern::{
     PalaceRelation, PatternAnchor, PatternCondition, PatternContext, PatternDetection,
     PatternDetectionRequest, PatternEvidence, PatternFamily, PatternId, PatternPolarity,
@@ -127,10 +128,10 @@ pub use facade::static_temporal_chart_view::{
 };
 
 pub use view::static_chart::{
-    HighlightView, StaticChartCenterView, StaticChartSelectorView, StaticChartViewRequest,
-    StaticChartViewSnapshot, StaticDecadalCellView, StaticDecorativeStarView,
-    StaticFourPillarsView, StaticNavigationCellView, StaticOverlayMutagenView, StaticPalaceRole,
-    StaticPalaceView, StaticPreDecadalCellView, StaticSurroundPalacesView,
-    StaticTemporalNavigationSelection, StaticTemporalOverlayView, StaticTemporalPanelView,
-    StaticTypedStarView, StaticYearlyAgeCellView,
+    HighlightView, LunarDateView, StaticChartCenterView, StaticChartSelectorView,
+    StaticChartViewRequest, StaticChartViewSnapshot, StaticDecadalCellView,
+    StaticDecorativeStarView, StaticFourPillarsView, StaticNavigationCellView,
+    StaticOverlayMutagenView, StaticPalaceRole, StaticPalaceView, StaticPreDecadalCellView,
+    StaticSurroundPalacesView, StaticTemporalNavigationSelection, StaticTemporalOverlayView,
+    StaticTemporalPanelView, StaticTypedStarView, StaticYearlyAgeCellView,
 };

@@ -19,11 +19,7 @@ use iztro::core::{
     StaticPalaceView, StaticTemporalNavigationSelection, static_temporal_chart_view,
     temporal_selection_for_solar_moment,
 };
-
-/// Non-fatal notice shown when no local data directory is available, so saved
-/// charts cannot be persisted this session.
-pub const PERSISTENCE_UNAVAILABLE: &str =
-    "Persistent storage unavailable; generated charts won't be saved this session.";
+use iztro_i18n::{I18n, Locale};
 
 /// Side length of the fixed visual palace grid (4x4 perimeter layout).
 pub const GRID_SIZE: u8 = 4;
@@ -252,43 +248,16 @@ pub struct SavedChart {
 ///
 /// This is plain label formatting, not astrology derivation; it stays in the
 /// renderer-agnostic layer so persistence migration can reuse it.
-pub fn default_chart_name(input: &BirthInput) -> String {
+pub fn default_chart_name(input: &BirthInput, locale: Locale) -> String {
+    let i18n = I18n::new(locale);
     format!(
         "{}-{:02}-{:02} {} {}",
         input.year,
         input.month,
         input.day,
-        gender_name(input.gender),
-        hour_name(input.time_index),
+        i18n.gender(input.gender),
+        i18n.hour_branch(input.time_index),
     )
-}
-
-/// Chinese gender label for a default chart name.
-fn gender_name(gender: Gender) -> &'static str {
-    match gender {
-        Gender::Female => "女",
-        Gender::Male => "男",
-    }
-}
-
-/// Chinese double-hour label for an iztro `timeIndex` (`0..=12`).
-fn hour_name(time_index: u8) -> &'static str {
-    match time_index {
-        0 => "早子时",
-        1 => "丑时",
-        2 => "寅时",
-        3 => "卯时",
-        4 => "辰时",
-        5 => "巳时",
-        6 => "午时",
-        7 => "未时",
-        8 => "申时",
-        9 => "酉时",
-        10 => "戌时",
-        11 => "亥时",
-        12 => "晚子时",
-        _ => "未知",
-    }
 }
 
 /// Editable, renderer-facing birth-input form (raw text plus typed choices).
@@ -310,10 +279,10 @@ pub struct BirthForm {
 
 impl BirthForm {
     /// Builds a form pre-filled from a normalized input, defaulting the name to
-    /// [`default_chart_name`].
-    pub fn from_input(input: &BirthInput) -> Self {
+    /// [`default_chart_name`] in `locale`.
+    pub fn from_input(input: &BirthInput, locale: Locale) -> Self {
         Self {
-            name: default_chart_name(input),
+            name: default_chart_name(input, locale),
             year: input.year.to_string(),
             month: input.month.to_string(),
             day: input.day.to_string(),
@@ -323,33 +292,33 @@ impl BirthForm {
     }
 
     /// Builds a form pre-filled from a saved chart, preserving its display name.
+    ///
+    /// The saved name is kept verbatim, so the seeded default name (and therefore
+    /// the locale) is irrelevant here.
     pub fn from_saved(saved: &SavedChart) -> Self {
         Self {
             name: saved.name.clone(),
-            ..Self::from_input(&saved.input)
+            ..Self::from_input(&saved.input, Locale::EnUs)
         }
     }
 
     /// Parses and normalizes the form into a [`BirthInput`].
     ///
-    /// Returns a user-facing message on a malformed numeric field. Deep calendar
-    /// validity (e.g. 31 February) is deferred to the facade at build time.
-    pub fn parse(&self) -> Result<BirthInput, String> {
+    /// Returns a typed [`FormError`] on a malformed numeric field so the renderer
+    /// localizes it. Deep calendar validity (e.g. 31 February) is deferred to the
+    /// facade at build time.
+    pub fn parse(&self) -> Result<BirthInput, FormError> {
         let year: i32 = self
             .year
             .trim()
             .parse()
-            .map_err(|_| "Year must be a whole number".to_string())?;
+            .map_err(|_| FormError::YearInvalid)?;
         let month: u8 = self
             .month
             .trim()
             .parse()
-            .map_err(|_| "Month must be a whole number".to_string())?;
-        let day: u8 = self
-            .day
-            .trim()
-            .parse()
-            .map_err(|_| "Day must be a whole number".to_string())?;
+            .map_err(|_| FormError::MonthInvalid)?;
+        let day: u8 = self.day.trim().parse().map_err(|_| FormError::DayInvalid)?;
 
         Ok(BirthInput {
             year,
@@ -363,7 +332,73 @@ impl BirthForm {
 
 impl Default for BirthForm {
     fn default() -> Self {
-        Self::from_input(&SAMPLE_INPUT)
+        Self::from_input(&SAMPLE_INPUT, Locale::EnUs)
+    }
+}
+
+/// A user-facing form/generation error, kept as a typed value so the renderer
+/// resolves the localized message at the presentation boundary.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum FormError {
+    /// The chart name was left blank.
+    NameRequired,
+    /// The year field was not a whole number.
+    YearInvalid,
+    /// The month field was not a whole number.
+    MonthInvalid,
+    /// The day field was not a whole number.
+    DayInvalid,
+    /// The date does not exist on the calendar (e.g. 31 February).
+    InvalidCalendarDate,
+    /// The selected birth time is out of the supported range.
+    InvalidBirthTime,
+    /// The selected temporal period/navigation is out of range.
+    InvalidTemporalSelection,
+    /// Chart generation failed for an otherwise-unspecified reason.
+    ChartGenerationFailed,
+    /// No local data directory is available, so charts can't be persisted.
+    PersistenceUnavailable,
+}
+
+impl FormError {
+    /// The stable Fluent key for this error, resolved by the renderer at the
+    /// presentation boundary. Keeping errors typed (rather than carrying a raw
+    /// core error string) is what lets the GUI localize them.
+    pub fn fluent_key(self) -> &'static str {
+        match self {
+            FormError::NameRequired => "name-required",
+            FormError::YearInvalid => "error-year",
+            FormError::MonthInvalid => "error-month",
+            FormError::DayInvalid => "error-day",
+            FormError::InvalidCalendarDate => "error-invalid-calendar-date",
+            FormError::InvalidBirthTime => "error-invalid-birth-time",
+            FormError::InvalidTemporalSelection => "error-invalid-temporal-selection",
+            FormError::ChartGenerationFailed => "error-chart-generation-failed",
+            FormError::PersistenceUnavailable => "persistence-unavailable",
+        }
+    }
+}
+
+/// Maps a core [`ChartError`] to the most specific GUI [`FormError`], keeping the
+/// error typed (never stringly-typed) across the GUI boundary so it localizes.
+fn form_error_from_chart_error(error: ChartError) -> FormError {
+    match error {
+        ChartError::InvalidSolarMonth { .. } | ChartError::InvalidLunarMonth { .. } => {
+            FormError::MonthInvalid
+        }
+        ChartError::InvalidSolarDay { .. } | ChartError::InvalidLunarDay { .. } => {
+            FormError::DayInvalid
+        }
+        ChartError::InvalidBirthTimeIndex { .. } => FormError::InvalidBirthTime,
+        ChartError::InvalidSolarDate { .. }
+        | ChartError::UnsupportedCalendarDate { .. }
+        | ChartError::CalendarConversionFailed { .. }
+        | ChartError::UnsupportedLeapMonthCombination { .. }
+        | ChartError::UnresolvableLunarDate { .. } => FormError::InvalidCalendarDate,
+        ChartError::InvalidTemporalSelectionIndex { .. }
+        | ChartError::InvalidDecadalPeriodIndex { .. }
+        | ChartError::NominalAgeOutsideDecadalFrame { .. } => FormError::InvalidTemporalSelection,
+        _ => FormError::ChartGenerationFailed,
     }
 }
 
@@ -492,6 +527,8 @@ pub enum Message {
     ClearHoveredPalace(EarthlyBranch),
     /// Return to the startup screen.
     BackToStartup,
+    /// Switch the active display locale.
+    SetLocale(Locale),
 }
 
 /// Pure application state backing the static chart screen.
@@ -504,8 +541,9 @@ pub struct StaticChartApp {
     selected: Option<EarthlyBranch>,
     hovered_palace: Option<EarthlyBranch>,
     selected_temporal_selection: StaticTemporalNavigationSelection,
-    error: Option<String>,
+    error: Option<FormError>,
     cache: ChartCache,
+    locale: Locale,
     saved: Vec<SavedChart>,
     /// Index into `saved` currently being edited, if any. When set, generating
     /// updates that record in place instead of appending a new one.
@@ -529,6 +567,7 @@ impl StaticChartApp {
             selected_temporal_selection: StaticTemporalNavigationSelection::PreDecadal,
             error: None,
             cache: ChartCache::default(),
+            locale: Locale::default(),
             saved: Vec::new(),
             editing_saved_index: None,
             store: None,
@@ -556,7 +595,7 @@ impl StaticChartApp {
             Some(store) => Self::with_store(store),
             None => {
                 let mut app = Self::new();
-                app.error = Some(PERSISTENCE_UNAVAILABLE.to_owned());
+                app.error = Some(FormError::PersistenceUnavailable);
                 app
             }
         }
@@ -588,8 +627,13 @@ impl StaticChartApp {
     }
 
     /// Returns the current user-facing error, if any.
-    pub fn error(&self) -> Option<&str> {
-        self.error.as_deref()
+    pub fn error(&self) -> Option<&FormError> {
+        self.error.as_ref()
+    }
+
+    /// The active display locale.
+    pub fn locale(&self) -> Locale {
+        self.locale
     }
 
     /// Returns the chart cache (read-only).
@@ -767,14 +811,14 @@ impl StaticChartApp {
     pub fn generate(&mut self) -> GenerateOutcome {
         let name = self.form.name.trim().to_owned();
         if name.is_empty() {
-            self.error = Some("请为命盘输入名称".to_owned());
+            self.error = Some(FormError::NameRequired);
             return GenerateOutcome::Invalid;
         }
 
         let input = match self.form.parse() {
             Ok(input) => input,
-            Err(message) => {
-                self.error = Some(message);
+            Err(error) => {
+                self.error = Some(error);
                 return GenerateOutcome::Invalid;
             }
         };
@@ -798,7 +842,7 @@ impl StaticChartApp {
                 }
             }
             Err(error) => {
-                self.error = Some(error.to_string());
+                self.error = Some(form_error_from_chart_error(error));
                 GenerateOutcome::Invalid
             }
         }
@@ -832,7 +876,7 @@ impl StaticChartApp {
                 self.snapshot = Some(snapshot);
                 self.error = None;
             }
-            Err(error) => self.error = Some(error.to_string()),
+            Err(error) => self.error = Some(form_error_from_chart_error(error)),
         }
     }
 
@@ -1102,7 +1146,7 @@ impl StaticChartApp {
                 if let Some(input) = self.input {
                     match resolve_today_selection(&input, moment) {
                         Ok(selection) => self.apply_temporal_selection(selection),
-                        Err(error) => self.error = Some(error.to_string()),
+                        Err(error) => self.error = Some(form_error_from_chart_error(error)),
                     }
                 }
             }
@@ -1118,6 +1162,19 @@ impl StaticChartApp {
                 self.selected = None;
                 self.hovered_palace = None;
                 self.selected_temporal_selection = StaticTemporalNavigationSelection::PreDecadal;
+            }
+            Message::SetLocale(locale) => {
+                let previous = self.locale;
+                self.locale = locale;
+                // If the user has not customized the (auto-seeded) chart name,
+                // re-seed it in the new locale so the default stays localized.
+                if self.editing_saved_index.is_none() {
+                    if let Ok(input) = self.form.parse() {
+                        if self.form.name == default_chart_name(&input, previous) {
+                            self.form.name = default_chart_name(&input, locale);
+                        }
+                    }
+                }
             }
         }
     }
@@ -1189,7 +1246,7 @@ mod tests {
     /// A saved record for `input` carrying its default chart name.
     fn saved_default(input: BirthInput) -> SavedChart {
         SavedChart {
-            name: default_chart_name(&input),
+            name: default_chart_name(&input, Locale::EnUs),
             input,
         }
     }
@@ -1204,7 +1261,10 @@ mod tests {
         assert!(app.center().is_none());
         assert!(app.saved().is_empty());
         // The form is pre-filled for convenience.
-        assert_eq!(app.form(), &BirthForm::from_input(&SAMPLE_INPUT));
+        assert_eq!(
+            app.form(),
+            &BirthForm::from_input(&SAMPLE_INPUT, Locale::EnUs)
+        );
         assert!(app.error().is_none());
     }
 
@@ -1326,7 +1386,7 @@ mod tests {
     fn no_store_starts_without_persistence_and_warns_but_still_generates() {
         let mut app = StaticChartApp::with_optional_store(None);
         assert!(app.saved().is_empty());
-        assert_eq!(app.error(), Some(PERSISTENCE_UNAVAILABLE));
+        assert_eq!(app.error(), Some(&FormError::PersistenceUnavailable));
 
         // Generation still works; the chart is tracked in memory only.
         assert_eq!(app.generate(), GenerateOutcome::Built);

@@ -15,6 +15,7 @@ use std::fs;
 use std::path::{Path, PathBuf};
 
 use crate::app::{BirthInput, SavedChart, default_chart_name};
+use iztro_i18n::Locale;
 
 /// Default on-disk file name for saved charts under the data directory.
 const STORE_DIR: &str = "iztro-gui";
@@ -70,7 +71,7 @@ impl ChartStore {
             Ok(legacy) => legacy
                 .into_iter()
                 .map(|input| SavedChart {
-                    name: default_chart_name(&input),
+                    name: default_chart_name(&input, Locale::EnUs),
                     input,
                 })
                 .collect(),
@@ -140,7 +141,7 @@ mod tests {
             legacy
                 .into_iter()
                 .map(|input| SavedChart {
-                    name: default_chart_name(&input),
+                    name: default_chart_name(&input, Locale::EnUs),
                     input,
                 })
                 .collect::<Vec<_>>()

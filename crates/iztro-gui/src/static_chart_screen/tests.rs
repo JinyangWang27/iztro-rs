@@ -1,5 +1,6 @@
 use crate::app::StaticChartApp;
 use iztro::core::{DecorativeStarFamily, Gender, Mutagen, StarCategory, StarKind};
+use iztro_i18n::{I18n, Locale};
 
 use super::labels::{four_pillars_line, gender_symbol};
 use super::palace::{PalaceHighlight, StaticStarTone, star_tone};
@@ -75,7 +76,8 @@ fn window_sets_a_minimum_size_to_complement_chart_scrolling() {
 #[test]
 fn four_pillars_line_joins_prepared_pillar_labels() {
     let center = sample_center();
-    let line = four_pillars_line(&center).expect("four pillars present");
+    let i18n = I18n::new(Locale::ZhHans);
+    let line = four_pillars_line(&center, &i18n).expect("four pillars present");
     // One row of four space-separated stem-branch pairs, not four labeled rows.
     assert_eq!(line.split(' ').count(), 4);
     assert!(!line.contains('年') && !line.contains('柱'));
@@ -85,7 +87,7 @@ fn four_pillars_line_joins_prepared_pillar_labels() {
 fn four_pillars_line_is_none_when_unavailable() {
     let mut center = sample_center();
     center.four_pillars = None;
-    assert!(four_pillars_line(&center).is_none());
+    assert!(four_pillars_line(&center, &I18n::new(Locale::EnUs)).is_none());
 }
 
 #[test]
@@ -110,13 +112,12 @@ fn basic_information_uses_two_alternating_columns() {
     let source = include_str!("palace.rs");
 
     assert!(source.contains("row![basic_left, basic_right]"));
-    assert!(
-        source.contains("let basic_left = column![\n        fact_row(\n            \"五行局\"")
-    );
-    assert!(
-        source
-            .contains("let basic_right = column![\n        fact_row(\n            \"年龄(虚岁)\"")
-    );
+    // The two columns are built from localized section labels, not hardcoded
+    // Chinese literals.
+    assert!(source.contains("let basic_left = column!["));
+    assert!(source.contains("center-five-element-bureau"));
+    assert!(source.contains("let basic_right = column!["));
+    assert!(source.contains("center-nominal-age"));
 }
 
 /// A typed star carrying only the field that drives visual classification.
@@ -259,12 +260,11 @@ fn palace_middle_band_is_deliberately_reserved() {
 fn palace_footer_anchors_name_left_and_stem_branch_right() {
     let source = include_str!("palace.rs");
 
-    assert!(source.contains("text(palace.name_zh.as_str()).size(16).color(MAJOR_PURPLE)"));
-    assert!(
-        source.contains(
-            "text(format!(\"{}{}\", palace.stem_zh, palace.branch_zh))\n            .size(12)\n            .color(mutagen_badge_color(Mutagen::Ke))"
-        )
-    );
+    // The footer renders the localized palace name (left) and stem-branch (right)
+    // from typed fields, not pre-rendered Chinese strings.
+    assert!(source.contains("i18n.palace_name(palace.name)"));
+    assert!(source.contains("color(MAJOR_PURPLE)"));
+    assert!(source.contains("i18n.stem_branch(palace.stem, palace.branch)"));
     assert!(source.contains("align_x(Alignment::Start)"));
     assert!(source.contains("align_x(Alignment::End)"));
 }
@@ -322,10 +322,10 @@ fn period_badge_label_comes_from_prepared_overlay_field() {
 fn palace_badges_are_gated_on_prepared_period_label_only() {
     let source = include_str!("palace.rs");
 
-    // The badge row is built only from overlays whose `period_label_zh` is set;
-    // non-marker overlays (and their temporal palace-name metadata) never yield
-    // a badge.
-    assert!(source.contains("overlay.period_label_zh.as_deref()"));
+    // The badge row is built only from overlays whose typed period stem is set
+    // (the anchor palace); non-marker overlays (and their temporal palace-name
+    // metadata) never yield a badge.
+    assert!(source.contains("overlay.period_stem"));
     assert!(
         !source.contains("temporal_palace_name_zh"),
         "the GUI must not derive a badge from temporal palace-name metadata"
@@ -349,16 +349,16 @@ fn period_badge_takes_a_prepared_label_not_an_overlay() {
 fn startup_exposes_name_input_and_saved_chart_actions() {
     let source = include_str!("startup.rs");
 
-    // A 名称 input drives the chart name.
-    assert!(source.contains("\"名称\""));
+    // A localized name input drives the chart name.
+    assert!(source.contains("field-name"));
     assert!(source.contains("Message::NameChanged"));
     // Saved rows can be opened, edited, and deleted.
     assert!(source.contains("Message::SelectSaved(index)"));
     assert!(source.contains("Message::EditSaved(index)"));
     assert!(source.contains("Message::DeleteSaved(index)"));
     // The primary button reads as an update while editing a saved chart.
-    assert!(source.contains("更新命盘"));
-    assert!(source.contains("生成命盘"));
+    assert!(source.contains("button-update"));
+    assert!(source.contains("button-generate"));
 }
 
 #[test]
@@ -371,16 +371,20 @@ fn temporal_controls_render_on_a_single_row() {
         !source.contains(concat!("column", "![")),
         "temporal controls must be a single row, not a two-line column"
     );
-    // The single row keeps the `◀限 … 今 … 限▶` ordering with the `今` control
-    // between the backward and forward steppers.
+    // The single row keeps the backward … today … forward ordering with the
+    // today control between the backward and forward steppers.
     assert!(source.contains("Message::TodayPressed"));
-    // The `今` control is a row item between the backward 时 step and the
-    // forward 时 step, keeping `◀时 今 时▶` adjacent on the single line.
-    let backward_hour = source.find("\"◀时\"").expect("◀时 backstep");
-    let today_item = source.find("\n        today,").expect("今 row item");
-    let forward_hour = source.find("\"时▶\"").expect("时▶ forward step");
+    // The today control is a row item between the backward hour step and the
+    // forward hour step, keeping them adjacent on the single line.
+    let backward_hour = source
+        .find("back(Scope::Hourly)")
+        .expect("backward hour step");
+    let today_item = source.find("\n        today,").expect("today row item");
+    let forward_hour = source
+        .find("fwd(Scope::Hourly)")
+        .expect("forward hour step");
     assert!(
         backward_hour < today_item && today_item < forward_hour,
-        "the 今 control sits between the backward and forward steppers"
+        "the today control sits between the backward and forward steppers"
     );
 }

@@ -114,7 +114,7 @@ The following remain intentionally out of scope for the current supported surfac
 - full BaZi interpretation/output beyond factual `by_solar` natal four pillars;
 - temporal decorative arrays beyond yearly `yearlyDecStar`;
 - full upstream facade serialization parity;
-- runtime Fluent i18n implementation in `crates/iztro-i18n`;
+- broad multilingual coverage and complete upstream localized-string parity. The desktop GUI is fully localized (English default / Simplified Chinese) through the `iztro-i18n` crate, a Fluent-based presentation-layer localizer that maps typed domain values to display strings; core models stay language-neutral (the facade snapshots still expose additive zh-CN `*_zh` labels via `core::labels::zh_cn`). Additional locales and full upstream localized-string parity remain deferred;
 - CLI integration beyond current examples;
 - TUI frontend;
 - MCP server/tooling interface;
@@ -130,7 +130,7 @@ The following remain intentionally out of scope for the current supported surfac
 The next implementation work should stay incremental:
 
 1. Keep compatibility fixture-backed and avoid broad rewrites of chart placement logic.
-2. Add `crates/iztro-i18n` and migrate the existing GUI to fully selectable English/Simplified Chinese output.
+2. Expand `crates/iztro-i18n` coverage (additional locales, more shared UI strings) now that the existing GUI is fully selectable English/Simplified Chinese output.
 3. Continue improving the Iced static chart GUI on top of `StaticChartViewSnapshot`, especially saved charts, temporal navigation, layout consistency, and localized UI text.
 4. Add a small TUI or CLI renderer only as a consumer of existing snapshots/view models.
 5. Design MCP after the typed facade/query surface is stable enough to expose to coding agents.
