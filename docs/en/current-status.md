@@ -1,6 +1,6 @@
 # Current Project Status
 
-This document summarizes the current implemented surface after the recent `lunar-lite`, snapshot, renderer, decadal-frame, age-period, and demo work.
+This document summarizes the current implemented surface after the `lunar-lite`, fixture, facade snapshot, full horoscope stack, static-chart view model, pattern, and local GUI prototype work.
 
 ## Compatibility target
 
@@ -17,7 +17,7 @@ The supported natal chart fact surface currently includes:
 - leap-month and `fix_leap` handling for the supported slice;
 - `BirthTime` / upstream `timeIndex` `0..=12`, including early Zi and late Zi;
 - retained `Chart::birth_year()` stem-branch fact;
-- retained optional `Chart::four_pillars()` natal fact for `by_solar` charts, using `lunar_lite::FourPillars` directly, also exposed through the facade snapshots as `NatalFacadeSnapshot::four_pillars()`;
+- retained optional `Chart::four_pillars()` natal fact for `by_solar` charts, using `lunar_lite::FourPillars` directly, also exposed through facade snapshots as `NatalFacadeSnapshot::four_pillars()`;
 - twelve palace layout;
 - Life Palace and Body Palace branches;
 - palace heavenly stems;
@@ -28,20 +28,20 @@ The supported natal chart fact surface currently includes:
 - branch-tagged typed temporal flow-star placements from explicit temporal contexts;
 - decadal and yearly mutagen activation layers from explicit contexts;
 - typed `DecadalFrame` derivation with 12 ten-year periods, direction, age ranges, and natal palace stem-branch facts;
-- decadal temporal palace-name layout (`TemporalPalaceLayout`) attached to the selected decadal layer, keyed by `EarthlyBranch` and validated against the upstream horoscope fixture.
-- typed `AgePeriod` / 小限 derivation for nominal age `1..=120`, with age context, branch/stem-branch, palace-name layout, and mutagen activations validated against the upstream horoscope fixture.
-- typed `MonthlyPeriod` / 流月 derivation with independent month pillar and monthly Life palace branch facts, plus composed monthly flow-star, mutagen, and palace-name layer assembly validated against the upstream horoscope fixture.
-- typed `DailyPeriod` / 流日 derivation with independent day pillar and daily Life palace branch facts, plus composed daily flow-star, mutagen, and palace-name layer assembly validated against the upstream horoscope fixture.
-- typed `HourlyPeriod` / 流时 derivation with independent hour pillar and hourly Life palace branch facts, plus composed hourly flow-star, mutagen, and palace-name layer assembly validated against the upstream horoscope fixture.
-- full horoscope stack assembly (`build_full_horoscope_chart` / `HoroscopeStackInput`): composes the decadal, age, yearly, monthly, daily, and hourly layers into one `HoroscopeChart` in a deterministic order, selecting the decadal period by the derived nominal age. This is supported model-level stack assembly for the implemented fields only — it is **not** identical to the upstream `FunctionalAstrolabe#horoscope` payload shape.
-- yearly `yearlyDecStar` (岁前/将前十二神) as yearly-scope temporal decorative facts on the yearly layer, read through `TemporalLayer::temporal_decorative_stars()`. These are untyped: they do **not** appear in `Chart::stars()` or natal `Palace::decorative_stars()`.
-- normalized `HoroscopeSupportedFieldsSnapshot` export from `HoroscopeChart`, fixture-backed against `crates/iztro/fixtures/iztro/horoscope.json` for the implemented decadal, age, yearly, monthly, daily, and hourly supported fields.
-- typed `HoroscopeRuntime` projection and query helpers, fixture-backed against `crates/iztro/fixtures/iztro/horoscope_runtime.json`: `age_palace`, `palace`, `surround_palaces`, `has_horoscope_stars`, `not_have_horoscope_stars`, `has_one_of_horoscope_stars`, and `has_horoscope_mutagen`.
-- serializable `HoroscopeFacadeSnapshot` export (`HoroscopeFacadeSnapshot::from_horoscope_chart`), fixture-backed against `crates/iztro/fixtures/iztro/horoscope_facade.json`: an upstream-like horoscope payload built from `HoroscopeChart`, `HoroscopeSupportedFieldsSnapshot`, `NatalFacadeSnapshot`, and `HoroscopeRuntime`. It reuses the supported-field scope blocks, embeds a minimal model-derived natal `astrolabe`, adds retained numeric target context (`solar_date`, `lunar_date` with `is_leap_month`, and `time_index`) when the chart was built by `build_full_horoscope_chart`, and exposes the Life-palace `age_palace` / `palace_projections` / `surround_palaces` projections. It is closer to the upstream `FunctionalAstrolabe#horoscope` payload shape but is **not** full package parity — complete upstream astrolabe helpers/localized labels, localized `lunarDate`/`solarDate` strings, BaZi strings, and the runtime query helpers remain deferred and are explicitly omitted.
+- decadal temporal palace-name layout (`TemporalPalaceLayout`) attached to the selected decadal layer, keyed by `EarthlyBranch` and validated against the upstream horoscope fixture;
+- typed `AgePeriod` / 小限 derivation for nominal age `1..=120`, with age context, branch/stem-branch, palace-name layout, and mutagen activations validated against the upstream horoscope fixture;
+- typed `MonthlyPeriod` / 流月 derivation with independent month pillar and monthly Life palace branch facts, plus composed monthly flow-star, mutagen, and palace-name layer assembly validated against the upstream horoscope fixture;
+- typed `DailyPeriod` / 流日 derivation with independent day pillar and daily Life palace branch facts, plus composed daily flow-star, mutagen, and palace-name layer assembly validated against the upstream horoscope fixture;
+- typed `HourlyPeriod` / 流时 derivation with independent hour pillar and hourly Life palace branch facts, plus composed hourly flow-star, mutagen, and palace-name layer assembly validated against the upstream horoscope fixture;
+- full horoscope stack assembly (`build_full_horoscope_chart` / `HoroscopeStackInput`): composes the decadal, age, yearly, monthly, daily, and hourly layers into one `HoroscopeChart` in a deterministic order, selecting the decadal period by the derived nominal age. This is supported model-level stack assembly for the implemented fields only — it is **not** identical to the upstream `FunctionalAstrolabe#horoscope` payload shape;
+- yearly `yearlyDecStar` (岁前/将前十二神) as yearly-scope temporal decorative facts on the yearly layer, read through `TemporalLayer::temporal_decorative_stars()`. These are untyped: they do **not** appear in `Chart::stars()` or natal `Palace::decorative_stars()`;
+- normalized `HoroscopeSupportedFieldsSnapshot` export from `HoroscopeChart`, fixture-backed against `crates/iztro/fixtures/iztro/horoscope.json` for the implemented decadal, age, yearly, monthly, daily, and hourly supported fields;
+- typed `HoroscopeRuntime` projection and query helpers, fixture-backed against `crates/iztro/fixtures/iztro/horoscope_runtime.json`: `age_palace`, `palace`, `surround_palaces`, `has_horoscope_stars`, `not_have_horoscope_stars`, `has_one_of_horoscope_stars`, and `has_horoscope_mutagen`;
+- serializable `HoroscopeFacadeSnapshot` export (`HoroscopeFacadeSnapshot::from_horoscope_chart`), fixture-backed against `crates/iztro/fixtures/iztro/horoscope_facade.json`: an upstream-like horoscope payload built from `HoroscopeChart`, `HoroscopeSupportedFieldsSnapshot`, `NatalFacadeSnapshot`, and `HoroscopeRuntime`.
 
 `by_solar` now attaches factual natal four pillars to `Chart` through `Chart::four_pillars()`, derived by `lunar-lite` with the same normal year/month boundary semantics already used for birth-year derivation. `by_lunar` remains conservative: it only receives an explicit birth-year stem/branch today, so `Chart::four_pillars()` is `None` for `by_lunar` charts until a later PR decides whether to accept explicit `FourPillars` or derive them from a normalized solar date. Full BaZi interpretation remains deferred; this implemented surface is only 年柱/月柱/日柱/时柱 fact retention.
 
-Those factual natal four pillars are now also exported through the facade snapshots. `NatalFacadeSnapshot` carries an optional `NatalFacadeFourPillarsSnapshot` (`four_pillars`) reusing `lunar_lite::FourPillars` as the underlying fact: each pillar stays a machine-readable `StemBranch` with an additive conventional zh-CN `*_zh` label. The field is `Some(..)` for `by_solar`-derived charts (its year pillar equals `Chart::birth_year()`) and omitted/`None` for `by_lunar`-derived charts, which stay honest about unsupported full pillars. `HoroscopeFacadeSnapshot` carries the same facts through its embedded natal `astrolabe`. This is a factual export only: 十神, 藏干, 五行 scoring, 喜用神, 成格, readings, and the rest of full BaZi interpretation remain deferred and are intentionally absent.
+Those factual natal four pillars are also exported through facade snapshots. `NatalFacadeSnapshot` carries an optional `NatalFacadeFourPillarsSnapshot` (`four_pillars`) reusing `lunar_lite::FourPillars` as the underlying fact: each pillar stays a machine-readable `StemBranch` with an additive conventional zh-CN `*_zh` label. The field is `Some(..)` for `by_solar`-derived charts and omitted/`None` for `by_lunar`-derived charts. This is a factual export only: 十神, 藏干, 五行 scoring, 喜用神, 成格, readings, and the rest of full BaZi interpretation remain deferred and are intentionally absent.
 
 Default/non-Zhongzhou natal output remains 66 typed natal stars. Zhongzhou natal output remains 68 typed natal stars. `represented_star_metadata_table().len() == 70` stays natal-only, while `known_star_metadata_table().len() == 170` inventories the broader upstream runtime star-name universe.
 
@@ -49,17 +49,18 @@ Default/non-Zhongzhou natal output remains 66 typed natal stars. Zhongzhou natal
 
 The following boundaries are deliberate:
 
-- `lunar-lite` owns canonical low-level `HeavenlyStem`, `EarthlyBranch`, and `StemBranch` primitives.
-- `lunar-lite` also owns the canonical `FourPillars` value used for factual natal four-pillar retention.
+- `lunar-lite` owns canonical low-level `HeavenlyStem`, `EarthlyBranch`, `StemBranch`, and `FourPillars` primitives.
 - `core` owns Zi Wei-specific NaYin and five-element bureau logic.
 - `Chart` retains birth-year `StemBranch` as a natal identity fact.
 - `Chart::stars()` returns typed natal `StarPlacement`s only.
 - `Palace::decorative_stars()` contains untyped natal decorative runtime facts.
 - `TemporalLayer::placements()` contains branch-tagged typed temporal placements.
+- `TemporalLayer::temporal_decorative_stars()` contains scoped temporal decorative facts.
 - `MutagenActivation` records 四化 activation facts and is not modeled as a fake star.
 - `HoroscopeChart` wraps an immutable natal `Chart` and additive temporal layers.
+- Facade snapshots may expose additive conventional zh-CN labels for compatibility/export convenience, but internal chart facts remain enum/value-object driven.
 
-## Snapshot and rendering surface
+## Snapshot, rendering, and GUI surface
 
 `ChartStackSnapshot` is the renderer-neutral read model for demos and future frontends.
 
@@ -73,26 +74,54 @@ It preserves:
 - separate cell sections for natal typed stars, natal decorative stars, scoped temporal stars, temporal decorative stars, and mutagen activations;
 - per-cell temporal palace names for implemented temporal layers, kept separate from the natal palace name so temporal labels never overwrite natal spatial facts.
 
-`render` currently provides a deterministic plain text renderer over `ChartStackSnapshot`. The top-level README and `docs/en/demo.md` show the current end-to-end flow:
+`render` currently provides a deterministic plain text renderer over `ChartStackSnapshot`. The end-to-end demo flow is:
 
 ```text
 solar input -> by_solar -> ChartStackSnapshot -> render module plain text output
 ```
 
-`HoroscopeSupportedFieldsSnapshot` is separate from `ChartStackSnapshot`: it is a compatibility/export DTO for normalized supported-field validation, not a renderer model and not the raw upstream `FunctionalAstrolabe#horoscope` JSON payload.
+`StaticChartViewSnapshot` is the GUI-facing static-chart read model. It supports a 文墨天机-style 12-palace chart, selected natal/temporal overlays, prepared palace relationships for 三方四正 highlighting, mutagen display facts, and reserved highlight annotations. The local `iztro-gui` crate is an Iced desktop prototype that consumes this read model, persists saved chart inputs locally, regenerates charts deterministically through core facades, and drives temporal selection through `static_temporal_chart_view` rather than mutating the natal chart.
+
+The GUI is currently a chart-fact viewer. It does not perform star placement, temporal derivation, mutagen calculation, 三方四正 branch arithmetic, 成格 detection, BaZi interpretation, rule matching, or narrative generation in UI code.
+
+## Runtime localization direction
+
+The current documentation and facade snapshots already distinguish machine-readable facts from additive display labels. The next runtime localization step is to add a dedicated `crates/iztro-i18n` crate using Fluent resources.
+
+Accepted direction:
+
+- default GUI/runtime locale: `en-US`;
+- first secondary locale: `zh-Hans`;
+- `iztro-i18n` owns locale parsing, Fluent bundles, fallback, and typed label helpers;
+- `iztro-gui` consumes `iztro-i18n` and should be fully usable in either English or Simplified Chinese;
+- core chart models remain language-neutral;
+- existing Chinese domain labels are preserved as localized output, not as internal identity.
+
+## Tooling and application direction
+
+Application surfaces should be ordered by reuse value and architectural risk:
+
+1. **Renderer-neutral facts and view models**: already the foundation for demos and GUI.
+2. **Static GUI**: primary near-term frontend target, because it validates the static 12-palace view model and temporal controls visually.
+3. **TUI**: useful as a lightweight terminal renderer/debugger over the same snapshots, without introducing GUI layout complexity.
+4. **MCP / coding-agent tooling**: useful after the public query/export surface is stable, so agents can request chart facts, view snapshots, pattern hits, and evidence without scraping prose.
+5. **Timeline and 3D views**: later consumers of reusable `StaticChartViewSnapshot` frames and structured highlights, not separate chart engines.
 
 ## Deferred work
 
 The following remain intentionally out of scope for the current supported surface:
 
 - full BaZi interpretation/output beyond factual `by_solar` natal four pillars;
-- temporal decorative arrays beyond yearly `yearlyDecStar` (e.g. decadal/monthly/daily/hourly decorative arrays);
-- full upstream facade serialization parity (the upstream `FunctionalAstrolabe#horoscope` payload shape);
+- temporal decorative arrays beyond yearly `yearlyDecStar`;
+- full upstream facade serialization parity;
 - broad multilingual coverage and complete upstream localized-string parity. The desktop GUI is fully localized (English default / Simplified Chinese) through the `iztro-i18n` crate, a Fluent-based presentation-layer localizer that maps typed domain values to display strings; core models stay language-neutral (the facade snapshots still expose additive zh-CN `*_zh` labels via `core::labels::zh_cn`). Additional locales and full upstream localized-string parity remain deferred;
-- bindings;
-- richer renderers and GUI/WASM/TUI frontends;
+- CLI integration beyond current examples;
+- TUI frontend;
+- MCP server/tooling interface;
+- production-quality GUI/WASM frontend;
+- timeline frame builder and 3D stacked temporal view;
 - feature extraction for temporal activation;
-- rule evaluation;
+- complete rule evaluation;
 - deterministic readings;
 - narrative or LLM-assisted prose.
 
@@ -100,7 +129,10 @@ The following remain intentionally out of scope for the current supported surfac
 
 The next implementation work should stay incremental:
 
-1. Continue keeping compatibility fixture-backed.
-2. Build richer renderers or CLI demos on top of `ChartStackSnapshot`, not directly on `Chart` internals.
-3. Full horoscope stack assembly now composes decadal, age, yearly, monthly, daily, and hourly into one stack, retains the numeric target context used for assembly, the yearly layer carries `yearlyDecStar` as temporal decorative facts, `HoroscopeSupportedFieldsSnapshot` exports the implemented supported-field surface, `HoroscopeRuntime` exposes typed runtime helper projections/queries, and `HoroscopeFacadeSnapshot` combines them with a minimal natal `astrolabe` into one upstream-like, serializable horoscope payload. Remaining horoscope work — complete upstream astrolabe helpers/localized labels, localized date strings, BaZi strings, and full upstream package parity — stays incremental and fixture-backed.
-4. Only after the fact surface is stable, expand feature extraction, rules, and narrative.
+1. Keep compatibility fixture-backed and avoid broad rewrites of chart placement logic.
+2. Expand `crates/iztro-i18n` coverage (additional locales, more shared UI strings) now that the existing GUI is fully selectable English/Simplified Chinese output.
+3. Continue improving the Iced static chart GUI on top of `StaticChartViewSnapshot`, especially saved charts, temporal navigation, layout consistency, and localized UI text.
+4. Add a small TUI or CLI renderer only as a consumer of existing snapshots/view models.
+5. Design MCP after the typed facade/query surface is stable enough to expose to coding agents.
+6. Build timeline/3D experiments only after static chart frames and highlight annotations are stable.
+7. Expand feature extraction, pattern/rule output, and narrative only after the fact and rendering surfaces remain stable.

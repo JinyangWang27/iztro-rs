@@ -2,11 +2,11 @@
 
 `iztro-rs` uses a layered architecture. Each layer has a clear responsibility and should avoid leaking concerns into adjacent layers.
 
-The current implementation separates chart facts, renderer-friendly read models, rendering, feature extraction, rules, and narrative. This separation is intentional: chart generation should stay deterministic and fixture-backed, while renderers and future GUIs consume read models instead of re-deriving chart layout from core aggregates.
+The current implementation separates chart facts, renderer-friendly read models, rendering, feature extraction, rules, localization, application frontends, and narrative. This separation is intentional: chart generation should stay deterministic and fixture-backed, while renderers, GUIs, TUIs, MCP tools, and future 3D views consume read models instead of re-deriving chart layout from core aggregates.
 
 ## 1. Core Chart Layer
 
-The Core Chart Layer contains deterministic chart facts. It should not contain interpretation prose, report formatting, CLI output formatting, or GUI assumptions.
+The Core Chart Layer contains deterministic chart facts. It should not contain interpretation prose, report formatting, CLI output formatting, GUI assumptions, renderer geometry, or runtime language selection.
 
 Examples:
 
@@ -29,7 +29,7 @@ The output of this layer is a structured chart object, usually `Chart`, or a mod
 
 Natal chart facts are immutable once built. `Chart::stars()` returns typed natal `StarPlacement`s only, while `Palace::decorative_stars()` holds untyped decorative runtime facts such as 长生/博士/岁前/将前十二神. These surfaces must remain separate.
 
-Temporal facts are additive overlays. `HoroscopeChart` wraps a natal `Chart` and zero or more `TemporalLayer`s. A temporal layer records its `Scope`, `TemporalContext`, branch-tagged scoped star placements, and `MutagenActivation`s. It must not duplicate natal placements or mutate natal palace names. 四化 activations remain activation facts, not fake stars.
+Temporal facts are additive overlays. `HoroscopeChart` wraps a natal `Chart` and zero or more `TemporalLayer`s. A temporal layer records its `Scope`, `TemporalContext`, branch-tagged scoped star placements, scoped decorative star facts, and `MutagenActivation`s. It must not duplicate natal placements or mutate natal palace names. 四化 activations remain activation facts, not fake stars.
 
 ## 2. Snapshot / Read Model Layer
 
@@ -47,6 +47,7 @@ Chart / HoroscopeChart
 It represents the conventional 12-palace grid as x/y coordinates and the selected natal/temporal scopes as stack layers. This keeps future renderers free to show the same data as:
 
 - a plain text list;
+- a terminal UI grid;
 - a 2D palace grid;
 - a 文墨天机-style interactive chart;
 - a future 3D stacked view where the z-axis is 本命 / 大限 / 流年 / 流月 / 流日 / 流时.
@@ -55,18 +56,20 @@ A renderer should consume `ChartStackSnapshot` rather than walking `Chart` direc
 
 ### Facade snapshots and GUI view models
 
-`HoroscopeFacadeSnapshot` and related facade DTOs are compatibility/export payloads. They should preserve stable machine-readable fields, deterministic ordering, and additive Chinese labels, but they should not become UI layout code.
+`HoroscopeFacadeSnapshot` and related facade DTOs are compatibility/export payloads. They should preserve stable machine-readable fields, deterministic ordering, and additive conventional Chinese labels where useful for compatibility, but they should not become UI layout code or runtime localization infrastructure.
 
 A 文墨天机-style static chart is instead backed by a dedicated GUI-facing read model, `StaticChartViewSnapshot` (implemented in `core::view`). It is derived from existing chart/facade facts via `StaticChartViewSnapshot::from_chart` (natal-only) or `from_horoscope_chart` (natal plus selected temporal overlays), and includes:
 
 - the conventional 4x4 palace-grid position for each palace (reusing `palace_grid_position`);
-- Chinese labels for branches, stems, palace names, stars, brightness, mutagens, decorative-star families, star categories, and scopes;
-- star lists grouped by `StarCategory` (major / minor / adjective, with a reserved `other_typed_stars`) plus decorative stars, all in the deterministic facade star order;
+- display-ready labels for branches, stems, palace names, stars, brightness, mutagens, decorative-star families, star categories, and scopes;
+- star lists grouped by `StarCategory` (major / minor / adjective, with a reserved `other_typed_stars`) plus decorative stars, all in deterministic facade star order;
 - scope-selector state (本命/大限/小限/流年/流月/流日/流时) and the active scopes, so a frontend can render selector controls without owning that logic;
 - selected natal/temporal overlays for the current view, kept separate from natal facts;
-- reserved highlight annotations (`HighlightView`), currently always empty.
+- reserved highlight annotations (`HighlightView`), currently empty unless populated by feature/rule layers.
 
 The view model remains renderer-neutral. It may describe that a palace or star should be highlighted, but it does not choose CSS classes, colors, canvas coordinates, camera position, animation, or 3D geometry.
+
+Current `StaticChartViewSnapshot` display labels are conventional Chinese-first labels inherited from the existing facade/view work. The accepted next step is to move runtime GUI language selection to `crates/iztro-i18n`, so the GUI can render either English or Simplified Chinese without making Chinese strings the internal model identity.
 
 ### Static chart slices before timeline and 3D
 
@@ -83,7 +86,23 @@ A future 3D view can stack these frames along a time axis. The core should there
 
 Pattern and 成格 highlighting should be produced by feature/rule layers as structured annotations, not by the renderer. Until the rule engine can identify real patterns, highlight fields should be reserved or empty rather than hard-coded in UI code.
 
-## 3. Render Layer
+## 3. Runtime Localization Layer
+
+Runtime localization is a presentation boundary, not a chart-generation concern.
+
+The planned `crates/iztro-i18n` crate should own:
+
+- supported runtime locales, initially `en-US` and `zh-Hans`;
+- Fluent resource loading and formatting;
+- fallback behavior, with `en-US` as the default fallback;
+- typed helpers such as `star_name`, `palace_name`, `mutagen`, and `temporal_label`;
+- stable key mapping from domain enums/value objects to localized labels.
+
+Core domain types must remain stable enums/value objects. They should not become localized strings. A GUI may call `i18n.star_name(star_name)`, but placement and compatibility tests should still assert `StarName` values, `EarthlyBranch` values, `MutagenActivation` facts, and other typed structures.
+
+Facade/export DTOs may keep additive zh-CN labels for compatibility and readability, but they are not the general runtime i18n mechanism.
+
+## 4. Render Layer
 
 The Render Layer turns snapshot/read-model data into human-facing display formats.
 
@@ -91,7 +110,20 @@ The first concrete renderer is `render`'s plain text chart-stack renderer. It co
 
 Future renderers may include CLI, TUI, web, GUI, SVG/HTML, or 3D views. They should remain consumers of snapshot/read-model structures.
 
-## 4. Feature Extraction Layer
+## 5. Application and Tooling Layer
+
+Application surfaces are consumers of facts, snapshots, features, claims, and annotations. They should not become alternative chart engines.
+
+Recommended ordering:
+
+1. **Static GUI**: validate the 12-palace chart, saved-chart flow, temporal controls, hover/click highlighting, and i18n with real visual feedback.
+2. **TUI**: provide a lightweight terminal view and debugging surface over the same snapshots. The TUI should be useful for CI fixtures, SSH workflows, and coding agents, but should not own astrology logic.
+3. **MCP server/tooling**: expose stable typed queries to coding agents only after the facade/query surface is stable enough to avoid churn. MCP should return structured facts, snapshots, features, pattern hits, claims, and evidence, not only prose.
+4. **Timeline/3D views**: consume reusable static chart frames and structured highlights after the static chart model is stable.
+
+A frontend may choose a different interaction model, but it must not parse rendered text to recover facts or duplicate placement/rule logic.
+
+## 6. Feature Extraction Layer
 
 The Feature Extraction Layer converts a chart into a semantic feature graph.
 
@@ -108,7 +140,9 @@ Important feature dimensions include:
 
 The goal is not to write prose, but to expose features that a rule engine can evaluate.
 
-## 5. Rule Engine Layer
+A first read-only slice of this layer is `core::pattern`, which recognizes classical patterns (格局) as structured, explainable facts over chart facts without mutating them and without producing prose. See [`patterns.md`](patterns.md) for the rule catalog and guarantees.
+
+## 7. Rule Engine Layer
 
 The Rule Engine Layer maps features into structured claims.
 
@@ -124,12 +158,7 @@ Rules should not directly emit final narrative text. A rule should emit:
 
 This makes rule matching testable and allows multiple rules to be aggregated before generating a report.
 
-A first read-only slice of this layer is `core::pattern`, which recognizes
-classical patterns (格局) as structured, explainable facts over chart facts
-without mutating them and without producing prose. See
-[`patterns.md`](patterns.md) for the rule catalog and guarantees.
-
-## 6. Narrative Layer
+## 8. Narrative Layer
 
 The Narrative Layer turns structured claims into human-readable reports.
 
