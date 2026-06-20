@@ -20,7 +20,9 @@ use crate::core::error::ChartError;
 use crate::core::facade::by_solar::{SolarChartRequest, by_solar};
 use crate::core::labels::chinese_date;
 use crate::core::model::calendar::{BirthTime, SolarDay, SolarMonth};
-use crate::core::model::chart::{Chart, HoroscopeTargetContext, build_decadal_frame};
+use crate::core::model::chart::{
+    Chart, HoroscopeTargetContext, build_age_period, build_decadal_frame,
+};
 use crate::core::model::star::mutagen::Scope;
 use crate::core::placement::overlay::partial_horoscope::{
     PartialHoroscope, build_partial_horoscope_chart,
@@ -100,6 +102,14 @@ fn decorate_temporal(
                     u16::from(period.start_age()) + selection.year_index().map_or(0, u16::from);
                 snapshot.center.nominal_age_label = Some(format!("{nominal_age} 岁"));
                 snapshot.center.nominal_age = Some(nominal_age);
+
+                // 小限 (Minor Limit) is an annual age marker, so it only exists
+                // once a concrete year is selected (流年/流月/流日/流时). A
+                // Decadal-only / PreDecadal selection carries no selected year
+                // and therefore no active 小限.
+                if selection.year_index().is_some() {
+                    decorate_active_small_limit(snapshot, natal, nominal_age);
+                }
             }
         }
     }
@@ -134,6 +144,40 @@ fn decorate_temporal(
             snapshot.center.temporal_solar_label = Some(format!("{year}"));
             snapshot.center.temporal_lunar_year = Some(year);
         }
+    }
+}
+
+/// Marks the active 小限 (Minor Limit) palace for `nominal_age`.
+///
+/// 小限 is the nominal-age (虚岁) marker of [`Scope::Age`]; it is derived from
+/// the selected nominal age via the existing age-domain logic
+/// ([`build_age_period`]) and is deliberately distinct from 流年
+/// ([`Scope::Yearly`]), which is selected-year / stem-branch / 太岁 based.
+///
+/// Exactly one palace (the one whose branch matches the resolved 小限 branch) is
+/// marked active; all others are left inactive. An out-of-range or unbuildable
+/// age is skipped defensively so a bad selection never breaks the snapshot.
+fn decorate_active_small_limit(
+    snapshot: &mut StaticChartViewSnapshot,
+    natal: &Chart,
+    nominal_age: u16,
+) {
+    let Some(age) = u8::try_from(nominal_age)
+        .ok()
+        .filter(|age| (1..=120).contains(age))
+    else {
+        return;
+    };
+    let Ok(period) = build_age_period(natal, age) else {
+        return;
+    };
+    let branch = period.palace_branch();
+    snapshot.center.small_limit_age = Some(nominal_age);
+    snapshot.center.small_limit_branch = Some(branch);
+    for palace in &mut snapshot.palaces {
+        let active = palace.branch == branch;
+        palace.limit.is_active_small_limit = active;
+        palace.limit.active_small_limit_age = active.then_some(nominal_age);
     }
 }
 
