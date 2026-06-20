@@ -88,7 +88,7 @@ The following remain intentionally out of scope for the current supported surfac
 - full BaZi interpretation/output beyond factual `by_solar` natal four pillars;
 - temporal decorative arrays beyond yearly `yearlyDecStar` (e.g. decadal/monthly/daily/hourly decorative arrays);
 - full upstream facade serialization parity (the upstream `FunctionalAstrolabe#horoscope` payload shape);
-- full multilingual/i18n infrastructure and complete upstream localized-string parity (the natal facade `astrolabe` snapshots expose additive zh-CN `*_zh` labels via `core::labels::zh_cn`, but internal models stay language-neutral);
+- broad multilingual coverage and complete upstream localized-string parity. The desktop GUI is fully localized (English default / Simplified Chinese) through the `iztro-i18n` crate, a Fluent-based presentation-layer localizer that maps typed domain values to display strings; core models stay language-neutral (the facade snapshots still expose additive zh-CN `*_zh` labels via `core::labels::zh_cn`). Additional locales and full upstream localized-string parity remain deferred;
 - bindings;
 - richer renderers and GUI/WASM/TUI frontends;
 - feature extraction for temporal activation;
