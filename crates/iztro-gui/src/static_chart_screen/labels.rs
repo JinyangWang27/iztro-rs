@@ -14,7 +14,7 @@ use super::style::section_title_style;
 /// four pillars.
 pub(super) fn four_pillars_line(center: &StaticChartCenterView, i18n: &I18n) -> Option<String> {
     center.four_pillars.as_ref().map(|pillars| {
-        let pillar = |sb: iztro::core::StemBranch| format!("{}{}", i18n.stem(sb.stem()), i18n.branch(sb.branch()));
+        let pillar = |sb| i18n.stem_branch_value(sb);
         format!(
             "{} {} {} {}",
             pillar(pillars.yearly),
@@ -37,11 +37,16 @@ pub(super) fn fact_row(
         Locale::ZhHans => "：",
         Locale::EnUs => ": ",
     };
-    text(format!("{label}{sep}{}", value.into())).size(13).into()
+    text(format!("{label}{sep}{}", value.into()))
+        .size(13)
+        .into()
 }
 
 pub(super) fn section_title(label: &str) -> Element<'static, Message> {
-    text(label.to_owned()).size(13).style(section_title_style).into()
+    text(label.to_owned())
+        .size(13)
+        .style(section_title_style)
+        .into()
 }
 
 /// The gender symbol shown before the basic-info header (`♂` male / `♀` female).

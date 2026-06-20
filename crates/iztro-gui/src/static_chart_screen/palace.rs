@@ -324,7 +324,9 @@ fn bottom_decorative_layer<'a>(
 ) -> Element<'a, Message> {
     let left = column![
         container(decorative_column(gods_left, DECOR_GOD_OLIVE, i18n)).width(Length::Fill),
-        text(i18n.palace_name(palace.name)).size(16).color(MAJOR_PURPLE),
+        text(i18n.palace_name(palace.name))
+            .size(16)
+            .color(MAJOR_PURPLE),
     ]
     .spacing(1)
     .align_x(Alignment::Start);
@@ -332,7 +334,7 @@ fn bottom_decorative_layer<'a>(
         container(decorative_column(gods_right, MINOR_MALEFIC, i18n))
             .width(Length::Fill)
             .align_x(Alignment::End),
-        text(format!("{}{}", i18n.stem(palace.stem), i18n.branch(palace.branch)))
+        text(i18n.stem_branch(palace.stem, palace.branch))
             .size(12)
             .color(mutagen_badge_color(Mutagen::Ke)),
     ]
@@ -367,7 +369,11 @@ fn limit_middle(palace: &StaticPalaceView, i18n: &I18n) -> Element<'static, Mess
     let mut col = column![].spacing(0).align_x(Alignment::Center);
     if let Some(range) = palace.limit.decadal_age_range_zh.as_deref() {
         let prefix = i18n.temporal_label(Scope::Decadal);
-        col = col.push(text(format!("{prefix} {range}")).size(9).color(decadal_color));
+        col = col.push(
+            text(format!("{prefix} {range}"))
+                .size(9)
+                .color(decadal_color),
+        );
     }
     if !palace.limit.small_limit_ages_zh.is_empty() {
         col = col.push(
@@ -482,10 +488,7 @@ pub(super) fn center_panel(
         .map(|d| i18n.lunar_date(d))
         .or_else(|| center.temporal_lunar_year.map(|y| i18n.lunar_year(y)))
         .unwrap_or_else(dash);
-    let temporal_solar = center
-        .temporal_solar_label
-        .clone()
-        .unwrap_or_else(dash);
+    let temporal_solar = center.temporal_solar_label.clone().unwrap_or_else(dash);
 
     let run_xian = column![
         section_title(&i18n.text("center-temporal-info")),

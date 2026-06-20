@@ -25,7 +25,7 @@ mod star_table;
 use iztro::core::labels::chinese_date;
 use iztro::core::{
     Brightness, EarthlyBranch, FiveElementBureau, Gender, HeavenlyStem, LunarDateView, Mutagen,
-    PalaceName, Scope, StarName, WesternZodiac,
+    PalaceName, Scope, StarName, StemBranch, WesternZodiac,
 };
 
 pub use fluent_bundle::FluentArgs;
@@ -100,6 +100,21 @@ impl I18n {
     /// Localized Earthly Branch (地支).
     pub fn branch(&self, branch: EarthlyBranch) -> String {
         self.text(&keys::branch_key(branch))
+    }
+
+    /// Localized stem-branch pair (干支). Simplified Chinese concatenates with no
+    /// separator (`癸酉`); English separates the romanized stem and branch with a
+    /// space (`Gui You`).
+    pub fn stem_branch(&self, stem: HeavenlyStem, branch: EarthlyBranch) -> String {
+        match self.locale() {
+            Locale::ZhHans => format!("{}{}", self.stem(stem), self.branch(branch)),
+            Locale::EnUs => format!("{} {}", self.stem(stem), self.branch(branch)),
+        }
+    }
+
+    /// Localized stem-branch pair (干支) from a [`StemBranch`] value.
+    pub fn stem_branch_value(&self, sb: StemBranch) -> String {
+        self.stem_branch(sb.stem(), sb.branch())
     }
 
     /// Localized Chinese zodiac animal (生肖) for an Earthly Branch.
@@ -270,6 +285,21 @@ mod tests {
     }
 
     #[test]
+    fn stem_branch_separates_pinyin_but_not_chinese() {
+        // 1993 is the 癸酉 (Gui You) year.
+        let gui_you = StemBranch::from_lunar_year(1993);
+        assert_eq!(
+            I18n::new(Locale::EnUs).stem_branch_value(gui_you),
+            "Gui You"
+        );
+        assert_eq!(I18n::new(Locale::ZhHans).stem_branch_value(gui_you), "癸酉");
+        assert_eq!(
+            I18n::new(Locale::EnUs).stem_branch(gui_you.stem(), gui_you.branch()),
+            "Gui You"
+        );
+    }
+
+    #[test]
     fn every_star_resolves_and_matches_authoritative_chinese() {
         let en = I18n::new(Locale::EnUs);
         let zh = I18n::new(Locale::ZhHans);
@@ -300,10 +330,18 @@ mod tests {
             (PalaceName::Spirit, ()),
             (PalaceName::Parents, ()),
         ] {
-            assert_eq!(zh.palace_name(name), zh_cn::palace_name_zh(name), "{name:?}");
+            assert_eq!(
+                zh.palace_name(name),
+                zh_cn::palace_name_zh(name),
+                "{name:?}"
+            );
         }
         for mutagen in [Mutagen::Lu, Mutagen::Quan, Mutagen::Ke, Mutagen::Ji] {
-            assert_eq!(zh.mutagen(mutagen), zh_cn::mutagen_zh(mutagen), "{mutagen:?}");
+            assert_eq!(
+                zh.mutagen(mutagen),
+                zh_cn::mutagen_zh(mutagen),
+                "{mutagen:?}"
+            );
         }
         for brightness in [
             Brightness::Temple,
@@ -329,7 +367,11 @@ mod tests {
             Scope::Daily,
             Scope::Hourly,
         ] {
-            assert_eq!(zh.temporal_label(scope), zh_cn::scope_zh(scope), "{scope:?}");
+            assert_eq!(
+                zh.temporal_label(scope),
+                zh_cn::scope_zh(scope),
+                "{scope:?}"
+            );
         }
     }
 
