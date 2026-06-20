@@ -98,6 +98,9 @@ mod tests {
         assert_eq!(mutagen_key(Mutagen::Lu), "mutagen-lu");
         assert_eq!(scope_key(Scope::Decadal), "temporal-decadal");
         assert_eq!(bureau_key(FiveElementBureau::Wood3), "bureau-wood3");
-        assert_eq!(constellation_key(WesternZodiac::Gemini), "constellation-gemini");
+        assert_eq!(
+            constellation_key(WesternZodiac::Gemini),
+            "constellation-gemini"
+        );
     }
 }

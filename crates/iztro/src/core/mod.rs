@@ -62,7 +62,6 @@ pub use model::chart::{
 pub use model::master::{body_master, soul_master};
 pub use model::nayin::{NaYinElement, nayin_element};
 pub use model::profile::{ChartAlgorithmKind, MethodProfile};
-pub use model::zodiac::{WesternZodiac, western_zodiac};
 pub use model::star::mutagen::{
     Mutagen, Scope, birth_year_major_star_mutagen, birth_year_star_mutagen,
 };
@@ -72,6 +71,7 @@ pub use model::star::{
     known_star_metadata_table, represented_star_metadata_table, star_metadata, try_flow_star_parts,
     try_known_star_metadata, try_star_metadata,
 };
+pub use model::zodiac::{WesternZodiac, western_zodiac};
 pub use pattern::{
     PalaceRelation, PatternAnchor, PatternCondition, PatternContext, PatternDetection,
     PatternDetectionRequest, PatternEvidence, PatternFamily, PatternId, PatternPolarity,

@@ -73,7 +73,10 @@ fn center_carries_prepared_iztro_style_natal_labels() {
         }),
     );
     assert_eq!(center.birth_time_index, Some(9));
-    assert_eq!(center.western_zodiac, Some(iztro::core::WesternZodiac::Gemini));
+    assert_eq!(
+        center.western_zodiac,
+        Some(iztro::core::WesternZodiac::Gemini)
+    );
     assert!(center.soul_master.is_some(), "命主 star should be typed");
     assert!(center.body_master.is_some(), "身主 star should be typed");
 }

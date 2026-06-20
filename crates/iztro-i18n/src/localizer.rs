@@ -76,7 +76,11 @@ thread_local! {
 
 /// Looks a key up in one bundle, returning `None` when it is absent so the
 /// caller can fall back.
-fn lookup(bundle: &FluentBundle<FluentResource>, key: &str, args: Option<&FluentArgs>) -> Option<String> {
+fn lookup(
+    bundle: &FluentBundle<FluentResource>,
+    key: &str,
+    args: Option<&FluentArgs>,
+) -> Option<String> {
     let message = bundle.get_message(key)?;
     let pattern = message.value()?;
     let mut errors = Vec::new();
