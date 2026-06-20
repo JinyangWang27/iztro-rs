@@ -1,6 +1,7 @@
 [package]
 name = "iztro-i18n"
 description = "Fluent-based localization layer for iztro-rs (UI strings and typed domain labels)"
+publish = false
 authors.workspace = true
 edition.workspace = true
 license.workspace = true
