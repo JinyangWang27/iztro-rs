@@ -33,7 +33,8 @@ This glossary keeps engineering terms and Zi Wei Dou Shu terms aligned across la
 | `opposite_palace` | Opposite Palace | 对宫 | The palace opposite the target palace. |
 | `surrounded_palaces` | Surrounding Palaces | 三方四正 | Target palace, opposite palace, and triadic support. |
 | `decadal` | Decadal Period | 大限 | Ten-year period. |
-| `yearly` | Yearly Period | 流年 | Annual activation. |
+| `age` | Minor Limit | 小限 | Annual age marker keyed by nominal age (虚岁), distinct from `yearly` (太岁-based). |
+| `yearly` | Yearly Period | 流年 | Annual activation keyed by the selected year's stem-branch (太岁). |
 | `monthly` | Monthly Period | 流月 | Monthly activation. |
 | `daily` | Daily Period | 流日 | Daily activation. |
 | `feature` | Feature | 特征 | Structured semantic property derived from a chart. |

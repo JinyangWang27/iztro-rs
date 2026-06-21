@@ -33,6 +33,8 @@
       "life_palace_branch_zh": "寅",
       "nominal_age": null,
       "nominal_age_label": null,
+      "small_limit_age": null,
+      "small_limit_branch": null,
       "soul_master": "lu_cun",
       "soul_master_zh": "禄存",
       "temporal_lunar_date": null,
@@ -117,8 +119,22 @@
         },
         "highlights": [],
         "limit": {
+          "active_small_limit_age": null,
           "decadal_age_range_zh": "95-104",
           "is_active_decadal": false,
+          "is_active_small_limit": false,
+          "small_limit_ages": [
+            12,
+            24,
+            36,
+            48,
+            60,
+            72,
+            84,
+            96,
+            108,
+            120
+          ],
           "small_limit_ages_zh": [
             "12",
             "24",
@@ -263,8 +279,22 @@
         },
         "highlights": [],
         "limit": {
+          "active_small_limit_age": null,
           "decadal_age_range_zh": "85-94",
           "is_active_decadal": false,
+          "is_active_small_limit": false,
+          "small_limit_ages": [
+            11,
+            23,
+            35,
+            47,
+            59,
+            71,
+            83,
+            95,
+            107,
+            119
+          ],
           "small_limit_ages_zh": [
             "11",
             "23",
@@ -433,8 +463,22 @@
         },
         "highlights": [],
         "limit": {
+          "active_small_limit_age": null,
           "decadal_age_range_zh": "75-84",
           "is_active_decadal": false,
+          "is_active_small_limit": false,
+          "small_limit_ages": [
+            10,
+            22,
+            34,
+            46,
+            58,
+            70,
+            82,
+            94,
+            106,
+            118
+          ],
           "small_limit_ages_zh": [
             "10",
             "22",
@@ -591,8 +635,22 @@
         },
         "highlights": [],
         "limit": {
+          "active_small_limit_age": null,
           "decadal_age_range_zh": "65-74",
           "is_active_decadal": false,
+          "is_active_small_limit": false,
+          "small_limit_ages": [
+            9,
+            21,
+            33,
+            45,
+            57,
+            69,
+            81,
+            93,
+            105,
+            117
+          ],
           "small_limit_ages_zh": [
             "9",
             "21",
@@ -773,8 +831,22 @@
         },
         "highlights": [],
         "limit": {
+          "active_small_limit_age": null,
           "decadal_age_range_zh": "105-114",
           "is_active_decadal": false,
+          "is_active_small_limit": false,
+          "small_limit_ages": [
+            1,
+            13,
+            25,
+            37,
+            49,
+            61,
+            73,
+            85,
+            97,
+            109
+          ],
           "small_limit_ages_zh": [
             "1",
             "13",
@@ -894,8 +966,22 @@
         },
         "highlights": [],
         "limit": {
+          "active_small_limit_age": null,
           "decadal_age_range_zh": "55-64",
           "is_active_decadal": false,
+          "is_active_small_limit": false,
+          "small_limit_ages": [
+            8,
+            20,
+            32,
+            44,
+            56,
+            68,
+            80,
+            92,
+            104,
+            116
+          ],
           "small_limit_ages_zh": [
             "8",
             "20",
@@ -1028,8 +1114,22 @@
         },
         "highlights": [],
         "limit": {
+          "active_small_limit_age": null,
           "decadal_age_range_zh": "115-124",
           "is_active_decadal": false,
+          "is_active_small_limit": false,
+          "small_limit_ages": [
+            2,
+            14,
+            26,
+            38,
+            50,
+            62,
+            74,
+            86,
+            98,
+            110
+          ],
           "small_limit_ages_zh": [
             "2",
             "14",
@@ -1174,8 +1274,22 @@
         },
         "highlights": [],
         "limit": {
+          "active_small_limit_age": null,
           "decadal_age_range_zh": "45-54",
           "is_active_decadal": false,
+          "is_active_small_limit": false,
+          "small_limit_ages": [
+            7,
+            19,
+            31,
+            43,
+            55,
+            67,
+            79,
+            91,
+            103,
+            115
+          ],
           "small_limit_ages_zh": [
             "7",
             "19",
@@ -1298,8 +1412,22 @@
         },
         "highlights": [],
         "limit": {
+          "active_small_limit_age": null,
           "decadal_age_range_zh": "5-14",
           "is_active_decadal": false,
+          "is_active_small_limit": false,
+          "small_limit_ages": [
+            3,
+            15,
+            27,
+            39,
+            51,
+            63,
+            75,
+            87,
+            99,
+            111
+          ],
           "small_limit_ages_zh": [
             "3",
             "15",
@@ -1407,8 +1535,22 @@
         },
         "highlights": [],
         "limit": {
+          "active_small_limit_age": null,
           "decadal_age_range_zh": "15-24",
           "is_active_decadal": false,
+          "is_active_small_limit": false,
+          "small_limit_ages": [
+            4,
+            16,
+            28,
+            40,
+            52,
+            64,
+            76,
+            88,
+            100,
+            112
+          ],
           "small_limit_ages_zh": [
             "4",
             "16",
@@ -1553,8 +1695,22 @@
         },
         "highlights": [],
         "limit": {
+          "active_small_limit_age": null,
           "decadal_age_range_zh": "25-34",
           "is_active_decadal": false,
+          "is_active_small_limit": false,
+          "small_limit_ages": [
+            5,
+            17,
+            29,
+            41,
+            53,
+            65,
+            77,
+            89,
+            101,
+            113
+          ],
           "small_limit_ages_zh": [
             "5",
             "17",
@@ -1674,8 +1830,22 @@
         },
         "highlights": [],
         "limit": {
+          "active_small_limit_age": null,
           "decadal_age_range_zh": "35-44",
           "is_active_decadal": false,
+          "is_active_small_limit": false,
+          "small_limit_ages": [
+            6,
+            18,
+            30,
+            42,
+            54,
+            66,
+            78,
+            90,
+            102,
+            114
+          ],
           "small_limit_ages_zh": [
             "6",
             "18",

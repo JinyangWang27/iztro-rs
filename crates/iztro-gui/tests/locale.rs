@@ -7,8 +7,8 @@
 //! through `iztro-i18n`) and additionally build the full view under both locales
 //! to prove the render path never panics or yields a missing-key placeholder.
 
-use iztro::core::{PalaceName, StaticChartCenterView, StaticPalaceView};
-use iztro_gui::app::{FormError, Message, StaticChartApp};
+use iztro::core::{PalaceName, Scope, StaticChartCenterView, StaticPalaceView};
+use iztro_gui::app::{FormError, Message, StaticChartApp, TemporalCell};
 use iztro_i18n::{I18n, Locale};
 
 /// Every Fluent key the GUI renderer resolves directly via `i18n.text(..)`.
@@ -200,6 +200,59 @@ fn simplified_chinese_chart_labels_use_expected_chinese() {
 
     let center = app.center().expect("generated center");
     assert!(center_labels(center, &i18n).iter().any(|l| has_cjk(l)));
+}
+
+#[test]
+fn minor_limit_renders_localized_from_typed_fields() {
+    // Drive the app to a 流年 selection so an active 小限 (Minor Limit) is
+    // exposed, then assert it localizes through the same i18n helpers the
+    // renderer uses — English "Minor Limit", Simplified Chinese "小限".
+    let mut app = chart_app();
+    app.update(Message::SelectTemporalCell(TemporalCell::Decadal(0)));
+    app.update(Message::SelectTemporalCell(TemporalCell::YearlyAge(0)));
+    let center = app.center().expect("generated center");
+    let age = center
+        .small_limit_age
+        .expect("a selected year exposes a 小限 age");
+    let branch = center
+        .small_limit_branch
+        .expect("a selected year exposes a 小限 branch");
+
+    // The center 小限 row carries only the landing branch (the age is the
+    // nominal age shown above), and the active palace middle band renders the
+    // localized label plus the selected age — both through the same helpers.
+    let en = I18n::new(Locale::EnUs);
+    assert_eq!(en.temporal_label(Scope::Age), "Minor Limit");
+    let en_center = en.branch(branch);
+    assert!(
+        !has_cjk(&en_center),
+        "English 小限 row has CJK: {en_center}"
+    );
+    let en_band = format!("{} {age}", en.temporal_label(Scope::Age));
+    assert!(!has_cjk(&en_band), "English 小限 band has CJK: {en_band}");
+
+    let zh = I18n::new(Locale::ZhHans);
+    assert_eq!(zh.temporal_label(Scope::Age), "小限");
+    let zh_center = zh.branch(branch);
+    assert!(
+        has_cjk(&zh_center),
+        "zh 小限 row should be Chinese: {zh_center}"
+    );
+    let zh_band = format!("{} {age}", zh.temporal_label(Scope::Age));
+    assert!(
+        has_cjk(&zh_band),
+        "zh 小限 band should be Chinese: {zh_band}"
+    );
+
+    // The active 小限 palace exposes the typed selected age, so the middle band
+    // renders 小限 without depending on the Chinese-string fallback.
+    let active = app
+        .palaces()
+        .iter()
+        .find(|p| p.limit.is_active_small_limit)
+        .expect("exactly one active 小限 palace");
+    assert_eq!(active.limit.active_small_limit_age, Some(age));
+    assert!(!active.limit.small_limit_ages.is_empty());
 }
 
 #[test]

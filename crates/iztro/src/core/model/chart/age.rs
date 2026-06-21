@@ -1,8 +1,15 @@
-//! Deterministic nominal-age (小限) period facts derived from a natal chart.
+//! Deterministic nominal-age (小限 / Minor Limit) period facts derived from a
+//! natal chart.
 //!
 //! This module derives one 小限 period from natal birth-year branch, gender, and
 //! palace stem facts. It does not assemble a full horoscope, place flow stars,
 //! derive yearly/monthly/daily/hourly facts, or render narrative text.
+//!
+//! 小限 ([`Scope::Age`]) is keyed by nominal age (虚岁) and is distinct from 流年
+//! ([`Scope::Yearly`]), which is keyed by the selected calendar year's
+//! stem-branch (太岁). Callers that need the active 小限 for a selected year
+//! should resolve the nominal age first and then call [`build_age_period`];
+//! they must not treat 小限 as another yearly stem-branch layer.
 
 use crate::core::error::ChartError;
 use crate::core::model::calendar::Gender;

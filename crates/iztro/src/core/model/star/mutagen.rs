@@ -27,11 +27,21 @@ pub enum Mutagen {
 pub enum Scope {
     /// Natal chart (本命盘).
     Natal,
-    /// Nominal-age period (小限).
+    /// Minor Limit / nominal-age period (小限).
+    ///
+    /// 小限 is keyed by nominal age (虚岁): each year of life advances one
+    /// palace from a birth-branch-determined start, stepping by gender. It is
+    /// the domain representation of the Minor Limit and is distinct from
+    /// [`Yearly`](Self::Yearly) (流年): 小限 is age-driven, whereas 流年 is the
+    /// selected calendar year, keyed by its stem-branch / 太岁.
     Age,
     /// Decadal period (大限).
     Decadal,
     /// Yearly period (流年).
+    ///
+    /// 流年 is the selected calendar year, keyed by its stem-branch (太岁). It
+    /// is distinct from [`Age`](Self::Age) (小限), which is the nominal-age
+    /// (虚岁) Minor Limit marker.
     Yearly,
     /// Monthly period (流月).
     Monthly,

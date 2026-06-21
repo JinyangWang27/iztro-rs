@@ -734,3 +734,181 @@ fn hourly_selection_rejects_out_of_range_hour_index() {
         })
     );
 }
+
+/// The branch of the single palace carrying the 流年 (`Scope::Yearly`) period
+/// marker for `snapshot`, if any.
+fn yearly_marker_branch(
+    snapshot: &iztro::core::StaticChartViewSnapshot,
+) -> Option<iztro::core::EarthlyBranch> {
+    snapshot
+        .palaces
+        .iter()
+        .find(|p| {
+            p.overlays
+                .iter()
+                .any(|o| o.scope == Scope::Yearly && o.period_label_zh.is_some())
+        })
+        .map(|p| p.branch)
+}
+
+#[test]
+fn yearly_selection_marks_exactly_one_active_small_limit() {
+    let snapshot = static_temporal_chart_view(
+        spec_request(),
+        StaticTemporalNavigationSelection::Yearly {
+            decadal_index: 1,
+            year_index: 0,
+        },
+    )
+    .unwrap();
+
+    // The center exposes the selected nominal age and the 小限 palace branch.
+    assert!(snapshot.center.nominal_age.is_some());
+    assert_eq!(snapshot.center.small_limit_age, snapshot.center.nominal_age);
+    let branch = snapshot
+        .center
+        .small_limit_branch
+        .expect("a concrete year resolves an active 小限 branch");
+
+    // Exactly one palace is the active 小限, and it is the branch the center
+    // reports; that palace carries the selected nominal age.
+    let active: Vec<_> = snapshot
+        .palaces
+        .iter()
+        .filter(|p| p.limit.is_active_small_limit)
+        .collect();
+    assert_eq!(active.len(), 1, "exactly one palace holds the active 小限");
+    assert_eq!(active[0].branch, branch);
+    assert_eq!(
+        active[0].limit.active_small_limit_age,
+        snapshot.center.nominal_age
+    );
+
+    // Every other palace is inactive and carries no active-age stamp.
+    for palace in snapshot.palaces.iter().filter(|p| p.branch != branch) {
+        assert!(!palace.limit.is_active_small_limit);
+        assert!(palace.limit.active_small_limit_age.is_none());
+    }
+}
+
+#[test]
+fn small_limit_is_absent_without_a_selected_year() {
+    for selection in [
+        StaticTemporalNavigationSelection::Natal,
+        StaticTemporalNavigationSelection::PreDecadal,
+        StaticTemporalNavigationSelection::Decadal { decadal_index: 1 },
+    ] {
+        let snapshot = static_temporal_chart_view(spec_request(), selection).unwrap();
+        assert!(
+            snapshot.center.small_limit_age.is_none(),
+            "{selection:?} has no selected year, so no 小限 age"
+        );
+        assert!(snapshot.center.small_limit_branch.is_none());
+        assert!(
+            snapshot
+                .palaces
+                .iter()
+                .all(|p| !p.limit.is_active_small_limit
+                    && p.limit.active_small_limit_age.is_none()),
+            "{selection:?} marks no active 小限 palace"
+        );
+    }
+}
+
+#[test]
+fn small_limit_and_yearly_markers_are_not_conflated() {
+    // 小限 (age-based) and 流年 (太岁-based) are independent markers. For at least
+    // one 流年 within the decadal period the two land on different palaces, and
+    // when they do they coexist without overwriting each other.
+    let distinct = (0u8..=9)
+        .map(|year_index| {
+            static_temporal_chart_view(
+                spec_request(),
+                StaticTemporalNavigationSelection::Yearly {
+                    decadal_index: 1,
+                    year_index,
+                },
+            )
+            .unwrap()
+        })
+        .find(|snapshot| {
+            let small = snapshot.center.small_limit_branch;
+            let yearly = yearly_marker_branch(snapshot);
+            matches!((small, yearly), (Some(s), Some(y)) if s != y)
+        })
+        .expect("some 流年 in the period lands on a different palace than its 小限");
+
+    let small_branch = distinct.center.small_limit_branch.unwrap();
+    let yearly_branch = yearly_marker_branch(&distinct).unwrap();
+    assert_ne!(
+        small_branch, yearly_branch,
+        "小限 branch and 流年 marker branch must be distinct here"
+    );
+
+    // The 流年 marker palace is not flagged as the active 小限, and the active
+    // 小限 palace does not carry the 流年 period marker: both coexist.
+    let yearly_palace = distinct
+        .palaces
+        .iter()
+        .find(|p| p.branch == yearly_branch)
+        .unwrap();
+    assert!(!yearly_palace.limit.is_active_small_limit);
+
+    let small_palace = distinct
+        .palaces
+        .iter()
+        .find(|p| p.branch == small_branch)
+        .unwrap();
+    assert!(small_palace.limit.is_active_small_limit);
+    assert!(
+        !small_palace
+            .overlays
+            .iter()
+            .any(|o| o.scope == Scope::Yearly && o.period_label_zh.is_some()),
+        "the active 小限 palace must not also be the 流年 period marker"
+    );
+}
+
+#[test]
+fn snapshot_without_small_limit_fields_still_deserializes() {
+    // A legacy snapshot JSON predating the typed 小限 fields must still load,
+    // thanks to #[serde(default)] on every new field.
+    let snapshot = static_temporal_chart_view(
+        spec_request(),
+        StaticTemporalNavigationSelection::Yearly {
+            decadal_index: 1,
+            year_index: 0,
+        },
+    )
+    .unwrap();
+    let mut value = serde_json::to_value(&snapshot).unwrap();
+    // Strip the new center + palace fields to emulate an older serialization.
+    let center = value
+        .get_mut("center")
+        .and_then(|c| c.as_object_mut())
+        .unwrap();
+    center.remove("small_limit_age");
+    center.remove("small_limit_branch");
+    for palace in value
+        .get_mut("palaces")
+        .and_then(|p| p.as_array_mut())
+        .unwrap()
+    {
+        let limit = palace
+            .get_mut("limit")
+            .and_then(|l| l.as_object_mut())
+            .unwrap();
+        limit.remove("small_limit_ages");
+        limit.remove("is_active_small_limit");
+        limit.remove("active_small_limit_age");
+    }
+    let restored: iztro::core::StaticChartViewSnapshot =
+        serde_json::from_value(value).expect("legacy snapshot without 小限 fields deserializes");
+    assert!(restored.center.small_limit_age.is_none());
+    assert!(
+        restored
+            .palaces
+            .iter()
+            .all(|p| !p.limit.is_active_small_limit && p.limit.small_limit_ages.is_empty())
+    );
+}

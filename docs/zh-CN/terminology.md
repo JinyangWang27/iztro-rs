@@ -33,7 +33,8 @@
 | `opposite_palace` | Opposite Palace | 对宫 | 与目标宫相对的宫位。 |
 | `surrounded_palaces` | Surrounding Palaces | 三方四正 | 本宫、对宫与三方相关宫位。 |
 | `decadal` | Decadal Period | 大限 | 十年运限。 |
-| `yearly` | Yearly Period | 流年 | 年度激活。 |
+| `age` | Minor Limit | 小限 | 以虚岁为准的年度运限标记，区别于以太岁论的 `yearly`（流年）。 |
+| `yearly` | Yearly Period | 流年 | 年度激活，以所选年份干支（太岁）为准。 |
 | `monthly` | Monthly Period | 流月 | 月度激活。 |
 | `daily` | Daily Period | 流日 | 日度激活。 |
 | `feature` | Feature | 特征 | 从星盘中提取的结构化语义属性。 |

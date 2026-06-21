@@ -199,6 +199,20 @@ pub struct StaticChartCenterView {
     /// is known. Mirrors the year portion of [`temporal_lunar_label`](Self::temporal_lunar_label).
     #[serde(default)]
     pub temporal_lunar_year: Option<i32>,
+    /// Selected 小限 (Minor Limit) nominal age (虚岁), when a concrete year is
+    /// selected (流年/流月/流日/流时).
+    ///
+    /// Equals [`nominal_age`](Self::nominal_age) for those selections. 小限
+    /// (`Scope::Age`) is an annual age marker; it is distinct from 流年
+    /// (`Scope::Yearly`), which is selected-year / stem-branch / 太岁 based.
+    /// Filled by the temporal facade; `None` on the natal/static base and for
+    /// Decadal-only / PreDecadal selections.
+    #[serde(default)]
+    pub small_limit_age: Option<u16>,
+    /// Palace branch where the selected 小限 lands. Mirrors
+    /// [`small_limit_age`](Self::small_limit_age).
+    #[serde(default)]
+    pub small_limit_branch: Option<EarthlyBranch>,
 }
 
 /// Presentation-friendly natal four-pillar facts.
@@ -591,9 +605,27 @@ pub struct StaticPalaceLimitView {
     /// Nominal small-limit ages (小限) that land on this palace, ascending.
     #[serde(default)]
     pub small_limit_ages_zh: Vec<String>,
+    /// Typed mirror of [`small_limit_ages_zh`](Self::small_limit_ages_zh): the
+    /// nominal small-limit ages (小限) that land on this palace, ascending.
+    ///
+    /// 小限 is an annual age marker (`Scope::Age`), derived from nominal age
+    /// (虚岁); it is distinct from 流年 (`Scope::Yearly`).
+    #[serde(default)]
+    pub small_limit_ages: Vec<u16>,
     /// Whether this palace holds the currently selected decadal period.
     #[serde(default)]
     pub is_active_decadal: bool,
+    /// Whether the selected nominal age's 小限 (Minor Limit) lands on this palace.
+    ///
+    /// Set by the temporal facade only when a concrete year is selected
+    /// (流年/流月/流日/流时). Exactly one palace is active in that case; all
+    /// others are `false`.
+    #[serde(default)]
+    pub is_active_small_limit: bool,
+    /// The selected nominal age (虚岁) when this palace is the active 小限, else
+    /// `None`. Mirrors [`is_active_small_limit`](Self::is_active_small_limit).
+    #[serde(default)]
+    pub active_small_limit_age: Option<u16>,
 }
 
 /// One perimeter palace cell of a static chart.
@@ -1073,6 +1105,8 @@ impl StaticChartCenterView {
             nominal_age: None,
             temporal_lunar_date: None,
             temporal_lunar_year: None,
+            small_limit_age: None,
+            small_limit_branch: None,
         }
     }
 }
@@ -1179,19 +1213,25 @@ impl PalaceLimits {
     }
 
     fn view_for(&self, branch: EarthlyBranch) -> StaticPalaceLimitView {
+        let ages = self
+            .small
+            .iter()
+            .find(|(palace_branch, _)| *palace_branch == branch)
+            .map(|(_, ages)| ages.as_slice())
+            .unwrap_or_default();
         StaticPalaceLimitView {
             decadal_age_range_zh: self
                 .decadal
                 .iter()
                 .find(|(palace_branch, _, _)| *palace_branch == branch)
                 .map(|(_, start, end)| format!("{start}-{end}")),
-            small_limit_ages_zh: self
-                .small
-                .iter()
-                .find(|(palace_branch, _)| *palace_branch == branch)
-                .map(|(_, ages)| ages.iter().map(u8::to_string).collect())
-                .unwrap_or_default(),
+            small_limit_ages_zh: ages.iter().map(u8::to_string).collect(),
+            small_limit_ages: ages.iter().map(|&age| u16::from(age)).collect(),
             is_active_decadal: false,
+            // The active 小限 (Minor Limit) palace is determined by the temporal
+            // facade from the selected nominal age; the natal base marks none.
+            is_active_small_limit: false,
+            active_small_limit_age: None,
         }
     }
 }
