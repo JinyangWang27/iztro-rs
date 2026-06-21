@@ -1,5 +1,5 @@
-use iced::widget::{button, column, container, mouse_area, row, stack, text};
-use iced::{Alignment, Color, Element, Length, Padding};
+use iced::widget::{button, column, container, mouse_area, row, text};
+use iced::{Alignment, Color, Element, Length};
 use iztro::core::{
     DecorativeStarFamily, Mutagen, Scope, StarCategory, StarKind, StaticChartCenterView,
     StaticChartViewSnapshot, StaticDecorativeStarView, StaticPalaceView,
@@ -12,9 +12,10 @@ use crate::app::{Message, StaticChartApp};
 use super::labels::{fact_row, four_pillars_line, gender_symbol, section_title};
 use super::style::{
     ADJ_GRAY, BRIGHTNESS_GRAY, DECOR_GOD_OLIVE, DECORATIVE_AREA_HEIGHT, LIMIT_ACTIVE, LIMIT_GRAY,
-    LU_CUN_ORANGE, MAJOR_PURPLE, MINOR_MALEFIC, PALACE_MIDDLE_BAND_HEIGHT, PEACH_MAGENTA,
-    PERIOD_BADGE_ROW_HEIGHT, TIAN_MA_BLUE, center_panel_style, mutagen_badge_color,
-    mutagen_inline_badge, palace_cell_style, section_title_style,
+    LU_CUN_ORANGE, MAJOR_PURPLE, MAX_STAR_COLUMNS, MAX_STAR_ROWS, MINOR_MALEFIC,
+    PALACE_MIDDLE_BAND_HEIGHT, PEACH_MAGENTA, PERIOD_BADGE_ROW_HEIGHT, TIAN_MA_BLUE,
+    center_panel_style, mutagen_badge_color, mutagen_inline_badge, palace_cell_style,
+    section_title_style,
 };
 use super::temporal::{period_badge, temporal_controls};
 
@@ -126,65 +127,44 @@ pub(super) fn palace_cell<'a>(
             StarCategory::Adjective => adjectives.push(star),
         }
     }
-    let star_area = row![
+    // Major stars keep a single vertical column (top stars stay prominent);
+    // minor and adjective zones wrap into extra columns when their lines exceed
+    // `MAX_STAR_ROWS`, so a star-heavy palace grows sideways instead of running
+    // down into the protected metadata below.
+    let star_groups = row![
         container(typed_star_column(majors, true, i18n)).width(Length::FillPortion(3)),
-        container(typed_star_column(minors, false, i18n)).width(Length::FillPortion(3)),
-        container(typed_star_column(adjectives, false, i18n))
-            .width(Length::FillPortion(2))
-            .align_x(Alignment::End),
+        container(wrapped_star_group(
+            minors,
+            false,
+            MAX_STAR_ROWS,
+            false,
+            i18n
+        ))
+        .width(Length::FillPortion(3)),
+        container(wrapped_star_group(
+            adjectives,
+            false,
+            MAX_STAR_ROWS,
+            true,
+            i18n
+        ))
+        .width(Length::FillPortion(2))
+        .align_x(Alignment::End),
     ]
     .spacing(4)
     .align_y(Alignment::Start);
 
-    // Top star content is anchored to the top of the cell.
-    let star_layer = container(star_area)
-        .width(Length::Fill)
-        .height(Length::Fill);
-
-    // 流年/流月/流日/流时 badges sit in the reserved middle band, above the
-    // 大限/小限 line. Only overlays core marked as a period anchor
-    // (`period_label_zh.is_some()`) get a badge; non-marker palaces carry the
-    // overlay's stars but no badge.
-    let is_source = matches!(highlight, PalaceHighlight::Selected);
-    let mut badges = row![].spacing(3);
-    for overlay in &palace.overlays {
-        // The badge appears only on the period's anchor palace, where core sets
-        // the typed period stem. Built from typed facts so it localizes.
-        if let Some(stem) = overlay.period_stem {
-            let label = format!("{}·{}", i18n.temporal_label(overlay.scope), i18n.stem(stem));
-            badges = badges.push(period_badge(&label, palace.branch, is_source));
-        }
-    }
-    // Always reserve the badge-row height (an empty placeholder when there is no
-    // badge) so the 大限/小限 line keeps the same y-position whether or not a
-    // palace has a period badge.
-    let badge_row = container(badges)
-        .width(Length::Fill)
-        .height(Length::Fixed(PERIOD_BADGE_ROW_HEIGHT))
-        .align_x(Alignment::Center);
-
-    // The middle band is a fixed-height layer centered vertically in the cell
-    // (above the anchored bottom footer), so the badge row and 大限/小限 line
-    // align across every palace regardless of how many stars sit above them.
-    let middle_band = container(
-        column![badge_row, limit_middle(palace, i18n)]
-            .spacing(2)
-            .align_x(Alignment::Center),
-    )
-    .width(Length::Fill)
-    .height(Length::Fixed(PALACE_MIDDLE_BAND_HEIGHT));
-    let middle_layer = container(middle_band)
+    // The flexible star area takes all height left above the protected metadata
+    // and clips, so however many star lines a palace carries they can never paint
+    // over the metadata zone (the CSS `min-height: 0; overflow: hidden` intent).
+    let star_area = container(star_groups)
         .width(Length::Fill)
         .height(Length::Fill)
-        .align_y(Alignment::Center)
-        .padding(Padding {
-            bottom: DECORATIVE_AREA_HEIGHT,
-            ..Padding::ZERO
-        });
+        .clip(true);
 
-    // Decorative "twelve gods" go to the bottom, split by prepared family:
-    // 长生/博士 bottom-left (olive), 将前/岁前 bottom-right (malefic tone). No
-    // group label — color and side carry the family, matching iztro cells.
+    // Decorative "twelve gods" go to the identity footer, split by prepared
+    // family: 长生/博士 bottom-left (olive), 将前/岁前 bottom-right (malefic
+    // tone). No group label — color and side carry the family, matching iztro.
     let (mut gods_left, mut gods_right) = (Vec::new(), Vec::new());
     for star in &palace.decorative_stars {
         match star.family {
@@ -196,14 +176,16 @@ pub(super) fn palace_cell<'a>(
             }
         }
     }
-    let content: Element<'_, Message> = stack![
-        star_layer,
-        middle_layer,
-        bottom_decorative_layer(palace, gods_left, gods_right, i18n),
-    ]
-    .width(Length::Fill)
-    .height(Length::Fill)
-    .into();
+
+    // The metadata zone is a fixed-height column pinned below the star area, so
+    // it is always visible and its time-flow / identity rows keep a constant
+    // y-position across every palace regardless of star count.
+    let metadata = palace_metadata(palace, highlight, gods_left, gods_right, i18n);
+
+    let content: Element<'_, Message> = column![star_area, metadata]
+        .width(Length::Fill)
+        .height(Length::Fill)
+        .into();
 
     let cell = button(content)
         .on_press(Message::SelectPalace(palace.branch))
@@ -300,6 +282,50 @@ fn typed_star_column(
     col.into()
 }
 
+/// Lays typed stars out in column-major order with at most `max_rows` lines per
+/// column, wrapping into a new column when a column fills — the Rust analogue of
+/// a CSS `grid-auto-flow: column; grid-template-rows: repeat(max_rows, …)` group.
+///
+/// `max_rows` is a parameter (not a baked-in constant) so a future
+/// `responsive`-based caller can derive it from the real star-area height.
+/// Beyond `MAX_STAR_COLUMNS` columns the remaining stars collapse into a compact
+/// `+N` indicator, bounding horizontal growth. `align_end` right-aligns each
+/// column for the right-hand adjective zone.
+fn wrapped_star_group(
+    stars: Vec<&StaticTypedStarView>,
+    major: bool,
+    max_rows: usize,
+    align_end: bool,
+    i18n: &I18n,
+) -> Element<'static, Message> {
+    let max_rows = max_rows.max(1);
+    let capacity = max_rows.saturating_mul(MAX_STAR_COLUMNS);
+    // Reserve the last cell for the `+N` marker when stars exceed the grid.
+    let (visible, overflow) = if stars.len() > capacity {
+        (&stars[..capacity - 1], stars.len() - (capacity - 1))
+    } else {
+        (&stars[..], 0)
+    };
+
+    let chunks: Vec<&[&StaticTypedStarView]> = visible.chunks(max_rows).collect();
+    let last = chunks.len().saturating_sub(1);
+    let mut columns = row![].spacing(4).align_y(Alignment::Start);
+    for (index, chunk) in chunks.iter().enumerate() {
+        let mut col = column![].spacing(1);
+        if align_end {
+            col = col.align_x(Alignment::End);
+        }
+        for star in *chunk {
+            col = col.push(star_line(star, major, i18n));
+        }
+        if overflow > 0 && index == last {
+            col = col.push(text(format!("+{overflow}")).size(11).color(ADJ_GRAY));
+        }
+        columns = columns.push(col);
+    }
+    columns.into()
+}
+
 /// A vertical stack of decorative "twelve gods" star names in one tone.
 fn decorative_column(
     stars: Vec<&StaticDecorativeStarView>,
@@ -313,10 +339,59 @@ fn decorative_column(
     col.into()
 }
 
-/// Renders decorative stars independently from variable-height main/overlay
-/// content, keeping both prepared family zones visible above the anchored
-/// palace-name footer labels.
-fn bottom_decorative_layer<'a>(
+/// The protected metadata zone pinned below the flexible star area: a fixed
+/// total height so it is always visible and its rows align across all palaces.
+///
+/// It stacks two parts, matching the desired bottom layout:
+/// 1. a time-flow band — 流年/流月/… period badges over the 大限/小限 line;
+/// 2. an identity footer — decorative gods over the 宫名 / 干支 labels.
+///
+/// Both parts have fixed heights, so the 大限/小限 line and the 宫名 / 干支 row
+/// keep a constant y-position regardless of how many stars sit above them.
+fn palace_metadata<'a>(
+    palace: &'a StaticPalaceView,
+    highlight: PalaceHighlight,
+    gods_left: Vec<&'a StaticDecorativeStarView>,
+    gods_right: Vec<&'a StaticDecorativeStarView>,
+    i18n: &I18n,
+) -> Element<'a, Message> {
+    // 流年/流月/流日/流时 badges sit above the 大限/小限 line. Only overlays core
+    // marked as a period anchor (typed `period_stem` set) get a badge; non-marker
+    // palaces carry the overlay's stars but no badge.
+    let is_source = matches!(highlight, PalaceHighlight::Selected);
+    let mut badges = row![].spacing(3);
+    for overlay in &palace.overlays {
+        if let Some(stem) = overlay.period_stem {
+            let label = format!("{}·{}", i18n.temporal_label(overlay.scope), i18n.stem(stem));
+            badges = badges.push(period_badge(&label, palace.branch, is_source));
+        }
+    }
+    // Always reserve the badge-row height (an empty placeholder when there is no
+    // badge) so the 大限/小限 line keeps the same y-position whether or not a
+    // palace has a period badge.
+    let badge_row = container(badges)
+        .width(Length::Fill)
+        .height(Length::Fixed(PERIOD_BADGE_ROW_HEIGHT))
+        .align_x(Alignment::Center);
+    let flow = container(
+        column![badge_row, limit_middle(palace, i18n)]
+            .spacing(2)
+            .align_x(Alignment::Center),
+    )
+    .width(Length::Fill)
+    .height(Length::Fixed(PALACE_MIDDLE_BAND_HEIGHT))
+    .align_y(Alignment::End);
+
+    column![flow, palace_identity(palace, gods_left, gods_right, i18n)]
+        .width(Length::Fill)
+        .into()
+}
+
+/// The fixed-height identity footer: decorative "twelve gods" above the localized
+/// 宫名 (left) and 干支 (right), bottom-anchored so the name/stem-branch row pins
+/// to the cell's bottom edge. Both labels come from typed fields, not
+/// pre-rendered Chinese strings.
+fn palace_identity<'a>(
     palace: &'a StaticPalaceView,
     gods_left: Vec<&'a StaticDecorativeStarView>,
     gods_right: Vec<&'a StaticDecorativeStarView>,
@@ -340,7 +415,7 @@ fn bottom_decorative_layer<'a>(
     ]
     .spacing(1)
     .align_x(Alignment::End);
-    let decorative_area = row![
+    let identity_row = row![
         container(left)
             .width(Length::FillPortion(1))
             .align_x(Alignment::Start),
@@ -350,9 +425,9 @@ fn bottom_decorative_layer<'a>(
     ]
     .spacing(4);
 
-    container(decorative_area)
+    container(identity_row)
         .width(Length::Fill)
-        .height(Length::Fill)
+        .height(Length::Fixed(DECORATIVE_AREA_HEIGHT))
         .align_y(Alignment::End)
         .into()
 }
