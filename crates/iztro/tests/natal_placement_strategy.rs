@@ -5,9 +5,9 @@
 //! exactly) and that a custom strategy is actually used when injected.
 
 use iztro::core::{
-    BirthContext, CalendarDate, Chart, ChartError, DeterministicNatalStarPlacementStrategy,
-    EarthlyBranch, Gender, HeavenlyStem, LunarDay, LunarMonth, MethodProfile,
-    NatalChartWithSupportedStarsInput, NatalStarPlacementStrategy,
+    BirthContext, CalendarDate, Chart, ChartAlgorithmKind, ChartError,
+    DeterministicNatalStarPlacementStrategy, EarthlyBranch, Gender, HeavenlyStem, LunarDay,
+    LunarMonth, MethodProfile, NatalChartWithSupportedStarsInput, NatalStarPlacementStrategy,
     build_natal_chart_with_supported_stars, build_natal_chart_with_supported_stars_using,
 };
 
@@ -26,6 +26,25 @@ fn sample_input() -> NatalChartWithSupportedStarsInput {
     )
 }
 
+fn zhongzhou_input() -> NatalChartWithSupportedStarsInput {
+    NatalChartWithSupportedStarsInput::new(
+        BirthContext::new(
+            CalendarDate::solar(1990, 5, 17),
+            EarthlyBranch::Chen,
+            Gender::Female,
+        ),
+        MethodProfile::new(
+            "zhongzhou_strategy_test",
+            ChartAlgorithmKind::Zhongzhou,
+            "Zhongzhou strategy-preservation test",
+        ),
+        LunarMonth::new(1).expect("month 1 should be valid"),
+        LunarDay::new(23).expect("day 23 should be valid"),
+        HeavenlyStem::Geng,
+        EarthlyBranch::Wu,
+    )
+}
+
 #[test]
 fn default_strategy_matches_legacy_supported_builder() {
     let legacy = build_natal_chart_with_supported_stars(sample_input())
@@ -35,6 +54,23 @@ fn default_strategy_matches_legacy_supported_builder() {
         &DeterministicNatalStarPlacementStrategy::default(),
     )
     .expect("strategy-injecting builder should succeed");
+
+    assert_eq!(legacy, via_strategy);
+}
+
+#[test]
+fn default_strategy_matches_legacy_supported_builder_for_zhongzhou() {
+    // The Zhongzhou algorithm exercises adjective-star branching that differs
+    // from the default/placeholder path, so it is the key behavior-preservation
+    // case for the strategy refactor.
+    let input = zhongzhou_input();
+    let legacy = build_natal_chart_with_supported_stars(input.clone())
+        .expect("legacy supported-star builder should succeed for Zhongzhou");
+    let via_strategy = build_natal_chart_with_supported_stars_using(
+        input,
+        &DeterministicNatalStarPlacementStrategy::default(),
+    )
+    .expect("strategy-injecting builder should succeed for Zhongzhou");
 
     assert_eq!(legacy, via_strategy);
 }
