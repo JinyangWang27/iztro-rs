@@ -100,9 +100,9 @@ checksum = "76a2e8124351fda1ef8aaaa3bbd7ebbcb486bbcd4225aca0aa0d84bb2db8fecb"
 
 [[package]]
 name = "arrayvec"
-version = "0.7.6"
+version = "0.7.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7c02d123df017efcdfbd739ef81735b36c5ba83ec3c59c80a9d7ecc718f92e50"
+checksum = "f02882884d3e1bc524fb12c79f107f6ad0e1cfd498c536ffb494301740995dfe"
 
 [[package]]
 name = "as-raw-xcb-connection"
@@ -264,9 +264,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.2.64"
+version = "1.2.65"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dad887fd958be91b5098c0248def011f4523ab786cd411be668777e55063501f"
+checksum = "e228eec9be7c17ccb640b59b36a5cd805ea2a564a4c5e162c2f659fea30d3b96"
 dependencies = [
  "find-msvc-tools",
  "jobserver",
@@ -1364,7 +1364,7 @@ checksum = "8f42a60cbdf9a97f5d2305f08a87dc4e09308d1276d28c869c684d7777685682"
 
 [[package]]
 name = "iztro"
-version = "0.7.0"
+version = "0.8.0"
 dependencies = [
  "lunar-lite",
  "serde",
@@ -1374,14 +1374,14 @@ dependencies = [
 
 [[package]]
 name = "iztro-cli"
-version = "0.7.0"
+version = "0.8.0"
 dependencies = [
  "anyhow",
 ]
 
 [[package]]
 name = "iztro-gui"
-version = "0.7.0"
+version = "0.8.0"
 dependencies = [
  "chrono",
  "dirs",
@@ -1395,7 +1395,7 @@ dependencies = [
 
 [[package]]
 name = "iztro-i18n"
-version = "0.7.0"
+version = "0.8.0"
 dependencies = [
  "fluent-bundle",
  "iztro",
@@ -1581,9 +1581,9 @@ dependencies = [
 
 [[package]]
 name = "log"
-version = "0.4.32"
+version = "0.4.33"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "953f07c43838f8e6f9758cab68bf5bed85465e7587ebe0b823f1bcd81978ad3a"
+checksum = "0ceec5bc11778974d1bcb055b18002eba7f4b3518b6a0081b3af5f21666da9ad"
 
 [[package]]
 name = "lru"
