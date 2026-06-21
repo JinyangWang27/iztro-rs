@@ -7,6 +7,30 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0](https://github.com/JinyangWang27/iztro-rs/compare/v0.7.0...v0.8.0) - 2026-06-21
+
+### Added
+
+- *(gui)* migrate iztro-gui to Fluent i18n with locale switching
+- *(core)* expose typed center fields for localization
+- *(pattern)* add four conservative clamp/brightness pattern rules
+- *(core)* prepare iztro-style center, palace-limit, and temporal labels ([#87](https://github.com/JinyangWang27/iztro-rs/pull/87))
+
+### Fixed
+
+- *(pattern)* reject empty PatternScope::Combined in scope guard
+
+### Other
+
+- Add NatalStarPlacementStrategy orchestration layer ([#98](https://github.com/JinyangWang27/iztro-rs/pull/98))
+- compact 小限 rendering and propagate Minor Limit errors
+- document 小限 vs 流年 and cover the active Minor Limit
+- derive active 小限 / Minor Limit in static temporal view
+- apply rustfmt line-wrapping
+- *(pattern)* cover the four new clamp/brightness rules
+- Address PR #90 review: scope filtering, rule guards, evidence clarity
+- Add read-only pattern (格局) detection layer
+
 ## [0.7.0](https://github.com/JinyangWang27/iztro-rs/compare/v0.6.0...v0.7.0) - 2026-06-18
 
 ### Added
