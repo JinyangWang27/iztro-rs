@@ -103,8 +103,13 @@ pub use placement::natal::minor::{
     minor_star_metadata, minor_star_metadata_table, try_minor_star_metadata,
 };
 pub use placement::natal::palace_stems::{palace_stem_for_branch, palace_stems_from_year_stem};
+pub use placement::natal::strategy::{
+    CompositeNatalStarPlacementStrategy, DeterministicNatalStarPlacementStrategy,
+    NatalStarPlacementStrategy,
+};
 pub use placement::natal::supported::{
-    build_natal_chart_with_major_stars, build_natal_chart_with_supported_stars,
+    build_natal_chart_with_major_stars, build_natal_chart_with_major_stars_using,
+    build_natal_chart_with_supported_stars, build_natal_chart_with_supported_stars_using,
 };
 pub use placement::overlay::age::build_age_horoscope_layer;
 pub use placement::overlay::daily_horoscope::build_daily_horoscope_layer;
