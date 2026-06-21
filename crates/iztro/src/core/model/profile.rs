@@ -37,23 +37,29 @@ pub enum ChartPlane {
     Human,
 }
 
-/// Returns `true` if `plane` is a semantically valid chart plane for `algorithm`.
+/// Returns `true` if `plane` is a domain-valid chart plane for `algorithm`.
+///
+/// This checks semantic validity only. It does not guarantee that chart
+/// generation for that combination is implemented.
 ///
 /// Valid combinations:
 /// - `QuanShu + Heaven`
 /// - `Zhongzhou + Heaven`, `Zhongzhou + Earth`, `Zhongzhou + Human`
 /// - `Placeholder + Heaven` (backward-compatible fallback path)
 ///
-/// `Zhongzhou + Earth` and `Zhongzhou + Human` are semantically valid even
-/// though chart generation for those planes is not yet implemented.
-/// A `true` result does not imply the combination is implemented; it means
-/// the combination is architecturally recognised and callers may proceed.
-pub const fn is_supported_chart_algorithm_plane(
+/// `Zhongzhou + Earth` and `Zhongzhou + Human` are domain-valid combinations
+/// for the Zhongzhou (中州) family, but chart generation for those planes is
+/// not yet implemented. This predicate returning `true` does not imply
+/// implementation readiness.
+pub const fn is_valid_chart_algorithm_plane(
     algorithm: ChartAlgorithmKind,
     plane: ChartPlane,
 ) -> bool {
     match (algorithm, plane) {
-        (ChartAlgorithmKind::Zhongzhou, _) => true,
+        (
+            ChartAlgorithmKind::Zhongzhou,
+            ChartPlane::Heaven | ChartPlane::Earth | ChartPlane::Human,
+        ) => true,
         (ChartAlgorithmKind::QuanShu | ChartAlgorithmKind::Placeholder, ChartPlane::Heaven) => true,
         (ChartAlgorithmKind::QuanShu | ChartAlgorithmKind::Placeholder, _) => false,
     }
@@ -116,72 +122,72 @@ mod tests {
     }
 
     #[test]
-    fn quanshu_heaven_is_supported() {
-        assert!(is_supported_chart_algorithm_plane(
+    fn quanshu_heaven_is_valid() {
+        assert!(is_valid_chart_algorithm_plane(
             ChartAlgorithmKind::QuanShu,
             ChartPlane::Heaven,
         ));
     }
 
     #[test]
-    fn quanshu_earth_is_not_supported() {
-        assert!(!is_supported_chart_algorithm_plane(
+    fn quanshu_earth_is_not_valid() {
+        assert!(!is_valid_chart_algorithm_plane(
             ChartAlgorithmKind::QuanShu,
             ChartPlane::Earth,
         ));
     }
 
     #[test]
-    fn quanshu_human_is_not_supported() {
-        assert!(!is_supported_chart_algorithm_plane(
+    fn quanshu_human_is_not_valid() {
+        assert!(!is_valid_chart_algorithm_plane(
             ChartAlgorithmKind::QuanShu,
             ChartPlane::Human,
         ));
     }
 
     #[test]
-    fn zhongzhou_heaven_is_supported() {
-        assert!(is_supported_chart_algorithm_plane(
+    fn zhongzhou_heaven_is_valid() {
+        assert!(is_valid_chart_algorithm_plane(
             ChartAlgorithmKind::Zhongzhou,
             ChartPlane::Heaven,
         ));
     }
 
     #[test]
-    fn zhongzhou_earth_is_supported() {
-        assert!(is_supported_chart_algorithm_plane(
+    fn zhongzhou_earth_is_valid() {
+        assert!(is_valid_chart_algorithm_plane(
             ChartAlgorithmKind::Zhongzhou,
             ChartPlane::Earth,
         ));
     }
 
     #[test]
-    fn zhongzhou_human_is_supported() {
-        assert!(is_supported_chart_algorithm_plane(
+    fn zhongzhou_human_is_valid() {
+        assert!(is_valid_chart_algorithm_plane(
             ChartAlgorithmKind::Zhongzhou,
             ChartPlane::Human,
         ));
     }
 
     #[test]
-    fn placeholder_heaven_is_supported() {
-        assert!(is_supported_chart_algorithm_plane(
+    fn placeholder_heaven_is_valid() {
+        assert!(is_valid_chart_algorithm_plane(
             ChartAlgorithmKind::Placeholder,
             ChartPlane::Heaven,
         ));
     }
 
     #[test]
-    fn placeholder_earth_is_not_supported() {
-        assert!(!is_supported_chart_algorithm_plane(
+    fn placeholder_earth_is_not_valid() {
+        assert!(!is_valid_chart_algorithm_plane(
             ChartAlgorithmKind::Placeholder,
             ChartPlane::Earth,
         ));
     }
 
     #[test]
-    fn placeholder_human_is_not_supported() {
-        assert!(!is_supported_chart_algorithm_plane(
+    fn placeholder_human_is_not_valid() {
+        assert!(!is_valid_chart_algorithm_plane(
             ChartAlgorithmKind::Placeholder,
             ChartPlane::Human,
         ));

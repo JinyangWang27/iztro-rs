@@ -26,7 +26,7 @@ pub mod view;
 // use the facade request types and chart facts instead.
 mod calendar;
 
-pub use error::ChartError;
+pub use error::{ChartError, validate_chart_algorithm_plane};
 
 pub use lunar_lite::{
     EARTHLY_BRANCHES, EarthlyBranch, FourPillars, HEAVENLY_STEMS, HeavenlyStem, StemBranch,
@@ -62,7 +62,7 @@ pub use model::chart::{
 pub use model::master::{body_master, soul_master};
 pub use model::nayin::{NaYinElement, nayin_element};
 pub use model::profile::{
-    ChartAlgorithmKind, ChartPlane, MethodProfile, is_supported_chart_algorithm_plane,
+    ChartAlgorithmKind, ChartPlane, MethodProfile, is_valid_chart_algorithm_plane,
 };
 pub use model::star::mutagen::{
     Mutagen, Scope, birth_year_major_star_mutagen, birth_year_star_mutagen,
