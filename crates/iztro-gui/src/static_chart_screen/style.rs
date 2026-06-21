@@ -49,8 +49,16 @@ pub(super) const PALACE_MIDDLE_BAND_HEIGHT: f32 = 44.0;
 /// after `view`, so this is a deliberate, documented cap rather than a value
 /// measured from the cell's pixel height; the wrapping helper takes the row cap
 /// as a parameter so a future `responsive`-based caller can compute it from the
-/// real star-area height. Sized to fit `MIN_PALACE_CELL_HEIGHT` without clipping.
-pub(super) const MAX_STAR_ROWS: usize = 5;
+/// real star-area height.
+///
+/// Sized to fit conservatively inside the clipped star area at the smallest
+/// supported cell: `MIN_PALACE_CELL_HEIGHT` (190) − button padding (2 × 6) −
+/// reserved metadata (`PALACE_MIDDLE_BAND_HEIGHT` 44 + `DECORATIVE_AREA_HEIGHT`
+/// 46) ≈ 88 px of star area. A minor star line (size-12 text + 1 px column
+/// spacing, taller still with a brightness/mutagen suffix) is ≈ 16–18 px, so
+/// five rows (≈ 85–90 px) would sit on the clipping edge. Four rows (≈ 68–72 px)
+/// keep the `+N` overflow marker appearing strictly before any visible clipping.
+pub(super) const MAX_STAR_ROWS: usize = 4;
 /// Maximum star-area columns before remaining stars collapse into a `+N`
 /// indicator, bounding horizontal growth so wrapped stars cannot crowd out the
 /// protected metadata's horizontal space.

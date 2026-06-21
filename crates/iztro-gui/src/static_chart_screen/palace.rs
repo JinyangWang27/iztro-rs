@@ -299,13 +299,8 @@ fn wrapped_star_group(
     i18n: &I18n,
 ) -> Element<'static, Message> {
     let max_rows = max_rows.max(1);
-    let capacity = max_rows.saturating_mul(MAX_STAR_COLUMNS);
-    // Reserve the last cell for the `+N` marker when stars exceed the grid.
-    let (visible, overflow) = if stars.len() > capacity {
-        (&stars[..capacity - 1], stars.len() - (capacity - 1))
-    } else {
-        (&stars[..], 0)
-    };
+    let plan = star_wrap_plan(stars.len(), max_rows, MAX_STAR_COLUMNS);
+    let visible = &stars[..plan.visible_count];
 
     let chunks: Vec<&[&StaticTypedStarView]> = visible.chunks(max_rows).collect();
     let last = chunks.len().saturating_sub(1);
@@ -318,12 +313,53 @@ fn wrapped_star_group(
         for star in *chunk {
             col = col.push(star_line(star, major, i18n));
         }
-        if overflow > 0 && index == last {
-            col = col.push(text(format!("+{overflow}")).size(11).color(ADJ_GRAY));
+        if plan.overflow_count > 0 && index == last {
+            // The `+N` marker occupies a reserved grid cell (see `star_wrap_plan`)
+            // so it is laid out, not clipped, alongside the visible stars.
+            // TODO: expose hidden overflow star names via tooltip/popover once GUI
+            // tooltip support exists.
+            col = col.push(
+                text(format!("+{}", plan.overflow_count))
+                    .size(11)
+                    .color(ADJ_GRAY),
+            );
         }
         columns = columns.push(col);
     }
     columns.into()
+}
+
+/// How many stars a wrapped star group can show versus collapse into `+N`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub(super) struct StarWrapPlan {
+    /// Stars rendered as individual lines.
+    pub(super) visible_count: usize,
+    /// Stars folded into the `+N` overflow marker (`0` when everything fits).
+    pub(super) overflow_count: usize,
+}
+
+/// Pure split of `total` stars into a `max_rows × max_columns` grid: everything
+/// fits, or one grid cell is reserved for the `+N` marker so overflow is always
+/// indicated *before* any star would be clipped.
+///
+/// Saturating arithmetic keeps the degenerate `max_rows == 0`, `max_columns == 0`
+/// and `capacity == 1` cases underflow-free: a zero capacity shows nothing and
+/// folds every star into the marker.
+pub(super) fn star_wrap_plan(total: usize, max_rows: usize, max_columns: usize) -> StarWrapPlan {
+    let capacity = max_rows.saturating_mul(max_columns);
+    if total <= capacity {
+        StarWrapPlan {
+            visible_count: total,
+            overflow_count: 0,
+        }
+    } else {
+        // total > capacity, so reserve the final cell for the `+N` marker.
+        let visible_count = capacity.saturating_sub(1);
+        StarWrapPlan {
+            visible_count,
+            overflow_count: total - visible_count,
+        }
+    }
 }
 
 /// A vertical stack of decorative "twelve gods" star names in one tone.
@@ -432,14 +468,13 @@ fn palace_identity<'a>(
         .into()
 }
 
-/// The 大限 / 小限 limit facts shown in the middle of a palace cell, between the
-/// top stars and the bottom decorative footer. All values are prepared by core;
-/// only the 大限 / 小限 prefixes are localized.
+/// The 大限 / 小限 limit facts shown in the protected time-flow band of a palace.
+/// All values are prepared by core; only the 大限 / 小限 prefixes are localized.
 ///
-/// 小限 (Minor Limit) is a palace middle-band age marker, not a 流年 period
-/// badge: the palace holding the selected nominal age's 小限 is emphasized with
-/// the same active color as the active 大限, while the badge mechanism used by
-/// 流年 is deliberately not reused here.
+/// 小限 (Minor Limit) is a time-flow-band age marker, not a 流年 period badge:
+/// the palace holding the selected nominal age's 小限 is emphasized with the same
+/// active color as the active 大限, while the badge mechanism used by 流年 is
+/// deliberately not reused here.
 fn limit_middle(palace: &StaticPalaceView, i18n: &I18n) -> Element<'static, Message> {
     let decadal_color = if palace.limit.is_active_decadal {
         LIMIT_ACTIVE

@@ -6,6 +6,14 @@ use super::labels::{four_pillars_line, gender_symbol};
 use super::palace::{PalaceHighlight, StaticStarTone, star_tone};
 use super::style::{DECOR_GOD_OLIVE, MINOR_MALEFIC, mutagen_badge_color, rgb8};
 
+/// Shorthand for an expected [`StarWrapPlan`] in the wrap-planner tests.
+fn plan(visible_count: usize, overflow_count: usize) -> super::palace::StarWrapPlan {
+    super::palace::StarWrapPlan {
+        visible_count,
+        overflow_count,
+    }
+}
+
 /// Builds an app with a generated chart (the startup screen has none).
 fn chart_app() -> StaticChartApp {
     let mut app = StaticChartApp::new();
@@ -281,8 +289,47 @@ fn palace_minor_stars_wrap_into_columns_instead_of_overflowing() {
     // The wrap cap is passed in (not baked) so a responsive caller can compute it.
     assert!(source.contains("max_rows: usize"));
     assert!(source.contains(".chunks(max_rows)"));
-    // Overflow beyond the grid collapses into a compact `+N` indicator.
-    assert!(source.contains("format!(\"+{overflow}\")"));
+    // The overflow split is delegated to the pure planner.
+    assert!(source.contains(concat!(
+        "star_wrap_",
+        "plan(stars.len(), max_rows, MAX_STAR_COLUMNS)"
+    )));
+}
+
+#[test]
+fn star_wrap_plan_fits_everything_within_capacity() {
+    use super::palace::star_wrap_plan;
+
+    // Empty and single-star groups show all, nothing overflows.
+    assert_eq!(star_wrap_plan(0, 4, 2), plan(0, 0));
+    assert_eq!(star_wrap_plan(1, 4, 2), plan(1, 0));
+    // Exactly at capacity (4 × 2 = 8) still shows everything.
+    assert_eq!(star_wrap_plan(8, 4, 2), plan(8, 0));
+    assert_eq!(star_wrap_plan(10, 5, 2), plan(10, 0));
+}
+
+#[test]
+fn star_wrap_plan_reserves_one_cell_for_the_overflow_marker() {
+    use super::palace::star_wrap_plan;
+
+    // Capacity 8: a 9th star reserves the last cell for `+N`, so 7 stay visible
+    // and 2 collapse into the marker.
+    assert_eq!(star_wrap_plan(9, 4, 2), plan(7, 2));
+    // Capacity 10: an 11th star leaves 9 visible and folds 2 into the marker.
+    assert_eq!(star_wrap_plan(11, 5, 2), plan(9, 2));
+}
+
+#[test]
+fn star_wrap_plan_handles_degenerate_grids_without_underflow() {
+    use super::palace::star_wrap_plan;
+
+    // Zero rows or zero columns means zero capacity: show nothing, fold all.
+    assert_eq!(star_wrap_plan(5, 0, 2), plan(0, 5));
+    assert_eq!(star_wrap_plan(5, 4, 0), plan(0, 5));
+    // Capacity 1: a single star fits; a second one reserves the only cell for
+    // the marker, so nothing is shown and both collapse.
+    assert_eq!(star_wrap_plan(1, 1, 1), plan(1, 0));
+    assert_eq!(star_wrap_plan(2, 1, 1), plan(0, 2));
 }
 
 #[test]
