@@ -24,9 +24,11 @@ pub fn run() -> iced::Result {
             // Default large enough to show the full fixed-size chart canvas
             // (MIN_CHART_WIDTH x MIN_CHART_HEIGHT) plus toolbar and padding.
             size: iced::Size::new(1180.0, 900.0),
-            // The window may shrink below the chart's minimum layout; the chart
-            // area then scrolls rather than squeezing text into dash lines.
-            min_size: Some(iced::Size::new(760.0, 680.0)),
+            // The window may shrink well below the chart's preferred layout so it
+            // fits a 13-inch laptop screen; the chart area is wrapped in a
+            // both-directions `scrollable`, so it scrolls rather than squeezing
+            // text into dash lines or forcing a tall minimum window.
+            min_size: Some(iced::Size::new(760.0, 600.0)),
             ..Default::default()
         })
         .run_with(|| {

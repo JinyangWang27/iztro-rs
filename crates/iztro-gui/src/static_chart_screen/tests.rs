@@ -6,6 +6,14 @@ use super::labels::{four_pillars_line, gender_symbol};
 use super::palace::{PalaceHighlight, StaticStarTone, star_tone};
 use super::style::{DECOR_GOD_OLIVE, MINOR_MALEFIC, mutagen_badge_color, rgb8};
 
+/// Shorthand for an expected [`StarWrapPlan`] in the wrap-planner tests.
+fn plan(visible_count: usize, overflow_count: usize) -> super::palace::StarWrapPlan {
+    super::palace::StarWrapPlan {
+        visible_count,
+        overflow_count,
+    }
+}
+
 /// Builds an app with a generated chart (the startup screen has none).
 fn chart_app() -> StaticChartApp {
     let mut app = StaticChartApp::new();
@@ -225,19 +233,29 @@ fn decorative_family_splits_into_bottom_zones() {
 }
 
 #[test]
-fn palace_cell_uses_a_dedicated_bottom_decorative_layer() {
+fn palace_cell_protects_a_fixed_metadata_zone_below_a_flexible_star_area() {
     let source = include_str!("palace.rs");
 
-    assert!(source.contains(concat!("fn bottom_", "decorative_layer")));
-    assert!(source.contains(concat!("stack", "![")));
-    assert!(source.contains(concat!("DECORATIVE_", "AREA_HEIGHT")));
+    // The cell is a two-zone column (flexible star area over fixed metadata),
+    // not an overlapping stack, so stars can never paint over the metadata.
+    assert!(source.contains("column![star_area, metadata]"));
+    assert!(
+        !source.contains(concat!("stack", "![")),
+        "the palace cell must not stack star/metadata layers on top of each other"
+    );
+    // The star area clips so a tall star list is bounded to its zone (the CSS
+    // `min-height: 0; overflow: hidden` intent).
+    assert!(source.contains(".clip(true)"));
+    // The identity footer keeps its dedicated fixed height.
+    assert!(source.contains("Length::Fixed(DECORATIVE_AREA_HEIGHT)"));
+    assert!(source.contains(concat!("fn palace_", "identity")));
 }
 
 #[test]
-fn palace_middle_band_is_deliberately_reserved() {
+fn palace_metadata_zone_is_deliberately_reserved() {
     use super::style::{PALACE_MIDDLE_BAND_HEIGHT, PERIOD_BADGE_ROW_HEIGHT};
 
-    // The badge row reserves real height, and the full middle band is taller
+    // The badge row reserves real height, and the full time-flow band is taller
     // still (badge row + 大限/小限 line).
     const {
         assert!(PERIOD_BADGE_ROW_HEIGHT > 0.0);
@@ -245,15 +263,73 @@ fn palace_middle_band_is_deliberately_reserved() {
     }
 
     let source = include_str!("palace.rs");
-    // The badge row keeps a fixed height even with no badge, and the middle band
-    // is a fixed-height layer centered vertically, so 大限/小限 aligns across
-    // palaces whether or not a period badge is present.
+    // The badge row keeps a fixed height even with no badge, and the time-flow
+    // band is a fixed-height row, so 大限/小限 aligns across palaces whether or
+    // not a period badge is present.
     assert!(source.contains("Length::Fixed(PERIOD_BADGE_ROW_HEIGHT)"));
     assert!(source.contains("Length::Fixed(PALACE_MIDDLE_BAND_HEIGHT)"));
-    assert!(source.contains("align_y(Alignment::Center)"));
-    // Three independent stacked layers: top stars, centered middle band, footer.
-    assert!(source.contains("star_layer,"));
-    assert!(source.contains("middle_layer,"));
+    // The metadata zone stacks the time-flow band over the identity footer.
+    assert!(source.contains("column![flow, palace_identity("));
+    assert!(source.contains(concat!("fn palace_", "metadata")));
+}
+
+#[test]
+fn palace_minor_stars_wrap_into_columns_instead_of_overflowing() {
+    use super::style::{MAX_STAR_COLUMNS, MAX_STAR_ROWS};
+
+    // A bounded wrap grid: at most MAX_STAR_ROWS lines per column, at most
+    // MAX_STAR_COLUMNS columns before the remainder collapses into `+N`.
+    const {
+        assert!(MAX_STAR_ROWS > 0);
+        assert!(MAX_STAR_COLUMNS > 0);
+    }
+
+    let source = include_str!("palace.rs");
+    assert!(source.contains(concat!("fn wrapped_", "star_group")));
+    // The wrap cap is passed in (not baked) so a responsive caller can compute it.
+    assert!(source.contains("max_rows: usize"));
+    assert!(source.contains(".chunks(max_rows)"));
+    // The overflow split is delegated to the pure planner.
+    assert!(source.contains(concat!(
+        "star_wrap_",
+        "plan(stars.len(), max_rows, MAX_STAR_COLUMNS)"
+    )));
+}
+
+#[test]
+fn star_wrap_plan_fits_everything_within_capacity() {
+    use super::palace::star_wrap_plan;
+
+    // Empty and single-star groups show all, nothing overflows.
+    assert_eq!(star_wrap_plan(0, 4, 2), plan(0, 0));
+    assert_eq!(star_wrap_plan(1, 4, 2), plan(1, 0));
+    // Exactly at capacity (4 × 2 = 8) still shows everything.
+    assert_eq!(star_wrap_plan(8, 4, 2), plan(8, 0));
+    assert_eq!(star_wrap_plan(10, 5, 2), plan(10, 0));
+}
+
+#[test]
+fn star_wrap_plan_reserves_one_cell_for_the_overflow_marker() {
+    use super::palace::star_wrap_plan;
+
+    // Capacity 8: a 9th star reserves the last cell for `+N`, so 7 stay visible
+    // and 2 collapse into the marker.
+    assert_eq!(star_wrap_plan(9, 4, 2), plan(7, 2));
+    // Capacity 10: an 11th star leaves 9 visible and folds 2 into the marker.
+    assert_eq!(star_wrap_plan(11, 5, 2), plan(9, 2));
+}
+
+#[test]
+fn star_wrap_plan_handles_degenerate_grids_without_underflow() {
+    use super::palace::star_wrap_plan;
+
+    // Zero rows or zero columns means zero capacity: show nothing, fold all.
+    assert_eq!(star_wrap_plan(5, 0, 2), plan(0, 5));
+    assert_eq!(star_wrap_plan(5, 4, 0), plan(0, 5));
+    // Capacity 1: a single star fits; a second one reserves the only cell for
+    // the marker, so nothing is shown and both collapse.
+    assert_eq!(star_wrap_plan(1, 1, 1), plan(1, 0));
+    assert_eq!(star_wrap_plan(2, 1, 1), plan(0, 2));
 }
 
 #[test]

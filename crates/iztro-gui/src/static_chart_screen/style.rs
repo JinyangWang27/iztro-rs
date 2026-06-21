@@ -39,10 +39,30 @@ pub(super) const DECORATIVE_AREA_HEIGHT: f32 = 46.0;
 /// when a palace has no badge so the 大限/小限 line below it keeps a constant
 /// y-position across every palace.
 pub(super) const PERIOD_BADGE_ROW_HEIGHT: f32 = 18.0;
-/// Fixed height of a palace's middle band (period badge row + 大限/小限 line).
-/// The band is centered vertically in the cell so the band — and therefore the
-/// 大限/小限 line — aligns across all palaces regardless of star count.
+/// Fixed height of a palace's time-flow band (period badge row + 大限/小限 line).
+/// The band is bottom-anchored a constant offset above the identity footer, so
+/// the band — and therefore the 大限/小限 line — aligns across all palaces
+/// regardless of star count.
 pub(super) const PALACE_MIDDLE_BAND_HEIGHT: f32 = 44.0;
+/// Maximum star lines stacked in a single star-area column before wrapping into
+/// the next column (grid-`auto-flow: column` equivalent). Iced resolves layout
+/// after `view`, so this is a deliberate, documented cap rather than a value
+/// measured from the cell's pixel height; the wrapping helper takes the row cap
+/// as a parameter so a future `responsive`-based caller can compute it from the
+/// real star-area height.
+///
+/// Sized to fit conservatively inside the clipped star area at the smallest
+/// supported cell: `MIN_PALACE_CELL_HEIGHT` (190) − button padding (2 × 6) −
+/// reserved metadata (`PALACE_MIDDLE_BAND_HEIGHT` 44 + `DECORATIVE_AREA_HEIGHT`
+/// 46) ≈ 88 px of star area. A minor star line (size-12 text + 1 px column
+/// spacing, taller still with a brightness/mutagen suffix) is ≈ 16–18 px, so
+/// five rows (≈ 85–90 px) would sit on the clipping edge. Four rows (≈ 68–72 px)
+/// keep the `+N` overflow marker appearing strictly before any visible clipping.
+pub(super) const MAX_STAR_ROWS: usize = 4;
+/// Maximum star-area columns before remaining stars collapse into a `+N`
+/// indicator, bounding horizontal growth so wrapped stars cannot crowd out the
+/// protected metadata's horizontal space.
+pub(super) const MAX_STAR_COLUMNS: usize = 2;
 /// Passive 三方四正 connecting-line tone, used for the natal 命宫 default lines.
 pub(super) const SAN_FANG_PASSIVE: Color = rgb8(0xb0, 0xb8, 0xc4);
 /// Active 三方四正 connecting-line tone, used after a 流 badge / palace click.
