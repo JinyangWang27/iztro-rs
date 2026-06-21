@@ -1,4 +1,5 @@
 use crate::core::model::chart::PalaceName;
+use crate::core::model::profile::{ChartAlgorithmKind, ChartPlane};
 use crate::core::model::star::StarName;
 use crate::core::model::star::mutagen::{Mutagen, Scope};
 use lunar_lite::{EarthlyBranch, HeavenlyStem, StemBranch};
@@ -297,6 +298,14 @@ pub enum ChartError {
         lunar_month: u8,
         /// Lunar day (1..=30) of the unresolved date.
         lunar_day: u8,
+    },
+    /// The requested chart plane is not supported for the given algorithm family.
+    #[error("unsupported chart plane {plane:?} for algorithm {algorithm:?}")]
+    UnsupportedChartPlane {
+        /// Algorithm family that does not support the requested plane.
+        algorithm: ChartAlgorithmKind,
+        /// Chart plane that was rejected.
+        plane: ChartPlane,
     },
     /// Placeholder error used until chart-generation validation exists.
     #[error("chart generation is not implemented")]
