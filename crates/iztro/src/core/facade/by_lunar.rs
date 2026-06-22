@@ -1,13 +1,14 @@
 //! Convenient public facade entry points over strongly typed chart builders.
 
 use crate::core::calendar::resolve_lunar_date;
-use crate::core::error::ChartError;
+use crate::core::error::{ChartError, validate_chart_algorithm_plane};
 use crate::core::model::calendar::{BirthContext, BirthTime, CalendarDate, Gender};
 use crate::core::model::chart::Chart;
-use crate::core::model::profile::MethodProfile;
+use crate::core::model::profile::{ChartAlgorithmKind, ChartPlane, MethodProfile};
 use crate::core::placement::natal::input::NatalChartWithSupportedStarsInput;
 use crate::core::placement::natal::life_body::{LunarDay, LunarMonth};
-use crate::core::placement::natal::supported::build_natal_chart_with_supported_stars;
+use crate::core::placement::natal::strategy::DeterministicNatalStarPlacementStrategy;
+use crate::core::placement::natal::supported::build_natal_chart_with_supported_stars_using;
 use lunar_lite::{EarthlyBranch, HeavenlyStem, StemBranch};
 
 /// Typed lunar-date request for the iztro-compatible natal chart facade.
@@ -15,6 +16,13 @@ use lunar_lite::{EarthlyBranch, HeavenlyStem, StemBranch};
 /// This mirrors iztro's `byLunar` conceptually while keeping explicit Rust
 /// domain types. The birth year stem and branch remain explicit because
 /// by-lunar full four-pillar derivation is not supported yet.
+///
+/// `chart_plane` defaults to [`ChartPlane::Heaven`], which reproduces existing
+/// chart-generation behaviour. `Earth` and `Human` are accepted as request
+/// values but are not implemented yet: a Zhongzhou Earth/Human request returns
+/// [`ChartError::ChartPlaneNotImplemented`] until a later PR adds it, and an
+/// invalid combination (for example QuanShu Earth) returns
+/// [`ChartError::UnsupportedChartPlane`].
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct LunarChartRequest {
     lunar_year: i32,
@@ -27,6 +35,7 @@ pub struct LunarChartRequest {
     is_leap_month: bool,
     fix_leap: bool,
     method_profile: MethodProfile,
+    chart_plane: ChartPlane,
 }
 
 impl LunarChartRequest {
@@ -92,6 +101,13 @@ impl LunarChartRequest {
     pub const fn method_profile(&self) -> &MethodProfile {
         &self.method_profile
     }
+
+    /// Returns the requested chart plane (天盘 / 地盘 / 人盘).
+    ///
+    /// Defaults to [`ChartPlane::Heaven`] when not set on the builder.
+    pub const fn chart_plane(&self) -> ChartPlane {
+        self.chart_plane
+    }
 }
 
 /// Builder for [`LunarChartRequest`].
@@ -111,6 +127,7 @@ pub struct LunarChartRequestBuilder {
     is_leap_month: Option<bool>,
     fix_leap: Option<bool>,
     method_profile: Option<MethodProfile>,
+    chart_plane: Option<ChartPlane>,
 }
 
 impl LunarChartRequestBuilder {
@@ -191,6 +208,16 @@ impl LunarChartRequestBuilder {
         self
     }
 
+    /// Sets the requested chart plane (天盘 / 地盘 / 人盘).
+    ///
+    /// Defaults to [`ChartPlane::Heaven`] when unset. `Earth` and `Human` are
+    /// accepted but only valid for the Zhongzhou (中州) family, and Zhongzhou
+    /// Earth/Human chart generation is not implemented yet.
+    pub const fn chart_plane(mut self, chart_plane: ChartPlane) -> Self {
+        self.chart_plane = Some(chart_plane);
+        self
+    }
+
     /// Builds the immutable request, requiring every field to be set.
     pub fn build(self) -> Result<LunarChartRequest, ChartError> {
         Ok(LunarChartRequest {
@@ -226,6 +253,7 @@ impl LunarChartRequestBuilder {
                 .ok_or(ChartError::MissingRequiredInput {
                     field: "method_profile",
                 })?,
+            chart_plane: self.chart_plane.unwrap_or_default(),
         })
     }
 }
@@ -245,6 +273,11 @@ impl LunarChartRequestBuilder {
 /// month-based star placement uses the effective month derived from
 /// `effective_lunar_month` applied to the resolved leap state.
 pub fn by_lunar(request: LunarChartRequest) -> Result<Chart, ChartError> {
+    let strategy = select_natal_placement_strategy(
+        request.method_profile().algorithm_kind(),
+        request.chart_plane(),
+    )?;
+
     let resolved = resolve_lunar_date(
         request.lunar_year(),
         request.lunar_month(),
@@ -279,7 +312,7 @@ pub fn by_lunar(request: LunarChartRequest) -> Result<Chart, ChartError> {
         request.gender(),
     );
 
-    build_natal_chart_with_supported_stars(
+    build_natal_chart_with_supported_stars_using(
         NatalChartWithSupportedStarsInput::new_with_daily_star_offset(
             birth_context,
             request.method_profile().clone(),
@@ -289,7 +322,39 @@ pub fn by_lunar(request: LunarChartRequest) -> Result<Chart, ChartError> {
             birth_year.stem(),
             birth_year.branch(),
         ),
+        &strategy,
     )
+}
+
+/// Selects the natal star-placement strategy for an algorithm + chart plane.
+///
+/// This is the single centralized dispatch point that maps a requested
+/// `(ChartAlgorithmKind, ChartPlane)` to a placement strategy. Keeping the
+/// decision here means star placers never branch on [`ChartPlane`].
+///
+/// Behaviour:
+/// - Invalid combinations (for example `QuanShu + Earth`) fail early with
+///   [`ChartError::UnsupportedChartPlane`] via [`validate_chart_algorithm_plane`].
+/// - `Zhongzhou + Earth` and `Zhongzhou + Human` are domain-valid but not
+///   implemented yet, so they fail with [`ChartError::ChartPlaneNotImplemented`]
+///   rather than silently falling back to the Heaven plane.
+/// - Every implemented combination (any algorithm with `Heaven`) returns the
+///   existing [`DeterministicNatalStarPlacementStrategy`].
+///
+/// A later PR will extend this function with real Earth/Human strategies; until
+/// then it is intentionally boring.
+fn select_natal_placement_strategy(
+    algorithm: ChartAlgorithmKind,
+    plane: ChartPlane,
+) -> Result<DeterministicNatalStarPlacementStrategy, ChartError> {
+    validate_chart_algorithm_plane(algorithm, plane)?;
+
+    match (algorithm, plane) {
+        (ChartAlgorithmKind::Zhongzhou, ChartPlane::Earth | ChartPlane::Human) => {
+            Err(ChartError::ChartPlaneNotImplemented { algorithm, plane })
+        }
+        _ => Ok(DeterministicNatalStarPlacementStrategy::default()),
+    }
 }
 
 /// Computes the effective lunar month used for month-based star placement.
@@ -351,5 +416,147 @@ fn daily_star_offset(lunar_day: LunarDay, birth_time: BirthTime) -> u8 {
         lunar_day.value()
     } else {
         lunar_day.value() - 1
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn base_builder(profile: MethodProfile) -> LunarChartRequestBuilder {
+        LunarChartRequest::builder()
+            .lunar_year(1990)
+            .lunar_month(LunarMonth::new(5).expect("valid lunar month"))
+            .lunar_day(LunarDay::new(17).expect("valid lunar day"))
+            .birth_time(EarthlyBranch::Chen)
+            .gender(Gender::Female)
+            .birth_year_stem(HeavenlyStem::Geng)
+            .birth_year_branch(EarthlyBranch::Wu)
+            .method_profile(profile)
+    }
+
+    fn quanshu_profile() -> MethodProfile {
+        MethodProfile::new("quanshu_test", ChartAlgorithmKind::QuanShu, "quanshu test")
+    }
+
+    fn zhongzhou_profile() -> MethodProfile {
+        MethodProfile::new(
+            "zhongzhou_test",
+            ChartAlgorithmKind::Zhongzhou,
+            "zhongzhou test",
+        )
+    }
+
+    #[test]
+    fn chart_plane_defaults_to_heaven() {
+        let request = base_builder(quanshu_profile())
+            .build()
+            .expect("request should build");
+
+        assert_eq!(request.chart_plane(), ChartPlane::Heaven);
+    }
+
+    #[test]
+    fn explicit_chart_plane_is_preserved() {
+        let request = base_builder(zhongzhou_profile())
+            .chart_plane(ChartPlane::Earth)
+            .build()
+            .expect("request should build");
+
+        assert_eq!(request.chart_plane(), ChartPlane::Earth);
+    }
+
+    #[test]
+    fn default_request_matches_explicit_heaven_request() {
+        let default_chart = by_lunar(
+            base_builder(quanshu_profile())
+                .build()
+                .expect("default request should build"),
+        )
+        .expect("default by_lunar should build");
+
+        let heaven_chart = by_lunar(
+            base_builder(quanshu_profile())
+                .chart_plane(ChartPlane::Heaven)
+                .build()
+                .expect("heaven request should build"),
+        )
+        .expect("heaven by_lunar should build");
+
+        assert_eq!(default_chart, heaven_chart);
+    }
+
+    #[test]
+    fn quanshu_earth_is_unsupported() {
+        let request = base_builder(quanshu_profile())
+            .chart_plane(ChartPlane::Earth)
+            .build()
+            .expect("request should build");
+
+        assert_eq!(
+            by_lunar(request),
+            Err(ChartError::UnsupportedChartPlane {
+                algorithm: ChartAlgorithmKind::QuanShu,
+                plane: ChartPlane::Earth,
+            }),
+        );
+    }
+
+    #[test]
+    fn quanshu_human_is_unsupported() {
+        let request = base_builder(quanshu_profile())
+            .chart_plane(ChartPlane::Human)
+            .build()
+            .expect("request should build");
+
+        assert_eq!(
+            by_lunar(request),
+            Err(ChartError::UnsupportedChartPlane {
+                algorithm: ChartAlgorithmKind::QuanShu,
+                plane: ChartPlane::Human,
+            }),
+        );
+    }
+
+    #[test]
+    fn zhongzhou_heaven_still_succeeds() {
+        let request = base_builder(zhongzhou_profile())
+            .chart_plane(ChartPlane::Heaven)
+            .build()
+            .expect("request should build");
+
+        assert!(by_lunar(request).is_ok());
+    }
+
+    #[test]
+    fn zhongzhou_earth_is_not_implemented() {
+        let request = base_builder(zhongzhou_profile())
+            .chart_plane(ChartPlane::Earth)
+            .build()
+            .expect("request should build");
+
+        assert_eq!(
+            by_lunar(request),
+            Err(ChartError::ChartPlaneNotImplemented {
+                algorithm: ChartAlgorithmKind::Zhongzhou,
+                plane: ChartPlane::Earth,
+            }),
+        );
+    }
+
+    #[test]
+    fn zhongzhou_human_is_not_implemented() {
+        let request = base_builder(zhongzhou_profile())
+            .chart_plane(ChartPlane::Human)
+            .build()
+            .expect("request should build");
+
+        assert_eq!(
+            by_lunar(request),
+            Err(ChartError::ChartPlaneNotImplemented {
+                algorithm: ChartAlgorithmKind::Zhongzhou,
+                plane: ChartPlane::Human,
+            }),
+        );
     }
 }

@@ -307,6 +307,20 @@ pub enum ChartError {
         /// Chart plane that was rejected.
         plane: ChartPlane,
     },
+    /// The requested chart plane is a domain-valid combination for the
+    /// algorithm family, but chart generation for it is not implemented yet.
+    ///
+    /// This is distinct from [`ChartError::UnsupportedChartPlane`], which marks
+    /// a combination that is semantically invalid. For example, `Zhongzhou +
+    /// Earth` is valid but currently returns this error, while `QuanShu + Earth`
+    /// returns `UnsupportedChartPlane`.
+    #[error("chart generation for plane {plane:?} with algorithm {algorithm:?} is not implemented")]
+    ChartPlaneNotImplemented {
+        /// Algorithm family of the unimplemented plane.
+        algorithm: ChartAlgorithmKind,
+        /// Chart plane that is valid but not implemented yet.
+        plane: ChartPlane,
+    },
     /// Placeholder error used until chart-generation validation exists.
     #[error("chart generation is not implemented")]
     NotImplemented,
