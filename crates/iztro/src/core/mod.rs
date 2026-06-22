@@ -99,7 +99,10 @@ pub use placement::natal::major::{
     major_star_metadata, major_star_metadata_table, tian_fu_branch, try_major_star_metadata,
     zi_wei_branch,
 };
-pub use placement::natal::minimal::{build_empty_chart, build_minimal_natal_chart};
+pub use placement::natal::minimal::{
+    NatalChartAnchor, build_empty_chart, build_minimal_natal_chart,
+    build_minimal_natal_chart_with_anchor,
+};
 pub use placement::natal::minor::{
     DeterministicMinorStarPlacer, MinorStarPlacementInput, MinorStarPlacer, minor_star_brightness,
     minor_star_metadata, minor_star_metadata_table, try_minor_star_metadata,
