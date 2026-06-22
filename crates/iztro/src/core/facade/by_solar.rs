@@ -11,7 +11,7 @@ use crate::core::error::ChartError;
 use crate::core::facade::by_lunar::{LunarChartRequest, by_lunar};
 use crate::core::model::calendar::{BirthTime, Gender, SolarDay, SolarMonth};
 use crate::core::model::chart::{Chart, HoroscopeLunarDate, HoroscopeSolarDate, NatalDateFacts};
-use crate::core::model::profile::MethodProfile;
+use crate::core::model::profile::{ChartPlane, MethodProfile};
 use lunar_lite::EarthlyBranch;
 
 /// Typed solar-date request for the iztro-compatible natal chart facade.
@@ -19,6 +19,14 @@ use lunar_lite::EarthlyBranch;
 /// This mirrors iztro's `bySolar` conceptually while keeping explicit Rust
 /// domain types. Unlike [`LunarChartRequest`], the birth year stem/branch and the
 /// lunar date are derived during calendar conversion rather than supplied.
+///
+/// `chart_plane` defaults to [`ChartPlane::Heaven`], reproducing existing
+/// chart-generation behaviour, and is propagated into the downstream
+/// [`LunarChartRequest`]. `Earth` and `Human` are accepted but not implemented
+/// yet: Zhongzhou Earth/Human returns
+/// [`ChartError::ChartPlaneNotImplemented`](crate::core::error::ChartError::ChartPlaneNotImplemented)
+/// until a later PR, and invalid combinations return
+/// [`ChartError::UnsupportedChartPlane`](crate::core::error::ChartError::UnsupportedChartPlane).
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct SolarChartRequest {
     solar_year: i32,
@@ -28,6 +36,7 @@ pub struct SolarChartRequest {
     gender: Gender,
     fix_leap: bool,
     method_profile: MethodProfile,
+    chart_plane: ChartPlane,
 }
 
 impl SolarChartRequest {
@@ -78,6 +87,13 @@ impl SolarChartRequest {
     pub const fn method_profile(&self) -> &MethodProfile {
         &self.method_profile
     }
+
+    /// Returns the requested chart plane (天盘 / 地盘 / 人盘).
+    ///
+    /// Defaults to [`ChartPlane::Heaven`] when not set on the builder.
+    pub const fn chart_plane(&self) -> ChartPlane {
+        self.chart_plane
+    }
 }
 
 /// Builder for [`SolarChartRequest`].
@@ -94,6 +110,7 @@ pub struct SolarChartRequestBuilder {
     gender: Option<Gender>,
     fix_leap: Option<bool>,
     method_profile: Option<MethodProfile>,
+    chart_plane: Option<ChartPlane>,
 }
 
 impl SolarChartRequestBuilder {
@@ -153,6 +170,17 @@ impl SolarChartRequestBuilder {
         self
     }
 
+    /// Sets the requested chart plane (天盘 / 地盘 / 人盘).
+    ///
+    /// Defaults to [`ChartPlane::Heaven`] when unset. The selected plane is
+    /// propagated into the downstream [`LunarChartRequest`]. `Earth` and `Human`
+    /// are accepted but only valid for the Zhongzhou (中州) family, and Zhongzhou
+    /// Earth/Human chart generation is not implemented yet.
+    pub const fn chart_plane(mut self, chart_plane: ChartPlane) -> Self {
+        self.chart_plane = Some(chart_plane);
+        self
+    }
+
     /// Builds the immutable request, requiring every field except `fix_leap`.
     pub fn build(self) -> Result<SolarChartRequest, ChartError> {
         Ok(SolarChartRequest {
@@ -177,6 +205,7 @@ impl SolarChartRequestBuilder {
                 .ok_or(ChartError::MissingRequiredInput {
                     field: "method_profile",
                 })?,
+            chart_plane: self.chart_plane.unwrap_or_default(),
         })
     }
 }
@@ -209,6 +238,7 @@ pub fn by_solar(request: SolarChartRequest) -> Result<Chart, ChartError> {
         .is_leap_month(conversion.is_leap_month())
         .fix_leap(request.fix_leap())
         .method_profile(request.method_profile().clone())
+        .chart_plane(request.chart_plane())
         .build()?;
 
     let chart = by_lunar(lunar_request)?;
@@ -235,4 +265,86 @@ pub fn by_solar(request: SolarChartRequest) -> Result<Chart, ChartError> {
         chart.five_element_bureau(),
     )?
     .with_natal_date_facts(natal_dates))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::core::model::profile::ChartAlgorithmKind;
+
+    fn base_builder(profile: MethodProfile) -> SolarChartRequestBuilder {
+        SolarChartRequest::builder()
+            .solar_year(1990)
+            .solar_month(SolarMonth::new(6).expect("valid solar month"))
+            .solar_day(SolarDay::new(15).expect("valid solar day"))
+            .birth_time(EarthlyBranch::Chen)
+            .gender(Gender::Female)
+            .method_profile(profile)
+    }
+
+    fn quanshu_profile() -> MethodProfile {
+        MethodProfile::new("quanshu_test", ChartAlgorithmKind::QuanShu, "quanshu test")
+    }
+
+    fn zhongzhou_profile() -> MethodProfile {
+        MethodProfile::new(
+            "zhongzhou_test",
+            ChartAlgorithmKind::Zhongzhou,
+            "zhongzhou test",
+        )
+    }
+
+    #[test]
+    fn chart_plane_defaults_to_heaven() {
+        let request = base_builder(quanshu_profile())
+            .build()
+            .expect("request should build");
+
+        assert_eq!(request.chart_plane(), ChartPlane::Heaven);
+    }
+
+    #[test]
+    fn explicit_chart_plane_is_preserved() {
+        let request = base_builder(zhongzhou_profile())
+            .chart_plane(ChartPlane::Earth)
+            .build()
+            .expect("request should build");
+
+        assert_eq!(request.chart_plane(), ChartPlane::Earth);
+    }
+
+    #[test]
+    fn chart_plane_propagates_into_lunar_request_path() {
+        // A Zhongzhou + Earth solar request must surface the same
+        // not-implemented error as the lunar path, proving the chart plane is
+        // propagated downstream rather than dropped.
+        let request = base_builder(zhongzhou_profile())
+            .chart_plane(ChartPlane::Earth)
+            .build()
+            .expect("request should build");
+
+        assert_eq!(
+            by_solar(request),
+            Err(ChartError::ChartPlaneNotImplemented {
+                algorithm: ChartAlgorithmKind::Zhongzhou,
+                plane: ChartPlane::Earth,
+            }),
+        );
+    }
+
+    #[test]
+    fn quanshu_earth_solar_request_is_unsupported() {
+        let request = base_builder(quanshu_profile())
+            .chart_plane(ChartPlane::Earth)
+            .build()
+            .expect("request should build");
+
+        assert_eq!(
+            by_solar(request),
+            Err(ChartError::UnsupportedChartPlane {
+                algorithm: ChartAlgorithmKind::QuanShu,
+                plane: ChartPlane::Earth,
+            }),
+        );
+    }
 }
