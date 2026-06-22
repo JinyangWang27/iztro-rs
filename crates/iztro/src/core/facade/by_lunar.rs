@@ -5,7 +5,7 @@ use crate::core::error::{ChartError, validate_chart_algorithm_plane};
 use crate::core::model::calendar::{BirthContext, BirthTime, CalendarDate, Gender};
 use crate::core::model::chart::Chart;
 use crate::core::model::chart::PalaceName;
-use crate::core::model::profile::{ChartAlgorithmKind, ChartPlane, MethodProfile};
+use crate::core::model::profile::{ChartAlgorithmKind, ChartPlane, ChartProfile, MethodProfile};
 use crate::core::placement::natal::input::{NatalChartInput, NatalChartWithSupportedStarsInput};
 use crate::core::placement::natal::life_body::{LunarDay, LunarMonth};
 use crate::core::placement::natal::minimal::{NatalChartAnchor, build_minimal_natal_chart};
@@ -328,11 +328,15 @@ pub fn by_lunar(request: LunarChartRequest) -> Result<Chart, ChartError> {
 
     let anchor = resolve_natal_chart_anchor(algorithm, plane, &supported_input)?;
 
-    build_natal_chart_with_supported_stars_using_anchor_and_strategy(
+    let chart_profile = ChartProfile::new(request.method_profile().clone(), plane);
+
+    let chart = build_natal_chart_with_supported_stars_using_anchor_and_strategy(
         supported_input,
         anchor,
         &DeterministicNatalStarPlacementStrategy::default(),
-    )
+    )?;
+
+    Ok(chart.with_chart_profile(chart_profile))
 }
 
 /// Resolves the Life-palace anchor for an algorithm + chart plane.
@@ -705,6 +709,48 @@ mod tests {
         // both re-anchored planes must differ from Heaven.
         assert_ne!(zhongzhou_chart(ChartPlane::Earth), heaven);
         assert_ne!(zhongzhou_chart(ChartPlane::Human), heaven);
+    }
+
+    #[test]
+    fn quanshu_heaven_chart_carries_heaven_plane() {
+        let chart = by_lunar(
+            base_builder(quanshu_profile())
+                .chart_plane(ChartPlane::Heaven)
+                .build()
+                .expect("request should build"),
+        )
+        .expect("chart should build");
+
+        assert_eq!(chart.chart_plane(), ChartPlane::Heaven);
+        assert_eq!(
+            chart.method_profile().algorithm_kind(),
+            ChartAlgorithmKind::QuanShu,
+        );
+    }
+
+    #[test]
+    fn default_request_chart_carries_heaven_plane() {
+        let chart = by_lunar(
+            base_builder(quanshu_profile())
+                .build()
+                .expect("request should build"),
+        )
+        .expect("chart should build");
+
+        assert_eq!(chart.chart_plane(), ChartPlane::Heaven);
+    }
+
+    #[test]
+    fn zhongzhou_charts_carry_requested_plane() {
+        for plane in [ChartPlane::Heaven, ChartPlane::Earth, ChartPlane::Human] {
+            let chart = zhongzhou_chart(plane);
+
+            assert_eq!(chart.chart_plane(), plane);
+            assert_eq!(
+                chart.method_profile().algorithm_kind(),
+                ChartAlgorithmKind::Zhongzhou,
+            );
+        }
     }
 
     #[test]
