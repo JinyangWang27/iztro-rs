@@ -54,7 +54,7 @@ where
     ))?;
     let five_element_bureau = chart
         .five_element_bureau()
-        .expect("minimal natal chart should derive a five-element bureau");
+        .ok_or(ChartError::RequiredFiveElementBureauMissing)?;
 
     placer.place_major_stars(
         chart,

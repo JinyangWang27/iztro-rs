@@ -1,4 +1,5 @@
 use crate::core::model::chart::PalaceName;
+use crate::core::model::profile::{ChartAlgorithmKind, ChartPlane, is_valid_chart_algorithm_plane};
 use crate::core::model::star::StarName;
 use crate::core::model::star::mutagen::{Mutagen, Scope};
 use lunar_lite::{EarthlyBranch, HeavenlyStem, StemBranch};
@@ -298,7 +299,67 @@ pub enum ChartError {
         /// Lunar day (1..=30) of the unresolved date.
         lunar_day: u8,
     },
+    /// The requested chart plane is not supported for the given algorithm family.
+    #[error("unsupported chart plane {plane:?} for algorithm {algorithm:?}")]
+    UnsupportedChartPlane {
+        /// Algorithm family that does not support the requested plane.
+        algorithm: ChartAlgorithmKind,
+        /// Chart plane that was rejected.
+        plane: ChartPlane,
+    },
     /// Placeholder error used until chart-generation validation exists.
     #[error("chart generation is not implemented")]
     NotImplemented,
+}
+
+/// Validates that `plane` is a domain-valid chart plane for `algorithm`.
+///
+/// Returns `Ok(())` if the combination is semantically recognised.
+/// Returns `Err(ChartError::UnsupportedChartPlane)` if the combination is
+/// definitively unsupported.
+///
+/// Domain validity does not imply implementation readiness. For example,
+/// `Zhongzhou + Earth` returns `Ok(())` even though Zhongzhou 地盘 chart
+/// generation is not yet implemented.
+pub fn validate_chart_algorithm_plane(
+    algorithm: ChartAlgorithmKind,
+    plane: ChartPlane,
+) -> Result<(), ChartError> {
+    if is_valid_chart_algorithm_plane(algorithm, plane) {
+        Ok(())
+    } else {
+        Err(ChartError::UnsupportedChartPlane { algorithm, plane })
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn quanshu_heaven_validates() {
+        assert_eq!(
+            validate_chart_algorithm_plane(ChartAlgorithmKind::QuanShu, ChartPlane::Heaven),
+            Ok(()),
+        );
+    }
+
+    #[test]
+    fn quanshu_earth_errors() {
+        assert_eq!(
+            validate_chart_algorithm_plane(ChartAlgorithmKind::QuanShu, ChartPlane::Earth),
+            Err(ChartError::UnsupportedChartPlane {
+                algorithm: ChartAlgorithmKind::QuanShu,
+                plane: ChartPlane::Earth,
+            }),
+        );
+    }
+
+    #[test]
+    fn zhongzhou_earth_validates() {
+        assert_eq!(
+            validate_chart_algorithm_plane(ChartAlgorithmKind::Zhongzhou, ChartPlane::Earth),
+            Ok(()),
+        );
+    }
 }
