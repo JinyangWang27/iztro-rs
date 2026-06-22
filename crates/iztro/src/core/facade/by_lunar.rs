@@ -341,7 +341,7 @@ pub fn by_lunar(request: LunarChartRequest) -> Result<Chart, ChartError> {
 /// - Every implemented combination (any algorithm with `Heaven`) returns the
 ///   existing [`DeterministicNatalStarPlacementStrategy`].
 ///
-/// PR 102 will extend this function with real Earth/Human strategies; until
+/// A later PR will extend this function with real Earth/Human strategies; until
 /// then it is intentionally boring.
 fn select_natal_placement_strategy(
     algorithm: ChartAlgorithmKind,
