@@ -337,6 +337,48 @@ mod tests {
     }
 
     #[test]
+    fn zhongzhou_earth_solar_request_anchors_to_heaven_body_palace() {
+        use crate::core::model::chart::PalaceName;
+
+        let solar_chart = |plane: ChartPlane| {
+            by_solar(
+                base_builder(zhongzhou_profile())
+                    .chart_plane(plane)
+                    .build()
+                    .expect("request should build"),
+            )
+            .expect("zhongzhou solar chart should build")
+        };
+
+        let heaven = solar_chart(ChartPlane::Heaven);
+        let earth = solar_chart(ChartPlane::Earth);
+        let human = solar_chart(ChartPlane::Human);
+
+        let life_branch = |chart: &Chart| {
+            chart
+                .life_palace()
+                .expect("chart should have a Life Palace")
+                .branch()
+        };
+        let fortune_branch = |chart: &Chart| {
+            chart
+                .palaces()
+                .iter()
+                .find(|palace| palace.name() == PalaceName::Spirit)
+                .expect("chart should have a Fortune Palace")
+                .branch()
+        };
+
+        assert_eq!(
+            life_branch(&earth),
+            heaven
+                .body_palace_branch()
+                .expect("heaven chart should have a Body Palace branch"),
+        );
+        assert_eq!(life_branch(&human), fortune_branch(&heaven));
+    }
+
+    #[test]
     fn quanshu_earth_solar_request_is_unsupported() {
         let request = base_builder(quanshu_profile())
             .chart_plane(ChartPlane::Earth)
