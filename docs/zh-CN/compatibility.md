@@ -64,6 +64,25 @@ Known metadata 仍不表示已支持亮度表或完整 horoscope 宫名推导。
 内置的 `FunctionalStar` 构造或 `StarType` 分配。四化仍作为 `Mutagen` /
 `MutagenActivation` 事实存在，而不是 `StarName` variants。
 
+## 天地人三盘（Chart planes）
+
+`ChartPlane` 与 `ChartAlgorithmKind` 是相互独立的两个维度。默认值为 `Heaven`
+（天盘），其输出与既有星盘生成逐值一致。
+
+中州派（Zhongzhou）额外支持地盘（Earth）与人盘（Human）。二者通过**带锚点的最小星盘
+重建**生成，而不是对已完成的 `Chart` 做原地修改：
+
+- `Zhongzhou + Earth`：将命宫重新锚定到天盘的身宫地支；
+- `Zhongzhou + Human`：将命宫重新锚定到天盘的福德宫（`PalaceName::Spirit`）地支。
+
+重新锚定后，宫名、宫干与五行局都依据新的命宫重新推导，而身宫地支仍保留其原始计算
+值。随后运行既有的确定性安星策略，因此各安星器从不针对 `ChartPlane` 分支。盘别分派
+集中在 `by_lunar` facade 边界（`resolve_natal_chart_anchor`）。中州天盘**不等于**全书
+（QuanShu）算法，它只是中州派的天盘。
+
+对任何非中州派族（QuanShu / Placeholder）请求 `Earth` 或 `Human` 都会返回
+`ChartError::UnsupportedChartPlane`。
+
 ## 公开 facade 兼容性
 
 `by_lunar` 与 `by_solar` 是 `iztro-rs` 的 iztro-compatible facade 入口。它们在概念
