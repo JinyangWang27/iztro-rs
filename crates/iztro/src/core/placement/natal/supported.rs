@@ -2,10 +2,21 @@
 //!
 //! These builders own only the minimal-chart construction; the actual star
 //! placement is delegated to a [`NatalStarPlacementStrategy`] (for supported
-//! stars) or a [`MajorStarPlacer`] (for major-only charts). Future Zhongzhou
-//! 中州地盘 / 中州人盘 support should be added as new strategy implementations
-//! and passed through [`build_natal_chart_with_supported_stars_using`], not by
-//! adding algorithm-specific branches here.
+//! stars) or a [`MajorStarPlacer`] (for major-only charts).
+//!
+//! Chart planes are handled by re-anchoring, not by per-plane strategies. The
+//! facade resolves a [`ChartPlane`](crate::core::model::profile::ChartPlane)
+//! into a [`NatalChartAnchor`], the supported builder rebuilds an anchor-aware
+//! minimal chart, and the existing deterministic strategy places stars:
+//!
+//! ```text
+//! facade resolves ChartPlane -> NatalChartAnchor
+//! supported builder builds an anchor-aware minimal chart
+//! existing deterministic strategy places stars
+//! ```
+//!
+//! Star placers never branch on the chart plane; see
+//! [`build_natal_chart_with_supported_stars_using_anchor_and_strategy`].
 
 use crate::core::error::ChartError;
 use crate::core::model::chart::Chart;
@@ -94,9 +105,10 @@ pub fn build_natal_chart_with_supported_stars(
 /// Builds a natal chart with supported stars placed by `strategy`.
 ///
 /// Like [`build_natal_chart_with_supported_stars`], but the high-level
-/// [`NatalStarPlacementStrategy`] is injected. This is the extension point for
-/// future Zhongzhou 中州地盘 / 中州人盘 algorithms: implement a new strategy and
-/// pass it here instead of adding algorithm-specific branches to the builder.
+/// [`NatalStarPlacementStrategy`] is injected. The minimal chart uses the
+/// calculated Life Palace ([`NatalChartAnchor::CalculatedLifePalace`]); to
+/// generate a re-anchored chart plane, use
+/// [`build_natal_chart_with_supported_stars_using_anchor_and_strategy`].
 pub fn build_natal_chart_with_supported_stars_using<S>(
     input: NatalChartWithSupportedStarsInput,
     strategy: &S,

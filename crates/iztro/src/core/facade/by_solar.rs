@@ -173,8 +173,9 @@ impl SolarChartRequestBuilder {
     ///
     /// Defaults to [`ChartPlane::Heaven`] when unset. The selected plane is
     /// propagated into the downstream [`LunarChartRequest`]. `Earth` and `Human`
-    /// are accepted but only valid for the Zhongzhou (中州) family, and Zhongzhou
-    /// Earth/Human chart generation is not implemented yet.
+    /// are only valid for the Zhongzhou (中州) family, where they are generated
+    /// by re-anchoring the Life Palace; requesting them for other families
+    /// returns [`ChartError::UnsupportedChartPlane`].
     pub const fn chart_plane(mut self, chart_plane: ChartPlane) -> Self {
         self.chart_plane = Some(chart_plane);
         self
