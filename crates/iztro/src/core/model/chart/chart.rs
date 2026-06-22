@@ -6,7 +6,7 @@ use crate::core::{
         chart::horoscope::{HoroscopeLunarDate, HoroscopeSolarDate},
         chart::palace::PalaceName,
         chart::snapshot::ChartStackSnapshot,
-        profile::MethodProfile,
+        profile::{ChartAlgorithmKind, ChartPlane, ChartProfile, MethodProfile},
         star::mutagen::{Mutagen, Scope},
         star::{
             Brightness, KnownStarFamily, StarCategory, StarKind, StarName, try_known_star_metadata,
@@ -26,7 +26,7 @@ pub struct Chart {
     birth_year: StemBranch,
     #[serde(default)]
     four_pillars: Option<FourPillars>,
-    method_profile: MethodProfile,
+    chart_profile: ChartProfile,
     palaces: Vec<Palace>,
     body_palace_branch: Option<EarthlyBranch>,
     five_element_bureau: Option<FiveElementBureau>,
@@ -69,6 +69,11 @@ impl NatalDateFacts {
 
 impl Chart {
     /// Creates a chart from typed chart facts after checking core invariants.
+    ///
+    /// The chart plane defaults to [`ChartPlane::Heaven`], preserving the
+    /// existing chart-generation behaviour. Use
+    /// [`Chart::try_new_with_profile`] to construct a chart for an explicit
+    /// chart plane.
     pub fn try_new(
         birth_context: BirthContext,
         birth_year: StemBranch,
@@ -89,11 +94,61 @@ impl Chart {
     }
 
     /// Creates a chart from typed chart facts and optional natal four pillars.
+    ///
+    /// The chart plane defaults to [`ChartPlane::Heaven`]. Use
+    /// [`Chart::try_new_with_four_pillars_and_profile`] to construct a chart for
+    /// an explicit chart plane.
     pub fn try_new_with_four_pillars(
         birth_context: BirthContext,
         birth_year: StemBranch,
         four_pillars: Option<FourPillars>,
         method_profile: MethodProfile,
+        palaces: Vec<Palace>,
+        body_palace_branch: Option<EarthlyBranch>,
+        five_element_bureau: Option<FiveElementBureau>,
+    ) -> Result<Self, ChartError> {
+        Self::try_new_with_four_pillars_and_profile(
+            birth_context,
+            birth_year,
+            four_pillars,
+            ChartProfile::new(method_profile, ChartPlane::Heaven),
+            palaces,
+            body_palace_branch,
+            five_element_bureau,
+        )
+    }
+
+    /// Creates a chart from typed chart facts and an explicit chart profile.
+    ///
+    /// Like [`Chart::try_new`], but the chart records the supplied
+    /// [`ChartProfile`] (method profile + chart plane) instead of defaulting the
+    /// plane to [`ChartPlane::Heaven`].
+    pub fn try_new_with_profile(
+        birth_context: BirthContext,
+        birth_year: StemBranch,
+        chart_profile: ChartProfile,
+        palaces: Vec<Palace>,
+        body_palace_branch: Option<EarthlyBranch>,
+        five_element_bureau: Option<FiveElementBureau>,
+    ) -> Result<Self, ChartError> {
+        Self::try_new_with_four_pillars_and_profile(
+            birth_context,
+            birth_year,
+            None,
+            chart_profile,
+            palaces,
+            body_palace_branch,
+            five_element_bureau,
+        )
+    }
+
+    /// Creates a chart from typed chart facts, optional natal four pillars, and
+    /// an explicit chart profile.
+    pub fn try_new_with_four_pillars_and_profile(
+        birth_context: BirthContext,
+        birth_year: StemBranch,
+        four_pillars: Option<FourPillars>,
+        chart_profile: ChartProfile,
         palaces: Vec<Palace>,
         body_palace_branch: Option<EarthlyBranch>,
         five_element_bureau: Option<FiveElementBureau>,
@@ -118,7 +173,7 @@ impl Chart {
             birth_context,
             birth_year,
             four_pillars,
-            method_profile,
+            chart_profile,
             palaces,
             body_palace_branch,
             five_element_bureau,
@@ -129,6 +184,17 @@ impl Chart {
     /// Returns this chart with retained natal solar/lunar display dates attached.
     pub fn with_natal_date_facts(mut self, facts: NatalDateFacts) -> Self {
         self.natal_date_facts = Some(facts);
+        self
+    }
+
+    /// Returns this chart with its chart profile replaced.
+    ///
+    /// Used by the facade to make a generated chart self-describing: low-level
+    /// builders produce a default [`ChartPlane::Heaven`] chart, and the facade
+    /// attaches the requested chart plane via this consuming method without
+    /// mutating placement facts.
+    pub fn with_chart_profile(mut self, chart_profile: ChartProfile) -> Self {
+        self.chart_profile = chart_profile;
         self
     }
 
@@ -152,9 +218,27 @@ impl Chart {
         self.four_pillars.as_ref()
     }
 
+    /// Returns the chart-generation profile metadata (method profile + plane).
+    pub const fn chart_profile(&self) -> &ChartProfile {
+        &self.chart_profile
+    }
+
     /// Returns the method profile metadata.
+    ///
+    /// Preserved for backward compatibility; delegates to
+    /// [`ChartProfile::method_profile`].
     pub const fn method_profile(&self) -> &MethodProfile {
-        &self.method_profile
+        self.chart_profile.method_profile()
+    }
+
+    /// Returns the chart plane (天盘 / 地盘 / 人盘) this chart represents.
+    pub const fn chart_plane(&self) -> ChartPlane {
+        self.chart_profile.chart_plane()
+    }
+
+    /// Returns the typed chart algorithm kind for this chart.
+    pub const fn algorithm_kind(&self) -> ChartAlgorithmKind {
+        self.chart_profile.algorithm_kind()
     }
 
     /// Returns the palaces in this chart.
