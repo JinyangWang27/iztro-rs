@@ -115,6 +115,7 @@ pub use placement::natal::strategy::{
 pub use placement::natal::supported::{
     build_natal_chart_with_major_stars, build_natal_chart_with_major_stars_using,
     build_natal_chart_with_supported_stars, build_natal_chart_with_supported_stars_using,
+    build_natal_chart_with_supported_stars_using_anchor_and_strategy,
 };
 pub use placement::overlay::age::build_age_horoscope_layer;
 pub use placement::overlay::daily_horoscope::build_daily_horoscope_layer;
