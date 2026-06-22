@@ -315,21 +315,26 @@ mod tests {
 
     #[test]
     fn chart_plane_propagates_into_lunar_request_path() {
-        // A Zhongzhou + Earth solar request must surface the same
-        // not-implemented error as the lunar path, proving the chart plane is
-        // propagated downstream rather than dropped.
-        let request = base_builder(zhongzhou_profile())
-            .chart_plane(ChartPlane::Earth)
-            .build()
-            .expect("request should build");
+        // A Zhongzhou + Earth solar request must produce a chart that differs
+        // from the Heaven plane, proving the chart plane is propagated
+        // downstream rather than dropped.
+        let earth = by_solar(
+            base_builder(zhongzhou_profile())
+                .chart_plane(ChartPlane::Earth)
+                .build()
+                .expect("earth request should build"),
+        )
+        .expect("zhongzhou earth solar request should build");
 
-        assert_eq!(
-            by_solar(request),
-            Err(ChartError::ChartPlaneNotImplemented {
-                algorithm: ChartAlgorithmKind::Zhongzhou,
-                plane: ChartPlane::Earth,
-            }),
-        );
+        let heaven = by_solar(
+            base_builder(zhongzhou_profile())
+                .chart_plane(ChartPlane::Heaven)
+                .build()
+                .expect("heaven request should build"),
+        )
+        .expect("zhongzhou heaven solar request should build");
+
+        assert_ne!(earth, heaven);
     }
 
     #[test]

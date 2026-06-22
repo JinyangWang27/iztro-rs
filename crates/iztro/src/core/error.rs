@@ -131,6 +131,12 @@ pub enum ChartError {
     /// A placement rule depends on the five-element bureau, which is absent.
     #[error("required five-element bureau is missing")]
     RequiredFiveElementBureauMissing,
+    /// A chart-plane re-anchor needs a palace identified by name that is absent.
+    #[error("required palace {palace_name:?} is missing")]
+    RequiredPalaceNameMissing {
+        /// Palace name that could not be found in the chart.
+        palace_name: PalaceName,
+    },
     /// A decorative placement must name a known decorative (untyped) star whose
     /// family matches and whose known metadata carries no `StarKind`.
     #[error("invalid decorative star placement: {star:?}")]
