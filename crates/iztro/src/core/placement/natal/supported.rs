@@ -2,10 +2,21 @@
 //!
 //! These builders own only the minimal-chart construction; the actual star
 //! placement is delegated to a [`NatalStarPlacementStrategy`] (for supported
-//! stars) or a [`MajorStarPlacer`] (for major-only charts). Future Zhongzhou
-//! 中州地盘 / 中州人盘 support should be added as new strategy implementations
-//! and passed through [`build_natal_chart_with_supported_stars_using`], not by
-//! adding algorithm-specific branches here.
+//! stars) or a [`MajorStarPlacer`] (for major-only charts).
+//!
+//! Chart planes are handled by re-anchoring, not by per-plane strategies. The
+//! facade resolves a [`ChartPlane`](crate::core::model::profile::ChartPlane)
+//! into a [`NatalChartAnchor`], the supported builder rebuilds an anchor-aware
+//! minimal chart, and the existing deterministic strategy places stars:
+//!
+//! ```text
+//! facade resolves ChartPlane -> NatalChartAnchor
+//! supported builder builds an anchor-aware minimal chart
+//! existing deterministic strategy places stars
+//! ```
+//!
+//! Star placers never branch on the chart plane; see
+//! [`build_natal_chart_with_supported_stars_using_anchor_and_strategy`].
 
 use crate::core::error::ChartError;
 use crate::core::model::chart::Chart;
@@ -15,7 +26,9 @@ use crate::core::placement::natal::input::{
 use crate::core::placement::natal::major::{
     DeterministicMajorStarPlacer, MajorStarPlacementInput, MajorStarPlacer,
 };
-use crate::core::placement::natal::minimal::build_minimal_natal_chart;
+use crate::core::placement::natal::minimal::{
+    NatalChartAnchor, build_minimal_natal_chart, build_minimal_natal_chart_with_anchor,
+};
 use crate::core::placement::natal::strategy::{
     DeterministicNatalStarPlacementStrategy, NatalStarPlacementStrategy,
 };
@@ -92,9 +105,10 @@ pub fn build_natal_chart_with_supported_stars(
 /// Builds a natal chart with supported stars placed by `strategy`.
 ///
 /// Like [`build_natal_chart_with_supported_stars`], but the high-level
-/// [`NatalStarPlacementStrategy`] is injected. This is the extension point for
-/// future Zhongzhou 中州地盘 / 中州人盘 algorithms: implement a new strategy and
-/// pass it here instead of adding algorithm-specific branches to the builder.
+/// [`NatalStarPlacementStrategy`] is injected. The minimal chart uses the
+/// calculated Life Palace ([`NatalChartAnchor::CalculatedLifePalace`]); to
+/// generate a re-anchored chart plane, use
+/// [`build_natal_chart_with_supported_stars_using_anchor_and_strategy`].
 pub fn build_natal_chart_with_supported_stars_using<S>(
     input: NatalChartWithSupportedStarsInput,
     strategy: &S,
@@ -102,13 +116,39 @@ pub fn build_natal_chart_with_supported_stars_using<S>(
 where
     S: NatalStarPlacementStrategy + ?Sized,
 {
-    let chart = build_minimal_natal_chart(NatalChartInput::new(
-        input.birth_context().clone(),
-        input.method_profile().clone(),
-        input.lunar_month(),
-        input.birth_year_stem(),
-        input.birth_year_branch(),
-    ))?;
+    build_natal_chart_with_supported_stars_using_anchor_and_strategy(
+        input,
+        NatalChartAnchor::CalculatedLifePalace,
+        strategy,
+    )
+}
+
+/// Builds a natal chart with supported stars, re-anchoring the Life Palace.
+///
+/// Like [`build_natal_chart_with_supported_stars_using`], but the minimal chart
+/// is built with an explicit [`NatalChartAnchor`]. This is how the centralized
+/// facade dispatch generates the Zhongzhou 中州地盘 / 中州人盘 planes: it derives
+/// the Life-palace anchor from the Heaven chart and rebuilds, rather than
+/// mutating a completed chart or branching on the chart plane inside individual
+/// star placers.
+pub fn build_natal_chart_with_supported_stars_using_anchor_and_strategy<S>(
+    input: NatalChartWithSupportedStarsInput,
+    anchor: NatalChartAnchor,
+    strategy: &S,
+) -> Result<Chart, ChartError>
+where
+    S: NatalStarPlacementStrategy + ?Sized,
+{
+    let chart = build_minimal_natal_chart_with_anchor(
+        NatalChartInput::new(
+            input.birth_context().clone(),
+            input.method_profile().clone(),
+            input.lunar_month(),
+            input.birth_year_stem(),
+            input.birth_year_branch(),
+        ),
+        anchor,
+    )?;
 
     strategy.place_supported_stars(chart, &input)
 }

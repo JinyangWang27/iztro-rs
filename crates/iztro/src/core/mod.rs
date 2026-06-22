@@ -99,7 +99,10 @@ pub use placement::natal::major::{
     major_star_metadata, major_star_metadata_table, tian_fu_branch, try_major_star_metadata,
     zi_wei_branch,
 };
-pub use placement::natal::minimal::{build_empty_chart, build_minimal_natal_chart};
+pub use placement::natal::minimal::{
+    NatalChartAnchor, build_empty_chart, build_minimal_natal_chart,
+    build_minimal_natal_chart_with_anchor,
+};
 pub use placement::natal::minor::{
     DeterministicMinorStarPlacer, MinorStarPlacementInput, MinorStarPlacer, minor_star_brightness,
     minor_star_metadata, minor_star_metadata_table, try_minor_star_metadata,
@@ -112,6 +115,7 @@ pub use placement::natal::strategy::{
 pub use placement::natal::supported::{
     build_natal_chart_with_major_stars, build_natal_chart_with_major_stars_using,
     build_natal_chart_with_supported_stars, build_natal_chart_with_supported_stars_using,
+    build_natal_chart_with_supported_stars_using_anchor_and_strategy,
 };
 pub use placement::overlay::age::build_age_horoscope_layer;
 pub use placement::overlay::daily_horoscope::build_daily_horoscope_layer;

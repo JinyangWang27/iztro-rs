@@ -131,6 +131,12 @@ pub enum ChartError {
     /// A placement rule depends on the five-element bureau, which is absent.
     #[error("required five-element bureau is missing")]
     RequiredFiveElementBureauMissing,
+    /// A chart-plane re-anchor needs a palace identified by name that is absent.
+    #[error("required palace {palace_name:?} is missing")]
+    RequiredPalaceNameMissing {
+        /// Palace name that could not be found in the chart.
+        palace_name: PalaceName,
+    },
     /// A decorative placement must name a known decorative (untyped) star whose
     /// family matches and whose known metadata carries no `StarKind`.
     #[error("invalid decorative star placement: {star:?}")]
@@ -311,9 +317,10 @@ pub enum ChartError {
     /// algorithm family, but chart generation for it is not implemented yet.
     ///
     /// This is distinct from [`ChartError::UnsupportedChartPlane`], which marks
-    /// a combination that is semantically invalid. For example, `Zhongzhou +
-    /// Earth` is valid but currently returns this error, while `QuanShu + Earth`
-    /// returns `UnsupportedChartPlane`.
+    /// a combination that is semantically invalid (for example `QuanShu +
+    /// Earth`). The Zhongzhou Earth and Human planes are now implemented and no
+    /// longer return this error; the variant is retained for chart planes added
+    /// in the future before their generation lands.
     #[error("chart generation for plane {plane:?} with algorithm {algorithm:?} is not implemented")]
     ChartPlaneNotImplemented {
         /// Algorithm family of the unimplemented plane.

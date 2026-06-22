@@ -28,12 +28,14 @@ pub enum ChartAlgorithmKind {
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum ChartPlane {
-    /// 天盘 — the Heaven chart; the default and currently implemented plane.
+    /// 天盘 — the Heaven chart; the default plane, preserving existing behaviour.
     #[default]
     Heaven,
-    /// 地盘 — the Earth chart; semantically valid for Zhongzhou, not yet implemented.
+    /// 地盘 — the Earth chart; valid for Zhongzhou, implemented by re-anchoring
+    /// the Life Palace to the Heaven chart's Body Palace (身宫) branch.
     Earth,
-    /// 人盘 — the Human chart; semantically valid for Zhongzhou, not yet implemented.
+    /// 人盘 — the Human chart; valid for Zhongzhou, implemented by re-anchoring
+    /// the Life Palace to the Heaven chart's Spirit / 福德宫 branch.
     Human,
 }
 
@@ -47,10 +49,9 @@ pub enum ChartPlane {
 /// - `Zhongzhou + Heaven`, `Zhongzhou + Earth`, `Zhongzhou + Human`
 /// - `Placeholder + Heaven` (backward-compatible fallback path)
 ///
-/// `Zhongzhou + Earth` and `Zhongzhou + Human` are domain-valid combinations
-/// for the Zhongzhou (中州) family, but chart generation for those planes is
-/// not yet implemented. This predicate returning `true` does not imply
-/// implementation readiness.
+/// This predicate is about domain validity, not dispatch. It does not select a
+/// chart plane's anchor or strategy; that resolution lives at the facade
+/// boundary.
 pub const fn is_valid_chart_algorithm_plane(
     algorithm: ChartAlgorithmKind,
     plane: ChartPlane,
