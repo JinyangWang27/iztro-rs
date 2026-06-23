@@ -2,9 +2,9 @@ use iztro::core::{
     BirthContext, CalendarDate, Chart, ChartPlane, EarthlyBranch, FiveElementBureau, Gender,
     HeavenlyStem, LunarDay, LunarMonth, MethodProfile, NatalChartInput,
     NatalChartWithMajorStarsInput, PALACE_COUNT, PALACE_NAMES, Palace, PalaceName, StarCategory,
-    StarName,
-    StemBranch, build_empty_chart, build_minimal_natal_chart, build_natal_chart_with_major_stars,
-    five_element_bureau_from_life_palace, palace_stem_for_branch,
+    StarName, StemBranch, build_empty_chart, build_minimal_natal_chart,
+    build_natal_chart_with_major_stars, five_element_bureau_from_life_palace,
+    palace_stem_for_branch,
 };
 
 // These are local algorithmic test cases, not the iztro golden fixture; the

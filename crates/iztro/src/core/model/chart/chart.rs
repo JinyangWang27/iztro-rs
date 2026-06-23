@@ -334,10 +334,7 @@ impl Chart {
     /// occupied; an empty branch is a violated invariant rather than a
     /// tolerable absence. Callers that can handle absence should use
     /// [`Chart::palace_by_branch`].
-    pub fn required_palace_by_branch(
-        &self,
-        branch: EarthlyBranch,
-    ) -> Result<&Palace, ChartError> {
+    pub fn required_palace_by_branch(&self, branch: EarthlyBranch) -> Result<&Palace, ChartError> {
         self.palace_by_branch(branch)
             .ok_or(ChartError::RequiredPalaceBranchMissing { branch })
     }
