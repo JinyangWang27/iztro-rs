@@ -272,9 +272,7 @@ impl Chart {
     pub fn body_palace(&self) -> Option<&Palace> {
         let body_branch = self.body_palace_branch?;
 
-        self.palaces
-            .iter()
-            .find(|palace| palace.branch() == body_branch)
+        self.palace_by_branch(body_branch)
     }
 
     /// Returns the five-element bureau (五行局), if calculated.
@@ -284,9 +282,61 @@ impl Chart {
 
     /// Returns the Life Palace, identified by [`PalaceName::Life`], if present.
     pub fn life_palace(&self) -> Option<&Palace> {
-        self.palaces
-            .iter()
-            .find(|palace| palace.name() == PalaceName::Life)
+        self.palace_by_name(PalaceName::Life)
+    }
+
+    /// Returns the palace with the given palace name, if present.
+    ///
+    /// Prefer this `Option` variant when the caller can tolerate a
+    /// malformed or incomplete chart. For chart-generation logic where a
+    /// missing palace indicates a violated invariant, use
+    /// [`Chart::required_palace_by_name`] instead.
+    pub fn palace_by_name(&self, name: PalaceName) -> Option<&Palace> {
+        self.palaces.iter().find(|palace| palace.name() == name)
+    }
+
+    /// Returns the palace occupying the given earthly branch, if present.
+    ///
+    /// Prefer this `Option` variant when the caller can tolerate a
+    /// malformed or incomplete chart. For chart-generation logic where a
+    /// missing palace indicates a violated invariant, use
+    /// [`Chart::required_palace_by_branch`] instead.
+    pub fn palace_by_branch(&self, branch: EarthlyBranch) -> Option<&Palace> {
+        self.palaces.iter().find(|palace| palace.branch() == branch)
+    }
+
+    /// Returns the earthly branch of the palace with the given palace name, if present.
+    pub fn branch_of_palace(&self, name: PalaceName) -> Option<EarthlyBranch> {
+        self.palace_by_name(name).map(Palace::branch)
+    }
+
+    /// Returns the palace name assigned to the given earthly branch, if present.
+    pub fn palace_name_at_branch(&self, branch: EarthlyBranch) -> Option<PalaceName> {
+        self.palace_by_branch(branch).map(Palace::name)
+    }
+
+    /// Returns the palace with the given palace name, or
+    /// [`ChartError::RequiredPalaceNameMissing`] if it is absent.
+    ///
+    /// Use this in chart-generation logic where every canonical palace name
+    /// must be present; a missing palace is a violated invariant rather than a
+    /// tolerable absence. Callers that can handle absence should use
+    /// [`Chart::palace_by_name`].
+    pub fn required_palace_by_name(&self, name: PalaceName) -> Result<&Palace, ChartError> {
+        self.palace_by_name(name)
+            .ok_or(ChartError::RequiredPalaceNameMissing { palace_name: name })
+    }
+
+    /// Returns the palace occupying the given earthly branch, or
+    /// [`ChartError::RequiredPalaceBranchMissing`] if no palace occupies it.
+    ///
+    /// Use this in chart-generation logic where the branch is expected to be
+    /// occupied; an empty branch is a violated invariant rather than a
+    /// tolerable absence. Callers that can handle absence should use
+    /// [`Chart::palace_by_branch`].
+    pub fn required_palace_by_branch(&self, branch: EarthlyBranch) -> Result<&Palace, ChartError> {
+        self.palace_by_branch(branch)
+            .ok_or(ChartError::RequiredPalaceBranchMissing { branch })
     }
 
     /// Returns all major-star placements with their palace context.

@@ -363,9 +363,7 @@ mod tests {
         };
         let fortune_branch = |chart: &Chart| {
             chart
-                .palaces()
-                .iter()
-                .find(|palace| palace.name() == PalaceName::Spirit)
+                .palace_by_name(PalaceName::Spirit)
                 .expect("chart should have a Fortune Palace")
                 .branch()
         };

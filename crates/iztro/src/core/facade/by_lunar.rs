@@ -384,13 +384,8 @@ fn resolve_natal_chart_anchor(
         (ChartAlgorithmKind::Zhongzhou, ChartPlane::Human) => {
             let heaven_chart = build_heaven_chart()?;
             let fortune_branch = heaven_chart
-                .palaces()
-                .iter()
-                .find(|palace| palace.name() == PalaceName::Spirit)
-                .map(|palace| palace.branch())
-                .ok_or(ChartError::RequiredPalaceNameMissing {
-                    palace_name: PalaceName::Spirit,
-                })?;
+                .required_palace_by_name(PalaceName::Spirit)?
+                .branch();
             Ok(NatalChartAnchor::ExplicitLifePalace(fortune_branch))
         }
         _ => Err(ChartError::UnsupportedChartPlane { algorithm, plane }),
@@ -510,9 +505,7 @@ mod tests {
 
     fn fortune_palace_branch(chart: &Chart) -> EarthlyBranch {
         chart
-            .palaces()
-            .iter()
-            .find(|palace| palace.name() == PalaceName::Spirit)
+            .palace_by_name(PalaceName::Spirit)
             .expect("chart should have a Fortune Palace")
             .branch()
     }
