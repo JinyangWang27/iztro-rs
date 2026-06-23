@@ -4,11 +4,11 @@ use crate::core::calendar::resolve_lunar_date;
 use crate::core::error::{ChartError, validate_chart_algorithm_plane};
 use crate::core::model::calendar::{BirthContext, BirthTime, CalendarDate, Gender};
 use crate::core::model::chart::Chart;
-use crate::core::model::chart::PalaceName;
-use crate::core::model::profile::{ChartAlgorithmKind, ChartPlane, ChartProfile, MethodProfile};
+use crate::core::model::profile::{ChartPlane, ChartProfile, MethodProfile};
 use crate::core::placement::natal::input::{NatalChartInput, NatalChartWithSupportedStarsInput};
 use crate::core::placement::natal::life_body::{LunarDay, LunarMonth};
-use crate::core::placement::natal::minimal::{NatalChartAnchor, build_minimal_natal_chart};
+use crate::core::placement::natal::minimal::build_minimal_natal_chart;
+use crate::core::placement::natal::plane::resolve_natal_chart_anchor;
 use crate::core::placement::natal::strategy::DeterministicNatalStarPlacementStrategy;
 use crate::core::placement::natal::supported::build_natal_chart_with_supported_stars_using_anchor_and_strategy;
 use lunar_lite::{EarthlyBranch, HeavenlyStem, StemBranch};
@@ -326,7 +326,15 @@ pub fn by_lunar(request: LunarChartRequest) -> Result<Chart, ChartError> {
         birth_year.branch(),
     );
 
-    let anchor = resolve_natal_chart_anchor(algorithm, plane, &supported_input)?;
+    let anchor = resolve_natal_chart_anchor(algorithm, plane, || {
+        build_minimal_natal_chart(NatalChartInput::new(
+            supported_input.birth_context().clone(),
+            supported_input.method_profile().clone(),
+            supported_input.lunar_month(),
+            supported_input.birth_year_stem(),
+            supported_input.birth_year_branch(),
+        ))
+    })?;
 
     let chart_profile = ChartProfile::new(request.method_profile().clone(), plane);
 
@@ -337,59 +345,6 @@ pub fn by_lunar(request: LunarChartRequest) -> Result<Chart, ChartError> {
     )?;
 
     Ok(chart.with_chart_profile(chart_profile))
-}
-
-/// Resolves the Life-palace anchor for an algorithm + chart plane.
-///
-/// This is the single centralized dispatch point that maps a requested
-/// `(ChartAlgorithmKind, ChartPlane)` to a [`NatalChartAnchor`]. Keeping the
-/// decision here means star placers and minimal-chart builders never branch on
-/// [`ChartPlane`].
-///
-/// Behaviour:
-/// - Any algorithm with `Heaven` uses [`NatalChartAnchor::CalculatedLifePalace`],
-///   reproducing the existing chart-generation behaviour exactly.
-/// - `Zhongzhou + Earth` re-anchors the Life Palace to the Heaven chart's Body
-///   Palace (身宫) branch.
-/// - `Zhongzhou + Human` re-anchors the Life Palace to the Heaven chart's
-///   Fortune Palace (福德宫, [`PalaceName::Spirit`]) branch.
-///
-/// Invalid combinations (for example `QuanShu + Earth`) are expected to have
-/// been rejected by [`validate_chart_algorithm_plane`] before this call; the
-/// final arm returns [`ChartError::UnsupportedChartPlane`] defensively.
-fn resolve_natal_chart_anchor(
-    algorithm: ChartAlgorithmKind,
-    plane: ChartPlane,
-    supported_input: &NatalChartWithSupportedStarsInput,
-) -> Result<NatalChartAnchor, ChartError> {
-    let build_heaven_chart = || {
-        build_minimal_natal_chart(NatalChartInput::new(
-            supported_input.birth_context().clone(),
-            supported_input.method_profile().clone(),
-            supported_input.lunar_month(),
-            supported_input.birth_year_stem(),
-            supported_input.birth_year_branch(),
-        ))
-    };
-
-    match (algorithm, plane) {
-        (_, ChartPlane::Heaven) => Ok(NatalChartAnchor::CalculatedLifePalace),
-        (ChartAlgorithmKind::Zhongzhou, ChartPlane::Earth) => {
-            let heaven_chart = build_heaven_chart()?;
-            let body_branch = heaven_chart
-                .body_palace_branch()
-                .ok_or(ChartError::RequiredLifeBodyPalaceMissing)?;
-            Ok(NatalChartAnchor::ExplicitLifePalace(body_branch))
-        }
-        (ChartAlgorithmKind::Zhongzhou, ChartPlane::Human) => {
-            let heaven_chart = build_heaven_chart()?;
-            let fortune_branch = heaven_chart
-                .required_palace_by_name(PalaceName::Spirit)?
-                .branch();
-            Ok(NatalChartAnchor::ExplicitLifePalace(fortune_branch))
-        }
-        _ => Err(ChartError::UnsupportedChartPlane { algorithm, plane }),
-    }
 }
 
 /// Computes the effective lunar month used for month-based star placement.
@@ -457,6 +412,8 @@ fn daily_star_offset(lunar_day: LunarDay, birth_time: BirthTime) -> u8 {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::core::model::chart::PalaceName;
+    use crate::core::model::profile::ChartAlgorithmKind;
 
     fn base_builder(profile: MethodProfile) -> LunarChartRequestBuilder {
         LunarChartRequest::builder()
