@@ -1,9 +1,10 @@
 use iztro::core::{
-    BirthContext, CalendarDate, Chart, ChartPlane, EarthlyBranch, FiveElementBureau, Gender,
-    HeavenlyStem, LunarDay, LunarMonth, MethodProfile, NatalChartInput,
-    NatalChartWithMajorStarsInput, PALACE_COUNT, PALACE_NAMES, Palace, PalaceName, StarCategory,
+    BirthContext, CalendarDate, Chart, ChartAlgorithmKind, ChartPlane, EARTHLY_BRANCHES,
+    EarthlyBranch, FiveElementBureau, Gender, HeavenlyStem, LunarChartRequest, LunarDay,
+    LunarMonth, MethodProfile, NatalChartInput, NatalChartWithMajorStarsInput, PALACE_COUNT,
+    PALACE_NAMES, Palace, PalaceName, SolarChartRequest, SolarDay, SolarMonth, StarCategory,
     StarName, StemBranch, build_empty_chart, build_minimal_natal_chart,
-    build_natal_chart_with_major_stars, five_element_bureau_from_life_palace,
+    build_natal_chart_with_major_stars, by_lunar, by_solar, five_element_bureau_from_life_palace,
     palace_stem_for_branch,
 };
 
@@ -361,6 +362,138 @@ fn required_lookups_succeed_on_valid_chart() {
         .expect("Life Palace should be present")
         .branch();
     assert!(chart.required_palace_by_branch(life_branch).is_ok());
+}
+
+#[test]
+fn lunar_facade_charts_satisfy_natal_invariants() {
+    for (algorithm, plane) in supported_chart_profiles() {
+        let chart = by_lunar(build_lunar_request(algorithm, plane))
+            .expect("supported lunar facade chart should build");
+
+        assert_valid_natal_chart_invariants(&chart);
+        assert_chart_profile(&chart, algorithm, plane);
+    }
+}
+
+#[test]
+fn solar_facade_charts_satisfy_natal_invariants() {
+    for (algorithm, plane) in supported_chart_profiles() {
+        let chart = by_solar(build_solar_request(algorithm, plane))
+            .expect("supported solar facade chart should build");
+
+        assert_valid_natal_chart_invariants(&chart);
+        assert_chart_profile(&chart, algorithm, plane);
+    }
+}
+
+fn supported_chart_profiles() -> [(ChartAlgorithmKind, ChartPlane); 4] {
+    [
+        (ChartAlgorithmKind::QuanShu, ChartPlane::Heaven),
+        (ChartAlgorithmKind::Zhongzhou, ChartPlane::Heaven),
+        (ChartAlgorithmKind::Zhongzhou, ChartPlane::Earth),
+        (ChartAlgorithmKind::Zhongzhou, ChartPlane::Human),
+    ]
+}
+
+fn build_lunar_request(algorithm: ChartAlgorithmKind, plane: ChartPlane) -> LunarChartRequest {
+    LunarChartRequest::builder()
+        .lunar_year(1990)
+        .lunar_month(LunarMonth::new(5).expect("month 5 should be valid"))
+        .lunar_day(LunarDay::new(17).expect("day 17 should be valid"))
+        .birth_time(EarthlyBranch::Chen)
+        .gender(Gender::Female)
+        .birth_year_stem(HeavenlyStem::Geng)
+        .birth_year_branch(EarthlyBranch::Wu)
+        .method_profile(test_method_profile(algorithm))
+        .chart_plane(plane)
+        .build()
+        .expect("complete lunar request should build")
+}
+
+fn build_solar_request(algorithm: ChartAlgorithmKind, plane: ChartPlane) -> SolarChartRequest {
+    SolarChartRequest::builder()
+        .solar_year(1990)
+        .solar_month(SolarMonth::new(6).expect("month 6 should be valid"))
+        .solar_day(SolarDay::new(15).expect("day 15 should be valid"))
+        .birth_time(EarthlyBranch::Chen)
+        .gender(Gender::Female)
+        .method_profile(test_method_profile(algorithm))
+        .chart_plane(plane)
+        .build()
+        .expect("complete solar request should build")
+}
+
+fn test_method_profile(algorithm: ChartAlgorithmKind) -> MethodProfile {
+    MethodProfile::new(
+        format!("natal_invariants_{algorithm:?}").to_lowercase(),
+        algorithm,
+        "natal chart invariant coverage",
+    )
+}
+
+fn assert_valid_natal_chart_invariants(chart: &Chart) {
+    assert_eq!(chart.palaces().len(), PALACE_COUNT);
+
+    for name in PALACE_NAMES {
+        assert_eq!(
+            chart
+                .palaces()
+                .iter()
+                .filter(|palace| palace.name() == name)
+                .count(),
+            1,
+            "{name:?} should appear exactly once",
+        );
+    }
+
+    for branch in EARTHLY_BRANCHES {
+        assert_eq!(
+            chart
+                .palaces()
+                .iter()
+                .filter(|palace| palace.branch() == branch)
+                .count(),
+            1,
+            "{branch:?} should appear exactly once",
+        );
+    }
+
+    for palace in chart.palaces() {
+        assert_eq!(chart.palace_by_name(palace.name()), Some(palace));
+        assert_eq!(chart.palace_by_branch(palace.branch()), Some(palace));
+        assert_eq!(chart.branch_of_palace(palace.name()), Some(palace.branch()));
+        assert_eq!(
+            chart.palace_name_at_branch(palace.branch()),
+            Some(palace.name()),
+        );
+    }
+
+    assert!(chart.life_palace().is_some());
+    let body_branch = chart
+        .body_palace_branch()
+        .expect("generated natal chart should have a Body Palace branch");
+    assert!(chart.body_palace().is_some());
+    assert!(chart.palace_by_branch(body_branch).is_some());
+    assert!(chart.five_element_bureau().is_some());
+
+    for star in chart.stars() {
+        let palace = star.palace();
+        assert_eq!(chart.palace_by_name(palace.name()), Some(palace));
+        assert_eq!(chart.palace_by_branch(palace.branch()), Some(palace));
+    }
+
+    for star in chart.decorative_stars() {
+        let palace = star.palace();
+        assert_eq!(chart.palace_by_name(palace.name()), Some(palace));
+        assert_eq!(chart.palace_by_branch(palace.branch()), Some(palace));
+    }
+}
+
+fn assert_chart_profile(chart: &Chart, algorithm: ChartAlgorithmKind, plane: ChartPlane) {
+    assert_eq!(chart.algorithm_kind(), algorithm);
+    assert_eq!(chart.chart_plane(), plane);
+    assert_eq!(chart.method_profile().algorithm_kind(), algorithm);
+    assert_eq!(chart.chart_profile().chart_plane(), plane);
 }
 
 fn collect_major_star_names(chart: &Chart) -> Vec<StarName> {
