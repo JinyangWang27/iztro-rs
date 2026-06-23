@@ -57,8 +57,9 @@ request validation
 it does not own separate star-placement behavior.
 
 The facade validates the algorithm and plane before calendar work. It derives
-normalized natal inputs, resolves the Life Palace anchor, invokes deterministic
-construction, and attaches the final `ChartProfile`.
+normalized natal inputs, delegates Life Palace anchoring to the dedicated natal
+plane resolver, invokes deterministic construction, and attaches the final
+`ChartProfile`.
 
 This keeps request adaptation, plane dispatch, minimal chart structure, and
 star placement as separate responsibilities.
