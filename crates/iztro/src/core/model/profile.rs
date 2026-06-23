@@ -120,9 +120,17 @@ impl MethodProfile {
 /// [`Chart`](crate::core::model::chart::Chart) is self-describing: it records
 /// both the algorithm family used to build it and which plane variant it
 /// represents, without depending on request-side context.
+///
+/// The serde representation is intentionally flat: this type is flattened into
+/// [`Chart`](crate::core::model::chart::Chart) (and any other container) so that
+/// `method_profile` and `chart_plane` appear as sibling top-level keys rather
+/// than nested under a `chart_profile` object. `chart_plane` defaults to
+/// [`ChartPlane::Heaven`], so charts serialized before the plane axis existed
+/// still deserialize unchanged.
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct ChartProfile {
     method_profile: MethodProfile,
+    #[serde(default)]
     chart_plane: ChartPlane,
 }
 
