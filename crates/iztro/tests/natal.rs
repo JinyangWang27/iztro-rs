@@ -1,8 +1,8 @@
 use iztro::core::{
-    BirthContext, CalendarDate, Chart, EarthlyBranch, FiveElementBureau, Gender, HeavenlyStem,
-    LunarDay, LunarMonth, MethodProfile, NatalChartInput, NatalChartWithMajorStarsInput,
-    PALACE_COUNT, PALACE_NAMES, PalaceName, StarCategory, StarName, StemBranch, build_empty_chart,
-    build_minimal_natal_chart, build_natal_chart_with_major_stars,
+    BirthContext, CalendarDate, Chart, ChartPlane, EarthlyBranch, FiveElementBureau, Gender,
+    HeavenlyStem, LunarDay, LunarMonth, MethodProfile, NatalChartInput,
+    NatalChartWithMajorStarsInput, PALACE_COUNT, PALACE_NAMES, PalaceName, StarCategory, StarName,
+    StemBranch, build_empty_chart, build_minimal_natal_chart, build_natal_chart_with_major_stars,
     five_element_bureau_from_life_palace, palace_stem_for_branch,
 };
 
@@ -72,6 +72,8 @@ fn minimal_natal_chart_preserves_metadata_and_empty_stars() {
 
     assert_eq!(chart.birth_context(), &birth_context);
     assert_eq!(chart.method_profile(), &method_profile);
+    // The default low-level builder produces a Heaven-plane chart.
+    assert_eq!(chart.chart_plane(), ChartPlane::Heaven);
     assert_eq!(chart.palaces().len(), PALACE_COUNT);
     assert!(
         chart
@@ -79,6 +81,26 @@ fn minimal_natal_chart_preserves_metadata_and_empty_stars() {
             .iter()
             .all(|palace| palace.stars().is_empty())
     );
+}
+
+#[test]
+fn default_constructor_charts_describe_the_heaven_plane() {
+    let method_profile = MethodProfile::placeholder("default_plane_profile");
+    let chart = build_empty_chart(
+        BirthContext::new(
+            CalendarDate::solar(1990, 5, 17),
+            EarthlyBranch::Chou,
+            Gender::Female,
+        ),
+        StemBranch::try_new(LOCAL_TEST_YEAR_STEM, LOCAL_TEST_YEAR_BRANCH)
+            .expect("valid sexagenary pair"),
+        method_profile.clone(),
+    )
+    .expect("empty chart should build");
+
+    assert_eq!(chart.chart_plane(), ChartPlane::Heaven);
+    assert_eq!(chart.method_profile(), &method_profile);
+    assert_eq!(chart.chart_profile().method_profile(), &method_profile);
 }
 
 #[test]

@@ -6,7 +6,7 @@ use crate::core::{
         chart::horoscope::{HoroscopeLunarDate, HoroscopeSolarDate},
         chart::palace::PalaceName,
         chart::snapshot::ChartStackSnapshot,
-        profile::MethodProfile,
+        profile::{ChartAlgorithmKind, ChartPlane, ChartProfile, MethodProfile},
         star::mutagen::{Mutagen, Scope},
         star::{
             Brightness, KnownStarFamily, StarCategory, StarKind, StarName, try_known_star_metadata,
@@ -26,7 +26,11 @@ pub struct Chart {
     birth_year: StemBranch,
     #[serde(default)]
     four_pillars: Option<FourPillars>,
-    method_profile: MethodProfile,
+    /// Flattened so `method_profile` and `chart_plane` stay top-level keys,
+    /// preserving the pre-`ChartProfile` serialized shape (and letting charts
+    /// without a `chart_plane` key deserialize as [`ChartPlane::Heaven`]).
+    #[serde(flatten)]
+    chart_profile: ChartProfile,
     palaces: Vec<Palace>,
     body_palace_branch: Option<EarthlyBranch>,
     five_element_bureau: Option<FiveElementBureau>,
@@ -69,6 +73,11 @@ impl NatalDateFacts {
 
 impl Chart {
     /// Creates a chart from typed chart facts after checking core invariants.
+    ///
+    /// The chart plane defaults to [`ChartPlane::Heaven`], preserving the
+    /// existing chart-generation behaviour. Use
+    /// [`Chart::try_new_with_profile`] to construct a chart for an explicit
+    /// chart plane.
     pub fn try_new(
         birth_context: BirthContext,
         birth_year: StemBranch,
@@ -89,11 +98,61 @@ impl Chart {
     }
 
     /// Creates a chart from typed chart facts and optional natal four pillars.
+    ///
+    /// The chart plane defaults to [`ChartPlane::Heaven`]. Use
+    /// [`Chart::try_new_with_four_pillars_and_profile`] to construct a chart for
+    /// an explicit chart plane.
     pub fn try_new_with_four_pillars(
         birth_context: BirthContext,
         birth_year: StemBranch,
         four_pillars: Option<FourPillars>,
         method_profile: MethodProfile,
+        palaces: Vec<Palace>,
+        body_palace_branch: Option<EarthlyBranch>,
+        five_element_bureau: Option<FiveElementBureau>,
+    ) -> Result<Self, ChartError> {
+        Self::try_new_with_four_pillars_and_profile(
+            birth_context,
+            birth_year,
+            four_pillars,
+            ChartProfile::new(method_profile, ChartPlane::Heaven),
+            palaces,
+            body_palace_branch,
+            five_element_bureau,
+        )
+    }
+
+    /// Creates a chart from typed chart facts and an explicit chart profile.
+    ///
+    /// Like [`Chart::try_new`], but the chart records the supplied
+    /// [`ChartProfile`] (method profile + chart plane) instead of defaulting the
+    /// plane to [`ChartPlane::Heaven`].
+    pub fn try_new_with_profile(
+        birth_context: BirthContext,
+        birth_year: StemBranch,
+        chart_profile: ChartProfile,
+        palaces: Vec<Palace>,
+        body_palace_branch: Option<EarthlyBranch>,
+        five_element_bureau: Option<FiveElementBureau>,
+    ) -> Result<Self, ChartError> {
+        Self::try_new_with_four_pillars_and_profile(
+            birth_context,
+            birth_year,
+            None,
+            chart_profile,
+            palaces,
+            body_palace_branch,
+            five_element_bureau,
+        )
+    }
+
+    /// Creates a chart from typed chart facts, optional natal four pillars, and
+    /// an explicit chart profile.
+    pub fn try_new_with_four_pillars_and_profile(
+        birth_context: BirthContext,
+        birth_year: StemBranch,
+        four_pillars: Option<FourPillars>,
+        chart_profile: ChartProfile,
         palaces: Vec<Palace>,
         body_palace_branch: Option<EarthlyBranch>,
         five_element_bureau: Option<FiveElementBureau>,
@@ -118,7 +177,7 @@ impl Chart {
             birth_context,
             birth_year,
             four_pillars,
-            method_profile,
+            chart_profile,
             palaces,
             body_palace_branch,
             five_element_bureau,
@@ -129,6 +188,20 @@ impl Chart {
     /// Returns this chart with retained natal solar/lunar display dates attached.
     pub fn with_natal_date_facts(mut self, facts: NatalDateFacts) -> Self {
         self.natal_date_facts = Some(facts);
+        self
+    }
+
+    /// Returns this chart with its chart profile replaced.
+    ///
+    /// Used by the facade to make a generated chart self-describing: low-level
+    /// builders produce a default [`ChartPlane::Heaven`] chart, and the facade
+    /// attaches the requested chart plane via this consuming method without
+    /// mutating placement facts.
+    ///
+    /// Crate-internal: charts are made self-describing at the facade boundary,
+    /// so this is not part of the public construction surface.
+    pub(crate) fn with_chart_profile(mut self, chart_profile: ChartProfile) -> Self {
+        self.chart_profile = chart_profile;
         self
     }
 
@@ -152,9 +225,27 @@ impl Chart {
         self.four_pillars.as_ref()
     }
 
+    /// Returns the chart-generation profile metadata (method profile + plane).
+    pub const fn chart_profile(&self) -> &ChartProfile {
+        &self.chart_profile
+    }
+
     /// Returns the method profile metadata.
+    ///
+    /// Preserved for backward compatibility; delegates to
+    /// [`ChartProfile::method_profile`].
     pub const fn method_profile(&self) -> &MethodProfile {
-        &self.method_profile
+        self.chart_profile.method_profile()
+    }
+
+    /// Returns the chart plane (天盘 / 地盘 / 人盘) this chart represents.
+    pub const fn chart_plane(&self) -> ChartPlane {
+        self.chart_profile.chart_plane()
+    }
+
+    /// Returns the typed chart algorithm kind for this chart.
+    pub const fn algorithm_kind(&self) -> ChartAlgorithmKind {
+        self.chart_profile.algorithm_kind()
     }
 
     /// Returns the palaces in this chart.
@@ -618,5 +709,116 @@ impl<'de> Deserialize<'de> for DecorativeStarPlacement {
 
         let data = DecorativeStarPlacementData::deserialize(deserializer)?;
         Self::try_new(data.name, data.family, data.scope).map_err(serde::de::Error::custom)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::core::model::{
+        calendar::{CalendarDate, Gender},
+        chart::PALACE_NAMES,
+        profile::ChartAlgorithmKind,
+    };
+    use lunar_lite::{EARTHLY_BRANCHES, HEAVENLY_STEMS};
+    use serde_json::Value;
+
+    fn method_profile() -> MethodProfile {
+        MethodProfile::new("zhongzhou_test", ChartAlgorithmKind::Zhongzhou, "test")
+    }
+
+    fn sample_chart(chart_profile: ChartProfile) -> Chart {
+        let palaces = PALACE_NAMES
+            .iter()
+            .copied()
+            .enumerate()
+            .map(|(index, name)| {
+                Palace::new(
+                    name,
+                    EARTHLY_BRANCHES[index],
+                    HEAVENLY_STEMS[index % HEAVENLY_STEMS.len()],
+                    Vec::new(),
+                )
+            })
+            .collect();
+
+        Chart::try_new_with_profile(
+            BirthContext::new(
+                CalendarDate::solar(1990, 5, 17),
+                EarthlyBranch::Chen,
+                Gender::Female,
+            ),
+            StemBranch::try_new(HeavenlyStem::Geng, EarthlyBranch::Wu)
+                .expect("valid sexagenary pair"),
+            chart_profile,
+            palaces,
+            None,
+            None,
+        )
+        .expect("sample chart should build")
+    }
+
+    #[test]
+    fn serialization_is_flattened_with_top_level_keys() {
+        let chart = sample_chart(ChartProfile::new(method_profile(), ChartPlane::Heaven));
+        let value: Value = serde_json::to_value(&chart).expect("chart should serialize");
+        let object = value
+            .as_object()
+            .expect("chart should serialize to an object");
+
+        assert!(
+            object.contains_key("method_profile"),
+            "expected top-level method_profile key",
+        );
+        assert!(
+            object.contains_key("chart_plane"),
+            "expected top-level chart_plane key",
+        );
+        assert!(
+            !object.contains_key("chart_profile"),
+            "chart_profile must not appear as a nested key",
+        );
+        assert_eq!(object["chart_plane"], Value::String("heaven".to_owned()));
+    }
+
+    #[test]
+    fn old_json_without_chart_plane_deserializes_as_heaven() {
+        let chart = sample_chart(ChartProfile::new(method_profile(), ChartPlane::Heaven));
+        let mut value: Value = serde_json::to_value(&chart).expect("chart should serialize");
+        value
+            .as_object_mut()
+            .expect("chart object")
+            .remove("chart_plane");
+
+        let decoded: Chart = serde_json::from_value(value).expect("legacy JSON should deserialize");
+
+        assert_eq!(decoded.chart_plane(), ChartPlane::Heaven);
+        assert_eq!(decoded.method_profile(), &method_profile());
+    }
+
+    #[test]
+    fn json_with_earth_chart_plane_deserializes_as_earth() {
+        let chart = sample_chart(ChartProfile::new(method_profile(), ChartPlane::Heaven));
+        let mut value: Value = serde_json::to_value(&chart).expect("chart should serialize");
+        value
+            .as_object_mut()
+            .expect("chart object")
+            .insert("chart_plane".to_owned(), Value::String("earth".to_owned()));
+
+        let decoded: Chart = serde_json::from_value(value).expect("JSON should deserialize");
+
+        assert_eq!(decoded.chart_plane(), ChartPlane::Earth);
+    }
+
+    #[test]
+    fn round_trip_preserves_chart_profile() {
+        let original = sample_chart(ChartProfile::new(method_profile(), ChartPlane::Human));
+        let encoded = serde_json::to_string(&original).expect("chart should serialize");
+        let decoded: Chart = serde_json::from_str(&encoded).expect("chart should deserialize");
+
+        assert_eq!(decoded.chart_profile(), original.chart_profile());
+        assert_eq!(decoded.chart_plane(), ChartPlane::Human);
+        assert_eq!(decoded.method_profile(), original.method_profile());
+        assert_eq!(decoded, original);
     }
 }

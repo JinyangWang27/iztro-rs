@@ -255,11 +255,11 @@ pub fn by_solar(request: SolarChartRequest) -> Result<Chart, ChartError> {
             conversion.is_leap_month(),
         ),
     );
-    Ok(Chart::try_new_with_four_pillars(
+    Ok(Chart::try_new_with_four_pillars_and_profile(
         chart.birth_context().clone(),
         chart.birth_year(),
         Some(conversion.four_pillars()),
-        chart.method_profile().clone(),
+        chart.chart_profile().clone(),
         chart.palaces().to_vec(),
         chart.body_palace_branch(),
         chart.five_element_bureau(),
@@ -377,6 +377,31 @@ mod tests {
                 .expect("heaven chart should have a Body Palace branch"),
         );
         assert_eq!(life_branch(&human), fortune_branch(&heaven));
+    }
+
+    #[test]
+    fn solar_request_chart_carries_requested_plane() {
+        // by_solar reconstructs the chart after delegating to by_lunar; this
+        // guards against accidentally resetting the plane to Heaven during that
+        // final reconstruction.
+        let solar_chart = |plane: ChartPlane| {
+            by_solar(
+                base_builder(zhongzhou_profile())
+                    .chart_plane(plane)
+                    .build()
+                    .expect("request should build"),
+            )
+            .expect("zhongzhou solar chart should build")
+        };
+
+        for plane in [ChartPlane::Heaven, ChartPlane::Earth, ChartPlane::Human] {
+            let chart = solar_chart(plane);
+            assert_eq!(chart.chart_plane(), plane);
+            assert_eq!(
+                chart.method_profile().algorithm_kind(),
+                ChartAlgorithmKind::Zhongzhou,
+            );
+        }
     }
 
     #[test]

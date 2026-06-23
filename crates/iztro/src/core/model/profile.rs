@@ -113,6 +113,52 @@ impl MethodProfile {
     }
 }
 
+/// Chart-generation profile metadata combining the method profile (algorithm
+/// family) with the chart plane (天盘 / 地盘 / 人盘).
+///
+/// This pairs the two independent chart-generation axes so that a generated
+/// [`Chart`](crate::core::model::chart::Chart) is self-describing: it records
+/// both the algorithm family used to build it and which plane variant it
+/// represents, without depending on request-side context.
+///
+/// The serde representation is intentionally flat: this type is flattened into
+/// [`Chart`](crate::core::model::chart::Chart) (and any other container) so that
+/// `method_profile` and `chart_plane` appear as sibling top-level keys rather
+/// than nested under a `chart_profile` object. `chart_plane` defaults to
+/// [`ChartPlane::Heaven`], so charts serialized before the plane axis existed
+/// still deserialize unchanged.
+#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
+pub struct ChartProfile {
+    method_profile: MethodProfile,
+    #[serde(default)]
+    chart_plane: ChartPlane,
+}
+
+impl ChartProfile {
+    /// Creates chart-profile metadata from a method profile and chart plane.
+    pub const fn new(method_profile: MethodProfile, chart_plane: ChartPlane) -> Self {
+        Self {
+            method_profile,
+            chart_plane,
+        }
+    }
+
+    /// Returns the method profile (algorithm family) metadata.
+    pub const fn method_profile(&self) -> &MethodProfile {
+        &self.method_profile
+    }
+
+    /// Returns the chart plane (天盘 / 地盘 / 人盘) this profile describes.
+    pub const fn chart_plane(&self) -> ChartPlane {
+        self.chart_plane
+    }
+
+    /// Returns the typed chart algorithm kind, delegating to the method profile.
+    pub const fn algorithm_kind(&self) -> ChartAlgorithmKind {
+        self.method_profile.algorithm_kind()
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -192,5 +238,26 @@ mod tests {
             ChartAlgorithmKind::Placeholder,
             ChartPlane::Human,
         ));
+    }
+
+    #[test]
+    fn chart_profile_preserves_method_profile_and_plane() {
+        let method_profile =
+            MethodProfile::new("zhongzhou_test", ChartAlgorithmKind::Zhongzhou, "zhongzhou");
+        let profile = ChartProfile::new(method_profile.clone(), ChartPlane::Earth);
+
+        assert_eq!(profile.method_profile(), &method_profile);
+        assert_eq!(profile.chart_plane(), ChartPlane::Earth);
+        assert_eq!(profile.algorithm_kind(), ChartAlgorithmKind::Zhongzhou);
+    }
+
+    #[test]
+    fn chart_profile_defaults_are_independent_axes() {
+        let method_profile =
+            MethodProfile::new("quanshu_test", ChartAlgorithmKind::QuanShu, "quanshu");
+        let profile = ChartProfile::new(method_profile, ChartPlane::Heaven);
+
+        assert_eq!(profile.chart_plane(), ChartPlane::Heaven);
+        assert_eq!(profile.algorithm_kind(), ChartAlgorithmKind::QuanShu);
     }
 }
