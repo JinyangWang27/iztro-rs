@@ -1,7 +1,8 @@
 use iztro::core::{
     BirthContext, CalendarDate, Chart, ChartPlane, EarthlyBranch, FiveElementBureau, Gender,
     HeavenlyStem, LunarDay, LunarMonth, MethodProfile, NatalChartInput,
-    NatalChartWithMajorStarsInput, PALACE_COUNT, PALACE_NAMES, PalaceName, StarCategory, StarName,
+    NatalChartWithMajorStarsInput, PALACE_COUNT, PALACE_NAMES, Palace, PalaceName, StarCategory,
+    StarName,
     StemBranch, build_empty_chart, build_minimal_natal_chart, build_natal_chart_with_major_stars,
     five_element_bureau_from_life_palace, palace_stem_for_branch,
 };
@@ -285,6 +286,81 @@ fn build_local_major_star_test_chart() -> Chart {
         LOCAL_TEST_YEAR_BRANCH,
     ))
     .expect("natal chart with major stars should build")
+}
+
+#[test]
+fn palace_by_name_finds_canonical_palaces() {
+    let chart = build_local_natal_test_chart();
+
+    let life = chart
+        .palace_by_name(PalaceName::Life)
+        .expect("Life Palace should be present");
+    assert_eq!(life.name(), PalaceName::Life);
+
+    let spirit = chart
+        .palace_by_name(PalaceName::Spirit)
+        .expect("Spirit Palace should be present");
+    assert_eq!(spirit.name(), PalaceName::Spirit);
+}
+
+#[test]
+fn palace_by_name_resolves_every_canonical_name() {
+    let chart = build_local_natal_test_chart();
+
+    for name in PALACE_NAMES {
+        assert!(
+            chart.palace_by_name(name).is_some(),
+            "palace name {name:?} should be present",
+        );
+    }
+}
+
+#[test]
+fn palace_by_branch_round_trips_each_palace() {
+    let chart = build_local_natal_test_chart();
+
+    for palace in chart.palaces() {
+        assert_eq!(chart.palace_by_branch(palace.branch()), Some(palace));
+    }
+}
+
+#[test]
+fn branch_of_palace_matches_life_palace_branch() {
+    let chart = build_local_natal_test_chart();
+
+    assert_eq!(
+        chart.branch_of_palace(PalaceName::Life),
+        chart.life_palace().map(Palace::branch),
+    );
+    assert_eq!(
+        chart.branch_of_palace(PalaceName::Spirit),
+        chart.palace_by_name(PalaceName::Spirit).map(Palace::branch),
+    );
+}
+
+#[test]
+fn palace_name_at_branch_round_trips_each_palace() {
+    let chart = build_local_natal_test_chart();
+
+    for palace in chart.palaces() {
+        assert_eq!(
+            chart.palace_name_at_branch(palace.branch()),
+            Some(palace.name()),
+        );
+    }
+}
+
+#[test]
+fn required_lookups_succeed_on_valid_chart() {
+    let chart = build_local_natal_test_chart();
+
+    assert!(chart.required_palace_by_name(PalaceName::Life).is_ok());
+
+    let life_branch = chart
+        .life_palace()
+        .expect("Life Palace should be present")
+        .branch();
+    assert!(chart.required_palace_by_branch(life_branch).is_ok());
 }
 
 fn collect_major_star_names(chart: &Chart) -> Vec<StarName> {

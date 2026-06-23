@@ -137,6 +137,12 @@ pub enum ChartError {
         /// Palace name that could not be found in the chart.
         palace_name: PalaceName,
     },
+    /// A required palace lookup found no palace occupying an earthly branch.
+    #[error("required palace at branch {branch:?} is missing")]
+    RequiredPalaceBranchMissing {
+        /// Earthly branch that no palace occupies in the chart.
+        branch: EarthlyBranch,
+    },
     /// A decorative placement must name a known decorative (untyped) star whose
     /// family matches and whose known metadata carries no `StarKind`.
     #[error("invalid decorative star placement: {star:?}")]
