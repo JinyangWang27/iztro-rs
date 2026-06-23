@@ -7,6 +7,7 @@ use iztro::core::{
     build_natal_chart_with_major_stars, by_lunar, by_solar, five_element_bureau_from_life_palace,
     palace_stem_for_branch,
 };
+use iztro::{ChartDiagnosticSnapshot, PalaceDiagnosticSnapshot};
 
 // These are local algorithmic test cases, not the iztro golden fixture; the
 // upstream compatibility test lives in `tests/iztro_compatibility.rs`.
@@ -372,6 +373,7 @@ fn lunar_facade_charts_satisfy_natal_invariants() {
 
         assert_valid_natal_chart_invariants(&chart);
         assert_chart_profile(&chart, algorithm, plane);
+        assert_diagnostic_snapshot(&chart, algorithm, plane);
     }
 }
 
@@ -383,7 +385,18 @@ fn solar_facade_charts_satisfy_natal_invariants() {
 
         assert_valid_natal_chart_invariants(&chart);
         assert_chart_profile(&chart, algorithm, plane);
+        assert_diagnostic_snapshot(&chart, algorithm, plane);
     }
+}
+
+#[test]
+fn diagnostic_snapshot_serializes_structural_fields() {
+    let snapshot: ChartDiagnosticSnapshot = build_local_natal_test_chart().diagnostic_snapshot();
+    let value = serde_json::to_value(&snapshot).expect("diagnostic snapshot should serialize");
+
+    assert!(value.get("algorithm").is_some());
+    assert!(value.get("chart_plane").is_some());
+    assert!(value.get("palaces").is_some());
 }
 
 fn supported_chart_profiles() -> [(ChartAlgorithmKind, ChartPlane); 4] {
@@ -494,6 +507,36 @@ fn assert_chart_profile(chart: &Chart, algorithm: ChartAlgorithmKind, plane: Cha
     assert_eq!(chart.chart_plane(), plane);
     assert_eq!(chart.method_profile().algorithm_kind(), algorithm);
     assert_eq!(chart.chart_profile().chart_plane(), plane);
+}
+
+fn assert_diagnostic_snapshot(chart: &Chart, algorithm: ChartAlgorithmKind, plane: ChartPlane) {
+    let snapshot = chart.diagnostic_snapshot();
+
+    assert_eq!(snapshot.algorithm, algorithm);
+    assert_eq!(snapshot.chart_plane, plane);
+    assert_eq!(snapshot.palace_count, PALACE_COUNT);
+    assert_eq!(snapshot.palaces.len(), PALACE_COUNT);
+    assert_eq!(
+        snapshot.life_palace_branch,
+        chart.life_palace().map(Palace::branch),
+    );
+    assert_eq!(snapshot.body_palace_branch, chart.body_palace_branch());
+    assert_eq!(snapshot.five_element_bureau, chart.five_element_bureau());
+
+    for palace_snapshot in &snapshot.palaces {
+        let palace_snapshot: &PalaceDiagnosticSnapshot = palace_snapshot;
+        let palace = chart
+            .required_palace_by_name(palace_snapshot.name)
+            .expect("diagnostic palace name should resolve");
+
+        assert_eq!(palace.branch(), palace_snapshot.branch);
+        assert_eq!(palace.stem(), palace_snapshot.stem);
+        assert_eq!(palace.stars().len(), palace_snapshot.star_count);
+        assert_eq!(
+            palace.decorative_stars().len(),
+            palace_snapshot.decorative_star_count,
+        );
+    }
 }
 
 fn collect_major_star_names(chart: &Chart) -> Vec<StarName> {

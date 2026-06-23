@@ -36,12 +36,12 @@ pub use model::calendar::{
     BirthContext, BirthTime, CalendarDate, CalendarKind, Gender, SolarDay, SolarMonth,
 };
 pub use model::chart::{
-    AgePeriod, Chart, ChartLayerKind, ChartLayerSnapshot, ChartStackSnapshot, DailyPeriod,
-    DecadalDirection, DecadalFrame, DecadalPeriod, DecorativeStarFamily, DecorativeStarPlacement,
-    DecorativeStarPlacementRef, DecorativeStarSnapshot, HoroscopeAgeSupportedFields,
-    HoroscopeChart, HoroscopeFacadeContext, HoroscopeFacadeSnapshot,
-    HoroscopeFlowScopeSupportedFields, HoroscopeFlowStarSupportedField, HoroscopeLunarDate,
-    HoroscopeMutagenSupportedFields, HoroscopeMutagenTargetSupportedField,
+    AgePeriod, Chart, ChartDiagnosticSnapshot, ChartLayerKind, ChartLayerSnapshot,
+    ChartStackSnapshot, DailyPeriod, DecadalDirection, DecadalFrame, DecadalPeriod,
+    DecorativeStarFamily, DecorativeStarPlacement, DecorativeStarPlacementRef,
+    DecorativeStarSnapshot, HoroscopeAgeSupportedFields, HoroscopeChart, HoroscopeFacadeContext,
+    HoroscopeFacadeSnapshot, HoroscopeFlowScopeSupportedFields, HoroscopeFlowStarSupportedField,
+    HoroscopeLunarDate, HoroscopeMutagenSupportedFields, HoroscopeMutagenTargetSupportedField,
     HoroscopePalaceNameSupportedField, HoroscopePalaceProjection,
     HoroscopePalaceProjectionSnapshot, HoroscopeProjectionMutagenActivation,
     HoroscopeProjectionMutagenActivationSnapshot, HoroscopeRuntime, HoroscopeScopeSupportedFields,
@@ -52,12 +52,12 @@ pub use model::chart::{
     MutagenActivation, MutagenActivationSnapshot, NatalDateFacts,
     NatalFacadeDecorativeStarSnapshot, NatalFacadeFourPillarsSnapshot, NatalFacadePalaceRole,
     NatalFacadePalaceSnapshot, NatalFacadeSnapshot, NatalFacadeTypedStarSnapshot, PALACE_COUNT,
-    PALACE_NAMES, Palace, PalaceGridPosition, PalaceLayerCellSnapshot, PalaceName, PalaceRoleKind,
-    PalaceRoleSnapshot, ScopedDecorativeStarPlacement, ScopedStarPlacement, ScopedStarSnapshot,
-    StarPlacement, StarPlacementRef, TemporalContext, TemporalLayer, TemporalPalaceLayout,
-    TemporalPalaceName, TypedStarSnapshot, VISUAL_BRANCH_ORDER, YearlyPeriod, build_age_period,
-    build_daily_period, build_decadal_frame, build_hourly_period, build_monthly_period,
-    build_yearly_period, palace_grid_position,
+    PALACE_NAMES, Palace, PalaceDiagnosticSnapshot, PalaceGridPosition, PalaceLayerCellSnapshot,
+    PalaceName, PalaceRoleKind, PalaceRoleSnapshot, ScopedDecorativeStarPlacement,
+    ScopedStarPlacement, ScopedStarSnapshot, StarPlacement, StarPlacementRef, TemporalContext,
+    TemporalLayer, TemporalPalaceLayout, TemporalPalaceName, TypedStarSnapshot,
+    VISUAL_BRANCH_ORDER, YearlyPeriod, build_age_period, build_daily_period, build_decadal_frame,
+    build_hourly_period, build_monthly_period, build_yearly_period, palace_grid_position,
 };
 pub use model::master::{body_master, soul_master};
 pub use model::nayin::{NaYinElement, nayin_element};
