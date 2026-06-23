@@ -136,6 +136,7 @@ English documentation is canonical for engineering specifications. Chinese docum
 
 - [Project specification](docs/en/project-spec.md)
 - [Architecture](docs/en/architecture.md)
+- [Core chart generation architecture](docs/architecture/core-chart-generation.md)
 - [Roadmap](docs/en/roadmap.md)
 - [Compatibility](docs/en/compatibility.md)
 - [Terminology](docs/en/terminology.md)

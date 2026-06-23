@@ -3,6 +3,7 @@ use crate::core::{
     model::{
         bureau::FiveElementBureau,
         calendar::BirthContext,
+        chart::ChartDiagnosticSnapshot,
         chart::horoscope::{HoroscopeLunarDate, HoroscopeSolarDate},
         chart::palace::PalaceName,
         chart::snapshot::ChartStackSnapshot,
@@ -256,6 +257,11 @@ impl Chart {
     /// Returns an owned renderer-neutral stack snapshot of this natal chart.
     pub fn stack_snapshot(&self) -> ChartStackSnapshot {
         ChartStackSnapshot::from_natal_chart(self)
+    }
+
+    /// Returns a compact serializable snapshot for structural diagnostics.
+    pub fn diagnostic_snapshot(&self) -> ChartDiagnosticSnapshot {
+        ChartDiagnosticSnapshot::from_chart(self)
     }
 
     /// Returns the branch containing the Body Palace, if known.
