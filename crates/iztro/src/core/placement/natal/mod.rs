@@ -19,5 +19,6 @@ pub mod major;
 pub mod minimal;
 pub mod minor;
 pub mod palace_stems;
+pub(crate) mod plane;
 pub mod strategy;
 pub mod supported;
