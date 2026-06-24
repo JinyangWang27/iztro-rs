@@ -176,36 +176,133 @@ pub enum SolarTimePolicy {
     ApparentSolarTime(ApparentSolarTimeConfig),
 }
 
+/// 年分界: the effective astrological year boundary (`yearDivide`).
+///
+/// This mirrors upstream TS `iztro@2.5.8` `yearDivide`. It selects which boundary
+/// separates one cyclic birth year (and year pillar) from the next. It is an
+/// input calculation policy for a supported field; it does not define a new
+/// algorithm or chart plane.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Hash)]
+pub enum YearBoundary {
+    /// 年分界：按除夕. The cyclic year changes at the lunar new year (正月初一),
+    /// upstream `yearDivide: 'normal'`. This is the default and preserves
+    /// existing iztro-rs behaviour.
+    #[default]
+    ChineseNewYearEve,
+
+    /// 年分界：按立春. The cyclic year changes at 立春 (LiChun), upstream
+    /// `yearDivide: 'exact'`, resolved at date granularity.
+    LiChun,
+}
+
+/// 闰月分界: how a leap month (闰月) is attributed to a numeric month (`fixLeap`).
+///
+/// This mirrors upstream TS `iztro@2.5.8` `fixLeap`. It controls whether the
+/// second half of a leap month advances month-based placement to the next month.
+/// It is an input calculation policy for a supported field; it does not define a
+/// new algorithm or chart plane.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Hash)]
+pub enum LeapMonthBoundary {
+    /// 闰月分界：算上月. The whole leap month is treated as its own numeric
+    /// month; the second half is not advanced. Equivalent to upstream
+    /// `fixLeap: false`.
+    AsPreviousMonth,
+
+    /// 闰月分界：月中分界. The leap month splits at the 15th: day `<= 15` stays in
+    /// the month, day `>= 16` advances to the next month. Equivalent to upstream
+    /// `fixLeap: true`. This is the default and preserves existing iztro-rs
+    /// behaviour.
+    #[default]
+    MidMonth,
+}
+
+/// 虚岁分界: when the nominal age (虚岁) increments (`ageDivide`).
+///
+/// This mirrors upstream TS `iztro@2.5.8` `ageDivide`. It is a runtime/horoscope
+/// calculation policy: it affects nominal-age resolution for 小限 and decadal
+/// selection only, never natal chart generation. It does not define a new
+/// algorithm or chart plane.
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Hash)]
+pub enum NominalAgeBoundary {
+    /// 虚岁分界：按自然年. The nominal age increments at the natural-year boundary
+    /// (the lunar new year), upstream `ageDivide: 'normal'`. This is the default
+    /// and preserves existing iztro-rs runtime behaviour.
+    #[default]
+    NaturalYear,
+
+    /// 虚岁分界：按生日. The nominal age increments at the (lunar) birthday,
+    /// upstream `ageDivide: 'birthday'`.
+    Birthday,
+}
+
 /// The input calculation policy applied before chart generation.
 ///
 /// This is a separate axis from the algorithm family and the chart plane. With
 /// the default policy, the clock-time API derives the 时辰 from the supplied
 /// clock time and produces the same chart as the legacy time-index API for the
 /// same 时辰.
+///
+/// [`year_boundary`](Self::year_boundary) and
+/// [`leap_month_boundary`](Self::leap_month_boundary) affect natal chart
+/// generation; [`nominal_age_boundary`](Self::nominal_age_boundary) affects
+/// runtime/horoscope nominal-age resolution only. All default to the values that
+/// preserve existing iztro-rs behaviour and fixtures.
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct ChartCalculationConfig {
     /// Policy controlling how birth clock time becomes a 时辰.
     pub solar_time: SolarTimePolicy,
+    /// 年分界 policy controlling the effective cyclic birth year.
+    pub year_boundary: YearBoundary,
+    /// 闰月分界 policy controlling leap-month month attribution.
+    pub leap_month_boundary: LeapMonthBoundary,
+    /// 虚岁分界 policy controlling runtime nominal-age increments.
+    pub nominal_age_boundary: NominalAgeBoundary,
 }
 
 impl ChartCalculationConfig {
     /// Creates a calculation config from an explicit solar-time policy.
+    ///
+    /// The boundary policies use their defaults
+    /// ([`YearBoundary::ChineseNewYearEve`], [`LeapMonthBoundary::MidMonth`],
+    /// [`NominalAgeBoundary::NaturalYear`]).
     pub const fn new(solar_time: SolarTimePolicy) -> Self {
-        Self { solar_time }
+        Self {
+            solar_time,
+            year_boundary: YearBoundary::ChineseNewYearEve,
+            leap_month_boundary: LeapMonthBoundary::MidMonth,
+            nominal_age_boundary: NominalAgeBoundary::NaturalYear,
+        }
     }
 
     /// Creates the default clock-time calculation config.
     pub const fn clock_time() -> Self {
-        Self {
-            solar_time: SolarTimePolicy::ClockTime,
-        }
+        Self::new(SolarTimePolicy::ClockTime)
     }
 
     /// Creates an apparent-solar-time calculation config.
     pub const fn apparent_solar_time(config: ApparentSolarTimeConfig) -> Self {
-        Self {
-            solar_time: SolarTimePolicy::ApparentSolarTime(config),
-        }
+        Self::new(SolarTimePolicy::ApparentSolarTime(config))
+    }
+
+    /// Returns a copy with the 年分界 policy replaced.
+    pub const fn with_year_boundary(mut self, year_boundary: YearBoundary) -> Self {
+        self.year_boundary = year_boundary;
+        self
+    }
+
+    /// Returns a copy with the 闰月分界 policy replaced.
+    pub const fn with_leap_month_boundary(mut self, leap_month_boundary: LeapMonthBoundary) -> Self {
+        self.leap_month_boundary = leap_month_boundary;
+        self
+    }
+
+    /// Returns a copy with the 虚岁分界 policy replaced.
+    pub const fn with_nominal_age_boundary(
+        mut self,
+        nominal_age_boundary: NominalAgeBoundary,
+    ) -> Self {
+        self.nominal_age_boundary = nominal_age_boundary;
+        self
     }
 }
 
@@ -297,5 +394,49 @@ mod tests {
             ChartCalculationConfig::default().solar_time,
             SolarTimePolicy::ClockTime,
         );
+    }
+
+    #[test]
+    fn calculation_config_boundary_defaults_preserve_existing_behaviour() {
+        let config = ChartCalculationConfig::default();
+        assert_eq!(config.year_boundary, YearBoundary::ChineseNewYearEve);
+        assert_eq!(config.leap_month_boundary, LeapMonthBoundary::MidMonth);
+        assert_eq!(config.nominal_age_boundary, NominalAgeBoundary::NaturalYear);
+    }
+
+    #[test]
+    fn enum_defaults_match_existing_behaviour() {
+        assert_eq!(YearBoundary::default(), YearBoundary::ChineseNewYearEve);
+        assert_eq!(LeapMonthBoundary::default(), LeapMonthBoundary::MidMonth);
+        assert_eq!(NominalAgeBoundary::default(), NominalAgeBoundary::NaturalYear);
+    }
+
+    #[test]
+    fn constructors_set_boundary_defaults() {
+        for config in [
+            ChartCalculationConfig::clock_time(),
+            ChartCalculationConfig::new(SolarTimePolicy::ClockTime),
+            ChartCalculationConfig::apparent_solar_time(ApparentSolarTimeConfig::new(
+                Longitude::new(120.0).expect("valid longitude"),
+                EquationOfTimePolicy::Disabled,
+            )),
+        ] {
+            assert_eq!(config.year_boundary, YearBoundary::ChineseNewYearEve);
+            assert_eq!(config.leap_month_boundary, LeapMonthBoundary::MidMonth);
+            assert_eq!(config.nominal_age_boundary, NominalAgeBoundary::NaturalYear);
+        }
+    }
+
+    #[test]
+    fn with_builders_replace_each_boundary() {
+        let config = ChartCalculationConfig::clock_time()
+            .with_year_boundary(YearBoundary::LiChun)
+            .with_leap_month_boundary(LeapMonthBoundary::AsPreviousMonth)
+            .with_nominal_age_boundary(NominalAgeBoundary::Birthday);
+        assert_eq!(config.year_boundary, YearBoundary::LiChun);
+        assert_eq!(config.leap_month_boundary, LeapMonthBoundary::AsPreviousMonth);
+        assert_eq!(config.nominal_age_boundary, NominalAgeBoundary::Birthday);
+        // Unrelated axis untouched.
+        assert_eq!(config.solar_time, SolarTimePolicy::ClockTime);
     }
 }

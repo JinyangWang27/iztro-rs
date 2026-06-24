@@ -31,7 +31,8 @@ pub use error::{ChartError, validate_chart_algorithm_plane};
 
 pub use calculation::{
     ApparentSolarTimeConfig, ChartCalculationConfig, ClockBirthTime, EquationOfTimePolicy,
-    Longitude, ResolvedBirthDateTime, SolarTimePolicy, UtcOffset,
+    LeapMonthBoundary, Longitude, NominalAgeBoundary, ResolvedBirthDateTime, SolarTimePolicy,
+    UtcOffset, YearBoundary,
 };
 pub use lunar_lite::{
     EARTHLY_BRANCHES, EarthlyBranch, FourPillars, HEAVENLY_STEMS, HeavenlyStem, StemBranch,

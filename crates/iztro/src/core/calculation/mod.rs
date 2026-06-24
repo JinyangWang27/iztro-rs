@@ -24,7 +24,7 @@ mod resolve;
 
 pub use config::{
     ApparentSolarTimeConfig, ChartCalculationConfig, ClockBirthTime, EquationOfTimePolicy,
-    Longitude, SolarTimePolicy, UtcOffset,
+    LeapMonthBoundary, Longitude, NominalAgeBoundary, SolarTimePolicy, UtcOffset, YearBoundary,
 };
 pub use resolve::ResolvedBirthDateTime;
 pub(crate) use resolve::resolve_birth_datetime;
