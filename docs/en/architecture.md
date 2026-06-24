@@ -188,6 +188,8 @@ This allows configurations such as `QuanShu chart generation + SanHe features + 
 - `ChartPlane` is the plane variant (天盘 / 地盘 / 人盘) within a family.
 - `ChartCalculationConfig` is the input calculation policy applied *before* chart generation.
 
+`ChartCalculationConfig` currently includes `SolarTimePolicy`, `YearBoundary`, `LeapMonthBoundary`, and `NominalAgeBoundary`. `YearBoundary` and `LeapMonthBoundary` affect natal input normalization: `YearBoundary::ChineseNewYearEve` means the previous cyclic year lasts through 除夕 and the new cyclic year begins at 正月初一, while `YearBoundary::LiChun` uses 立春. `LeapMonthBoundary` maps to the legacy `fix_leap` split. `NominalAgeBoundary` is runtime-only: it affects horoscope nominal-age resolution and does not affect natal chart generation.
+
 The user always inputs a birth clock time. The calculation policy decides how that clock time becomes a 时辰:
 
 ```text
@@ -206,7 +208,7 @@ longitude_correction_minutes = 4 * (longitude_degrees - timezone_meridian_degree
 resolved_time = clock_time + longitude_correction_minutes + equation_of_time_minutes
 ```
 
-When the adjusted time crosses midnight, the resolved solar date moves to the adjacent day. The resolver runs ahead of the existing chart-generation path and never touches `ChartAlgorithmKind`, `ChartPlane`, the natal anchor, or any star placer.
+When the adjusted time crosses midnight, the resolved solar date moves to the adjacent day. These policies run ahead of the existing chart-generation path and never define a new algorithm, chart plane, natal anchor, or star placer.
 
 ## Evidence-first interpretation
 

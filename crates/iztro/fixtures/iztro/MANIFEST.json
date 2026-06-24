@@ -186,6 +186,13 @@
       "covers": ["explicit leap-month by_lunar behavior under is_leap_month / fix_leap toggles"]
     },
     {
+      "file": "calculation_config.json",
+      "category": "boundary",
+      "birth_cases": [],
+      "algorithms": ["default"],
+      "covers": ["supported-field calculation policy cases for yearDivide, fixLeap, and ageDivide"]
+    },
+    {
       "file": "time_index_rat_hour.json",
       "category": "boundary",
       "birth_cases": [],

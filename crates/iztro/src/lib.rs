@@ -87,7 +87,7 @@ pub use core::{
 // time. These are a separate axis from `ChartAlgorithmKind` and `ChartPlane`.
 pub use core::{
     ApparentSolarTimeConfig, ChartCalculationConfig, ClockBirthTime, EquationOfTimePolicy,
-    Longitude, LunarBirthInput, LunarDate, NatalChartOptions, ResolvedBirthDateTime,
-    SolarBirthInput, SolarDate, SolarTimePolicy, UtcOffset, by_lunar_with_options,
-    by_solar_with_options,
+    LeapMonthBoundary, Longitude, LunarBirthInput, LunarDate, NatalChartOptions,
+    NominalAgeBoundary, ResolvedBirthDateTime, SolarBirthInput, SolarDate, SolarTimePolicy,
+    UtcOffset, YearBoundary, by_lunar_with_options, by_solar_with_options,
 };

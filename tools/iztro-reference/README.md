@@ -26,6 +26,7 @@ npm run dump:adjective --prefix tools/iztro-reference
 npm run dump:e2e-supported --prefix tools/iztro-reference
 npm run dump:e2e-supported-by-solar --prefix tools/iztro-reference
 npm run dump:leap-month --prefix tools/iztro-reference
+npm run dump:calculation-config --prefix tools/iztro-reference
 npm run dump:time-index-rat-hour --prefix tools/iztro-reference
 npm run dump:horoscope --prefix tools/iztro-reference
 ```
@@ -105,6 +106,22 @@ ordinary months; each case records the upstream `resolved_lunar` block.
 
 Shared normalization maps/helpers for these two generators live in
 `scripts/lib/normalize.mjs`.
+
+### Calculation configuration fixture
+
+```bash
+# inspect
+npm run dump:calculation-config --prefix tools/iztro-reference
+
+# regenerate crates/iztro/fixtures/iztro/calculation_config.json from repo root
+npm run dump:calculation-config --prefix tools/iztro-reference -- --write
+```
+
+`dump:calculation-config` emits supported-field-only cases for upstream
+calculation switches that map to `ChartCalculationConfig`: `yearDivide` normal /
+exact, `fixLeap` false / true, and `ageDivide` normal / birthday. The fixture is
+scoped to implemented Rust facts and does not claim full drop-in upstream
+semantic parity.
 
 ### Time-index rat-hour fixture
 

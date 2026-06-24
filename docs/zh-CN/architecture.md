@@ -173,6 +173,8 @@ Narrative Layer 把结构化判断渲染成人类可读报告。
 - `ChartPlane` 是某派别内的盘面变体（天盘 / 地盘 / 人盘）。
 - `ChartCalculationConfig` 是在排盘*之前*应用的输入计算策略。
 
+`ChartCalculationConfig` 当前包含 `SolarTimePolicy`、`YearBoundary`、`LeapMonthBoundary` 与 `NominalAgeBoundary`。`YearBoundary` 与 `LeapMonthBoundary` 影响本命输入归一化：`YearBoundary::ChineseNewYearEve` 表示上一干支年持续到除夕结束，新干支年从正月初一开始；`YearBoundary::LiChun` 使用立春。`LeapMonthBoundary` 映射旧的 `fix_leap` 分界。`NominalAgeBoundary` 只属于 runtime/horoscope：它影响虚岁解析，不影响本命排盘。
+
 用户始终输入出生的钟表时间（时钟时间）。计算策略决定该钟表时间如何转换为时辰：
 
 ```text
@@ -191,7 +193,7 @@ longitude_correction_minutes = 4 * (longitude_degrees - timezone_meridian_degree
 resolved_time = clock_time + longitude_correction_minutes + equation_of_time_minutes
 ```
 
-当校正后的时间跨越午夜时，解析后的公历日期会移动到相邻的一天。该解析器运行在现有排盘流程之前，且不会触及 `ChartAlgorithmKind`、`ChartPlane`、本命定盘锚点或任何安星器。
+当校正后的时间跨越午夜时，解析后的公历日期会移动到相邻的一天。这些策略运行在现有排盘流程之前，不定义新的算法、盘面、本命定盘锚点或安星器。
 
 ## 证据优先
 
