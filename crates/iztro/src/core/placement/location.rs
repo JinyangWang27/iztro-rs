@@ -8,7 +8,7 @@
 
 use crate::core::model::bureau::FiveElementBureau;
 use crate::core::model::calendar::Gender;
-use lunar_lite::{EarthlyBranch, HeavenlyStem};
+use crate::core::model::ganzhi::{EarthlyBranch, HeavenlyStem};
 
 /// Returns the 天魁/天钺 branches for a Heavenly Stem (iztro `getKuiYueIndex`).
 pub(crate) const fn kui_yue_branches(stem: HeavenlyStem) -> (EarthlyBranch, EarthlyBranch) {

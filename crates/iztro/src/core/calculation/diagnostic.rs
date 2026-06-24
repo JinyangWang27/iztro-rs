@@ -8,7 +8,7 @@ use crate::core::calculation::{
     EquationOfTimePolicy, LeapMonthBoundary, NominalAgeBoundary, YearBoundary,
 };
 use crate::core::model::chart::{HoroscopeLunarDate, HoroscopeSolarDate};
-use lunar_lite::{EarthlyBranch, StemBranch};
+use crate::core::model::ganzhi::{EarthlyBranch, StemBranch};
 use serde::{Deserialize, Serialize};
 
 /// Calculation facts resolved while generating a natal chart.

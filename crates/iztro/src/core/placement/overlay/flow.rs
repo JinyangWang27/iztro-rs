@@ -14,6 +14,7 @@ use crate::core::error::ChartError;
 use crate::core::model::chart::{
     ScopedStarPlacement, StarPlacement, TemporalContext, TemporalLayer,
 };
+use crate::core::model::ganzhi::{EarthlyBranch, HeavenlyStem};
 use crate::core::model::star::mutagen::Scope;
 use crate::core::model::star::{
     Brightness, FlowStarBase, FlowStarScope, StarName, flow_star_name, known_star_metadata,
@@ -22,7 +23,6 @@ use crate::core::placement::location::{
     chang_qu_branches_by_stem, kui_yue_branches, lu_yang_tuo_ma_branches, luan_xi_branches,
     nian_jie_branch,
 };
-use lunar_lite::{EarthlyBranch, HeavenlyStem};
 
 /// Builds the scoped flow-star placements for one horoscope period.
 ///

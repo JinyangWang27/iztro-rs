@@ -16,7 +16,7 @@
 //! Branch. Because ten stems cover twelve branches cyclically, two branches in
 //! every chart repeat the stems of Yin and Mao.
 
-use lunar_lite::{EARTHLY_BRANCHES, EarthlyBranch, HeavenlyStem};
+use crate::core::model::ganzhi::{EARTHLY_BRANCHES, EarthlyBranch, HeavenlyStem};
 
 /// Returns the Heavenly Stem assigned to the Yin palace for a birth year stem.
 ///

@@ -2,10 +2,10 @@
 
 use crate::core::error::ChartError;
 use crate::core::model::chart::{Chart, Palace, StarPlacement};
+use crate::core::model::ganzhi::EarthlyBranch;
 use crate::core::model::profile::ChartAlgorithmKind;
 use crate::core::model::star::mutagen::Scope;
 use crate::core::model::star::{Brightness, StarName};
-use lunar_lite::EarthlyBranch;
 
 use super::formulas::{
     gu_chen_gua_su_branches, hua_gai_branch, jie_lu_branch, kong_wang_branch, po_sui_branch,

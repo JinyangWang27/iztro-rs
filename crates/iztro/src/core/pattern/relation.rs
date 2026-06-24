@@ -1,7 +1,7 @@
 //! Branch-level palace relation helpers for pattern detection.
 //!
 //! All helpers operate on [`EarthlyBranch`] using the canonical branch ordering
-//! provided by `lunar_lite` (via [`EarthlyBranch::offset`]). They introduce no
+//! owned by `iztro-rs` (via [`EarthlyBranch::offset`]). They introduce no
 //! second branch order. Offsets mirror the palace-level relations used elsewhere
 //! in the crate (see [`crate::features::relations`]): opposite `+6`, trine `+4`
 //! and `+8`, adjacent `±1`.

@@ -37,9 +37,6 @@ pub use calculation::{
     SolarTimePolicy, SolarTimePolicyDiagnostic, UtcOffset, YearBoundary,
     YearBoundaryDiagnosticSnapshot,
 };
-pub use lunar_lite::{
-    EARTHLY_BRANCHES, EarthlyBranch, FourPillars, HEAVENLY_STEMS, HeavenlyStem, StemBranch,
-};
 pub use model::bureau::{FiveElementBureau, five_element_bureau_from_life_palace};
 pub use model::calendar::{
     BirthContext, BirthTime, CalendarDate, CalendarKind, Gender, SolarDate, SolarDay, SolarMonth,
@@ -67,6 +64,10 @@ pub use model::chart::{
     TemporalLayer, TemporalPalaceLayout, TemporalPalaceName, TypedStarSnapshot,
     VISUAL_BRANCH_ORDER, YearlyPeriod, build_age_period, build_daily_period, build_decadal_frame,
     build_hourly_period, build_monthly_period, build_yearly_period, palace_grid_position,
+};
+pub use model::ganzhi::{
+    EARTHLY_BRANCHES, EarthlyBranch, FourPillars, HEAVENLY_STEMS, HeavenlyStem, StemBranch,
+    StemBranchError,
 };
 pub use model::master::{body_master, soul_master};
 pub use model::nayin::{NaYinElement, nayin_element};

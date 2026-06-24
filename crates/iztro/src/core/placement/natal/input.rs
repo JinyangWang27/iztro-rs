@@ -8,9 +8,9 @@
 //! explicitly.
 
 use crate::core::model::calendar::BirthContext;
+use crate::core::model::ganzhi::{EarthlyBranch, HeavenlyStem};
 use crate::core::model::profile::MethodProfile;
 use crate::core::placement::natal::life_body::{LunarDay, LunarMonth};
-use lunar_lite::{EarthlyBranch, HeavenlyStem};
 
 /// Inputs required by the minimal natal chart builder.
 ///

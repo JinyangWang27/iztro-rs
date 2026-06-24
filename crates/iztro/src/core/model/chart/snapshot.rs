@@ -4,6 +4,7 @@
 //! facts arranged into the fixed visual twelve-palace grid. It does not derive
 //! temporal facts, mutate natal data, or prescribe a renderer.
 
+use crate::core::model::ganzhi::{EarthlyBranch, FourPillars, HeavenlyStem, StemBranch};
 use crate::core::model::{
     bureau::FiveElementBureau,
     calendar::BirthContext,
@@ -17,7 +18,6 @@ use crate::core::model::{
         mutagen::{Mutagen, Scope},
     },
 };
-use lunar_lite::{EarthlyBranch, FourPillars, HeavenlyStem, StemBranch};
 use serde::{Deserialize, Serialize};
 
 /// Branch order for the renderer-ready 4x4 visual palace grid.

@@ -15,9 +15,10 @@ exclude = [
 
 
 [dependencies]
-lunar-lite = { workspace = true, features = ["serde"] }
 serde.workspace = true
 thiserror.workspace = true
+tyme4rs = "=1.5.0"
 
 [dev-dependencies]
 serde_json.workspace = true
+tyme4rs = "=1.5.0"

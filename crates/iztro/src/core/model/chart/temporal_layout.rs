@@ -8,14 +8,15 @@
 //! and the calendar-error mapping shared by target-date conversions.
 
 use crate::core::calculation::NominalAgeBoundary;
+use crate::core::calendar::{LunarDateInfo, lunar_facts};
 use crate::core::error::ChartError;
 use crate::core::model::calendar::{CalendarKind, SolarDay, SolarMonth};
 use crate::core::model::chart::{
     Chart, DecadalFrame, DecadalPeriod, PALACE_COUNT, PalaceName, TemporalPalaceLayout,
     TemporalPalaceName,
 };
+use crate::core::model::ganzhi::{EarthlyBranch, StemBranch};
 use crate::core::model::star::mutagen::Scope;
-use lunar_lite::{EarthlyBranch, LunarDate, LunarError, SolarDate, StemBranch, solar_to_lunar};
 
 pub(super) fn build_life_branch_palace_layout(
     scope: Scope,
@@ -99,14 +100,8 @@ pub(crate) fn target_lunar_date(
     year: i32,
     month: SolarMonth,
     day: SolarDay,
-) -> Result<LunarDate, ChartError> {
-    let solar = SolarDate {
-        year,
-        month: month.value(),
-        day: day.value(),
-    };
-    solar_to_lunar(solar)
-        .map_err(|err| map_target_solar_error(err, year, month.value(), day.value()))
+) -> Result<LunarDateInfo, ChartError> {
+    lunar_facts(year, month, day)
 }
 
 /// Derives the one-based nominal age (虚岁) from natal and target lunar years.
@@ -215,24 +210,6 @@ pub(crate) fn select_decadal_period_by_age(
         .iter()
         .find(|period| (period.start_age()..=period.end_age()).contains(&nominal_age))
         .ok_or(ChartError::NominalAgeOutsideDecadalFrame { nominal_age })
-}
-
-/// Maps a target solar-date conversion failure to the matching [`ChartError`].
-///
-/// Shared by the monthly, daily, hourly, and full-stack builders, which convert the
-/// caller-supplied target solar date through the lunar backend.
-pub(super) fn map_target_solar_error(err: LunarError, year: i32, month: u8, day: u8) -> ChartError {
-    match err {
-        LunarError::InvalidSolarDate { .. } => ChartError::InvalidSolarDate { year, month, day },
-        LunarError::YearOutOfRange { .. } | LunarError::SolarTermOutOfRange { .. } => {
-            ChartError::UnsupportedCalendarDate { year, month, day }
-        }
-        LunarError::InvalidLunarDate { .. }
-        | LunarError::InvalidTime { .. }
-        | LunarError::InvalidTimeIndex { .. } => {
-            ChartError::CalendarConversionFailed { year, month, day }
-        }
-    }
 }
 
 #[cfg(test)]

@@ -10,8 +10,8 @@ use iztro::core::{
     StarName, StemBranch, TemporalContext, build_monthly_horoscope_layer, build_monthly_period,
     by_lunar, flow_star_name,
 };
-use lunar_lite::{SolarDate, solar_to_lunar};
 use serde_json::Value;
+use tyme4rs::tyme::solar::SolarDay as TymeSolarDay;
 
 const HOROSCOPE_FIXTURE: &str = include_str!("../fixtures/iztro/horoscope.json");
 const CANONICAL_CASE_ID: &str = "canonical_female_default_2026";
@@ -431,9 +431,10 @@ fn monthly_index(monthly: &Value) -> usize {
 
 fn target_lunar_month(case: &Value) -> u8 {
     let (year, month, day) = target_solar_date(case);
-    solar_to_lunar(SolarDate { year, month, day })
-        .expect("fixture target solar date should convert")
-        .month
+    TymeSolarDay::from_ymd(year as isize, month as usize, day as usize)
+        .get_lunar_day()
+        .get_lunar_month()
+        .get_month() as u8
 }
 
 fn target_solar_date(case: &Value) -> (i32, u8, u8) {

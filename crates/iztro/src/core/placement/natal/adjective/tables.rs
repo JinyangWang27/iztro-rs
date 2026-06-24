@@ -5,7 +5,7 @@
 //! birth-year-branch subset of `getYearlyStarIndex`. Each entry is the target
 //! Earthly Branch.
 
-use lunar_lite::EarthlyBranch;
+use crate::core::model::ganzhi::EarthlyBranch;
 
 pub(super) const TIAN_WU_BY_MONTH: [EarthlyBranch; 4] = [
     EarthlyBranch::Si,

@@ -13,8 +13,8 @@ use iztro::core::{
     HoroscopeStackInput, Scope, SolarDay, SolarMonth, StarName, TemporalContext, TemporalLayer,
     TemporalPalaceLayout, build_decadal_frame, build_full_horoscope_chart,
 };
-use lunar_lite::{SolarDate, solar_to_lunar};
 use serde_json::Value;
+use tyme4rs::tyme::solar::SolarDay as TymeSolarDay;
 
 const CANONICAL_CASE_ID: &str = "canonical_female_default_2026";
 
@@ -349,10 +349,24 @@ fn manual_horoscope_chart_constructors_do_not_set_target_context() {
 
 // --- helpers -------------------------------------------------------------------
 
-fn target_lunar_date(case: &Value) -> lunar_lite::LunarDate {
+/// Minimal lunar-date facts derived for fixture cross-checks.
+struct TargetLunar {
+    year: i32,
+    month: u8,
+    day: u8,
+    is_leap_month: bool,
+}
+
+fn target_lunar_date(case: &Value) -> TargetLunar {
     let (year, month, day) = target_solar_date(case);
-    solar_to_lunar(SolarDate { year, month, day })
-        .expect("fixture target solar date should convert")
+    let lunar = TymeSolarDay::from_ymd(year as isize, month as usize, day as usize).get_lunar_day();
+    let lunar_month = lunar.get_lunar_month();
+    TargetLunar {
+        year: lunar_month.get_lunar_year().get_year() as i32,
+        month: lunar_month.get_month() as u8,
+        day: lunar.get_day() as u8,
+        is_leap_month: lunar_month.is_leap(),
+    }
 }
 fn stack_input(case: &Value) -> HoroscopeStackInput {
     let (year, month, day) = target_solar_date(case);
