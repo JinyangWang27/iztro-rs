@@ -165,6 +165,34 @@ Narrative Layer 把结构化判断渲染成人类可读报告。
 
 这允许类似 `全书排盘 + 三合特征 + 基础四化规则 + 技术型报告` 的组合。
 
+## 输入计算策略
+
+`ChartAlgorithmKind`、`ChartPlane` 与 `ChartCalculationConfig` 是相互独立的三个维度，不可混为一谈：
+
+- `ChartAlgorithmKind` 是排盘算法派别（全书 / 中州 / …）。
+- `ChartPlane` 是某派别内的盘面变体（天盘 / 地盘 / 人盘）。
+- `ChartCalculationConfig` 是在排盘*之前*应用的输入计算策略。
+
+用户始终输入出生的钟表时间（时钟时间）。计算策略决定该钟表时间如何转换为时辰：
+
+```text
+原始出生日期 + 民用钟表时间
+  -> 可选的真太阳时（apparent solar time）校正
+  -> 解析后的本地日期/时间
+  -> 推导时辰 / 时辰序号
+  -> 现有的本命排盘流程
+```
+
+真太阳时是一种输入计算策略。它在排盘之前，使用时区与经度对出生钟表时间进行归一化。它**不**定义新的算法，也**不**定义新的盘面。经度校正是精确的：
+
+```text
+timezone_meridian_degrees = utc_offset_hours * 15
+longitude_correction_minutes = 4 * (longitude_degrees - timezone_meridian_degrees)
+resolved_time = clock_time + longitude_correction_minutes + equation_of_time_minutes
+```
+
+当校正后的时间跨越午夜时，解析后的公历日期会移动到相邻的一天。该解析器运行在现有排盘流程之前，且不会触及 `ChartAlgorithmKind`、`ChartPlane`、本命定盘锚点或任何安星器。
+
 ## 证据优先
 
 每个解盘判断都应能追溯到星盘证据。这有利于调试、审查、规则调权和未来经验校验。
