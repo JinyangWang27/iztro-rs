@@ -20,11 +20,17 @@
 //! does not define a new chart plane.
 
 mod config;
+mod diagnostic;
 mod resolve;
 
 pub use config::{
     ApparentSolarTimeConfig, ChartCalculationConfig, ClockBirthTime, EquationOfTimePolicy,
     LeapMonthBoundary, Longitude, NominalAgeBoundary, SolarTimePolicy, UtcOffset, YearBoundary,
+};
+pub use diagnostic::{
+    BirthInputCalendarKind, BirthTimeResolutionSnapshot, ChartCalculationDiagnosticSnapshot,
+    HoroscopeCalculationDiagnosticSnapshot, LeapMonthBoundaryDiagnosticSnapshot,
+    SolarTimePolicyDiagnostic, YearBoundaryDiagnosticSnapshot,
 };
 pub use resolve::ResolvedBirthDateTime;
 pub(crate) use resolve::resolve_birth_datetime;

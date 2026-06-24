@@ -8,7 +8,7 @@
 //! expose query helpers, render prose, or reproduce the upstream
 //! `FunctionalAstrolabe#horoscope` payload shape.
 
-use crate::core::calculation::NominalAgeBoundary;
+use crate::core::calculation::{HoroscopeCalculationDiagnosticSnapshot, NominalAgeBoundary};
 use crate::core::error::ChartError;
 use crate::core::model::calendar::{BirthTime, SolarDay, SolarMonth};
 use crate::core::model::chart::{
@@ -95,6 +95,16 @@ impl HoroscopeStackInput {
     }
 }
 
+/// Full horoscope generation report containing the horoscope chart and runtime
+/// calculation facts used to assemble it.
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct HoroscopeGenerationReport {
+    /// Generated horoscope chart.
+    pub horoscope: HoroscopeChart,
+    /// Runtime calculation diagnostics for this horoscope stack.
+    pub calculation: HoroscopeCalculationDiagnosticSnapshot,
+}
+
 /// Assembles the full six-layer horoscope stack for a target date/time.
 ///
 /// Derives the target lunar date and nominal age from the target solar date,
@@ -106,6 +116,15 @@ pub fn build_full_horoscope_chart(
     natal: Chart,
     input: HoroscopeStackInput,
 ) -> Result<HoroscopeChart, ChartError> {
+    Ok(build_full_horoscope_chart_report(natal, input)?.horoscope)
+}
+
+/// Assembles the full six-layer horoscope stack and returns the resolved runtime
+/// calculation facts alongside the chart.
+pub fn build_full_horoscope_chart_report(
+    natal: Chart,
+    input: HoroscopeStackInput,
+) -> Result<HoroscopeGenerationReport, ChartError> {
     let target_lunar = target_lunar_date(
         input.target_solar_year,
         input.target_solar_month,
@@ -179,11 +198,29 @@ pub fn build_full_horoscope_chart(
         input.target_time.iztro_time_index(),
     );
 
-    Ok(HoroscopeChart::with_layers_and_target_context(
-        natal,
-        layers,
-        target_context,
-    ))
+    let target_solar_date = HoroscopeSolarDate::new(
+        input.target_solar_year,
+        input.target_solar_month.value(),
+        input.target_solar_day.value(),
+    );
+    let target_lunar_date = HoroscopeLunarDate::new(
+        target_lunar.year,
+        target_lunar.month,
+        target_lunar.day,
+        target_lunar.is_leap_month,
+    );
+    let calculation = HoroscopeCalculationDiagnosticSnapshot {
+        target_solar_date,
+        target_lunar_date,
+        nominal_age_boundary: input.nominal_age_boundary,
+        resolved_nominal_age: nominal_age,
+    };
+    let horoscope = HoroscopeChart::with_layers_and_target_context(natal, layers, target_context);
+
+    Ok(HoroscopeGenerationReport {
+        horoscope,
+        calculation,
+    })
 }
 
 #[cfg(test)]
