@@ -49,6 +49,8 @@
 
 `ChartCalculationConfig` 是第三个维度，与 `ChartAlgorithmKind`、`ChartPlane` 相互独立。它决定出生钟表时间在排盘*之前*如何转换为时辰。钟表时间入口 `by_solar_with_options` / `by_lunar_with_options` 先通过 `core::calculation::resolve_birth_datetime` 解析输入，再委托给现有的 `by_solar` / `by_lunar` 流程，因此 `Chart` 的序列化保持不变。
 
+计算策略现在包含 `SolarTimePolicy`、`YearBoundary`、`LeapMonthBoundary` 与 `NominalAgeBoundary`。默认值保持既有行为：钟表时间、农历新年干支年分界（`ChineseNewYearEve`：上一年持续到除夕结束，新年从正月初一开始）、闰月月中分界、按自然年虚岁。`YearBoundary` 与 `LeapMonthBoundary` 影响本命输入归一化；`NominalAgeBoundary` 只影响 runtime/full-horoscope 虚岁解析。
+
 默认策略（`SolarTimePolicy::ClockTime`）直接由钟表时间推导时辰。`SolarTimePolicy::ApparentSolarTime` 应用精确的经度校正（`4 * (经度 − 时区中央经线)` 分钟，经度差先做跨越对日线的归一化），并可能使解析后的公历日期跨越午夜。`EquationOfTimePolicy::Approximate` 尚未实现，返回 `ChartError::UnsupportedEquationOfTimePolicy`。农历日期输入拒绝真太阳时（`ChartError::ApparentSolarTimeRequiresSolarDate`）。
 
 注意：`ChartError` 现在派生 `PartialEq` 但不再派生 `Eq`，因为输入计算策略的校验错误可能携带浮点经度值。

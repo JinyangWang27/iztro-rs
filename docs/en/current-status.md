@@ -13,8 +13,8 @@ Compatibility is fixture-driven and scoped to the supported fact surface. The pr
 The supported natal chart fact surface currently includes:
 
 - typed request facades: `by_lunar` and `by_solar`;
-- `lunar-lite` 1.0.0-backed solar-to-lunar conversion and normal-boundary four-pillar derivation for `by_solar`;
-- leap-month and `fix_leap` handling for the supported slice;
+- `lunar-lite` 1.0.0-backed solar-to-lunar conversion and boundary-configurable birth-year/four-pillar derivation for `by_solar`;
+- leap-month and `fix_leap` handling for the supported slice, now exposed through `LeapMonthBoundary`;
 - `BirthTime` / upstream `timeIndex` `0..=12`, including early Zi and late Zi;
 - retained `Chart::birth_year()` stem-branch fact;
 - retained optional `Chart::four_pillars()` natal fact for `by_solar` charts, using `lunar_lite::FourPillars` directly, also exposed through facade snapshots as `NatalFacadeSnapshot::four_pillars()`;
@@ -42,7 +42,7 @@ The supported natal chart fact surface currently includes:
 - typed `HoroscopeRuntime` projection and query helpers, fixture-backed against `crates/iztro/fixtures/iztro/horoscope_runtime.json`: `age_palace`, `palace`, `surround_palaces`, `has_horoscope_stars`, `not_have_horoscope_stars`, `has_one_of_horoscope_stars`, and `has_horoscope_mutagen`;
 - serializable `HoroscopeFacadeSnapshot` export (`HoroscopeFacadeSnapshot::from_horoscope_chart`), fixture-backed against `crates/iztro/fixtures/iztro/horoscope_facade.json`: an upstream-like horoscope payload built from `HoroscopeChart`, `HoroscopeSupportedFieldsSnapshot`, `NatalFacadeSnapshot`, and `HoroscopeRuntime`.
 
-`by_solar` now attaches factual natal four pillars to `Chart` through `Chart::four_pillars()`, derived by `lunar-lite` with the same normal year/month boundary semantics already used for birth-year derivation. `by_lunar` remains conservative: it only receives an explicit birth-year stem/branch today, so `Chart::four_pillars()` is `None` for `by_lunar` charts until a later PR decides whether to accept explicit `FourPillars` or derive them from a normalized solar date. Full BaZi interpretation remains deferred; this implemented surface is only 年柱/月柱/日柱/时柱 fact retention.
+`by_solar` now attaches factual natal four pillars to `Chart` through `Chart::four_pillars()`, derived by `lunar-lite` with the configured `YearBoundary` and normal month-boundary semantics. `by_lunar` remains conservative: it only receives an explicit birth-year stem/branch today, so `Chart::four_pillars()` is `None` for `by_lunar` charts until a later PR decides whether to accept explicit `FourPillars` or derive them from a normalized solar date. Full BaZi interpretation remains deferred; this implemented surface is only 年柱/月柱/日柱/时柱 fact retention.
 
 Those factual natal four pillars are also exported through facade snapshots. `NatalFacadeSnapshot` carries an optional `NatalFacadeFourPillarsSnapshot` (`four_pillars`) reusing `lunar_lite::FourPillars` as the underlying fact: each pillar stays a machine-readable `StemBranch` with an additive conventional zh-CN `*_zh` label. The field is `Some(..)` for `by_solar`-derived charts and omitted/`None` for `by_lunar`-derived charts. This is a factual export only: 十神, 藏干, 五行 scoring, 喜用神, 成格, readings, and the rest of full BaZi interpretation remain deferred and are intentionally absent.
 
@@ -66,6 +66,8 @@ Requesting `Earth` or `Human` for any non-Zhongzhou family (QuanShu / Placeholde
 ## Input calculation policy
 
 `ChartCalculationConfig` is a third axis, separate from `ChartAlgorithmKind` and `ChartPlane`. It controls how a birth clock time becomes a 时辰 *before* chart generation. The clock-time entry points `by_solar_with_options` / `by_lunar_with_options` resolve the input through `core::calculation::resolve_birth_datetime` and then delegate to the existing `by_solar` / `by_lunar` paths, so `Chart` serialization is unchanged.
+
+The calculation policy now includes `SolarTimePolicy`, `YearBoundary`, `LeapMonthBoundary`, and `NominalAgeBoundary`. Defaults preserve existing behavior: clock time, lunar-new-year cyclic-year boundary (`ChineseNewYearEve`: previous year lasts through 除夕, new year begins at 正月初一), mid-month leap-month split, and natural-year nominal age. `YearBoundary` and `LeapMonthBoundary` affect natal input normalization. `NominalAgeBoundary` affects only runtime/full-horoscope nominal-age resolution.
 
 The default policy (`SolarTimePolicy::ClockTime`) derives the 时辰 directly from the clock time. `SolarTimePolicy::ApparentSolarTime` applies an exact longitude correction (`4 * (longitude − timezone_meridian)` minutes, with the longitude difference normalised across the antimeridian) and may move the resolved solar date across midnight. `EquationOfTimePolicy::Approximate` is not implemented yet and returns `ChartError::UnsupportedEquationOfTimePolicy`. Apparent solar time is rejected for lunar-date input (`ChartError::ApparentSolarTimeRequiresSolarDate`).
 

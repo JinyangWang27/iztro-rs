@@ -224,7 +224,11 @@ fn default_year_boundary_matches_chinese_new_year_eve() {
             YearBoundary::ChineseNewYearEve,
         )
         .expect("explicit conversion should succeed");
-        assert_eq!(default, explicit, "{}-{}-{}", case.year, case.month, case.day);
+        assert_eq!(
+            default, explicit,
+            "{}-{}-{}",
+            case.year, case.month, case.day
+        );
     }
 }
 
@@ -236,8 +240,8 @@ fn year_boundary_policies_differ_between_li_chun_and_chinese_new_year() {
     // cyclic year (1999 己卯) while the Li Chun boundary advances to 2000 庚辰.
     let eve = resolve_effective_birth_year(2000, month(2), day(4), YearBoundary::ChineseNewYearEve)
         .expect("eve year");
-    let li_chun =
-        resolve_effective_birth_year(2000, month(2), day(4), YearBoundary::LiChun).expect("li chun");
+    let li_chun = resolve_effective_birth_year(2000, month(2), day(4), YearBoundary::LiChun)
+        .expect("li chun");
 
     assert_eq!(eve.stem(), HeavenlyStem::Ji);
     assert_eq!(eve.branch(), EarthlyBranch::Mao);

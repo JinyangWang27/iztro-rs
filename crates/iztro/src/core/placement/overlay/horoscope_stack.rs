@@ -14,8 +14,8 @@ use crate::core::model::calendar::{BirthTime, SolarDay, SolarMonth};
 use crate::core::model::chart::{
     Chart, HoroscopeChart, HoroscopeLunarDate, HoroscopeSolarDate, HoroscopeTargetContext,
     TemporalLayer, build_age_period, build_daily_period, build_decadal_frame, build_hourly_period,
-    build_monthly_period, build_yearly_period, nominal_age_for_target, select_decadal_period_by_age,
-    target_lunar_date,
+    build_monthly_period, build_yearly_period, nominal_age_for_target,
+    select_decadal_period_by_age, target_lunar_date,
 };
 use crate::core::placement::overlay::age::build_age_horoscope_layer;
 use crate::core::placement::overlay::daily_horoscope::build_daily_horoscope_layer;

@@ -162,9 +162,11 @@ pub(crate) fn nominal_age_for_target(
 /// Mirrors upstream TS `iztro@2.5.8`: the base is `target_lunar_year -
 /// birth_lunar_year`. Under [`NominalAgeBoundary::NaturalYear`] (`ageDivide:
 /// 'normal'`) the age always increments by one (the lunar new year boundary).
-/// Under [`NominalAgeBoundary::Birthday`] (`ageDivide: 'birthday'`) it increments
-/// only once the target lunar date has passed the lunar birthday, using
-/// upstream's exact month/day comparison.
+/// Under [`NominalAgeBoundary::Birthday`] (`ageDivide: 'birthday'`) it follows
+/// upstream's exact comparison: increment when the target lunar month is later
+/// than the birth lunar month, or when the target is in the birth lunar year,
+/// same lunar month, and a later lunar day. Exact birthday and a later target
+/// year in the same lunar month do not increment in upstream `iztro@2.5.8`.
 ///
 /// This is a runtime/horoscope concern only; it never affects natal chart
 /// generation. Ages outside the supported `1..=120` human range are rejected with
@@ -237,12 +239,14 @@ pub(super) fn map_target_solar_error(err: LunarError, year: i32, month: u8, day:
 mod tests {
     use super::*;
 
-    // Birth lunar date used across the nominal-age cases: 2020 九月初一.
-    const BIRTH: (i32, u8, u8) = (2020, 9, 1);
+    // Birth lunar date used across the nominal-age cases: 2020 九月十七.
+    const BIRTH: (i32, u8, u8) = (2020, 9, 17);
 
     fn age(target: (i32, u8, u8), policy: NominalAgeBoundary) -> u8 {
-        resolve_nominal_age(BIRTH.0, BIRTH.1, BIRTH.2, target.0, target.1, target.2, policy)
-            .expect("nominal age should resolve")
+        resolve_nominal_age(
+            BIRTH.0, BIRTH.1, BIRTH.2, target.0, target.1, target.2, policy,
+        )
+        .expect("nominal age should resolve")
     }
 
     #[test]
@@ -255,27 +259,51 @@ mod tests {
     }
 
     #[test]
-    fn nominal_age_birthday_before_birthday_uses_previous_nominal_age() {
-        // Target month (8) precedes the birth month (9), so the lunar birthday has
-        // not yet passed: the age stays at the year difference without the
-        // increment.
-        assert_eq!(age((2024, 8, 20), NominalAgeBoundary::Birthday), 4);
+    fn nominal_age_birthday_same_month_before_birthday() {
+        // Upstream `ageDivide: 'birthday'` does not increment before the lunar
+        // birthday in the same month.
+        assert_eq!(age((2024, 9, 16), NominalAgeBoundary::Birthday), 4);
     }
 
     #[test]
-    fn nominal_age_birthday_on_or_after_birthday_uses_next_nominal_age() {
-        // Target month (10) is after the birth month (9), so the lunar birthday
-        // has passed and the age gains the increment.
+    fn nominal_age_birthday_same_month_on_birthday() {
+        // Upstream uses a strict day comparison, so the exact lunar birthday is
+        // not counted as reached.
+        assert_eq!(age((2024, 9, 17), NominalAgeBoundary::Birthday), 4);
+    }
+
+    #[test]
+    fn nominal_age_birthday_same_month_after_birthday() {
+        // Upstream's same-month day comparison is guarded by
+        // target_lunar_year == birth_lunar_year. This later target year
+        // therefore does not increment even though the target day is later.
+        assert_eq!(age((2024, 9, 18), NominalAgeBoundary::Birthday), 4);
+    }
+
+    #[test]
+    fn nominal_age_birthday_later_year_same_month_after_birthday() {
+        // Same upstream guard: a still-later target year, same lunar month, later
+        // day stays at the raw year difference.
+        assert_eq!(age((2025, 9, 18), NominalAgeBoundary::Birthday), 5);
+    }
+
+    #[test]
+    fn nominal_age_birthday_later_month_uses_next_nominal_age() {
+        // Target month (10) is after the birth month (9), so upstream increments
+        // regardless of the target year.
         assert_eq!(age((2024, 10, 1), NominalAgeBoundary::Birthday), 5);
     }
 
     #[test]
-    fn nominal_age_birthday_same_month_day_comparison() {
-        // In the birth lunar year the day-of-month comparison applies: a later day
-        // in the birth month counts as past the birthday and reaches age 1, while
-        // a year later but earlier in the year stays at the base difference.
-        assert_eq!(age((2020, 9, 2), NominalAgeBoundary::Birthday), 1);
-        assert_eq!(age((2021, 8, 1), NominalAgeBoundary::Birthday), 1);
+    fn nominal_age_birthday_birth_year_later_day_reaches_age_one() {
+        // The only same-month day comparison upstream increments is the birth
+        // lunar year itself.
+        assert_eq!(age((2020, 9, 18), NominalAgeBoundary::Birthday), 1);
+    }
+
+    #[test]
+    fn nominal_age_birthday_previous_month_uses_previous_nominal_age() {
+        assert_eq!(age((2024, 8, 20), NominalAgeBoundary::Birthday), 4);
     }
 
     #[test]

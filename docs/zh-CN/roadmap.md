@@ -67,6 +67,7 @@
 - [x] 安放装饰性 runtime 星曜家族为无类型 `DecorativeStarPlacement`。
 - [x] 安放 scoped flow stars 为带地支标签的 `ScopedStarPlacement`。
 - [x] 通过内部 `lunar-lite` adapter 添加阳历转农历与闰月行为。
+- [x] 添加 solar time、year boundary、leap-month boundary 和 nominal-age boundary calculation policies。
 - [x] 添加上游 `timeIndex` `0..=12` 早晚子时变体。
 - [x] 通过 `lunar-lite` 1.0.0 四柱 API 推导出生年干支并保留在 `Chart` 上。
 - [x] 在 `by_solar` charts 上保留完整事实性本命四柱；`by_lunar` 仍保持显式输入且不支持完整四柱推导。
@@ -87,7 +88,7 @@
 - [ ] 添加 full facade serialization parity。
 - [ ] 添加 factual `by_solar` natal four pillars 之外的 full BaZi interpretation/output。
 
-当前支持切片：`by_lunar` 接受显式农历输入与显式出生年干支，生成确定性本命 chart facts，并在上游可比较 surface 上用 `iztro@2.5.8` fixtures 校验。`by_solar` 添加 `lunar-lite` 1.0.0-backed 阳历转农历，推导出生年干支与事实性四柱，并委托 `by_lunar` 安星。中州地盘/人盘是 Rust-only extension，因为上游 `iztro@2.5.8` 不暴露这些 chart planes。
+当前支持切片：`by_lunar` 接受显式农历输入与显式出生年干支，生成确定性本命 chart facts，并在上游可比较 surface 上用 `iztro@2.5.8` fixtures 校验。`by_solar` 添加 `lunar-lite` 1.0.0-backed 阳历转农历，通过可配置年分界推导出生年干支与事实性四柱，并委托 `by_lunar` 安星。`ChartCalculationConfig` 是独立于 `ChartAlgorithmKind` 与 `ChartPlane` 的 calculation-policy 维度，覆盖 solar time、year boundary、leap-month boundary 和 runtime nominal-age boundary。中州地盘/人盘是 Rust-only extension，因为上游 `iztro@2.5.8` 不暴露这些 chart planes。
 
 ## Phase 4：Snapshot、rendering 与 static GUI
 

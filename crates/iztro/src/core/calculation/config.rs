@@ -291,7 +291,10 @@ impl ChartCalculationConfig {
     }
 
     /// Returns a copy with the 闰月分界 policy replaced.
-    pub const fn with_leap_month_boundary(mut self, leap_month_boundary: LeapMonthBoundary) -> Self {
+    pub const fn with_leap_month_boundary(
+        mut self,
+        leap_month_boundary: LeapMonthBoundary,
+    ) -> Self {
         self.leap_month_boundary = leap_month_boundary;
         self
     }
@@ -408,7 +411,10 @@ mod tests {
     fn enum_defaults_match_existing_behaviour() {
         assert_eq!(YearBoundary::default(), YearBoundary::ChineseNewYearEve);
         assert_eq!(LeapMonthBoundary::default(), LeapMonthBoundary::MidMonth);
-        assert_eq!(NominalAgeBoundary::default(), NominalAgeBoundary::NaturalYear);
+        assert_eq!(
+            NominalAgeBoundary::default(),
+            NominalAgeBoundary::NaturalYear
+        );
     }
 
     #[test]
@@ -434,7 +440,10 @@ mod tests {
             .with_leap_month_boundary(LeapMonthBoundary::AsPreviousMonth)
             .with_nominal_age_boundary(NominalAgeBoundary::Birthday);
         assert_eq!(config.year_boundary, YearBoundary::LiChun);
-        assert_eq!(config.leap_month_boundary, LeapMonthBoundary::AsPreviousMonth);
+        assert_eq!(
+            config.leap_month_boundary,
+            LeapMonthBoundary::AsPreviousMonth
+        );
         assert_eq!(config.nominal_age_boundary, NominalAgeBoundary::Birthday);
         // Unrelated axis untouched.
         assert_eq!(config.solar_time, SolarTimePolicy::ClockTime);

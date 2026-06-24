@@ -42,8 +42,9 @@ npm ci --prefix tools/iztro-reference
 当前 fixture-backed chart-generation surface 包括：
 
 - 强类型 `by_lunar` 与 `by_solar` request facades；
-- `lunar-lite` 1.0.0-backed 阳历转农历，以及 `by_solar` 的 normal-boundary 四柱事实推导；
-- supported slice 的闰月 / `fix_leap` 行为；
+- `lunar-lite` 1.0.0-backed 阳历转农历，以及 `by_solar` 的可配置年分界出生年/四柱事实推导；
+- supported slice 的闰月 / `fix_leap` 行为，包括 `LeapMonthBoundary` 映射；
+- `YearBoundary`、`LeapMonthBoundary` 与 `NominalAgeBoundary` 的 fixture-backed calculation configuration cases；
 - 通过 `BirthTime` 建模上游 `timeIndex` `0..=12` 早晚子时；
 - 出生年 `StemBranch`、十二宫、命宫、身宫、宫干、五行局；
 - `by_solar` 星盘上的可选事实性 `lunar_lite::FourPillars`；
@@ -88,7 +89,9 @@ npm ci --prefix tools/iztro-reference
 
 出生时间由 `BirthTime` 表示，对齐上游 `iztro` `timeIndex` `0..=12`。`EarlyZi` (`0`) 与 `LateZi` (`12`) 都投影到 `EarthlyBranch::Zi`；按地支传入的 request setters 继续把 `Zi` 映射为早子时，以保持向后兼容。
 
-`by_solar` 校验阳历日期，通过内部 `lunar-lite` adapter 转换为农历事实，并通过 `lunar-lite` 1.0.0 的 normal-boundary four-pillar API 推导事实性本命四柱。它设置 `is_leap_month` 与 `fix_leap`，委托 `by_lunar` 安星，并把结果 `lunar_lite::FourPillars` 保留在 `Chart`。它本身不添加安星逻辑。显式 invariant：当 `Chart::four_pillars()` 存在时，其年柱等于 `Chart::birth_year()`。
+`by_solar` 校验阳历日期，通过内部 `lunar-lite` adapter 转换为农历事实，并通过 `lunar-lite` 1.0.0 的可配置 year-boundary four-pillar API 推导事实性本命四柱。它设置 `is_leap_month` 与 `fix_leap`，委托 `by_lunar` 安星，并把结果 `lunar_lite::FourPillars` 保留在 `Chart`。它本身不添加安星逻辑。显式 invariant：当 `Chart::four_pillars()` 存在时，其年柱等于 `Chart::birth_year()`。
+
+`ChartCalculationConfig` 是 input/runtime calculation-policy 维度，不是算法或盘面维度。它包含 `SolarTimePolicy`、`YearBoundary`、`LeapMonthBoundary` 与 `NominalAgeBoundary`。`YearBoundary` 将上游 `yearDivide: "normal"` 映射到 `ChineseNewYearEve`，将 `"exact"` 映射到 `LiChun`；`ChineseNewYearEve` 表示上一年持续到除夕结束，新干支年从正月初一开始。`LeapMonthBoundary` 将上游 `fixLeap: false` 映射到 `AsPreviousMonth`，将 `fixLeap: true` 映射到 `MidMonth`。`NominalAgeBoundary` 将上游 `ageDivide: "normal"` 映射到 `NaturalYear`，将 `"birthday"` 映射到 `Birthday`，且只用于 runtime/full-horoscope 虚岁解析。
 
 `by_lunar` 保持保守：它接受显式出生年干支，但不会从农历 input 伪造月柱、日柱或时柱，因此该 slice 中 `by_lunar` chart 的 `Chart::four_pillars()` 为 `None`。未来 PR 可决定 `by_lunar` 是否接受显式 `FourPillars`，或通过规范化阳历日期推导。
 
@@ -131,7 +134,7 @@ Typed stars 与 decorative runtime entries 是分离事实面，`Chart::stars()`
 
 ## 当前 fixtures
 
-Fixtures 有意保持 supported-field-only。它们覆盖当前 natal、decorative、flow-star、solar/lunar conversion、leap-month、rat-hour、horoscope runtime 和 facade snapshot slices，并在适用处对齐 `iztro@2.5.8`。
+Fixtures 有意保持 supported-field-only。它们覆盖当前 natal、decorative、flow-star、solar/lunar conversion、leap-month、calculation configuration、rat-hour、horoscope runtime 和 facade snapshot slices，并在适用处对齐 `iztro@2.5.8`。`iztro-rs` 对 fixture-backed calculation configuration cases 具备 supported-field parity；这不是对每个上游 TS feature 的完整 drop-in semantic clone 声明。
 
 关键 fixture groups 包括：
 

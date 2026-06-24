@@ -42,8 +42,9 @@ The committed fixture JSON files remain the compatibility source of truth.
 The current fixture-backed chart-generation surface includes:
 
 - typed `by_lunar` and `by_solar` request facades;
-- `lunar-lite` 1.0.0-backed solar-to-lunar conversion and normal-boundary four-pillar derivation for `by_solar`;
-- leap-month / `fix_leap` behavior for the supported slice;
+- `lunar-lite` 1.0.0-backed solar-to-lunar conversion and boundary-configurable birth-year/four-pillar derivation for `by_solar`;
+- leap-month / `fix_leap` behavior for the supported slice, including `LeapMonthBoundary` mapping;
+- fixture-backed calculation configuration cases for `YearBoundary`, `LeapMonthBoundary`, and `NominalAgeBoundary`;
 - upstream `timeIndex` `0..=12` rat-hour modeling through `BirthTime`;
 - retained birth-year `StemBranch`, twelve palace layout, Life Palace, Body Palace, palace stems, and five-element bureau;
 - optional factual natal `lunar_lite::FourPillars` retained on `by_solar` charts;
@@ -94,6 +95,8 @@ The supported combinations are explicit: `QuanShu + Heaven`, `Zhongzhou + Heaven
 Birth time is represented by `BirthTime`, matching upstream `iztro` `timeIndex` values `0..=12`. `EarlyZi` (`0`) and `LateZi` (`12`) both project to `EarthlyBranch::Zi`, while branch-based request setters continue to map `Zi` to early Zi for backward compatibility.
 
 `by_solar` validates the Gregorian/solar date, converts it to Chinese-lunisolar facts through the internal `lunar-lite` adapter, derives factual natal four pillars through `lunar-lite` 1.0.0's `four_pillars_from_solar_date_with_options` with `YearDivide::Normal` and `MonthDivide::Normal`, sets `is_leap_month` and `fix_leap`, delegates placement to `by_lunar`, and retains the resulting `lunar_lite::FourPillars` on `Chart`. It adds no placement logic of its own. The invariant is explicit: when `Chart::four_pillars()` is present, its year pillar equals `Chart::birth_year()`.
+
+`ChartCalculationConfig` is an input/runtime calculation-policy axis, not an algorithm or chart-plane axis. It contains `SolarTimePolicy`, `YearBoundary`, `LeapMonthBoundary`, and `NominalAgeBoundary`. `YearBoundary` maps upstream `yearDivide: "normal"` to `ChineseNewYearEve` and `"exact"` to `LiChun`; `ChineseNewYearEve` means the previous year lasts through 除夕 and the new cyclic year begins at 正月初一. `LeapMonthBoundary` maps upstream `fixLeap: false` to `AsPreviousMonth` and `fixLeap: true` to `MidMonth`. `NominalAgeBoundary` maps upstream `ageDivide: "normal"` to `NaturalYear` and `"birthday"` to `Birthday`, and is applied only when resolving runtime/full-horoscope nominal age.
 
 `by_lunar` remains conservative: it accepts explicit birth-year stem/branch facts, but it does not pretend to know month/day/hour pillars from lunar input alone, so `Chart::four_pillars()` is `None` for `by_lunar` charts in this slice. A future PR can decide whether `by_lunar` should accept explicit `FourPillars` or derive them through a normalized solar date.
 
@@ -167,7 +170,7 @@ It preserves:
 
 ## Current fixtures
 
-The fixtures are intentionally supported-field-only. They cover the current natal, decorative, flow-star, solar/lunar conversion, leap-month, and rat-hour slices against `iztro@2.5.8` where applicable.
+The fixtures are intentionally supported-field-only. They cover the current natal, decorative, flow-star, solar/lunar conversion, leap-month, calculation-configuration, and rat-hour slices against `iztro@2.5.8` where applicable. `iztro-rs` has supported-field parity with upstream `iztro@2.5.8` for the fixture-backed calculation configuration cases; it is not a full drop-in semantic clone of every upstream TS feature.
 
 Key fixture groups include:
 
@@ -186,6 +189,7 @@ Key fixture groups include:
 - e2e supported `by_lunar` cases;
 - e2e supported `by_solar` cases;
 - leap-month behavior;
+- calculation configuration behavior;
 - rat-hour behavior.
 
 The exact fixture files live under `crates/iztro/fixtures/iztro/`. Regeneration scripts live under `tools/iztro-reference`.
@@ -205,6 +209,7 @@ Deferred surfaces include:
 - full upstream facade serialization parity;
 - additional locales and complete upstream localized-string parity beyond the current `iztro-i18n` English/Simplified Chinese surface;
 - full BaZi interpretation/output beyond factual `by_solar` natal four pillars;
+- city lookup/geocoding and `EquationOfTimePolicy::Approximate`;
 - bindings;
 - feature extraction for temporal activation;
 - rules;

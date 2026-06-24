@@ -10,6 +10,8 @@ pub const HOROSCOPE_RUNTIME_FIXTURE: &str =
     include_str!("../../fixtures/iztro/horoscope_runtime.json");
 pub const HOROSCOPE_FACADE_FIXTURE: &str =
     include_str!("../../fixtures/iztro/horoscope_facade.json");
+pub const CALCULATION_CONFIG_FIXTURE: &str =
+    include_str!("../../fixtures/iztro/calculation_config.json");
 
 /// Parses a raw fixture JSON string into a [`Value`].
 pub fn fixture_value(raw: &str) -> Value {

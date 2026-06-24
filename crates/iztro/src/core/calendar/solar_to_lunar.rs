@@ -14,8 +14,8 @@
 //! converted lunar-year stem-branch even across the 立春/正月初一 window.
 
 use lunar_lite::{
-    EarthlyBranch, FourPillars, HeavenlyStem, LunarError, MonthDivide, SolarDate, StemBranchOptions,
-    YearDivide, four_pillars_from_solar_date_with_options,
+    EarthlyBranch, FourPillars, HeavenlyStem, LunarError, MonthDivide, SolarDate,
+    StemBranchOptions, YearDivide, four_pillars_from_solar_date_with_options,
     solar_to_lunar as convert_solar_to_lunar,
 };
 
@@ -187,8 +187,7 @@ pub(crate) fn resolve_effective_birth_year(
             lunar_lite::StemBranchError::InvalidStemBranchPair { stem, branch } => {
                 ChartError::InvalidStemBranchPair { stem, branch }
             }
-        },
-    )
+        })
 }
 
 fn map_solar_conversion_error(err: LunarError, year: i32, month: u8, day: u8) -> ChartError {
