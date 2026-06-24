@@ -1,6 +1,6 @@
 # Current Project Status
 
-This document summarizes the current implemented surface after the `lunar-lite`, fixture, facade snapshot, full horoscope stack, static-chart view model, pattern, and local GUI prototype work.
+This document summarizes the current implemented surface after the `lunar-lite`, fixture, facade snapshot, full horoscope stack, static-chart view model, chart-plane, diagnostic, i18n, pattern, and local GUI prototype work.
 
 ## Compatibility target
 
@@ -18,6 +18,9 @@ The supported natal chart fact surface currently includes:
 - `BirthTime` / upstream `timeIndex` `0..=12`, including early Zi and late Zi;
 - retained `Chart::birth_year()` stem-branch fact;
 - retained optional `Chart::four_pillars()` natal fact for `by_solar` charts, using `lunar_lite::FourPillars` directly, also exposed through facade snapshots as `NatalFacadeSnapshot::four_pillars()`;
+- explicit `ChartProfile` metadata (`MethodProfile` + `ChartPlane`) retained on generated `Chart` values;
+- typed palace lookup helpers by palace name and branch, plus required lookup variants for invariant-sensitive code;
+- `Chart::diagnostic_snapshot()` for compact structural diagnostics and invariant debugging;
 - twelve palace layout;
 - Life Palace and Body Palace branches;
 - palace heavenly stems;
@@ -54,9 +57,11 @@ The Zhongzhou (中州) family also supports the Earth (地盘) and Human (人盘
 - `Zhongzhou + Earth` re-anchors the Life Palace (命宫) to the Heaven chart's Body Palace (身宫) branch;
 - `Zhongzhou + Human` re-anchors the Life Palace to the Heaven chart's Fortune Palace (福德宫, `PalaceName::Spirit`) branch.
 
-After re-anchoring, palace names, palace stems, and the five-element bureau are recomputed from the new Life Palace, while the Body Palace branch keeps its original calculated value. The existing deterministic placement strategy then runs unchanged, so star placers never branch on `ChartPlane`. Plane dispatch is centralized in the `by_lunar` facade boundary (`resolve_natal_chart_anchor`). The 中州天盘 is **not** treated as the 全书 (QuanShu) algorithm; it is the Heaven plane of the Zhongzhou family.
+After re-anchoring, palace names, palace stems, and the five-element bureau are recomputed from the new Life Palace, while the Body Palace branch keeps its original calculated value. The existing deterministic placement strategy then runs unchanged, so star placers never branch on `ChartPlane`. Plane dispatch is delegated from the `by_lunar` facade to the dedicated natal plane resolver (`core::placement::natal::plane::resolve_natal_chart_anchor`). The 中州天盘 is **not** treated as the 全书 (QuanShu) algorithm; it is the Heaven plane of the Zhongzhou family.
 
 Requesting `Earth` or `Human` for any non-Zhongzhou family (QuanShu / Placeholder) returns `ChartError::UnsupportedChartPlane`.
+
+`Zhongzhou + Earth` and `Zhongzhou + Human` are Rust extension behaviour rather than upstream `iztro@2.5.8` parity targets, because upstream TS `iztro` does not expose those chart planes. They are covered by structural invariants, anchor resolver tests, diagnostics, and architecture documentation instead of TS fixtures.
 
 ## Domain boundary decisions
 
@@ -99,16 +104,18 @@ The GUI is currently a chart-fact viewer. It does not perform star placement, te
 
 ## Runtime localization direction
 
-The current documentation and facade snapshots already distinguish machine-readable facts from additive display labels. The next runtime localization step is to add a dedicated `crates/iztro-i18n` crate using Fluent resources.
+The current documentation and facade snapshots distinguish machine-readable facts from additive display labels. Runtime localization is implemented by the dedicated `crates/iztro-i18n` crate using Fluent resources.
 
-Accepted direction:
+Current implementation:
 
 - default GUI/runtime locale: `en-US`;
 - first secondary locale: `zh-Hans`;
 - `iztro-i18n` owns locale parsing, Fluent bundles, fallback, and typed label helpers;
-- `iztro-gui` consumes `iztro-i18n` and should be fully usable in either English or Simplified Chinese;
+- `iztro-gui` consumes `iztro-i18n` and is usable in either English or Simplified Chinese;
 - core chart models remain language-neutral;
 - existing Chinese domain labels are preserved as localized output, not as internal identity.
+
+Future i18n work should broaden coverage only at presentation/export boundaries: additional locales, more shared UI strings, and complete upstream localized-string parity remain deferred.
 
 ## Tooling and application direction
 
@@ -127,7 +134,7 @@ The following remain intentionally out of scope for the current supported surfac
 - full BaZi interpretation/output beyond factual `by_solar` natal four pillars;
 - temporal decorative arrays beyond yearly `yearlyDecStar`;
 - full upstream facade serialization parity;
-- broad multilingual coverage and complete upstream localized-string parity. The desktop GUI is fully localized (English default / Simplified Chinese) through the `iztro-i18n` crate, a Fluent-based presentation-layer localizer that maps typed domain values to display strings; core models stay language-neutral (the facade snapshots still expose additive zh-CN `*_zh` labels via `core::labels::zh_cn`). Additional locales and full upstream localized-string parity remain deferred;
+- additional locales beyond English/Simplified Chinese and complete upstream localized-string parity; the desktop GUI already uses `iztro-i18n` for the current English/Simplified Chinese surface, while core models stay language-neutral and facade snapshots continue to expose additive zh-CN `*_zh` labels via `core::labels::zh_cn`;
 - CLI integration beyond current examples;
 - TUI frontend;
 - MCP server/tooling interface;
@@ -143,7 +150,7 @@ The following remain intentionally out of scope for the current supported surfac
 The next implementation work should stay incremental:
 
 1. Keep compatibility fixture-backed and avoid broad rewrites of chart placement logic.
-2. Expand `crates/iztro-i18n` coverage (additional locales, more shared UI strings) now that the existing GUI is fully selectable English/Simplified Chinese output.
+2. Expand `crates/iztro-i18n` coverage with additional locales, more shared UI strings, and stricter UI string audits.
 3. Continue improving the Iced static chart GUI on top of `StaticChartViewSnapshot`, especially saved charts, temporal navigation, layout consistency, and localized UI text.
 4. Add a small TUI or CLI renderer only as a consumer of existing snapshots/view models.
 5. Design MCP after the typed facade/query surface is stable enough to expose to coding agents.

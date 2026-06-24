@@ -15,6 +15,7 @@ This roadmap is intentionally conservative. The project should first keep chart 
 - [x] Runnable plain text chart demo.
 - [x] Document static-chart-first GUI direction.
 - [x] Document TUI, MCP, and 3D as downstream consumers of typed facts/view models.
+- [x] Document core chart-generation architecture, chart planes, diagnostics, and invariants.
 
 ## Phase 1: Rust workspace scaffolding
 
@@ -26,12 +27,12 @@ This roadmap is intentionally conservative. The project should first keep chart 
   - [x] `reading`;
   - [x] `iztro-cli`;
   - [x] `render`;
+  - [x] `iztro-i18n`;
   - [x] `iztro-gui` local desktop prototype.
 - [x] Add basic CI for formatting, clippy, and tests.
 - [x] Add serialization and fixture-based test infrastructure.
-- [ ] Add `iztro-i18n` for runtime Fluent localization.
 
-`core` organizes its source tree into domain modules: `model` (value objects, star facts, immutable chart facts, and renderer-neutral snapshots), `placement` (deterministic 安星 placement and overlay activation builders), `facade` (public iztro-compatible entry points), and `view` (renderer-neutral static chart view models). Rendering and application frontends live outside placement logic.
+`core` organizes its source tree into domain modules: `model` (value objects, star facts, immutable chart facts, and renderer-neutral snapshots), `placement` (deterministic 安星 placement and overlay activation builders), `facade` (public iztro-compatible entry points), and `view` (renderer-neutral static chart view models). Rendering, localization, and application frontends live outside placement logic.
 
 ## Phase 2: Core chart models
 
@@ -44,7 +45,10 @@ This roadmap is intentionally conservative. The project should first keep chart 
 - [x] Reuse `lunar-lite::FourPillars` for factual natal four-pillar facts.
 - [x] Isolate Zi Wei-specific NaYin and five-element bureau logic in `core`.
 - [x] Retain birth-year `StemBranch` as a reusable natal `Chart` fact.
+- [x] Add `ChartProfile` metadata so generated charts carry method profile and chart-plane facts.
+- [x] Add typed palace lookup helpers and required lookup variants.
 - [x] Add renderer-neutral `ChartStackSnapshot` read model.
+- [x] Add compact `ChartDiagnosticSnapshot` diagnostics for structural debugging.
 
 Decadal, age, and horoscope models are defined as typed facts and overlays. `build_decadal_frame` derives the 12-period 大限 frame from natal chart facts, `build_age_period` derives a fixture-backed 小限 period from nominal age, and `HoroscopeChart` wraps an immutable natal `Chart` with temporal layers plus optional retained target context.
 
@@ -57,6 +61,9 @@ Decadal, age, and horoscope models are defined as typed facts and overlays. `bui
 - [x] Document known differences for the implemented slice.
 - [x] Add default-algorithm natal adjective stars.
 - [x] Add Zhongzhou-only natal adjective stars.
+- [x] Add Zhongzhou Heaven/Earth/Human chart-plane support as Rust extension behaviour.
+- [x] Extract natal chart-plane anchor resolution into a dedicated placement resolver.
+- [x] Add invariant coverage for supported natal algorithm/plane combinations.
 - [x] Place decorative runtime star families as untyped `DecorativeStarPlacement`s.
 - [x] Place scoped flow stars as branch-tagged `ScopedStarPlacement`s.
 - [x] Add solar-to-lunar conversion and leap-month behavior through the internal `lunar-lite` adapter.
@@ -80,7 +87,7 @@ Decadal, age, and horoscope models are defined as typed facts and overlays. `bui
 - [ ] Add full facade serialization parity.
 - [ ] Add full BaZi interpretation/output beyond factual `by_solar` natal four pillars.
 
-Current supported chart-generation slice: `by_lunar` accepts explicit lunar inputs plus explicit birth-year stem and branch, validates them into a retained `Chart::birth_year()` fact, builds deterministic natal chart facts, and validates supported fields against selected `iztro@2.5.8` fixtures. `by_solar` adds `lunar-lite` 1.0.0-backed solar-to-lunar conversion, derives the birth-year stem-branch through the normal-boundary four-pillar API, retains factual `lunar_lite::FourPillars`, and delegates placement to `by_lunar`.
+Current supported chart-generation slice: `by_lunar` accepts explicit lunar inputs plus explicit birth-year stem and branch, validates them into a retained `Chart::birth_year()` fact, builds deterministic natal chart facts, and validates supported fields against selected `iztro@2.5.8` fixtures where upstream exposes a comparable surface. `by_solar` adds `lunar-lite` 1.0.0-backed solar-to-lunar conversion, derives the birth-year stem-branch through the normal-boundary four-pillar API, retains factual `lunar_lite::FourPillars`, and delegates placement to `by_lunar`. Zhongzhou Earth/Human chart planes are Rust-only extensions because upstream `iztro@2.5.8` does not expose those planes.
 
 ## Phase 4: Snapshot, rendering, and static GUI
 
@@ -106,16 +113,18 @@ The render layer consumes snapshots and view models; it must not generate chart 
 
 ## Phase 5: Runtime i18n
 
-- [ ] Add `crates/iztro-i18n`.
-- [ ] Use Fluent resources bundled at compile time.
-- [ ] Support `en-US` and `zh-Hans` initially.
-- [ ] Make `en-US` the default runtime/GUI locale.
-- [ ] Preserve Simplified Chinese terminology as a first-class locale.
-- [ ] Add typed helpers for stars, palaces, mutagens, temporal labels, and shared UI strings.
-- [ ] Migrate existing `iztro-gui` user-facing strings so the current UI is fully usable in either English or Simplified Chinese.
-- [ ] Keep core facts language-neutral and keep localization at presentation/export boundaries.
+- [x] Add `crates/iztro-i18n`.
+- [x] Use Fluent resources bundled at compile time.
+- [x] Support `en-US` and `zh-Hans` initially.
+- [x] Make `en-US` the default runtime/GUI locale.
+- [x] Preserve Simplified Chinese terminology as a first-class locale.
+- [x] Add typed helpers for stars, palaces, mutagens, temporal labels, brightness labels, and shared UI strings.
+- [x] Migrate existing `iztro-gui` user-facing strings so the current UI is usable in either English or Simplified Chinese.
+- [x] Keep core facts language-neutral and keep localization at presentation/export boundaries.
+- [ ] Add additional locales only after the English/Simplified Chinese surface remains stable.
+- [ ] Audit future GUI/TUI/MCP surfaces for hardcoded user-facing strings.
 
-The i18n crate should be separate from chart generation. Facade snapshots may keep additive conventional zh-CN labels for compatibility/readability, but GUI runtime localization should come through `iztro-i18n`.
+The i18n crate is separate from chart generation. Facade snapshots may keep additive conventional zh-CN labels for compatibility/readability, but GUI runtime localization comes through `iztro-i18n`.
 
 ## Phase 6: TUI and MCP tooling
 

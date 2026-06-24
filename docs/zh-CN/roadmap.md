@@ -1,6 +1,6 @@
 # 路线图
 
-本路线图刻意保守。项目应先建立稳定架构和兼容性测试，再扩展解读深度。
+本路线图刻意保守。项目应先保持命盘事实稳定且由 fixtures 支撑，再扩展本地化渲染与应用 surface，最后再扩展解读深度。
 
 ## Phase 0：文档与架构
 
@@ -11,59 +11,46 @@
 - [x] 规则引擎设计。
 - [x] 术语表。
 - [x] 关键决策 ADR。
+- [x] 当前状态文档。
+- [x] 可运行纯文本 chart demo。
+- [x] 记录 static-chart-first GUI 方向。
+- [x] 记录 TUI、MCP、3D 作为 typed facts / view models 的下游消费者。
+- [x] 记录 core chart generation 架构、天地人三盘、diagnostics 和 invariants。
 
 ## Phase 1：Rust workspace 脚手架
 
 - [x] 创建 Rust workspace。
 - [x] 添加核心 crates：
-  - [x] `core`；
+  - [x] `iztro` core/library crate；
   - [x] `features`；
   - [x] `rules`；
   - [x] `reading`；
-  - [x] `iztro-cli`。
+  - [x] `iztro-cli`；
+  - [x] `render`；
+  - [x] `iztro-i18n`；
+  - [x] `iztro-gui` local desktop prototype。
 - [x] 添加格式化、clippy、测试 CI。
 - [x] 添加序列化和 fixture-based test 基础设施。
 
-`core` 的源码树按领域模块组织：`model`（值对象、星曜事实与不可变星盘事实）、`placement`（确定性安星与叠加层激活构建器）、`facade`（对外的 iztro 兼容入口）、`feature`（为未来派生事实提取保留的边界）。crate 错误类型保留在 crate 根部。这只是内部重组；公开 API 与排盘行为均未改变。
+`core` 的源码树按领域模块组织：`model`（值对象、星曜事实、不可变命盘事实和 renderer-neutral snapshots）、`placement`（确定性安星与 overlay activation builders）、`facade`（公开 iztro-compatible 入口）、`view`（renderer-neutral static chart view models）。渲染、本地化和应用前端都位于 placement logic 之外。
 
 ## Phase 2：核心星盘模型
 
 - [x] 定义天干、地支、宫位、星曜、四化、作用范围、性别、历法配置。
 - [x] 定义星盘、宫位和星曜落点模型。
-- [x] 定义大限与运限模型。
+- [x] 定义大限与 horoscope overlay models。
 - [x] 确保已实现模型强类型且可序列化。
-- [x] 将上游 `iztro@2.5.8` runtime 星曜名称清单与已表示星盘事实分开维护。
-- [x] 直接复用 `lunar_lite::FourPillars` 保留事实性的本命四柱。
+- [x] 将上游 `iztro@2.5.8` runtime 星曜名称清单与已表示 chart facts 分开维护。
+- [x] 复用 `lunar-lite` 的底层天干、地支、干支循环和四柱原语。
+- [x] 复用 `lunar_lite::FourPillars` 保留事实性的本命四柱。
+- [x] 将紫微斗数特有的纳音与五行局逻辑隔离在 `core`。
+- [x] 在 `Chart` 上保留出生年 `StemBranch` 事实。
+- [x] 添加 `ChartProfile` metadata，让生成的 chart 携带 method profile 与 chart-plane facts。
+- [x] 添加 typed palace lookup helpers 和 required lookup variants。
+- [x] 添加 renderer-neutral `ChartStackSnapshot` read model。
+- [x] 添加 compact `ChartDiagnosticSnapshot`，用于结构诊断与 invariant debugging。
 
-大限与运限模型以叠加层形式定义：`HoroscopeChart` 包裹不可变的本命 `Chart`，并持有
-零个或多个 `TemporalLayer`，每个层带有非本命的 `Scope`、强类型的 `TemporalContext`、
-按范围划分的 `StarPlacement` 和 `MutagenActivation`。这些只是调用方显式提供的模型
-事实；时间范围安星与历法推导仍推迟到 Phase 3。这些模型之上的前两个时间算法现已
-提供：`build_yearly_mutagen_layer` 从显式的流年干支生成流年 `TemporalLayer` 四化
-激活，`build_decadal_mutagen_layer` 则从显式的大限干支及起运年龄生成大限版。两者都
-复用共享的天干四化表，作用于本命盘中已存在的星曜。它们仅为叠加层——不安放流曜、
-不修改本命、不推导历法/年龄区间/大限命宫/大限宫位——四化仍作为 `MutagenActivation`
-事实，而非独立星曜。
-
-星曜 metadata 有意拆成两层。`represented_star_metadata_table().len() == 70` 覆盖已安放
-且有 fixture 覆盖的本命星，其中包含受算法门控的中州派特有杂曜。
-`known_star_metadata_table().len() == 170` 记录上游 `iztro@2.5.8` runtime 星曜名称条目，
-包括已表示本命星、装饰性 runtime 数组以及 horoscope 流曜名称。已表示 metadata 保持
-仅本命；装饰性 runtime 条目是 known 的无类型 runtime 事实，流曜则是通过
-`TemporalLayer` 安放的 known 有类型时间事实。`xunzhong` / `旬中` 因只属于 locale 而
-被排除；已支持本命 `getAdjectiveStar` 切片以外的神煞安星、
-亮度扩展，以及把四化建模为星曜，仍然延期。完整 horoscope stack 组装
-（大限、小限、流年、流月、流日、流时组装为一个 `HoroscopeChart`）已实现，流年层并附带
-`yearlyDecStar`（岁前/将前十二神）作为流年范围的时间性装饰事实，并提供
-`HoroscopeSupportedFieldsSnapshot` 作为规范化 supported-fields 导出；`HoroscopeRuntime`
-则提供已类型化的 runtime 宫位投影与查询 helper；`HoroscopeFacadeSnapshot` 再把它们（连同
-保留的数字化目标 context：阳历日期、农历日期、闰月标志与目标 `timeIndex`，以及最小
-`NatalFacadeSnapshot` / `astrolabe`）组合为一个上游风格、可序列化的 horoscope 载荷。
-这些仅覆盖已支持事实面，更接近但仍非完整上游 `FunctionalAstrolabe#horoscope` 载荷对齐。
-本命 facade `astrolabe` 快照额外通过确定性的 `core::labels::zh_cn` 查表以附加 `*_zh`
-字段暴露常用中文标签，而内部模型保持语言中立；当本命星盘保留四柱时，还会携带可选的事实性
-本命四柱（`NatalFacadeFourPillarsSnapshot`）。完整上游 astrolabe helper/query 方法、
-完整多语言/i18n 基础设施与完整上游本地化字符串对齐、本地化日期字符串与完整八字解读仍然延期。
+大限、小限和 horoscope models 都是 typed facts / overlays。`build_decadal_frame` 从本命 chart facts 推导十二个十年大限 period；`build_age_period` 从虚岁推导 fixture-backed 小限 period；`HoroscopeChart` 包裹不可变本命 `Chart`，并持有 temporal layers 和可选 target context。
 
 ## Phase 3：排盘兼容性
 
@@ -72,86 +59,131 @@
 - [x] 将当前排盘切片拆成小的确定性模块进行移植或重写。
 - [x] 加入与选定 `iztro` 输出对齐的 implemented-slice golden tests。
 - [x] 记录 implemented slice 的已知差异。
-- [x] 添加默认算法本命杂曜。iztro 2.5.8 默认算法的全部 38 颗杂曜均已安放；逐星落点基准见兼容性文档「默认算法本命杂曜全集」。
-- [x] 添加中州派特有本命杂曜。`ChartAlgorithmKind::Zhongzhou` 根据上游 iztro 2.5.8 fixtures 安放龙德/截空/劫煞/大耗，省略默认截路/空亡，并保留中州派天伤/天使互换。
-- [x] 安放装饰性 runtime 星曜家族。`by_lunar` 将长生/博士/岁前/将前十二神作为每宫无类型的 `DecorativeStarPlacement` 安放，并与 `Chart::stars()` 分离。岁破 known，且在中州派下可替代第七个岁前位置，但不是额外的第十三个岁前 placement。
-- [x] 安放 scoped flow stars。`build_flow_star_layer` 通过规范化的 `FlowStarScope` + `FlowStarBase` identity，将大限/流年/流月/流日/流时流曜（以及流年年解）安放为带地支标签的 `ScopedStarPlacement`。
-- [x] 添加阳历转农历与闰月行为。`by_solar` 通过内部 `lunar-lite` 适配器将公历日期转换为农历事实并委托给 `by_lunar`；`by_lunar` 为已支持切片携带显式的 `is_leap_month`/`fix_leap` 语义。两者均以 `iztro@2.5.8` fixtures 校验。日历后端类型不出现在公开 API 中。
-- [x] 在 `by_solar` 星盘上保留事实性的本命四柱。`Chart::four_pillars()` 返回可选的 `lunar_lite::FourPillars`；`by_lunar` 目前不伪造未支持的完整四柱，因此保持 `None`。
-- [x] 添加早晚子时变体。`BirthTime` 建模上游 `iztro` `timeIndex` `0..=12`，保留早子时（`0`）与晚子时（`12`），同时让按地支传入的 request API 保持向后兼容。
-- [x] 添加 fixture-backed 流月 period 与 layer 组装。`build_monthly_period` 保留流月干支和流月命宫为独立事实，`build_monthly_horoscope_layer` 组装流月流曜、流月四化和流月宫名布局。
-- [x] 添加 fixture-backed 流日 period 与 layer 组装。`build_daily_period` 保留流日干支和流日命宫为独立事实，`build_daily_horoscope_layer` 组装流日流曜、流日四化和流日宫名布局。
-- [x] 添加 fixture-backed 流时 period 与 layer 组装。`build_hourly_period` 保留流时干支和流时命宫为独立事实，`build_hourly_horoscope_layer` 组装流时流曜、流时四化和流时宫名布局。
-- [x] 添加完整 horoscope stack 组装。`build_full_horoscope_chart`（输入 `HoroscopeStackInput`）按确定顺序把大限、小限、流年、流月、流日、流时层组装为一个 `HoroscopeChart`，并按推导的虚岁选取大限 period。仅为模型级组装，非上游 `FunctionalAstrolabe#horoscope` 载荷对齐。
-- [x] 添加流年 `yearlyDecStar`（岁前/将前十二神）作为流年范围的时间性装饰事实（`build_yearly_decorative_star_placements`）。无类型：不进入 `Chart::stars()` 或本命 `Palace::decorative_stars()`。
-- [x] 添加 `HoroscopeSupportedFieldsSnapshot`，从 `HoroscopeChart` 导出已实现完整 horoscope 事实面的规范化 supported-fields 快照，并以 `horoscope.json` fixture 校验。它不是上游原始 `FunctionalAstrolabe#horoscope` 载荷。
-- [x] 添加已类型化的上游 runtime 查询助手和 runtime 宫位投影。`HoroscopeRuntime` 覆盖 `agePalace`、`palace`、`surroundPalaces`、`hasHoroscopeStars`、`notHaveHoroscopeStars`、`hasOneOfHoroscopeStars` 与 `hasHoroscopeMutagen`，并以 `horoscope_runtime.json` fixture 校验。
-- [x] 添加上游风格的 horoscope facade 载荷快照。`HoroscopeFacadeSnapshot` 把 `HoroscopeSupportedFieldsSnapshot` 分块、保留的数字化目标 context、最小本命 `astrolabe` 与 `HoroscopeRuntime` 命宫投影组合为一个可序列化载荷，并以 `horoscope_facade.json` fixture 校验。通过 `build_full_horoscope_chart` 构建时，context 包含数字化阳历日期、带闰月标志的数字化农历日期，以及目标 `timeIndex`。更接近上游 `FunctionalAstrolabe#horoscope` 形状，但非完整 package 对齐。
-- [x] 添加最小本命 astrolabe facade 快照。`NatalFacadeSnapshot` 作为 `astrolabe` 嵌入 `HoroscopeFacadeSnapshot`，只从 `HoroscopeChart::natal()` / `Chart` 派生，并只暴露已建模本命事实，不包含时间叠加层或新增安星逻辑。
-- [x] 在 facade 快照中暴露事实性的本命四柱。`NatalFacadeSnapshot` 携带可选的 `NatalFacadeFourPillarsSnapshot`（`four_pillars`），直接复用 `lunar_lite::FourPillars`：每柱仍是机器可读的 `StemBranch`，并附加 zh-CN `*_zh` 标签。对 `by_solar` 星盘为 `Some(..)`（其年柱等于 `Chart::birth_year()`），对 `by_lunar` 星盘省略/为 `None`，并通过 `HoroscopeFacadeSnapshot` 的内嵌 `astrolabe` 一并携带。仅为事实导出——不含十神、藏干、五行评分、喜用神、成格、读断或其他八字解读。
-- [ ] 添加完整 facade 序列化对齐：补齐完整上游 astrolabe helper/query 方法、本命本地化标签、本地化 `lunarDate`/`solarDate` 字符串、八字字符串、大限 ranges、ages 数组与 runtime 查询助手——这些目前都从 `HoroscopeFacadeSnapshot` 延期。
-- [ ] 添加事实性 `by_solar` 本命四柱之外的完整八字解读/输出、bindings、特征提取、规则与叙事。
+- [x] 添加默认算法本命杂曜。
+- [x] 添加中州派特有本命杂曜。
+- [x] 添加中州天盘/地盘/人盘支持，作为 Rust extension behaviour。
+- [x] 将 natal chart-plane anchor resolution 抽出为专门的 placement resolver。
+- [x] 为已支持 natal algorithm/plane 组合添加 invariant coverage。
+- [x] 安放装饰性 runtime 星曜家族为无类型 `DecorativeStarPlacement`。
+- [x] 安放 scoped flow stars 为带地支标签的 `ScopedStarPlacement`。
+- [x] 通过内部 `lunar-lite` adapter 添加阳历转农历与闰月行为。
+- [x] 添加上游 `timeIndex` `0..=12` 早晚子时变体。
+- [x] 通过 `lunar-lite` 1.0.0 四柱 API 推导出生年干支并保留在 `Chart` 上。
+- [x] 在 `by_solar` charts 上保留完整事实性本命四柱；`by_lunar` 仍保持显式输入且不支持完整四柱推导。
+- [x] 添加 typed decadal-frame derivation。
+- [x] 在选定大限 layer 上添加 decadal temporal palace-name layout。
+- [x] 添加 fixture-backed 小限 / age period context、palace-name layout 和 mutagen overlay。
+- [x] 添加 fixture-backed 流月 / monthly period context、palace-name layout、mutagen overlay 和 flow-star layer assembly。
+- [x] 添加 fixture-backed 流日 / daily period context、palace-name layout、mutagen overlay 和 flow-star layer assembly。
+- [x] 添加 fixture-backed 流时 / hourly period context、palace-name layout、mutagen overlay 和 flow-star layer assembly。
+- [x] 添加 full horoscope stack assembly：把大限 / 小限 / 流年 / 流月 / 流日 / 流时 layers 组装为一个 `HoroscopeChart`，并按推导虚岁选择大限 period。
+- [x] 添加流年 `yearlyDecStar`（岁前/将前十二神）作为 yearly-scope temporal decorative facts。
+- [x] 添加 `HoroscopeSupportedFieldsSnapshot`，用于已实现 full horoscope supported-field fact surface。
+- [x] 添加 typed upstream runtime query helpers 与 runtime palace projections。
+- [x] 添加 upstream-like horoscope facade payload snapshot。
+- [x] 添加 minimal natal astrolabe facade snapshot。
+- [x] 在 facade snapshots 中暴露事实性本命四柱。
+- [ ] 添加 temporal decorative arrays beyond yearly `yearlyDecStar`。
+- [ ] 添加 full facade serialization parity。
+- [ ] 添加 factual `by_solar` natal four pillars 之外的 full BaZi interpretation/output。
 
-当前核心切片：`by_lunar` 接受显式农历输入以及显式出生年干、年支，生成确定性的本命星盘事实，并用选定的 `iztro` 2.5.8 fixtures 校验 minimal chart 字段、十四主星、十四颗已支持辅星、完整默认算法的 38 颗本命杂曜/辅助星，以及中州派 40 颗本命杂曜/辅助星输出。`by_lunar` 不伪造未支持的完整四柱，因此 `Chart::four_pillars()` 为 `None`。默认/非中州派输出保持 14 主星 + 14 辅星 + 38 杂曜/辅助星 = 66 颗本命星；中州派输出为 14 主星 + 14 辅星 + 40 颗本命杂曜/辅助星 = 68 颗本命星。已表示 metadata table 为 70 颗，因为默认专属与中州派专属本命杂曜都属于已表示星曜。装饰性 runtime 家族（长生/博士/岁前/将前十二神）与 scoped 流曜现在作为独立事实安放（见下文）。`by_solar` 增加了 `lunar-lite` 1.0.0 阳历转农历转换，按 normal 年/月分界推导本命四柱，直接把 `lunar_lite::FourPillars` 保留在 `Chart`，并委托 `by_lunar` 安星；`by_lunar` 为已支持切片建模 fixture 支持的闰月行为（`is_leap_month`/`fix_leap`）与早晚子时变体（`BirthTime` / `timeIndex` `0..=12`）。流月、流日与流时 period 与 layer 组装已有 fixture-backed 覆盖，完整 horoscope 组装、流年 `yearlyDecStar` 时间性装饰事实、规范化 supported-fields 快照导出，以及 `HoroscopeRuntime` helper 已实现；完整八字解读/输出、完整 facade 载荷对齐、bindings、特征提取、规则与叙事仍然推迟。四化仍作为安星上的 `Mutagen` 事实，而非独立星曜。
+当前支持切片：`by_lunar` 接受显式农历输入与显式出生年干支，生成确定性本命 chart facts，并在上游可比较 surface 上用 `iztro@2.5.8` fixtures 校验。`by_solar` 添加 `lunar-lite` 1.0.0-backed 阳历转农历，推导出生年干支与事实性四柱，并委托 `by_lunar` 安星。中州地盘/人盘是 Rust-only extension，因为上游 `iztro@2.5.8` 不暴露这些 chart planes。
 
-四组装饰性 runtime 家族由 `by_lunar` 作为无类型 `DecorativeStarPlacement` 安放到独立
-的 `Palace::decorative_stars()` collection 中，因此 `Chart::stars()` 仍只包含有类型
-星曜，66/68 的计数不变。它们只能通过 `try_known_star_metadata` resolve（没有
-`StarKind`）。上游只输出 12 个岁前条目：岁破 known，且在中州派下可替代大耗，但不
-会作为额外岁前条目安放。
+## Phase 4：Snapshot、rendering 与 static GUI
 
-流曜 runtime identity 通过 `FlowStarScope` + `FlowStarBase` 规范化：`YunKui`、
-`LiuKui`、`YueKui`、`RiKui`、`ShiKui` 等带范围的上游名称仍保留为彼此独立的
-`StarName` 变体，以保证 serde/runtime fidelity；`flow_star_name(scope, base)` 暴露
-它们共享的 identity。`build_flow_star_layer` 现在据此将十颗 matrix 流曜（加流年年解）
-作为有类型、带地支标签的 `ScopedStarPlacement` 安放到 `TemporalLayer` 中。这样安放
-流曜不会改变 metadata table 数量、不会改变本命 `by_lunar` 输出，也不会把时间范围四化
-建模为星曜；`represented_star_metadata_table()` 保持仅本命（70）。
+- [x] 添加 `ChartStackSnapshot` 作为 renderer-neutral stacked read model。
+- [x] 在 snapshot cells 中保留传统十二宫格位置。
+- [x] 将本命与 temporal fact surfaces 保持为独立 layer/cell sections。
+- [x] 添加 `render` crate。
+- [x] 添加确定性 plain text chart-stack renderer。
+- [x] 添加从真实 `by_solar` 输入生成的可运行 plain text demo。
+- [x] 添加 GUI-ready static chart view model：`core::view::StaticChartViewSnapshot`。
+- [x] 添加 renderer-neutral highlight annotation DTOs，预留给 feature/rule layers。
+- [x] 添加本地 Iced static chart GUI prototype。
+- [x] 添加 GUI saved-chart startup flow。
+- [x] 添加 GUI temporal controls，并以 `static_temporal_chart_view` 支撑。
+- [x] 添加 renderer-side 三方四正 hover/click highlighting。
+- [x] 添加 renderer-side mutagen badges。
+- [ ] 完成第一轮 GUI polish：temporal control layout、跨 period navigation edge cases、宫位标签对齐、saved-chart edit/delete naming flow。
+- [ ] 如仍有价值，添加更丰富的非 GUI 2D palace-grid renderer。
+- [ ] 添加 timeline frame builder，将 static chart view models 作为可复用时间帧。
+- [ ] 添加可选 3D stacked temporal view。
 
-## Phase 4：特征提取
+Render layer 消费 snapshots 与 view models；它不能生成 chart facts、推导 temporal periods、评估规则或产生解读。Static GUI 是近期主要 frontend，因为它能直观验证 chart view model。Timeline 与 3D views 应是同一 frame model 的后续消费者，而不是新 chart engine。
 
-- [x] 提取宫位特征。
-- [x] 提取星曜特征。
-- [x] 提取本命四化流向。
-- [x] 提取宫位关系、三方四正、对宫。
-- [ ] 添加强弱评分占位接口。
-- [ ] 添加时间激活接口。
+## Phase 5：运行时 i18n
 
-首个切片已实现：`features` 的 `BasicFeatureExtractor` 将确定性星盘事实转换为结构化的宫位特征、星曜特征、本命四化流向和宫位循环关系。星曜特征保留所有落点星曜事实；宫位与领域的映射是可选元数据，目前仅限五个直接的宫位—领域映射（命宫、官禄宫、财帛宫、夫妻宫、疾厄宫），其他宫位的星曜不带领域。此阶段仅做特征提取——不做规则匹配、不产出判断、不做解读、不生成叙事。强弱评分与时间激活接口仍然推迟。
+- [x] 添加 `crates/iztro-i18n`。
+- [x] 使用 Fluent resources，并在编译期打包。
+- [x] 首批支持 `en-US` 与 `zh-Hans`。
+- [x] 将 `en-US` 作为默认 runtime / GUI locale。
+- [x] 将简体中文术语作为一等 locale 保留。
+- [x] 为星曜、宫位、四化、时间标签、亮度标签和共享 UI 字符串添加 typed helpers。
+- [x] 迁移现有 `iztro-gui` 用户可见字符串，使当前 UI 可用英文或简体中文使用。
+- [x] 保持 core facts language-neutral，并把 localization 放在 presentation/export boundaries。
+- [ ] 在 English / Simplified Chinese surface 稳定后，再添加更多 locale。
+- [ ] 对未来 GUI/TUI/MCP surfaces 做 hardcoded user-facing string audit。
 
-## Phase 5：规则引擎骨架
+`iztro-i18n` 独立于 chart generation。Facade snapshots 可以保留附加 conventional zh-CN labels 用于兼容和可读性，但 GUI runtime localization 通过 `iztro-i18n`。
 
-- [ ] 定义规则 schema。
-- [ ] 从 TOML 加载规则。
-- [ ] 用规则匹配提取后的特征。
-- [ ] 输出带证据和来源元数据的结构化判断。
-- [ ] 为规则匹配添加确定性单元测试。
+## Phase 6：TUI 与 MCP 工具
 
-## Phase 6：基础确定性解读
+- [ ] 为 selected render/view outputs 添加 CLI integration。
+- [ ] 在 `ChartStackSnapshot` / `StaticChartViewSnapshot` 之上添加 TUI frontend。
+- [ ] 为 coding agents 定义稳定 machine-readable query outputs。
+- [ ] 等 typed facade/query surface 足够稳定后再添加 MCP server/tooling。
+- [ ] 暴露 chart facts、view snapshots、pattern hits、claims 和 evidence 为结构化 outputs。
+- [ ] 避免在已有 typed fact surface 时只暴露 prose。
 
-- [ ] 添加少量 seed rules。
-- [ ] 为性格、事业、财富、关系生成领域判断。
-- [ ] 从结构化判断渲染确定性报告。
-- [ ] 叙事保持简洁、证据优先。
+TUI 与 MCP 是 tooling/application consumers。它们不能复制 placement logic、解析 rendered text，或成为另一套 interpretation engine。
 
-## Phase 7：多方法扩展
+## Phase 7：Feature extraction 与 patterns
 
-- [ ] 添加 method profiles。
-- [ ] 支持多个排盘或特征提取策略。
-- [ ] 添加不同派别或解读风格的可选规则集。
-- [ ] 保持 profile 组合显式且可测试。
+- [x] 提取 palace features。
+- [x] 提取 star features。
+- [x] 提取 natal mutagen flows。
+- [x] 提取 palace relations、triads 与 oppositions。
+- [x] 添加第一个 read-only `core::pattern` 切片，用结构化 facts 表示 classical pattern detection。
+- [ ] 添加 strength-score placeholders。
+- [ ] 添加 temporal activation interfaces。
+- [ ] 添加适合后续成格和 highlight annotations 的 pattern-hit interfaces。
 
-## Phase 8：绑定与应用
+第一轮 feature slice：`BasicFeatureExtractor` 将 deterministic chart facts 转换为 palace features、star features、natal mutagen flows 与 cyclic palace relations。Pattern slice 将 chart facts 识别为结构化结果；它不输出 prose，也不修改 chart state。
 
-- [ ] CLI。
+## Phase 8：Rule engine skeleton
+
+- [ ] 定义 rule schema。
+- [ ] 从 TOML 加载 rules。
+- [ ] 基于 extracted features 匹配 rules。
+- [ ] 输出带 evidence 与 source metadata 的 structured claims。
+- [ ] 输出用于成格、limit-triggered、flow-triggered configurations 的 structured pattern/highlight annotations。
+- [ ] 为 rule matching 添加 deterministic unit tests。
+
+Pattern 和 成格 highlighting 应从 features/rules 流向 structured annotations。Renderer 可以高亮相关宫位、星曜、四化或 temporal scopes，但不应包含 astrology-specific rule logic。
+
+## Phase 9：基础确定性解读
+
+- [ ] 添加小型 seed rule set。
+- [ ] 为性格、事业、财富、关系生成 domain-level claims。
+- [ ] 从 structured claims 渲染 deterministic reports。
+- [ ] 保持 narrative 简洁且 evidence-based。
+
+## Phase 10：多方法扩展
+
+- [ ] 添加更丰富的 method profile 配置。
+- [ ] 支持多个 chart-generation 或 feature-extraction strategies。
+- [ ] 为不同流派或解释风格添加可选 rule sets。
+- [ ] 保持 profile combinations 显式且可测试。
+
+## Phase 11：Bindings 与应用
+
 - [ ] Python bindings。
 - [ ] WebAssembly bindings。
-- [ ] TUI 前端，推迟到核心模型和报告结构稳定后再设计。
-- [ ] GUI 前端，推迟到核心模型和报告结构稳定后再设计。
-- [ ] 可选 LLM 叙事润色。
+- [ ] GUI/WASM application。
+- [ ] 可选 LLM-assisted narrative polishing。
 
-应用前端会被刻意推迟。核心 crates 应保持 UI 无关、确定性、可序列化，使未来 CLI、TUI、GUI、WASM 和 Python 前端可以直接消费星盘、特征、判断、证据和报告结构，而不需要解析自然语言文本。
+应用前端仍是 typed facts、snapshots、view models、features、claims、evidence、annotations 和 reports 的消费者。它们不应解析 narrative text 来恢复领域事实，也不应把 chart-generation/rule logic 嵌入 UI code。
 
-## 发布策略
+## 发布政策
 
-`0.1.0` 之前 API 可以自由变更。`0.1.0` 之后，破坏性变更应记录在 `CHANGELOG.md`，必要时补充 ADR。
+`0.1.0` 之前 API 可自由调整。`0.1.0` 之后，breaking changes 应记录在 `CHANGELOG.md`，必要时也记录 ADR。

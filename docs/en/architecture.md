@@ -21,7 +21,7 @@ Examples:
 - model-only horoscope overlays;
 - scoped temporal star placements;
 - temporal mutagen activations;
-- method profile metadata.
+- method profile and chart-plane metadata.
 
 The output of this layer is a structured chart object, usually `Chart`, or a model-only overlay wrapper such as `HoroscopeChart`.
 
@@ -69,7 +69,7 @@ A 文墨天机-style static chart is instead backed by a dedicated GUI-facing re
 
 The view model remains renderer-neutral. It may describe that a palace or star should be highlighted, but it does not choose CSS classes, colors, canvas coordinates, camera position, animation, or 3D geometry.
 
-Current `StaticChartViewSnapshot` display labels are conventional Chinese-first labels inherited from the existing facade/view work. The accepted next step is to move runtime GUI language selection to `crates/iztro-i18n`, so the GUI can render either English or Simplified Chinese without making Chinese strings the internal model identity.
+`StaticChartViewSnapshot` remains language-neutral enough for frontends to localize at presentation boundaries. The desktop GUI uses `crates/iztro-i18n` to render the current surface in English or Simplified Chinese without making localized strings the internal model identity.
 
 ### Static chart slices before timeline and 3D
 
@@ -90,9 +90,9 @@ Pattern and 成格 highlighting should be produced by feature/rule layers as str
 
 Runtime localization is a presentation boundary, not a chart-generation concern.
 
-The planned `crates/iztro-i18n` crate should own:
+`crates/iztro-i18n` owns:
 
-- supported runtime locales, initially `en-US` and `zh-Hans`;
+- supported runtime locales, currently `en-US` and `zh-Hans`;
 - Fluent resource loading and formatting;
 - fallback behavior, with `en-US` as the default fallback;
 - typed helpers such as `star_name`, `palace_name`, `mutagen`, and `temporal_label`;

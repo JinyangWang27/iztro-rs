@@ -47,6 +47,8 @@ The current fixture-backed chart-generation surface includes:
 - upstream `timeIndex` `0..=12` rat-hour modeling through `BirthTime`;
 - retained birth-year `StemBranch`, twelve palace layout, Life Palace, Body Palace, palace stems, and five-element bureau;
 - optional factual natal `lunar_lite::FourPillars` retained on `by_solar` charts;
+- self-describing `ChartProfile` metadata carrying method profile and chart plane on generated charts;
+- typed palace lookup helpers and compact chart diagnostics for invariant/debug surfaces;
 - represented typed natal stars, supported brightness, and birth-year mutagens;
 - untyped decorative runtime star families;
 - branch-tagged typed temporal flow-star placements from explicit temporal contexts;
@@ -60,7 +62,7 @@ The current fixture-backed chart-generation surface includes:
 - normalized `HoroscopeSupportedFieldsSnapshot` export for the implemented full horoscope supported-field fact surface, fixture-backed against `crates/iztro/fixtures/iztro/horoscope.json`;
 - model-level `HoroscopeRuntime` helpers for typed palace projections (`age_palace`, `palace`, `surround_palaces`) and typed runtime queries (`has_horoscope_stars`, `not_have_horoscope_stars`, `has_one_of_horoscope_stars`, `has_horoscope_mutagen`), fixture-backed against `crates/iztro/fixtures/iztro/horoscope_runtime.json`;
 - serializable `HoroscopeFacadeSnapshot` export that combines the modeled full horoscope surface — the `HoroscopeSupportedFieldsSnapshot` blocks, a minimal model-derived natal `astrolabe` snapshot, the `HoroscopeRuntime` Life-palace projections, and the retained numeric target context (solar date, lunar date with leap-month flag, and target time index) — into one upstream-like payload, fixture-backed against `crates/iztro/fixtures/iztro/horoscope_facade.json`;
-- renderer-neutral `ChartStackSnapshot` and a deterministic plain text renderer demo.
+- renderer-neutral `ChartStackSnapshot`, GUI-facing `StaticChartViewSnapshot`, and a deterministic plain text renderer demo.
 
 The project now provides an upstream-like horoscope facade snapshot for the modeled full horoscope surface, built from `HoroscopeChart`, `HoroscopeSupportedFieldsSnapshot`, `NatalFacadeSnapshot`, and `HoroscopeRuntime`. It is closer to the TS `FunctionalAstrolabe#horoscope` payload shape but is still **not** full package parity: the embedded `astrolabe` is intentionally minimal and contains only modeled natal facts; complete upstream astrolabe helper/query methods, localized labels, BaZi strings, decadal ranges, age arrays, bindings, renderers, rules, and narrative remain deferred.
 
@@ -74,6 +76,14 @@ The project now provides an upstream-like horoscope facade snapshot for the mode
 `represented_star_metadata_table()` stays natal-only. Decorative families are untyped `DecorativeStarPlacement`s and never appear in `Chart::stars()`. Horoscope flow stars are typed, branch-tagged `ScopedStarPlacement`s inside `TemporalLayer`s, not natal represented metadata.
 
 The upstream locale key `xunzhong` / `旬中` is intentionally excluded because no built-in upstream `FunctionalStar` construction or `StarType` assignment was found for it in `iztro@2.5.8`. 四化 remain `Mutagen` / `MutagenActivation` facts, not `StarName` variants.
+
+## Chart-plane compatibility boundary
+
+`ChartPlane` is a Rust-side axis separate from `ChartAlgorithmKind`. `Heaven` is the default plane and preserves existing fixture-backed output for the supported default and Zhongzhou algorithms. Generated `Chart` values retain the selected plane through `ChartProfile`.
+
+The Zhongzhou Earth and Human planes are supported as Rust extension behaviour, not as upstream `iztro@2.5.8` parity targets. Upstream TS `iztro@2.5.8` does not expose comparable Earth/Human chart-plane generation, so those planes are covered by internal structural invariants, anchor resolver tests, diagnostic snapshots, and architecture documentation rather than TS golden fixtures.
+
+The supported combinations are explicit: `QuanShu + Heaven`, `Zhongzhou + Heaven`, `Zhongzhou + Earth`, `Zhongzhou + Human`, and compatibility `Placeholder + Heaven`. Requests for `QuanShu + Earth/Human` or `Placeholder + Earth/Human` return `ChartError::UnsupportedChartPlane`.
 
 ## Public facade compatibility
 
@@ -182,25 +192,18 @@ The exact fixture files live under `crates/iztro/fixtures/iztro/`. Regeneration 
 
 ## Localization labels
 
-Rust internal domain models remain language-neutral: stems, branches, palaces,
-stars, mutagens, brightness, kinds, and families stay strongly typed enums and
-serialize with stable machine-readable keys. The facade/export natal astrolabe
-snapshots additionally expose conventional Chinese (zh-CN) labels as additive
-`*_zh` fields (for example `branch`/`branch_zh`, `name`/`name_zh`,
-`stem`/`stem_zh`), because Zi Wei Dou Shu is primarily consumed in Chinese.
+Rust internal domain models remain language-neutral: stems, branches, palaces, stars, mutagens, brightness, kinds, and families stay strongly typed enums and serialize with stable machine-readable keys. The facade/export natal astrolabe snapshots additionally expose conventional Chinese (zh-CN) labels as additive `*_zh` fields (for example `branch`/`branch_zh`, `name`/`name_zh`, `stem`/`stem_zh`), because Zi Wei Dou Shu is primarily consumed in Chinese.
 
-These labels are produced by the deterministic, table-driven
-`core::labels::zh_cn` lookups. They never replace the canonical identity, so
-compatibility assertions continue to validate only the machine-readable fields.
-Full multilingual/i18n infrastructure and complete upstream localized-string
-(including BaZi) parity remain deferred.
+These labels are produced by the deterministic, table-driven `core::labels::zh_cn` lookups. They never replace the canonical identity, so compatibility assertions continue to validate only the machine-readable fields.
+
+Runtime GUI/application localization is handled separately by `crates/iztro-i18n`, which currently supports English (`en-US`) and Simplified Chinese (`zh-Hans`) through Fluent resources and typed label helpers. Complete upstream localized-string parity, additional locales, and BaZi localized output remain deferred.
 
 ## Deferred compatibility work
 
 Deferred surfaces include:
 
 - full upstream facade serialization parity;
-- full multilingual/i18n infrastructure and complete upstream localized-string parity (facade snapshots expose additive zh-CN labels only);
+- additional locales and complete upstream localized-string parity beyond the current `iztro-i18n` English/Simplified Chinese surface;
 - full BaZi interpretation/output beyond factual `by_solar` natal four pillars;
 - bindings;
 - feature extraction for temporal activation;

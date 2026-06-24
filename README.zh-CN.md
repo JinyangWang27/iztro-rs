@@ -9,7 +9,7 @@
 
 `iztro-rs` 是一个 Rust 版紫微斗数项目，目标是提供排盘、特征提取，以及未来基于规则的解盘能力。
 
-> 状态：早期设计与脚手架阶段。当前项目还不是完整排盘或解盘引擎。
+> 状态：核心排盘事实面、fixture-backed 兼容性切片、运限模型、静态 GUI view model、运行时本地化和本地 GUI 原型均已具备；完整上游 API parity、完整八字/规则/叙事仍未完成。
 
 English version: [README.md](README.md).
 
@@ -45,7 +45,7 @@ cargo run -p iztro --example plain_text
 - 面向宫位、星曜、四化、宫位关系、格局、运限的特征提取层；
 - 输出结构化判断而非直接输出文章的规则引擎；
 - 确定性的报告生成能力，并为未来可选的 LLM 叙事润色保留接口；
-- 未来支持 CLI、Python binding、WebAssembly 等使用场景。
+- 未来支持 CLI、TUI、MCP、Python binding、WebAssembly 等使用场景。
 
 ## 早期非目标
 
@@ -59,18 +59,19 @@ cargo run -p iztro --example plain_text
 
 ## 初始架构
 
-项目按四层设计：
+项目按多层设计：
 
 1. **Core Chart Layer**：确定性排盘事实与领域模型。
-2. **Feature Extraction Layer**：从星盘提取结构化语义特征。
-3. **Rule Engine Layer**：规则把特征转成带证据的结构化判断。
-4. **Narrative Layer**：把结构化判断渲染成人类可读报告。
+2. **Snapshot / Read Model Layer**：将事实转换为 renderer-neutral view model。
+3. **Runtime Localization Layer**：在展示边界处理 `en-US` / `zh-Hans` 文案。
+4. **Render / Application Layer**：文本、GUI、未来 TUI/MCP/3D 等消费者。
+5. **Feature / Rule / Narrative Layers**：后续解释能力，必须消费结构化事实而不是解析文本。
 
 详见 [docs/zh-CN/architecture.md](docs/zh-CN/architecture.md)。
 
 ## 与 iztro 的关系
 
-本项目受 [`iztro`](https://github.com/SylarLong/iztro) 启发。早期排盘逻辑会在适用范围内以 `iztro` 作为兼容性校验目标，但 Rust 内部 API 可以为了类型安全和长期扩展性而做不同设计。
+本项目受 [`iztro`](https://github.com/SylarLong/iztro) 启发。排盘逻辑会在适用范围内以 `iztro@2.5.8` 作为 fixture-backed 兼容性校验目标，但 Rust 内部 API 可以为了类型安全和长期扩展性而做不同设计。中州地盘/人盘属于 Rust 扩展行为，因为上游 `iztro@2.5.8` 不暴露对应 chart-plane 输出。
 
 详见 [docs/zh-CN/compatibility.md](docs/zh-CN/compatibility.md)。
 
@@ -79,6 +80,7 @@ cargo run -p iztro --example plain_text
 英文文档是工程规格的规范版本；中文文档是一等翻译，并作为紫微斗数术语的规范来源。
 
 - [项目规格](docs/zh-CN/project-spec.md)
+- [当前状态](docs/zh-CN/current-status.md)
 - [架构](docs/zh-CN/architecture.md)
 - [路线图](docs/zh-CN/roadmap.md)
 - [兼容性](docs/zh-CN/compatibility.md)
@@ -88,7 +90,7 @@ cargo run -p iztro --example plain_text
 
 ## 致谢
 
-本项目受 [`iztro`](https://github.com/SylarLong/iztro) 启发。`iztro` 使用 MIT License。`iztro-rs` 早期会在适用范围内复现与 `iztro` 兼容的排盘行为。
+本项目受 [`iztro`](https://github.com/SylarLong/iztro) 启发。`iztro` 使用 MIT License。`iztro-rs` 会在适用范围内复现与 `iztro` 兼容的排盘行为。
 
 ## License
 
