@@ -13,6 +13,4 @@ pub(crate) use lunar_normalize::resolve_lunar_date;
 pub(crate) use lunar_target::{
     ResolvedTemporalTarget, lunar_month_has_thirtieth, resolve_non_leap_lunar,
 };
-pub(crate) use solar_to_lunar::{
-    resolve_effective_birth_year, solar_to_lunar, solar_to_lunar_with_year_boundary,
-};
+pub(crate) use solar_to_lunar::{solar_to_lunar, solar_to_lunar_with_year_boundary};

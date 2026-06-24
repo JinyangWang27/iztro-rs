@@ -14,8 +14,8 @@
 //! converted lunar-year stem-branch even across the 立春/正月初一 window.
 
 use lunar_lite::{
-    EarthlyBranch, FourPillars, HeavenlyStem, LunarError, MonthDivide, SolarDate, StemBranch,
-    StemBranchOptions, YearDivide, four_pillars_from_solar_date_with_options,
+    EarthlyBranch, FourPillars, HeavenlyStem, LunarError, MonthDivide, SolarDate, StemBranchOptions,
+    YearDivide, four_pillars_from_solar_date_with_options,
     solar_to_lunar as convert_solar_to_lunar,
 };
 
@@ -174,15 +174,16 @@ pub(crate) fn solar_to_lunar_with_year_boundary(
 /// (with the normal month boundary) and returns it as a [`StemBranch`]. It is the
 /// fact that differs between [`YearBoundary::ChineseNewYearEve`] and
 /// [`YearBoundary::LiChun`] for a date in the 立春/正月初一 window.
+#[cfg(test)]
 pub(crate) fn resolve_effective_birth_year(
     year: i32,
     month: SolarMonth,
     day: SolarDay,
     policy: YearBoundary,
-) -> Result<StemBranch, ChartError> {
+) -> Result<lunar_lite::StemBranch, ChartError> {
     let conversion = solar_to_lunar_with_year_boundary(year, month, day, 0, policy)?;
-    StemBranch::try_new(conversion.birth_year_stem(), conversion.birth_year_branch()).map_err(
-        |err| match err {
+    lunar_lite::StemBranch::try_new(conversion.birth_year_stem(), conversion.birth_year_branch())
+        .map_err(|err| match err {
             lunar_lite::StemBranchError::InvalidStemBranchPair { stem, branch } => {
                 ChartError::InvalidStemBranchPair { stem, branch }
             }
