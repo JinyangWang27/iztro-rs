@@ -12,6 +12,7 @@
 //! The flat re-exports below preserve the stable public API regardless of where
 //! a type or function lives internally.
 
+pub mod calculation;
 pub mod error;
 pub mod facade;
 pub mod feature;
@@ -28,12 +29,16 @@ mod calendar;
 
 pub use error::{ChartError, validate_chart_algorithm_plane};
 
+pub use calculation::{
+    ApparentSolarTimeConfig, ChartCalculationConfig, ClockBirthTime, EquationOfTimePolicy,
+    Longitude, ResolvedBirthDateTime, SolarTimePolicy, UtcOffset,
+};
 pub use lunar_lite::{
     EARTHLY_BRANCHES, EarthlyBranch, FourPillars, HEAVENLY_STEMS, HeavenlyStem, StemBranch,
 };
 pub use model::bureau::{FiveElementBureau, five_element_bureau_from_life_palace};
 pub use model::calendar::{
-    BirthContext, BirthTime, CalendarDate, CalendarKind, Gender, SolarDay, SolarMonth,
+    BirthContext, BirthTime, CalendarDate, CalendarKind, Gender, SolarDate, SolarDay, SolarMonth,
 };
 pub use model::chart::{
     AgePeriod, Chart, ChartDiagnosticSnapshot, ChartLayerKind, ChartLayerSnapshot,
@@ -133,6 +138,10 @@ pub use placement::overlay::yearly_horoscope::build_yearly_horoscope_layer;
 
 pub use facade::by_lunar::{LunarChartRequest, LunarChartRequestBuilder, by_lunar};
 pub use facade::by_solar::{SolarChartRequest, SolarChartRequestBuilder, by_solar};
+pub use facade::options::{
+    LunarBirthInput, LunarDate, NatalChartOptions, SolarBirthInput, by_lunar_with_options,
+    by_solar_with_options,
+};
 pub use facade::static_temporal_chart_view::{
     static_temporal_chart_view, temporal_selection_for_local_moment,
     temporal_selection_for_solar_moment,

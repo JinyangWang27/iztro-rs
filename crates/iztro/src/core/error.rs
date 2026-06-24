@@ -6,7 +6,11 @@ use lunar_lite::{EarthlyBranch, HeavenlyStem, StemBranch};
 use thiserror::Error;
 
 /// Errors produced by core chart construction or validation.
-#[derive(Debug, Error, Eq, PartialEq)]
+///
+/// This type intentionally derives only [`PartialEq`] (not [`Eq`]): some
+/// calculation-policy variants carry `f64` measurements (longitude correction,
+/// equation-of-time minutes) that are comparable but not totally ordered.
+#[derive(Debug, Error, PartialEq)]
 pub enum ChartError {
     /// A chart must contain exactly the expected number of palaces.
     #[error("invalid palace count: expected {expected}, got {actual}")]
@@ -334,6 +338,41 @@ pub enum ChartError {
         /// Chart plane that is valid but not implemented yet.
         plane: ChartPlane,
     },
+    /// A longitude must lie within `-180.0..=180.0` degrees.
+    #[error("invalid longitude: expected -180.0..=180.0 degrees, got {value}")]
+    InvalidLongitude {
+        /// Rejected longitude in degrees.
+        value: f64,
+    },
+    /// A UTC offset must lie within the sane real-world range
+    /// `-12:00..=+14:00` (in minutes, `-720..=840`).
+    #[error("invalid utc offset: expected -720..=840 minutes, got {minutes}")]
+    InvalidUtcOffset {
+        /// Rejected UTC offset in minutes.
+        minutes: i32,
+    },
+    /// A wall-clock birth time must be a real 24-hour time.
+    #[error("invalid clock time: expected hour 0..=23 and minute 0..=59, got {hour}:{minute}")]
+    InvalidClockTime {
+        /// Rejected hour value.
+        hour: u8,
+        /// Rejected minute value.
+        minute: u8,
+    },
+    /// The requested equation-of-time policy is not implemented yet.
+    ///
+    /// Only [`EquationOfTimePolicy::Disabled`] (exact longitude correction with
+    /// zero equation-of-time minutes) is currently supported.
+    ///
+    /// [`EquationOfTimePolicy::Disabled`]: crate::core::calculation::EquationOfTimePolicy::Disabled
+    #[error("the requested equation-of-time policy is not supported yet")]
+    UnsupportedEquationOfTimePolicy,
+    /// Apparent solar time is an input calculation policy defined over a civil
+    /// solar (Gregorian) date. It cannot be applied to a lunar-date input,
+    /// because a longitude correction that crosses midnight would require lunar
+    /// calendar day arithmetic that this slice does not perform.
+    #[error("apparent solar time requires a solar (Gregorian) date input")]
+    ApparentSolarTimeRequiresSolarDate,
     /// Placeholder error used until chart-generation validation exists.
     #[error("chart generation is not implemented")]
     NotImplemented,

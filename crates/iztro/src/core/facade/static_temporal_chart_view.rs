@@ -270,7 +270,11 @@ pub fn temporal_selection_for_solar_moment(
 ///
 /// Hour `0` is early Zi (`0`) and hour `23` is late Zi (`12`); every other hour
 /// folds into its branch's two-hour window.
-const fn time_index_for_hour(hour: u8) -> u8 {
+///
+/// This is the crate's single canonical clock-hour to `timeIndex` mapping. It is
+/// shared by the calculation-policy resolver so that clock-time and
+/// apparent-solar-time inputs derive 时辰 through the same rule.
+pub(crate) const fn time_index_for_hour(hour: u8) -> u8 {
     match hour {
         0 => 0,
         23 => 12,

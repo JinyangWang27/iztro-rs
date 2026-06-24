@@ -50,6 +50,57 @@ impl SolarDay {
     }
 }
 
+/// A validated solar (Gregorian) calendar date used by the clock-time birth
+/// input API.
+///
+/// The year is unconstrained here; the month and day are individually
+/// range-checked through [`SolarMonth`] and [`SolarDay`]. Whether the day
+/// actually exists for the month and year (for example 30 February) is
+/// validated where the date is consumed (the calculation-policy resolver and
+/// calendar conversion).
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]
+pub struct SolarDate {
+    year: i32,
+    month: SolarMonth,
+    day: SolarDay,
+}
+
+impl SolarDate {
+    /// Creates a solar date from raw year/month/day parts, range-checking the
+    /// month and day.
+    pub const fn new(year: i32, month: u8, day: u8) -> Result<Self, ChartError> {
+        let month = match SolarMonth::new(month) {
+            Ok(month) => month,
+            Err(error) => return Err(error),
+        };
+        let day = match SolarDay::new(day) {
+            Ok(day) => day,
+            Err(error) => return Err(error),
+        };
+        Ok(Self::from_typed(year, month, day))
+    }
+
+    /// Creates a solar date from already-validated typed parts.
+    pub const fn from_typed(year: i32, month: SolarMonth, day: SolarDay) -> Self {
+        Self { year, month, day }
+    }
+
+    /// Returns the Gregorian year.
+    pub const fn year(self) -> i32 {
+        self.year
+    }
+
+    /// Returns the validated solar month.
+    pub const fn month(self) -> SolarMonth {
+        self.month
+    }
+
+    /// Returns the validated solar day.
+    pub const fn day(self) -> SolarDay {
+        self.day
+    }
+}
+
 /// Calendar system used to express a birth date.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]

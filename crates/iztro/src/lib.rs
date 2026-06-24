@@ -83,3 +83,11 @@ pub use core::{
     PatternEvidence, PatternFamily, PatternId, PatternPolarity, PatternScope, PatternStatus,
     PatternStrength, detect_patterns,
 };
+// Input calculation policy layer: clock-time birth input and apparent solar
+// time. These are a separate axis from `ChartAlgorithmKind` and `ChartPlane`.
+pub use core::{
+    ApparentSolarTimeConfig, ChartCalculationConfig, ClockBirthTime, EquationOfTimePolicy,
+    Longitude, LunarBirthInput, LunarDate, NatalChartOptions, ResolvedBirthDateTime,
+    SolarBirthInput, SolarDate, SolarTimePolicy, UtcOffset, by_lunar_with_options,
+    by_solar_with_options,
+};
