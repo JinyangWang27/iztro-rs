@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0](https://github.com/JinyangWang27/iztro-rs/compare/v0.8.0...v0.9.0) - 2026-06-24
+
+### Added
+
+- *(core)* wire chart plane through chart requests ([#102](https://github.com/JinyangWang27/iztro-rs/pull/102))
+
+### Other
+
+- Refactor calendar to use tyme4rs adapter ([#112](https://github.com/JinyangWang27/iztro-rs/pull/112))
+- Add calculation generation reports and diagnostics documentation ([#111](https://github.com/JinyangWang27/iztro-rs/pull/111))
+- Add year, leap-month, and nominal-age boundary policies ([#110](https://github.com/JinyangWang27/iztro-rs/pull/110))
+- Add input calculation policy for apparent solar time ([#109](https://github.com/JinyangWang27/iztro-rs/pull/109))
+- Refactor natal plane resolver ([#107](https://github.com/JinyangWang27/iztro-rs/pull/107))
+- Add chart diagnostic snapshot and invariants ([#106](https://github.com/JinyangWang27/iztro-rs/pull/106))
+- Add typed palace lookup helpers ([#105](https://github.com/JinyangWang27/iztro-rs/pull/105))
+- Make Chart self-describing with explicit ChartProfile ([#104](https://github.com/JinyangWang27/iztro-rs/pull/104))
+- Add anchor-aware support for Zhongzhou chart planes ([#103](https://github.com/JinyangWang27/iztro-rs/pull/103))
+- *(core)* add chart plane foundation ([#100](https://github.com/JinyangWang27/iztro-rs/pull/100))
+
 ## [0.8.0](https://github.com/JinyangWang27/iztro-rs/compare/v0.7.0...v0.8.0) - 2026-06-21
 
 ### Added
