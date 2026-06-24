@@ -7,6 +7,7 @@
 //! the 流日 palace index reused by daily and hourly derivation,
 //! and the calendar-error mapping shared by target-date conversions.
 
+use crate::core::calculation::NominalAgeBoundary;
 use crate::core::error::ChartError;
 use crate::core::model::calendar::{CalendarKind, SolarDay, SolarMonth};
 use crate::core::model::chart::{
@@ -110,15 +111,85 @@ pub(crate) fn target_lunar_date(
 
 /// Derives the one-based nominal age (虚岁) from natal and target lunar years.
 ///
-/// The nominal age is `target_lunar_year - natal_birth_lunar_year + 1`. Ages
-/// outside the supported `1..=120` human range are rejected with the same
+/// This is the [`NominalAgeBoundary::NaturalYear`] form: the nominal age is
+/// `target_lunar_year - natal_birth_lunar_year + 1`. Ages outside the supported
+/// `1..=120` human range are rejected with the same
 /// [`ChartError::InvalidNominalAge`] used by the 小限 period builder.
 pub(crate) fn nominal_age_for_target_year(
     natal: &Chart,
     target_lunar_year: i32,
 ) -> Result<u8, ChartError> {
-    let birth_lunar_year = natal.birth_context().date().year();
-    let raw = target_lunar_year - birth_lunar_year + 1;
+    let birth = natal.birth_context().date();
+    resolve_nominal_age(
+        birth.year(),
+        birth.month(),
+        birth.day(),
+        target_lunar_year,
+        // Month/day are unused for the natural-year boundary.
+        1,
+        1,
+        NominalAgeBoundary::NaturalYear,
+    )
+}
+
+/// Derives the one-based nominal age (虚岁) for a target lunar date under a
+/// 虚岁分界 policy.
+///
+/// Convenience over [`resolve_nominal_age`] that reads the natal birth lunar date
+/// from the chart's birth context. Used by the full horoscope stack.
+pub(crate) fn nominal_age_for_target(
+    natal: &Chart,
+    target_lunar_year: i32,
+    target_lunar_month: u8,
+    target_lunar_day: u8,
+    policy: NominalAgeBoundary,
+) -> Result<u8, ChartError> {
+    let birth = natal.birth_context().date();
+    resolve_nominal_age(
+        birth.year(),
+        birth.month(),
+        birth.day(),
+        target_lunar_year,
+        target_lunar_month,
+        target_lunar_day,
+        policy,
+    )
+}
+
+/// Resolves the one-based nominal age (虚岁) from natal and target lunar dates
+/// under a 虚岁分界 policy.
+///
+/// Mirrors upstream TS `iztro@2.5.8`: the base is `target_lunar_year -
+/// birth_lunar_year`. Under [`NominalAgeBoundary::NaturalYear`] (`ageDivide:
+/// 'normal'`) the age always increments by one (the lunar new year boundary).
+/// Under [`NominalAgeBoundary::Birthday`] (`ageDivide: 'birthday'`) it increments
+/// only once the target lunar date has passed the lunar birthday, using
+/// upstream's exact month/day comparison.
+///
+/// This is a runtime/horoscope concern only; it never affects natal chart
+/// generation. Ages outside the supported `1..=120` human range are rejected with
+/// [`ChartError::InvalidNominalAge`].
+pub(crate) fn resolve_nominal_age(
+    birth_lunar_year: i32,
+    birth_lunar_month: u8,
+    birth_lunar_day: u8,
+    target_lunar_year: i32,
+    target_lunar_month: u8,
+    target_lunar_day: u8,
+    policy: NominalAgeBoundary,
+) -> Result<u8, ChartError> {
+    let base = target_lunar_year - birth_lunar_year;
+    let increment = match policy {
+        NominalAgeBoundary::NaturalYear => 1,
+        NominalAgeBoundary::Birthday => {
+            let past_birthday = (target_lunar_year == birth_lunar_year
+                && target_lunar_month == birth_lunar_month
+                && target_lunar_day > birth_lunar_day)
+                || target_lunar_month > birth_lunar_month;
+            i32::from(past_birthday)
+        }
+    };
+    let raw = base + increment;
 
     u8::try_from(raw)
         .ok()
@@ -159,5 +230,68 @@ pub(super) fn map_target_solar_error(err: LunarError, year: i32, month: u8, day:
         | LunarError::InvalidTimeIndex { .. } => {
             ChartError::CalendarConversionFailed { year, month, day }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    // Birth lunar date used across the nominal-age cases: 2020 九月初一.
+    const BIRTH: (i32, u8, u8) = (2020, 9, 1);
+
+    fn age(target: (i32, u8, u8), policy: NominalAgeBoundary) -> u8 {
+        resolve_nominal_age(BIRTH.0, BIRTH.1, BIRTH.2, target.0, target.1, target.2, policy)
+            .expect("nominal age should resolve")
+    }
+
+    #[test]
+    fn nominal_age_natural_year_changes_at_expected_boundary() {
+        // Under the natural-year boundary the nominal age depends only on the
+        // lunar year difference, regardless of month/day. It changes at the
+        // lunar new year.
+        assert_eq!(age((2020, 12, 29), NominalAgeBoundary::NaturalYear), 1);
+        assert_eq!(age((2021, 1, 1), NominalAgeBoundary::NaturalYear), 2);
+    }
+
+    #[test]
+    fn nominal_age_birthday_before_birthday_uses_previous_nominal_age() {
+        // Target month (8) precedes the birth month (9), so the lunar birthday has
+        // not yet passed: the age stays at the year difference without the
+        // increment.
+        assert_eq!(age((2024, 8, 20), NominalAgeBoundary::Birthday), 4);
+    }
+
+    #[test]
+    fn nominal_age_birthday_on_or_after_birthday_uses_next_nominal_age() {
+        // Target month (10) is after the birth month (9), so the lunar birthday
+        // has passed and the age gains the increment.
+        assert_eq!(age((2024, 10, 1), NominalAgeBoundary::Birthday), 5);
+    }
+
+    #[test]
+    fn nominal_age_birthday_same_month_day_comparison() {
+        // In the birth lunar year the day-of-month comparison applies: a later day
+        // in the birth month counts as past the birthday and reaches age 1, while
+        // a year later but earlier in the year stays at the base difference.
+        assert_eq!(age((2020, 9, 2), NominalAgeBoundary::Birthday), 1);
+        assert_eq!(age((2021, 8, 1), NominalAgeBoundary::Birthday), 1);
+    }
+
+    #[test]
+    fn natural_year_and_birthday_agree_after_birthday() {
+        // When the birthday has clearly passed within a later year, both policies
+        // produce the same nominal age.
+        assert_eq!(
+            age((2024, 10, 1), NominalAgeBoundary::Birthday),
+            age((2024, 10, 1), NominalAgeBoundary::NaturalYear),
+        );
+    }
+
+    #[test]
+    fn nominal_age_rejects_out_of_range() {
+        let err = resolve_nominal_age(2020, 9, 1, 1800, 1, 1, NominalAgeBoundary::NaturalYear)
+            .expect_err("negative age is out of range");
+        assert!(matches!(err, ChartError::InvalidNominalAge { .. }));
     }
 }

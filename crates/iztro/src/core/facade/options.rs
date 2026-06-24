@@ -236,7 +236,7 @@ pub fn by_lunar_with_options(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::core::calculation::{UtcOffset, YearBoundary};
+    use crate::core::calculation::{NominalAgeBoundary, UtcOffset, YearBoundary};
     use crate::core::model::profile::ChartAlgorithmKind;
 
     fn quanshu_profile() -> MethodProfile {
@@ -264,11 +264,14 @@ mod tests {
     }
 
     fn lunar_chart(input: LunarBirthInput, boundary: LeapMonthBoundary) -> Chart {
-        by_lunar_with_options(
+        lunar_chart_with(
             input,
-            options(ChartCalculationConfig::clock_time().with_leap_month_boundary(boundary)),
+            ChartCalculationConfig::clock_time().with_leap_month_boundary(boundary),
         )
-        .expect("lunar chart should build")
+    }
+
+    fn lunar_chart_with(input: LunarBirthInput, config: ChartCalculationConfig) -> Chart {
+        by_lunar_with_options(input, options(config)).expect("lunar chart should build")
     }
 
     #[test]
@@ -332,6 +335,23 @@ mod tests {
         )
         .expect("legacy chart should build");
         assert_eq!(default_chart, legacy);
+    }
+
+    #[test]
+    fn nominal_age_boundary_does_not_affect_natal_chart_generation() {
+        // The 虚岁分界 policy is a runtime/horoscope concern; two natal options
+        // differing only in nominal_age_boundary must produce identical charts.
+        let natural = lunar_chart_with(
+            leap_input(10, true),
+            ChartCalculationConfig::clock_time()
+                .with_nominal_age_boundary(NominalAgeBoundary::NaturalYear),
+        );
+        let birthday = lunar_chart_with(
+            leap_input(10, true),
+            ChartCalculationConfig::clock_time()
+                .with_nominal_age_boundary(NominalAgeBoundary::Birthday),
+        );
+        assert_eq!(natural, birthday);
     }
 
     #[test]
