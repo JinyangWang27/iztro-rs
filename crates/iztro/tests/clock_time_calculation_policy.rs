@@ -22,6 +22,14 @@ fn quanshu_profile() -> MethodProfile {
     )
 }
 
+fn zhongzhou_profile() -> MethodProfile {
+    MethodProfile::new(
+        "clock_time_policy_zhongzhou_test",
+        ChartAlgorithmKind::Zhongzhou,
+        "clock-time calculation policy Zhongzhou test",
+    )
+}
+
 fn utc_plus_8() -> UtcOffset {
     UtcOffset::from_hours(8).expect("valid offset")
 }
@@ -260,6 +268,25 @@ fn apparent_solar_time_crossing_previous_day_changes_chart() {
     .expect("apparent-solar-time chart should build");
 
     assert_ne!(clock_chart, apparent_chart);
+
+    // The apparent-solar-time chart must equal the legacy chart for the
+    // resolved moment: 1999-12-31 23:30, timeIndex 12 (晚子时). Use the
+    // late-Zi timeIndex explicitly so early/late Zi is not collapsed.
+    let legacy_resolved = by_solar(
+        SolarChartRequest::builder()
+            .solar_year(1999)
+            .solar_month(SolarMonth::new(12).expect("valid month"))
+            .solar_day(SolarDay::new(31).expect("valid day"))
+            .iztro_time_index(12)
+            .expect("late Zi should be valid")
+            .gender(Gender::Female)
+            .method_profile(quanshu_profile())
+            .build()
+            .expect("legacy resolved request should build"),
+    )
+    .expect("legacy resolved chart should build");
+
+    assert_eq!(apparent_chart, legacy_resolved);
 }
 
 #[test]
@@ -319,5 +346,58 @@ fn default_calculation_config_is_clock_time() {
     assert_eq!(
         ChartCalculationConfig::default().solar_time,
         SolarTimePolicy::ClockTime,
+    );
+}
+
+#[test]
+fn clock_time_api_supports_zhongzhou_chart_planes() {
+    for plane in [ChartPlane::Heaven, ChartPlane::Earth, ChartPlane::Human] {
+        let chart = by_solar_with_options(
+            SolarBirthInput::new(
+                SolarDate::new(1990, 6, 15).expect("valid solar date"),
+                clock(8, 30),
+                Gender::Male,
+            ),
+            NatalChartOptions::new(
+                zhongzhou_profile(),
+                plane,
+                ChartCalculationConfig::clock_time(),
+            ),
+        )
+        .expect("Zhongzhou clock-time chart should build");
+
+        assert_chart_invariants(&chart);
+        assert_eq!(chart.chart_plane(), plane);
+        assert_eq!(
+            chart.method_profile().algorithm_kind(),
+            ChartAlgorithmKind::Zhongzhou,
+        );
+    }
+}
+
+#[test]
+fn apparent_solar_time_api_supports_zhongzhou_human_plane() {
+    let chart = by_solar_with_options(
+        SolarBirthInput::new(
+            SolarDate::new(2000, 1, 1).expect("valid solar date"),
+            clock(1, 5),
+            Gender::Female,
+        ),
+        NatalChartOptions::new(
+            zhongzhou_profile(),
+            ChartPlane::Human,
+            ChartCalculationConfig::apparent_solar_time(ApparentSolarTimeConfig::new(
+                Longitude::new(105.0).expect("valid longitude"),
+                EquationOfTimePolicy::Disabled,
+            )),
+        ),
+    )
+    .expect("Zhongzhou apparent-solar-time Human chart should build");
+
+    assert_chart_invariants(&chart);
+    assert_eq!(chart.chart_plane(), ChartPlane::Human);
+    assert_eq!(
+        chart.method_profile().algorithm_kind(),
+        ChartAlgorithmKind::Zhongzhou,
     );
 }

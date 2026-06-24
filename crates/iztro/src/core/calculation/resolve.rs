@@ -106,6 +106,11 @@ impl ResolvedBirthDateTime {
 /// [`SolarTimePolicy::ApparentSolarTime`] the clock time is shifted by the exact
 /// longitude correction (and equation-of-time minutes); when the shifted time
 /// crosses midnight the resolved solar date moves to the adjacent day.
+///
+/// The longitude correction is `4 * (longitude - timezone_meridian)` minutes,
+/// where the longitude difference is first normalised to the shortest signed
+/// angular delta (`-180..=180`). Normalisation matters for far-eastern/western
+/// offsets whose meridian (`utc_offset_hours * 15`) lies outside that range.
 pub(crate) fn resolve_birth_datetime(
     date: SolarDate,
     birth_time: ClockBirthTime,
@@ -131,8 +136,15 @@ pub(crate) fn resolve_birth_datetime(
                         return Err(ChartError::UnsupportedEquationOfTimePolicy);
                     }
                 };
-                let longitude_correction =
-                    4.0 * (apparent.longitude.degrees() - timezone_meridian_degrees);
+                // The timezone meridian (utc_offset_hours * 15) can fall
+                // outside -180..=180 for far-eastern/western offsets (for
+                // example UTC+14 -> 210E, UTC-12 -> -180), so the raw
+                // longitude difference must be normalised to the shortest
+                // signed angular delta before converting to minutes. Otherwise
+                // an antimeridian wrap inflates the correction by ~24 hours.
+                let raw_delta = apparent.longitude.degrees() - timezone_meridian_degrees;
+                let longitude_delta = normalize_longitude_delta_degrees(raw_delta);
+                let longitude_correction = 4.0 * longitude_delta;
                 (
                     Some(longitude_correction),
                     Some(equation_of_time),
@@ -173,6 +185,17 @@ pub(crate) fn resolve_birth_datetime(
 
 /// Minutes in a civil day.
 const MINUTES_PER_DAY: i64 = 24 * 60;
+
+/// Normalises a longitude difference to the shortest signed angular delta in
+/// `-180.0..=180.0` degrees.
+///
+/// A timezone meridian (`utc_offset_hours * 15`) can fall outside `-180..=180`
+/// for offsets such as UTC+14 (`210`) or UTC-12 (`-180`). Subtracting it from a
+/// valid longitude can therefore produce a delta near ±360 that must wrap back
+/// across the antimeridian before being converted to minutes.
+fn normalize_longitude_delta_degrees(delta: f64) -> f64 {
+    (delta + 180.0).rem_euclid(360.0) - 180.0
+}
 
 /// Days since the Unix epoch for a proleptic Gregorian date.
 ///
@@ -361,5 +384,51 @@ mod tests {
                 day: 29,
             }),
         );
+    }
+
+    fn clock_at(hour: u8, minute: u8, offset_hours: i32) -> ClockBirthTime {
+        ClockBirthTime::new(
+            hour,
+            minute,
+            UtcOffset::from_hours(offset_hours).expect("valid offset"),
+        )
+        .expect("valid clock time")
+    }
+
+    #[test]
+    fn longitude_delta_normalization_uses_shortest_signed_delta() {
+        const EPSILON: f64 = 1e-9;
+        assert!((normalize_longitude_delta_degrees(0.0) - 0.0).abs() < EPSILON);
+        assert!((normalize_longitude_delta_degrees(350.0) - (-10.0)).abs() < EPSILON);
+        assert!((normalize_longitude_delta_degrees(-367.4) - (-7.4)).abs() < EPSILON);
+    }
+
+    #[test]
+    fn apparent_solar_time_utc_plus_14_normalizes_antimeridian_delta() {
+        // UTC+14 meridian = 210E. Longitude -157.4 (= 202.6E) gives a raw delta
+        // of -367.4, which normalises to -7.4 -> ~-29.6 minutes. Rounded to the
+        // minute, 12:00 resolves to 11:30.
+        let resolved = resolve(solar(2000, 1, 1), clock_at(12, 0, 14), &apparent(-157.4));
+
+        let correction = resolved
+            .longitude_correction_minutes()
+            .expect("apparent solar time reports a correction");
+        assert!((correction - (-29.6)).abs() < 1e-6);
+        assert_eq!(resolved.resolved_hour(), 11);
+        assert_eq!(resolved.resolved_minute(), 30);
+    }
+
+    #[test]
+    fn apparent_solar_time_utc_minus_12_normalizes_antimeridian_delta() {
+        // UTC-12 meridian = -180. Longitude 170.0 gives a raw delta of 350,
+        // which normalises to -10 -> -40 minutes. 12:00 resolves to 11:20.
+        let resolved = resolve(solar(2000, 1, 1), clock_at(12, 0, -12), &apparent(170.0));
+
+        let correction = resolved
+            .longitude_correction_minutes()
+            .expect("apparent solar time reports a correction");
+        assert!((correction - (-40.0)).abs() < 1e-6);
+        assert_eq!(resolved.resolved_hour(), 11);
+        assert_eq!(resolved.resolved_minute(), 20);
     }
 }

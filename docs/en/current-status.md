@@ -63,6 +63,14 @@ Requesting `Earth` or `Human` for any non-Zhongzhou family (QuanShu / Placeholde
 
 `Zhongzhou + Earth` and `Zhongzhou + Human` are Rust extension behaviour rather than upstream `iztro@2.5.8` parity targets, because upstream TS `iztro` does not expose those chart planes. They are covered by structural invariants, anchor resolver tests, diagnostics, and architecture documentation instead of TS fixtures.
 
+## Input calculation policy
+
+`ChartCalculationConfig` is a third axis, separate from `ChartAlgorithmKind` and `ChartPlane`. It controls how a birth clock time becomes a 时辰 *before* chart generation. The clock-time entry points `by_solar_with_options` / `by_lunar_with_options` resolve the input through `core::calculation::resolve_birth_datetime` and then delegate to the existing `by_solar` / `by_lunar` paths, so `Chart` serialization is unchanged.
+
+The default policy (`SolarTimePolicy::ClockTime`) derives the 时辰 directly from the clock time. `SolarTimePolicy::ApparentSolarTime` applies an exact longitude correction (`4 * (longitude − timezone_meridian)` minutes, with the longitude difference normalised across the antimeridian) and may move the resolved solar date across midnight. `EquationOfTimePolicy::Approximate` is not implemented yet and returns `ChartError::UnsupportedEquationOfTimePolicy`. Apparent solar time is rejected for lunar-date input (`ChartError::ApparentSolarTimeRequiresSolarDate`).
+
+Note: `ChartError` now derives `PartialEq` but no longer derives `Eq`, because calculation-policy validation errors can carry floating-point longitude values.
+
 ## Domain boundary decisions
 
 The following boundaries are deliberate:
