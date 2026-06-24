@@ -169,6 +169,7 @@ pub fn by_solar_with_options(
         .solar_day(resolved_date.day())
         .birth_time_variant(resolved.resolved_birth_time()?)
         .gender(input.gender)
+        .year_boundary(options.calculation_config.year_boundary)
         .method_profile(options.method_profile)
         .chart_plane(options.chart_plane)
         .build()?;

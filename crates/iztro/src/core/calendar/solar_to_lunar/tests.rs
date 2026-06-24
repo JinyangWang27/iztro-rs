@@ -1,4 +1,5 @@
 use super::*;
+use crate::core::calculation::YearBoundary;
 
 // Golden conversions captured from pinned upstream `iztro@2.5.8`:
 //   node --input-type=module -e "import { astro } from 'iztro';
@@ -198,6 +199,80 @@ fn cyclic_year_matches_lunar_year_ganzhi() {
             case.year
         );
     }
+}
+
+fn month(value: u8) -> SolarMonth {
+    SolarMonth::new(value).expect("valid solar month")
+}
+
+fn day(value: u8) -> SolarDay {
+    SolarDay::new(value).expect("valid solar day")
+}
+
+#[test]
+fn default_year_boundary_matches_chinese_new_year_eve() {
+    // The four-arg adapter must reproduce the explicit ChineseNewYearEve policy
+    // so existing callers and fixtures keep the lunar-new-year boundary.
+    for case in CASES {
+        let default = solar_to_lunar(case.year, month(case.month), day(case.day), 0)
+            .expect("default conversion should succeed");
+        let explicit = solar_to_lunar_with_year_boundary(
+            case.year,
+            month(case.month),
+            day(case.day),
+            0,
+            YearBoundary::ChineseNewYearEve,
+        )
+        .expect("explicit conversion should succeed");
+        assert_eq!(default, explicit, "{}-{}-{}", case.year, case.month, case.day);
+    }
+}
+
+#[test]
+fn year_boundary_policies_differ_between_li_chun_and_chinese_new_year() {
+    // Li Chun 2000 is 2000-02-04; Chinese New Year 2000 is 2000-02-05. On
+    // 2000-02-04 the date is on/after Li Chun but before the lunar new year, so
+    // the two policies disagree: the lunar-new-year boundary keeps the prior
+    // cyclic year (1999 己卯) while the Li Chun boundary advances to 2000 庚辰.
+    let eve = resolve_effective_birth_year(2000, month(2), day(4), YearBoundary::ChineseNewYearEve)
+        .expect("eve year");
+    let li_chun =
+        resolve_effective_birth_year(2000, month(2), day(4), YearBoundary::LiChun).expect("li chun");
+
+    assert_eq!(eve.stem(), HeavenlyStem::Ji);
+    assert_eq!(eve.branch(), EarthlyBranch::Mao);
+    assert_eq!(li_chun.stem(), HeavenlyStem::Geng);
+    assert_eq!(li_chun.branch(), EarthlyBranch::Chen);
+    assert_ne!(eve, li_chun);
+}
+
+#[test]
+fn year_boundary_after_chinese_new_year_before_li_chun_differs() {
+    // Chinese New Year 2001 is 2001-01-24; Li Chun 2001 is 2001-02-04. On
+    // 2001-01-28 the date is after the lunar new year (so the normal boundary
+    // already uses 2001 辛巳) but still before Li Chun (so the exact boundary
+    // keeps 2000 庚辰).
+    let eve =
+        resolve_effective_birth_year(2001, month(1), day(28), YearBoundary::ChineseNewYearEve)
+            .expect("eve year");
+    let li_chun = resolve_effective_birth_year(2001, month(1), day(28), YearBoundary::LiChun)
+        .expect("li chun");
+
+    assert_eq!(eve.stem(), HeavenlyStem::Xin);
+    assert_eq!(eve.branch(), EarthlyBranch::Si);
+    assert_eq!(li_chun.stem(), HeavenlyStem::Geng);
+    assert_eq!(li_chun.branch(), EarthlyBranch::Chen);
+    assert_ne!(eve, li_chun);
+}
+
+#[test]
+fn year_boundary_policies_agree_on_ordinary_date() {
+    let eve =
+        resolve_effective_birth_year(1990, month(6), day(15), YearBoundary::ChineseNewYearEve)
+            .expect("eve year");
+    let li_chun = resolve_effective_birth_year(1990, month(6), day(15), YearBoundary::LiChun)
+        .expect("li chun");
+    assert_eq!(eve, li_chun);
 }
 
 #[test]

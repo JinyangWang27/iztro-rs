@@ -6,7 +6,8 @@
 //! adapter, then delegates to [`by_lunar`] so chart construction reuses exactly
 //! the same supported slice. No new star-placement logic lives here.
 
-use crate::core::calendar::solar_to_lunar;
+use crate::core::calculation::YearBoundary;
+use crate::core::calendar::solar_to_lunar_with_year_boundary;
 use crate::core::error::ChartError;
 use crate::core::facade::by_lunar::{LunarChartRequest, by_lunar};
 use crate::core::model::calendar::{BirthTime, Gender, SolarDay, SolarMonth};
@@ -34,6 +35,7 @@ pub struct SolarChartRequest {
     birth_time: BirthTime,
     gender: Gender,
     fix_leap: bool,
+    year_boundary: YearBoundary,
     method_profile: MethodProfile,
     chart_plane: ChartPlane,
 }
@@ -82,6 +84,13 @@ impl SolarChartRequest {
         self.fix_leap
     }
 
+    /// Returns the 年分界 calculation policy used for the birth-year pillar.
+    ///
+    /// Defaults to [`YearBoundary::ChineseNewYearEve`] when not set on the builder.
+    pub const fn year_boundary(&self) -> YearBoundary {
+        self.year_boundary
+    }
+
     /// Returns the method profile metadata.
     pub const fn method_profile(&self) -> &MethodProfile {
         &self.method_profile
@@ -108,6 +117,7 @@ pub struct SolarChartRequestBuilder {
     birth_time: Option<BirthTime>,
     gender: Option<Gender>,
     fix_leap: Option<bool>,
+    year_boundary: Option<YearBoundary>,
     method_profile: Option<MethodProfile>,
     chart_plane: Option<ChartPlane>,
 }
@@ -163,6 +173,15 @@ impl SolarChartRequestBuilder {
         self
     }
 
+    /// Sets the 年分界 calculation policy used for the birth-year pillar.
+    ///
+    /// Defaults to [`YearBoundary::ChineseNewYearEve`] when unset, reproducing
+    /// existing lunar-new-year-bounded behaviour.
+    pub const fn year_boundary(mut self, value: YearBoundary) -> Self {
+        self.year_boundary = Some(value);
+        self
+    }
+
     /// Sets the method profile metadata.
     pub fn method_profile(mut self, value: MethodProfile) -> Self {
         self.method_profile = Some(value);
@@ -200,6 +219,7 @@ impl SolarChartRequestBuilder {
                 .gender
                 .ok_or(ChartError::MissingRequiredInput { field: "gender" })?,
             fix_leap: self.fix_leap.unwrap_or(true),
+            year_boundary: self.year_boundary.unwrap_or_default(),
             method_profile: self
                 .method_profile
                 .ok_or(ChartError::MissingRequiredInput {
@@ -220,11 +240,12 @@ impl SolarChartRequestBuilder {
 /// logic of its own, so it preserves the exact `by_lunar` supported slice
 /// (including leap-month behavior).
 pub fn by_solar(request: SolarChartRequest) -> Result<Chart, ChartError> {
-    let conversion = solar_to_lunar(
+    let conversion = solar_to_lunar_with_year_boundary(
         request.solar_year(),
         request.solar_month(),
         request.solar_day(),
         request.birth_time_variant().iztro_time_index(),
+        request.year_boundary(),
     )?;
 
     let lunar_request = LunarChartRequest::builder()
