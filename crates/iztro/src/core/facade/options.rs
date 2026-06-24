@@ -16,18 +16,19 @@ use crate::core::calculation::{
     BirthInputCalendarKind, BirthTimeResolutionSnapshot, ChartCalculationConfig,
     ChartCalculationDiagnosticSnapshot, ClockBirthTime, LeapMonthBoundary,
     LeapMonthBoundaryDiagnosticSnapshot, ResolvedBirthDateTime, SolarTimePolicy,
-    SolarTimePolicyDiagnostic, YearBoundaryDiagnosticSnapshot, resolve_birth_datetime,
+    SolarTimePolicyDiagnostic, YearBoundary, YearBoundaryDiagnosticSnapshot,
+    resolve_birth_datetime,
 };
-use crate::core::calendar::solar_to_lunar_with_year_boundary;
+use crate::core::calendar::{LunarConversion, solar_to_lunar_with_resolved_datetime};
 use crate::core::error::ChartError;
 use crate::core::facade::by_lunar::{LunarChartRequest, by_lunar};
-use crate::core::facade::by_solar::{SolarChartRequest, by_solar};
+use crate::core::facade::by_solar::{SolarChartRequest, by_solar_with_conversion};
 use crate::core::facade::static_temporal_chart_view::time_index_for_hour;
 use crate::core::model::calendar::{BirthTime, Gender, SolarDate};
 use crate::core::model::chart::Chart;
+use crate::core::model::ganzhi::StemBranch;
 use crate::core::model::profile::{ChartPlane, MethodProfile};
 use crate::core::placement::natal::life_body::{LunarDay, LunarMonth};
-use lunar_lite::StemBranch;
 
 /// A validated lunar (lunisolar) calendar date for the clock-time birth input
 /// API.
@@ -182,8 +183,9 @@ pub struct NatalChartGenerationReport {
 /// Builds a natal chart from a clock-time solar birth input.
 ///
 /// The clock time is resolved to a local solar date/time and 时辰 through the
-/// configured [`ChartCalculationConfig`], then delegated to the legacy
-/// [`by_solar`] path. No new chart-generation logic lives here.
+/// configured [`ChartCalculationConfig`]. Chart placement still uses the derived
+/// 时辰, while calendar conversion and four-pillar derivation preserve the exact
+/// resolved clock hour/minute for policies such as [`YearBoundary::LiChun`].
 pub fn by_solar_with_options(
     input: SolarBirthInput,
     options: NatalChartOptions,
@@ -213,7 +215,9 @@ pub fn by_solar_with_options_report(
         .chart_plane(options.chart_plane)
         .build()?;
 
-    let chart = by_solar(request)?;
+    let conversion =
+        solar_conversion_for_resolved(resolved, options.calculation_config.year_boundary)?;
+    let chart = by_solar_with_conversion(request, conversion)?;
     let calculation = solar_calculation_diagnostic(&options, resolved, chart.birth_year())?;
 
     Ok(NatalChartGenerationReport { chart, calculation })
@@ -277,22 +281,17 @@ pub fn resolve_solar_birth_input(
 ) -> Result<ChartCalculationDiagnosticSnapshot, ChartError> {
     let resolved =
         resolve_birth_datetime(input.date, input.birth_time, &options.calculation_config)?;
-    let resolved_date = resolved.resolved_date();
-    let conversion = solar_to_lunar_with_year_boundary(
-        resolved_date.year(),
-        resolved_date.month(),
-        resolved_date.day(),
-        resolved.resolved_time_index(),
-        options.calculation_config.year_boundary,
-    )?;
-    let effective_birth_year =
-        StemBranch::try_new(conversion.birth_year_stem(), conversion.birth_year_branch()).map_err(
-            |err| match err {
-                lunar_lite::StemBranchError::InvalidStemBranchPair { stem, branch } => {
-                    ChartError::InvalidStemBranchPair { stem, branch }
-                }
-            },
-        )?;
+    let conversion =
+        solar_conversion_for_resolved(resolved, options.calculation_config.year_boundary)?;
+    let effective_birth_year = StemBranch::try_new(
+        conversion.birth_year_stem(),
+        conversion.birth_year_branch(),
+    )
+    .map_err(|err| match err {
+        crate::core::model::ganzhi::StemBranchError::InvalidStemBranchPair { stem, branch } => {
+            ChartError::InvalidStemBranchPair { stem, branch }
+        }
+    })?;
 
     solar_calculation_diagnostic(&options, resolved, effective_birth_year)
 }
@@ -311,14 +310,8 @@ fn solar_calculation_diagnostic(
     resolved: ResolvedBirthDateTime,
     effective_birth_year: StemBranch,
 ) -> Result<ChartCalculationDiagnosticSnapshot, ChartError> {
-    let resolved_date = resolved.resolved_date();
-    let conversion = solar_to_lunar_with_year_boundary(
-        resolved_date.year(),
-        resolved_date.month(),
-        resolved_date.day(),
-        resolved.resolved_time_index(),
-        options.calculation_config.year_boundary,
-    )?;
+    let conversion =
+        solar_conversion_for_resolved(resolved, options.calculation_config.year_boundary)?;
 
     Ok(ChartCalculationDiagnosticSnapshot {
         birth_time: solar_birth_time_diagnostic(resolved, &options.calculation_config),
@@ -332,6 +325,22 @@ fn solar_calculation_diagnostic(
             input_is_leap_month: conversion.is_leap_month(),
         },
     })
+}
+
+fn solar_conversion_for_resolved(
+    resolved: ResolvedBirthDateTime,
+    year_boundary: YearBoundary,
+) -> Result<LunarConversion, ChartError> {
+    let resolved_date = resolved.resolved_date();
+    solar_to_lunar_with_resolved_datetime(
+        resolved_date.year(),
+        resolved_date.month(),
+        resolved_date.day(),
+        resolved.resolved_hour(),
+        resolved.resolved_minute(),
+        0,
+        year_boundary,
+    )
 }
 
 fn lunar_calculation_diagnostic(

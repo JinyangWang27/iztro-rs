@@ -20,11 +20,11 @@ use crate::core::model::chart::{
     StarPlacement, TemporalLayer, TemporalPalaceName, VISUAL_BRANCH_ORDER, build_age_period,
     build_decadal_frame, palace_grid_position,
 };
+use crate::core::model::ganzhi::{EarthlyBranch, FourPillars, HeavenlyStem, StemBranch};
 use crate::core::model::master::{body_master, soul_master};
 use crate::core::model::star::mutagen::Scope;
 use crate::core::model::star::{Brightness, StarCategory, StarKind, StarName, mutagen::Mutagen};
 use crate::core::model::zodiac::{WesternZodiac, western_zodiac};
-use lunar_lite::{EarthlyBranch, FourPillars, HeavenlyStem, StemBranch};
 use serde::{Deserialize, Serialize};
 
 /// Fixed display order for chart scope selectors.

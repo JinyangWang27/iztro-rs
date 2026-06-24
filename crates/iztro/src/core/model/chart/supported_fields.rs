@@ -7,6 +7,7 @@
 //! runtime query helpers, runtime palace projections, embedded natal astrolabe
 //! payloads, and raw localized labels.
 
+use crate::core::model::ganzhi::{EarthlyBranch, HeavenlyStem};
 use crate::core::{
     error::ChartError,
     model::{
@@ -21,7 +22,6 @@ use crate::core::{
         },
     },
 };
-use lunar_lite::{EarthlyBranch, HeavenlyStem};
 use serde::{Deserialize, Serialize};
 
 const YIN_FIRST_BRANCH_ORDER: [EarthlyBranch; 12] = [

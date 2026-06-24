@@ -11,7 +11,7 @@ The Core Chart Layer contains deterministic chart facts. It should not contain i
 Examples:
 
 - birth context and calendar options;
-- low-level stem/branch and sexagenary-cycle primitives re-exported from `lunar-lite`;
+- low-level stem/branch and sexagenary-cycle value objects owned by `iztro-rs` (`core/model/ganzhi`); the `tyme4rs` calendar engine stays behind the `core/calendar` adapter;
 - NaYin and five-element bureau facts owned by `core`;
 - palaces;
 - typed natal stars;
@@ -188,7 +188,7 @@ This allows configurations such as `QuanShu chart generation + SanHe features + 
 - `ChartPlane` is the plane variant (天盘 / 地盘 / 人盘) within a family.
 - `ChartCalculationConfig` is the input calculation policy applied *before* chart generation.
 
-`ChartCalculationConfig` currently includes `SolarTimePolicy`, `YearBoundary`, `LeapMonthBoundary`, and `NominalAgeBoundary`. `YearBoundary` and `LeapMonthBoundary` affect natal input normalization: `YearBoundary::ChineseNewYearEve` means the previous cyclic year lasts through 除夕 and the new cyclic year begins at 正月初一, while `YearBoundary::LiChun` uses 立春. `LeapMonthBoundary` maps to the legacy `fix_leap` split. `NominalAgeBoundary` is runtime-only: it affects horoscope nominal-age resolution and does not affect natal chart generation.
+`ChartCalculationConfig` currently includes `SolarTimePolicy`, `YearBoundary`, `LeapMonthBoundary`, and `NominalAgeBoundary`. `YearBoundary` and `LeapMonthBoundary` affect natal input normalization: `YearBoundary::ChineseNewYearEve` means the previous cyclic year lasts through 除夕 and the new cyclic year begins at 正月初一, while `YearBoundary::LiChun` uses 立春, resolved at datetime (exact-instant) granularity. `LeapMonthBoundary` maps to the legacy `fix_leap` split. `NominalAgeBoundary` is runtime-only: it affects horoscope nominal-age resolution and does not affect natal chart generation.
 
 `Chart` remains the immutable chart fact aggregate. Calculation diagnostics are exposed through generation reports and diagnostic snapshots, not stored inside `Chart`. These reports make resolved clock time, apparent-solar-time corrections, year-boundary effects, leap-month policy mapping, and nominal-age resolution inspectable without changing normal `Chart` serialization.
 

@@ -3,12 +3,12 @@
 //! These snapshots copy existing chart facts for debugging and invariant
 //! inspection. They are not compatibility exports or interpretation models.
 
+use crate::core::model::ganzhi::{EarthlyBranch, HeavenlyStem};
 use crate::core::model::{
     bureau::FiveElementBureau,
     chart::{Chart, PalaceName},
     profile::{ChartAlgorithmKind, ChartPlane},
 };
-use lunar_lite::{EarthlyBranch, HeavenlyStem};
 use serde::{Deserialize, Serialize};
 
 /// Lightweight structural diagnostic view of a natal chart.

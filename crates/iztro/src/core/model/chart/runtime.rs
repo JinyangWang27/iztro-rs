@@ -5,6 +5,7 @@
 //! payload. They project existing natal and temporal facts by branch and never
 //! mutate natal chart data or create new placements.
 
+use crate::core::model::ganzhi::{EarthlyBranch, HeavenlyStem};
 use crate::core::{
     error::ChartError,
     model::{
@@ -15,7 +16,6 @@ use crate::core::{
         },
     },
 };
-use lunar_lite::{EarthlyBranch, HeavenlyStem};
 
 const REQUIRED_RUNTIME_SCOPES: [Scope; 6] = [
     Scope::Age,

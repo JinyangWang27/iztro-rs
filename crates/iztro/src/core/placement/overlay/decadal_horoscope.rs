@@ -59,7 +59,7 @@ pub fn build_decadal_horoscope_layer(
 /// The natal palace name at each branch is shifted by minus the period palace's
 /// index, keeping the names keyed by their stable [`EarthlyBranch`].
 ///
-/// [`EarthlyBranch`]: lunar_lite::EarthlyBranch
+/// [`EarthlyBranch`]: crate::core::model::ganzhi::EarthlyBranch
 fn build_decadal_palace_layout(
     natal: &Chart,
     period: &DecadalPeriod,

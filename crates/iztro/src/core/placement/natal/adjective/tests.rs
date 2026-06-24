@@ -2,7 +2,7 @@ use super::formulas::{
     jie_lu_branch, kong_wang_branch, tian_chu_branch, tian_fu_adj_branch, tian_guan_branch,
     xian_chi_branch, xun_kong_branch,
 };
-use lunar_lite::{EARTHLY_BRANCHES, EarthlyBranch, HEAVENLY_STEMS, HeavenlyStem};
+use crate::core::model::ganzhi::{EARTHLY_BRANCHES, EarthlyBranch, HEAVENLY_STEMS, HeavenlyStem};
 
 // Tables transcribed from iztro 2.5.8 `getYearlyStarIndex` /
 // `getHuagaiXianchiIndex` and cross-checked against `astro.byLunar` output.

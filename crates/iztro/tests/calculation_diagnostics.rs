@@ -170,15 +170,20 @@ fn apparent_solar_time_report_records_previous_day_crossing() {
 
 #[test]
 fn year_boundary_report_records_effective_birth_year() {
+    // Evening birth (21:00, synthesized 21:30) is after the exact 立春 2000 instant
+    // (~20:40) but before Chinese New Year 2000 (02-05). With datetime-level
+    // `YearBoundary::LiChun` the two policies still differ here: the
+    // lunar-new-year-eve boundary keeps 己卯 while the LiChun boundary advances to
+    // 庚辰. A morning birth (before the 立春 instant) would instead agree on 己卯.
     let normal = by_solar_with_options_report(
-        solar_input(2000, 2, 4, 8, 0),
+        solar_input(2000, 2, 4, 21, 0),
         options(
             ChartCalculationConfig::default().with_year_boundary(YearBoundary::ChineseNewYearEve),
         ),
     )
     .expect("normal boundary report should build");
     let exact = by_solar_with_options_report(
-        solar_input(2000, 2, 4, 8, 0),
+        solar_input(2000, 2, 4, 21, 0),
         options(ChartCalculationConfig::default().with_year_boundary(YearBoundary::LiChun)),
     )
     .expect("li chun boundary report should build");

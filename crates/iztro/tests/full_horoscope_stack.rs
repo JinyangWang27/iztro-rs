@@ -5,15 +5,14 @@ use std::collections::HashMap;
 use common::{
     build_chart_from_horoscope_fixture_case, expected_palace_names_by_branch,
     expected_scope_flow_stars, expected_scope_mutagens, horoscope_fixture_case,
-    horoscope_fixture_cases, scope_stem_branch, target_solar_date, target_time, target_time_index,
-    target_year,
+    horoscope_fixture_cases, scope_stem_branch, target_lunar_date, target_solar_date, target_time,
+    target_time_index, target_year,
 };
 use iztro::core::{
     ChartLayerKind, ChartStackSnapshot, EarthlyBranch, FlowStarScope, HoroscopeChart,
     HoroscopeStackInput, Scope, SolarDay, SolarMonth, StarName, TemporalContext, TemporalLayer,
     TemporalPalaceLayout, build_decadal_frame, build_full_horoscope_chart,
 };
-use lunar_lite::{SolarDate, solar_to_lunar};
 use serde_json::Value;
 
 const CANONICAL_CASE_ID: &str = "canonical_female_default_2026";
@@ -349,11 +348,6 @@ fn manual_horoscope_chart_constructors_do_not_set_target_context() {
 
 // --- helpers -------------------------------------------------------------------
 
-fn target_lunar_date(case: &Value) -> lunar_lite::LunarDate {
-    let (year, month, day) = target_solar_date(case);
-    solar_to_lunar(SolarDate { year, month, day })
-        .expect("fixture target solar date should convert")
-}
 fn stack_input(case: &Value) -> HoroscopeStackInput {
     let (year, month, day) = target_solar_date(case);
     HoroscopeStackInput::new(

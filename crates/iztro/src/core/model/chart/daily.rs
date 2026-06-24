@@ -7,19 +7,15 @@
 //! day. It does not assemble hourly layers, attach temporal decorative arrays,
 //! or render narrative text.
 
+use crate::core::calendar::solar_to_lunar;
 use crate::core::error::ChartError;
 use crate::core::model::calendar::{BirthTime, SolarDay, SolarMonth};
 use crate::core::model::chart::{
     Chart, TemporalPalaceLayout,
-    temporal_layout::{
-        build_life_branch_palace_layout, daily_palace_index, map_target_solar_error,
-    },
+    temporal_layout::{build_life_branch_palace_layout, daily_palace_index},
 };
+use crate::core::model::ganzhi::{EarthlyBranch, StemBranch};
 use crate::core::model::star::mutagen::Scope;
-use lunar_lite::{
-    EarthlyBranch, MonthDivide, SolarDate, StemBranch, StemBranchOptions, YearDivide,
-    four_pillars_from_solar_date_with_options, solar_to_lunar,
-};
 use serde::{Deserialize, Serialize};
 
 /// One 流日 period with independent day pillar and temporal Life palace facts.
@@ -83,50 +79,27 @@ pub fn build_daily_period(
     target_solar_day: SolarDay,
     target_time: BirthTime,
 ) -> Result<DailyPeriod, ChartError> {
-    let solar = SolarDate {
-        year: target_solar_year,
-        month: target_solar_month.value(),
-        day: target_solar_day.value(),
-    };
-    let target_lunar = solar_to_lunar(solar).map_err(|err| {
-        map_target_solar_error(
-            err,
-            target_solar_year,
-            target_solar_month.value(),
-            target_solar_day.value(),
-        )
-    })?;
-    let pillars = four_pillars_from_solar_date_with_options(
-        solar,
+    let conversion = solar_to_lunar(
+        target_solar_year,
+        target_solar_month,
+        target_solar_day,
         target_time.iztro_time_index(),
-        StemBranchOptions {
-            year: YearDivide::Normal,
-            month: MonthDivide::Normal,
-        },
-    )
-    .map_err(|err| {
-        map_target_solar_error(
-            err,
-            target_solar_year,
-            target_solar_month.value(),
-            target_solar_day.value(),
-        )
-    })?;
+    )?;
 
     let index = daily_palace_index(
         natal,
-        target_lunar.year,
-        target_lunar.month,
-        target_lunar.day,
-        target_lunar.is_leap_month,
+        conversion.lunar_year(),
+        conversion.lunar_month().value(),
+        conversion.lunar_day().value(),
+        conversion.is_leap_month(),
     );
     let palace_branch = EarthlyBranch::Yin.offset(index as isize);
     let palace_layout = build_life_branch_palace_layout(Scope::Daily, palace_branch)?;
 
     Ok(DailyPeriod::new(
         index,
-        target_lunar.day,
-        pillars.daily,
+        conversion.lunar_day().value(),
+        conversion.four_pillars().daily,
         palace_branch,
         palace_layout,
     ))

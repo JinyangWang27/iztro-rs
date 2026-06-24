@@ -8,6 +8,7 @@
 //! These labels are an additive presentation concern. They never replace the
 //! canonical machine-readable enum/value identity used internally or in JSON.
 
+use crate::core::model::ganzhi::{EarthlyBranch, HeavenlyStem, StemBranch};
 use crate::core::model::{
     bureau::FiveElementBureau,
     chart::{DecorativeStarFamily, PalaceName},
@@ -16,7 +17,6 @@ use crate::core::model::{
         mutagen::{Mutagen, Scope},
     },
 };
-use lunar_lite::{EarthlyBranch, HeavenlyStem, StemBranch};
 
 /// Returns the Chinese label for a Heavenly Stem (天干).
 pub const fn heavenly_stem_zh(stem: HeavenlyStem) -> &'static str {

@@ -240,7 +240,7 @@ mod tests {
                 .solar_year(1985)
                 .solar_month(SolarMonth::new(2).expect("valid month"))
                 .solar_day(SolarDay::new(15).expect("valid day"))
-                .birth_time(lunar_lite::EarthlyBranch::Chen)
+                .birth_time(crate::core::model::ganzhi::EarthlyBranch::Chen)
                 .gender(Gender::Female)
                 .method_profile(MethodProfile::new(
                     "quanshu_test",

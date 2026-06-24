@@ -7,19 +7,15 @@
 //! target double-hour. It does not assemble the full horoscope stack, attach
 //! temporal decorative arrays, or render narrative text.
 
+use crate::core::calendar::solar_to_lunar;
 use crate::core::error::ChartError;
 use crate::core::model::calendar::{BirthTime, SolarDay, SolarMonth};
 use crate::core::model::chart::{
     Chart, PALACE_COUNT, TemporalPalaceLayout,
-    temporal_layout::{
-        build_life_branch_palace_layout, daily_palace_index, map_target_solar_error,
-    },
+    temporal_layout::{build_life_branch_palace_layout, daily_palace_index},
 };
+use crate::core::model::ganzhi::{EarthlyBranch, StemBranch};
 use crate::core::model::star::mutagen::Scope;
-use lunar_lite::{
-    EarthlyBranch, MonthDivide, SolarDate, StemBranch, StemBranchOptions, YearDivide,
-    four_pillars_from_solar_date_with_options, solar_to_lunar,
-};
 use serde::{Deserialize, Serialize};
 
 /// One 流时 period with independent hour pillar and temporal Life palace facts.
@@ -83,43 +79,20 @@ pub fn build_hourly_period(
     target_solar_day: SolarDay,
     target_time: BirthTime,
 ) -> Result<HourlyPeriod, ChartError> {
-    let solar = SolarDate {
-        year: target_solar_year,
-        month: target_solar_month.value(),
-        day: target_solar_day.value(),
-    };
     let time_index = target_time.iztro_time_index();
-    let target_lunar = solar_to_lunar(solar).map_err(|err| {
-        map_target_solar_error(
-            err,
-            target_solar_year,
-            target_solar_month.value(),
-            target_solar_day.value(),
-        )
-    })?;
-    let pillars = four_pillars_from_solar_date_with_options(
-        solar,
+    let conversion = solar_to_lunar(
+        target_solar_year,
+        target_solar_month,
+        target_solar_day,
         time_index,
-        StemBranchOptions {
-            year: YearDivide::Normal,
-            month: MonthDivide::Normal,
-        },
-    )
-    .map_err(|err| {
-        map_target_solar_error(
-            err,
-            target_solar_year,
-            target_solar_month.value(),
-            target_solar_day.value(),
-        )
-    })?;
+    )?;
 
     let daily_index = daily_palace_index(
         natal,
-        target_lunar.year,
-        target_lunar.month,
-        target_lunar.day,
-        target_lunar.is_leap_month,
+        conversion.lunar_year(),
+        conversion.lunar_month().value(),
+        conversion.lunar_day().value(),
+        conversion.is_leap_month(),
     );
     let index =
         (daily_index as isize + time_index as isize).rem_euclid(PALACE_COUNT as isize) as usize;
@@ -129,7 +102,7 @@ pub fn build_hourly_period(
     Ok(HourlyPeriod::new(
         index,
         time_index,
-        pillars.hourly,
+        conversion.four_pillars().hourly,
         palace_branch,
         palace_layout,
     ))

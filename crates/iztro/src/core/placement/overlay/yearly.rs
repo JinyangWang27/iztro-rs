@@ -17,9 +17,9 @@
 
 use crate::core::error::ChartError;
 use crate::core::model::chart::{Chart, TemporalContext, TemporalLayer};
+use crate::core::model::ganzhi::StemBranch;
 use crate::core::model::star::mutagen::Scope;
 use crate::core::placement::overlay::mutagen::stem_mutagen_activations;
-use lunar_lite::StemBranch;
 
 /// Explicit yearly facts consumed by [`build_yearly_mutagen_layer`].
 ///

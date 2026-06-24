@@ -2,7 +2,7 @@ mod common;
 
 use std::collections::HashMap;
 
-use common::{parse_algorithm, parse_key};
+use common::{parse_algorithm, parse_key, target_lunar_date};
 use iztro::core::{
     BirthTime, Chart, ChartLayerKind, ChartStackSnapshot, EarthlyBranch, FlowStarBase,
     FlowStarScope, Gender, HeavenlyStem, HoroscopeChart, LunarChartRequest, LunarDay, LunarMonth,
@@ -10,7 +10,6 @@ use iztro::core::{
     StarName, StemBranch, TemporalContext, build_monthly_horoscope_layer, build_monthly_period,
     by_lunar, flow_star_name,
 };
-use lunar_lite::{SolarDate, solar_to_lunar};
 use serde_json::Value;
 
 const HOROSCOPE_FIXTURE: &str = include_str!("../fixtures/iztro/horoscope.json");
@@ -430,10 +429,7 @@ fn monthly_index(monthly: &Value) -> usize {
 }
 
 fn target_lunar_month(case: &Value) -> u8 {
-    let (year, month, day) = target_solar_date(case);
-    solar_to_lunar(SolarDate { year, month, day })
-        .expect("fixture target solar date should convert")
-        .month
+    target_lunar_date(case).month
 }
 
 fn target_solar_date(case: &Value) -> (i32, u8, u8) {
