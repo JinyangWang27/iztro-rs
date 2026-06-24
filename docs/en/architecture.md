@@ -180,6 +180,34 @@ A method profile may specify:
 
 This allows configurations such as `QuanShu chart generation + SanHe features + basic mutagen rules + technical narrative`.
 
+## Input calculation policy
+
+`ChartAlgorithmKind`, `ChartPlane`, and `ChartCalculationConfig` are separate axes and must not be conflated:
+
+- `ChartAlgorithmKind` is the algorithm family (全书 / 中州 / …).
+- `ChartPlane` is the plane variant (天盘 / 地盘 / 人盘) within a family.
+- `ChartCalculationConfig` is the input calculation policy applied *before* chart generation.
+
+The user always inputs a birth clock time. The calculation policy decides how that clock time becomes a 时辰:
+
+```text
+raw birth date + civil clock time
+  -> optional apparent solar time adjustment
+  -> resolved local date/time
+  -> derive time branch / time index
+  -> existing natal chart generation
+```
+
+Apparent solar time is an input calculation policy. It normalises birth clock time using time zone and longitude before the chart is generated. It does not define a new algorithm and does not define a new chart plane. The longitude correction is exact:
+
+```text
+timezone_meridian_degrees = utc_offset_hours * 15
+longitude_correction_minutes = 4 * (longitude_degrees - timezone_meridian_degrees)
+resolved_time = clock_time + longitude_correction_minutes + equation_of_time_minutes
+```
+
+When the adjusted time crosses midnight, the resolved solar date moves to the adjacent day. The resolver runs ahead of the existing chart-generation path and never touches `ChartAlgorithmKind`, `ChartPlane`, the natal anchor, or any star placer.
+
 ## Evidence-first interpretation
 
 Every interpretive claim should be traceable to chart evidence. This enables debugging, review, rule tuning, and future empirical validation.
