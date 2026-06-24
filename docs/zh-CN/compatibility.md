@@ -93,6 +93,8 @@ npm ci --prefix tools/iztro-reference
 
 `ChartCalculationConfig` 是 input/runtime calculation-policy 维度，不是算法或盘面维度。它包含 `SolarTimePolicy`、`YearBoundary`、`LeapMonthBoundary` 与 `NominalAgeBoundary`。`YearBoundary` 将上游 `yearDivide: "normal"` 映射到 `ChineseNewYearEve`，将 `"exact"` 映射到 `LiChun`；`ChineseNewYearEve` 表示上一年持续到除夕结束，新干支年从正月初一开始。`LeapMonthBoundary` 将上游 `fixLeap: false` 映射到 `AsPreviousMonth`，将 `fixLeap: true` 映射到 `MidMonth`。`NominalAgeBoundary` 将上游 `ageDivide: "normal"` 映射到 `NaturalYear`，将 `"birthday"` 映射到 `Birthday`，且只用于 runtime/full-horoscope 虚岁解析。
 
+Generation reports 会为这个 supported surface 暴露计算诊断 snapshots。它们是 iztro-rs 的调试/export surface，不是完整上游 package parity 声明。`iztro-rs` 对 fixture-backed calculation configuration cases 具备与上游 `iztro@2.5.8` 的 supported-field parity；它不是每个上游 TS feature 的完整 drop-in semantic clone。
+
 `by_lunar` 保持保守：它接受显式出生年干支，但不会从农历 input 伪造月柱、日柱或时柱，因此该 slice 中 `by_lunar` chart 的 `Chart::four_pillars()` 为 `None`。未来 PR 可决定 `by_lunar` 是否接受显式 `FourPillars`，或通过规范化阳历日期推导。
 
 `lunar-lite` 拥有 canonical low-level stem/branch、sexagenary-cycle 和 four-pillar primitives（`HeavenlyStem`、`EarthlyBranch`、`StemBranch`、`FourPillars`），并由 `core` re-export。`core` 拥有紫微斗数特有的纳音与五行局逻辑。
