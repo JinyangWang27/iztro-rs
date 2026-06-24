@@ -1,9 +1,9 @@
 //! Zi Wei Dou Shu calendar policy owned by `iztro-rs`.
 //!
-//! The runtime calendar engine ([`super::tyme`], backed by `tyme4rs`) supplies
-//! raw calendrical facts: the lunar date, the unambiguous day/hour pillars, and
-//! the exact 立春 (LiChun) instant. This module applies the chart-generation
-//! policy that `iztro-rs` owns and that must stay aligned with `iztro@2.5.8`:
+//! The runtime calendar engine adapter ([`super::tyme`]) supplies raw
+//! calendrical facts: the lunar date, the unambiguous day/hour pillars, and the
+//! exact 立春 (LiChun) instant. This module applies the chart-generation policy
+//! that `iztro-rs` owns and that must stay aligned with `iztro@2.5.8`:
 //!
 //! - the **year pillar** follows the [`YearBoundary`] policy
 //!   ([`YearBoundary::ChineseNewYearEve`] uses the lunar-year stem-branch;

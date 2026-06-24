@@ -95,6 +95,60 @@ fn year_divide_exact_2000_02_04_intentional_divergence() {
 }
 
 #[test]
+fn lichun_exact_boundary_uses_resolved_clock_minute_not_time_branch_midpoint() {
+    let before = by_solar_with_options(
+        SolarBirthInput::new(
+            SolarDate::new(2024, 2, 4).expect("valid solar date"),
+            clock_at(16, 10),
+            Gender::Female,
+        ),
+        options(
+            ChartAlgorithmKind::QuanShu,
+            ChartPlane::Heaven,
+            ChartCalculationConfig::default().with_year_boundary(YearBoundary::LiChun),
+        ),
+    )
+    .expect("before-LiChun chart should build");
+    let after = by_solar_with_options(
+        SolarBirthInput::new(
+            SolarDate::new(2024, 2, 4).expect("valid solar date"),
+            clock_at(16, 40),
+            Gender::Female,
+        ),
+        options(
+            ChartAlgorithmKind::QuanShu,
+            ChartPlane::Heaven,
+            ChartCalculationConfig::default().with_year_boundary(YearBoundary::LiChun),
+        ),
+    )
+    .expect("after-LiChun chart should build");
+
+    assert_eq!(
+        before.birth_year(),
+        StemBranch::try_new(HeavenlyStem::Gui, EarthlyBranch::Mao).expect("valid stem-branch"),
+    );
+    assert_eq!(
+        after.birth_year(),
+        StemBranch::try_new(HeavenlyStem::Jia, EarthlyBranch::Chen).expect("valid stem-branch"),
+    );
+    assert_eq!(
+        before
+            .four_pillars()
+            .expect("solar chart four pillars")
+            .yearly,
+        before.birth_year(),
+    );
+    assert_eq!(
+        after
+            .four_pillars()
+            .expect("solar chart four pillars")
+            .yearly,
+        after.birth_year(),
+    );
+    assert_ne!(before.birth_year(), after.birth_year());
+}
+
+#[test]
 fn leap_month_boundary_mid_month_day_15_and_16_are_explicit() {
     let day15_mid = chart_from_case(&chart_case("leap_day_15_mid_month"));
     let day15_previous = chart_from_case(&chart_case("leap_day_15_as_previous"));
@@ -571,8 +625,16 @@ fn method_profile(algorithm: ChartAlgorithmKind) -> MethodProfile {
 }
 
 fn clock(hour: u8) -> ClockBirthTime {
-    ClockBirthTime::new(hour, 0, UtcOffset::from_hours(8).expect("valid offset"))
-        .expect("valid clock time")
+    clock_at(hour, 0)
+}
+
+fn clock_at(hour: u8, minute: u8) -> ClockBirthTime {
+    ClockBirthTime::new(
+        hour,
+        minute,
+        UtcOffset::from_hours(8).expect("valid offset"),
+    )
+    .expect("valid clock time")
 }
 
 fn target_solar_year(target: &Value) -> i32 {

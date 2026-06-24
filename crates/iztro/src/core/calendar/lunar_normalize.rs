@@ -1,4 +1,4 @@
-//! Lunar-date normalization backed by the internal `tyme4rs` calendar adapter.
+//! Lunar-date normalization backed by the internal calendar adapter.
 //!
 //! Upstream `iztro.byLunar(date, _, _, isLeapMonth, _)` delegates to a lunar
 //! conversion that only honors `isLeapMonth = true` when the requested lunar

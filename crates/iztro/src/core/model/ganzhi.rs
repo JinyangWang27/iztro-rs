@@ -2,9 +2,9 @@
 //! their valid sexagenary-cycle pairing (干支), and the four pillars (四柱).
 //!
 //! These are `iztro-rs`'s own public/domain value objects. The runtime calendar
-//! engine ([`crate::core::calendar`], backed by `tyme4rs`) converts its calendar
-//! facts into these types at the adapter boundary, so no third-party calendar
-//! type ever leaks into the public or domain API.
+//! engine adapter ([`crate::core::calendar`]) converts its calendar facts into
+//! these types at the adapter boundary, so no third-party calendar type ever
+//! leaks into the public or domain API.
 //!
 //! The shapes intentionally mirror the previous `lunar-lite` primitives (same
 //! variants, method names, and serde representation) so the placement, nayin,

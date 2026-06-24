@@ -5,8 +5,8 @@ use std::collections::HashMap;
 use common::{
     build_chart_from_horoscope_fixture_case, expected_palace_names_by_branch,
     expected_scope_flow_stars, expected_scope_mutagens, horoscope_fixture_case,
-    horoscope_fixture_cases, scope_stem_branch, target_solar_date, target_time, target_time_index,
-    target_year,
+    horoscope_fixture_cases, scope_stem_branch, target_lunar_date, target_solar_date, target_time,
+    target_time_index, target_year,
 };
 use iztro::core::{
     ChartLayerKind, ChartStackSnapshot, EarthlyBranch, FlowStarScope, HoroscopeChart,
@@ -14,7 +14,6 @@ use iztro::core::{
     TemporalPalaceLayout, build_decadal_frame, build_full_horoscope_chart,
 };
 use serde_json::Value;
-use tyme4rs::tyme::solar::SolarDay as TymeSolarDay;
 
 const CANONICAL_CASE_ID: &str = "canonical_female_default_2026";
 
@@ -349,25 +348,6 @@ fn manual_horoscope_chart_constructors_do_not_set_target_context() {
 
 // --- helpers -------------------------------------------------------------------
 
-/// Minimal lunar-date facts derived for fixture cross-checks.
-struct TargetLunar {
-    year: i32,
-    month: u8,
-    day: u8,
-    is_leap_month: bool,
-}
-
-fn target_lunar_date(case: &Value) -> TargetLunar {
-    let (year, month, day) = target_solar_date(case);
-    let lunar = TymeSolarDay::from_ymd(year as isize, month as usize, day as usize).get_lunar_day();
-    let lunar_month = lunar.get_lunar_month();
-    TargetLunar {
-        year: lunar_month.get_lunar_year().get_year() as i32,
-        month: lunar_month.get_month() as u8,
-        day: lunar.get_day() as u8,
-        is_leap_month: lunar_month.is_leap(),
-    }
-}
 fn stack_input(case: &Value) -> HoroscopeStackInput {
     let (year, month, day) = target_solar_date(case);
     HoroscopeStackInput::new(

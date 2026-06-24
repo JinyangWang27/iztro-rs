@@ -2,7 +2,7 @@ mod common;
 
 use std::collections::HashMap;
 
-use common::{parse_algorithm, parse_key};
+use common::{parse_algorithm, parse_key, target_lunar_date};
 use iztro::core::{
     BirthTime, Chart, ChartLayerKind, ChartStackSnapshot, DailyPeriod, EarthlyBranch, FlowStarBase,
     FlowStarScope, Gender, HeavenlyStem, HoroscopeChart, LunarChartRequest, LunarDay, LunarMonth,
@@ -11,7 +11,6 @@ use iztro::core::{
     flow_star_name,
 };
 use serde_json::Value;
-use tyme4rs::tyme::solar::SolarDay as TymeSolarDay;
 
 const HOROSCOPE_FIXTURE: &str = include_str!("../fixtures/iztro/horoscope.json");
 const CANONICAL_CASE_ID: &str = "canonical_female_default_2026";
@@ -427,10 +426,7 @@ fn daily_index(daily: &Value) -> usize {
 }
 
 fn target_lunar_day(case: &Value) -> u8 {
-    let (year, month, day) = target_solar_date(case);
-    TymeSolarDay::from_ymd(year as isize, month as usize, day as usize)
-        .get_lunar_day()
-        .get_day() as u8
+    target_lunar_date(case).day
 }
 
 fn target_solar_date(case: &Value) -> (i32, u8, u8) {

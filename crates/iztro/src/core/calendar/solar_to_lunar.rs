@@ -1,13 +1,13 @@
-//! Gregorian-to-Chinese-lunisolar conversion backed by the internal `tyme4rs`
-//! calendar adapter.
+//! Gregorian-to-Chinese-lunisolar conversion backed by the internal calendar
+//! adapter.
 //!
 //! This module maps the adapter's calendar facts onto the crate's own typed
 //! lunar facts and owned GanZhi value objects, exposing only in-range month/day
 //! domain types to callers. The four pillars are assembled by [`super::policy`]:
-//! the day and hour pillars come from `tyme4rs`, while the year and month pillars
-//! follow the lunar-new-year / 五虎遁 conventions for `iztro@2.5.8` parity. The
-//! year pillar (the retained birth-year fact) follows the configured
-//! [`YearBoundary`].
+//! the day and hour pillars come from the internal calendar adapter, while the
+//! year and month pillars follow the lunar-new-year / 五虎遁 conventions for
+//! `iztro@2.5.8` parity. The year pillar (the retained birth-year fact) follows
+//! the configured [`YearBoundary`].
 
 use crate::core::calculation::YearBoundary;
 use crate::core::error::ChartError;
@@ -112,6 +112,51 @@ pub(crate) fn solar_to_lunar_with_year_boundary(
     time_index: u8,
     year_boundary: YearBoundary,
 ) -> Result<LunarConversion, ChartError> {
+    let resolved_time = ResolvedSolarDateTime {
+        year,
+        month: month.value(),
+        day: day.value(),
+        hour: synthesized_hour(time_index),
+        minute: 30,
+        second: 0,
+    };
+    solar_to_lunar_with_resolved_time(year, month, day, resolved_time, year_boundary)
+}
+
+/// Converts a Gregorian/solar date to typed Chinese-lunisolar facts using an
+/// exact resolved local clock time for four-pillar and LiChun-boundary
+/// resolution.
+///
+/// This is the clock-time API path. Unlike [`solar_to_lunar_with_year_boundary`],
+/// it does not synthesize the representative midpoint of a `timeIndex`; the
+/// resolved hour/minute/second are preserved when comparing against exact 立春.
+pub(crate) fn solar_to_lunar_with_resolved_datetime(
+    year: i32,
+    month: SolarMonth,
+    day: SolarDay,
+    hour: u8,
+    minute: u8,
+    second: u8,
+    year_boundary: YearBoundary,
+) -> Result<LunarConversion, ChartError> {
+    let resolved_time = ResolvedSolarDateTime {
+        year,
+        month: month.value(),
+        day: day.value(),
+        hour,
+        minute,
+        second,
+    };
+    solar_to_lunar_with_resolved_time(year, month, day, resolved_time, year_boundary)
+}
+
+fn solar_to_lunar_with_resolved_time(
+    year: i32,
+    month: SolarMonth,
+    day: SolarDay,
+    resolved_time: ResolvedSolarDateTime,
+    year_boundary: YearBoundary,
+) -> Result<LunarConversion, ChartError> {
     let conversion_failed = || ChartError::CalendarConversionFailed {
         year,
         month: month.value(),
@@ -121,15 +166,6 @@ pub(crate) fn solar_to_lunar_with_year_boundary(
     let calendar = TymeCalendar;
     let date = SolarDate::new(year, month.value(), day.value())?;
     let lunar = calendar.lunar_from_solar(date)?;
-
-    let resolved_time = ResolvedSolarDateTime {
-        year,
-        month: month.value(),
-        day: day.value(),
-        hour: synthesized_hour(time_index),
-        minute: 30,
-        second: 0,
-    };
     let four_pillars = resolve_four_pillars(&calendar, resolved_time, lunar, year_boundary)?;
 
     Ok(LunarConversion {

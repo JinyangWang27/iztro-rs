@@ -42,7 +42,7 @@ The committed fixture JSON files remain the compatibility source of truth.
 The current fixture-backed chart-generation surface includes:
 
 - typed `by_lunar` and `by_solar` request facades;
-- `tyme4rs`-backed solar-to-lunar conversion and boundary-configurable birth-year/four-pillar derivation for `by_solar`, behind the internal `core/calendar` adapter;
+- solar-to-lunar conversion and boundary-configurable birth-year/four-pillar derivation for `by_solar`, behind the internal `core/calendar` adapter backed by `tyme4rs`;
 - leap-month / `fix_leap` behavior for the supported slice, including `LeapMonthBoundary` mapping;
 - fixture-backed calculation configuration cases for `YearBoundary`, `LeapMonthBoundary`, and `NominalAgeBoundary`;
 - upstream `timeIndex` `0..=12` rat-hour modeling through `BirthTime`;
@@ -94,11 +94,11 @@ The supported combinations are explicit: `QuanShu + Heaven`, `Zhongzhou + Heaven
 
 Birth time is represented by `BirthTime`, matching upstream `iztro` `timeIndex` values `0..=12`. `EarlyZi` (`0`) and `LateZi` (`12`) both project to `EarthlyBranch::Zi`, while branch-based request setters continue to map `Zi` to early Zi for backward compatibility.
 
-`by_solar` validates the Gregorian/solar date, derives calendar facts through the internal `tyme4rs` adapter (`core/calendar`), and derives factual natal four pillars: the unambiguous day and hour pillars (continuous day count and 五鼠遁 hour, including the 晚子时 day roll) come from `tyme4rs`, while the year pillar (lunar-new-year / 立春 boundary) and the month pillar (五虎遁) are derived by `iztro-rs`-owned calendar policy. It sets `is_leap_month` and `fix_leap`, delegates placement to `by_lunar`, and retains the resulting `iztro-rs`-owned `FourPillars` on `Chart`. It adds no placement logic of its own. The invariant is explicit: when `Chart::four_pillars()` is present, its year pillar equals `Chart::birth_year()`.
+`by_solar` validates the Gregorian/solar date, derives calendar facts through the internal `core/calendar` adapter backed by `tyme4rs`, and derives factual natal four pillars: the unambiguous day and hour pillars (continuous day count and 五鼠遁 hour, including the 晚子时 day roll) come from the adapter, while the year pillar (lunar-new-year / 立春 boundary) and the month pillar (五虎遁) are derived by `iztro-rs`-owned calendar policy. It sets `is_leap_month` and `fix_leap`, delegates placement to `by_lunar`, and retains the resulting `iztro-rs`-owned `FourPillars` on `Chart`. It adds no placement logic of its own. The invariant is explicit: when `Chart::four_pillars()` is present, its year pillar equals `Chart::birth_year()`.
 
 Apparent solar time remains an `iztro-rs` calculation policy (`SolarTimePolicy::ApparentSolarTime`), applied to the civil clock time *before* a `tyme4rs::SolarTime` is built; `tyme4rs` only ever receives the already-resolved local datetime.
 
-`ChartCalculationConfig` is an input/runtime calculation-policy axis, not an algorithm or chart-plane axis. It contains `SolarTimePolicy`, `YearBoundary`, `LeapMonthBoundary`, and `NominalAgeBoundary`. `YearBoundary` maps upstream `yearDivide: "normal"` to `ChineseNewYearEve` and `"exact"` to `LiChun`; `ChineseNewYearEve` means the previous year lasts through 除夕 and the new cyclic year begins at 正月初一. `YearBoundary::LiChun` is **datetime-level** (exact-instant based): the resolved birth instant is compared against the exact 立春 instant, so a birth before that instant on the 立春 day still belongs to the previous Ganzhi year. `LeapMonthBoundary` maps upstream `fixLeap: false` to `AsPreviousMonth` and `fixLeap: true` to `MidMonth`. `NominalAgeBoundary` maps upstream `ageDivide: "normal"` to `NaturalYear` and `"birthday"` to `Birthday`, and is applied only when resolving runtime/full-horoscope nominal age.
+`ChartCalculationConfig` is an input/runtime calculation-policy axis, not an algorithm or chart-plane axis. It contains `SolarTimePolicy`, `YearBoundary`, `LeapMonthBoundary`, and `NominalAgeBoundary`. `YearBoundary` maps upstream `yearDivide: "normal"` to `ChineseNewYearEve` and `"exact"` to `LiChun`; `ChineseNewYearEve` means the previous year lasts through 除夕 and the new cyclic year begins at 正月初一. `YearBoundary::LiChun` is **datetime-level** (exact-instant based): the resolved birth instant is compared against the exact 立春 instant, so a birth before that instant on the 立春 day still belongs to the previous Ganzhi year. Legacy `BirthTime` / `timeIndex` APIs do not carry exact clock minutes, so they compare LiChun using the representative synthesized midpoint of the supplied 时辰. Clock-time APIs preserve the resolved clock hour/minute and compare that exact resolved instant against LiChun. `LeapMonthBoundary` maps upstream `fixLeap: false` to `AsPreviousMonth` and `fixLeap: true` to `MidMonth`. `NominalAgeBoundary` maps upstream `ageDivide: "normal"` to `NaturalYear` and `"birthday"` to `Birthday`, and is applied only when resolving runtime/full-horoscope nominal age.
 
 The exact-instant 立春 boundary is a deliberate correction over the previous `lunar-lite` date-level behavior and over `iztro@2.5.8`. The compatibility priority order is: (1) `iztro@2.5.8` supported-field fixture parity; (2) correct calendar semantics from `tyme4rs`; (3) old `lunar-lite-rs` behavior. The only supported-field fixture case affected is `year_divide_exact_2000_02_04` (a morning birth before the exact 立春 instant): its expected fields record the corrected `iztro-rs` result (`己卯`) and the case is annotated as an intentional divergence. Every other fixture case keeps strict upstream parity.
 
@@ -107,6 +107,10 @@ Generation reports expose calculation diagnostic snapshots for this supported su
 `by_lunar` remains conservative: it accepts explicit birth-year stem/branch facts, but it does not pretend to know month/day/hour pillars from lunar input alone, so `Chart::four_pillars()` is `None` for `by_lunar` charts in this slice. A future PR can decide whether `by_lunar` should accept explicit `FourPillars` or derive them through a normalized solar date.
 
 `iztro-rs` owns the public/domain stem, branch, stem-branch, and four-pillar value objects (`HeavenlyStem`, `EarthlyBranch`, `StemBranch`, `FourPillars` in `core/model/ganzhi`); `tyme4rs` is an internal calendar engine behind `core/calendar` and never appears in public/domain APIs. `core` owns Zi Wei-specific NaYin and five-element bureau logic.
+
+Production source code depends on `tyme4rs` only from `core/calendar/tyme.rs`.
+Integration tests must not import `tyme4rs` directly; they use committed fixture
+facts or `iztro-rs` APIs that cross the internal calendar adapter boundary.
 
 ## Horoscope layer models
 

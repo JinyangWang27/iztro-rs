@@ -42,7 +42,7 @@ npm ci --prefix tools/iztro-reference
 当前 fixture-backed chart-generation surface 包括：
 
 - 强类型 `by_lunar` 与 `by_solar` request facades；
-- `tyme4rs`-backed 阳历转农历，以及 `by_solar` 的可配置年分界出生年/四柱事实推导，置于内部 `core/calendar` 适配器之后；
+- 阳历转农历，以及 `by_solar` 的可配置年分界出生年/四柱事实推导，置于内部 `core/calendar` 适配器之后，该适配器由 `tyme4rs` 支撑；
 - supported slice 的闰月 / `fix_leap` 行为，包括 `LeapMonthBoundary` 映射；
 - `YearBoundary`、`LeapMonthBoundary` 与 `NominalAgeBoundary` 的 fixture-backed calculation configuration cases；
 - 通过 `BirthTime` 建模上游 `timeIndex` `0..=12` 早晚子时；
@@ -89,17 +89,19 @@ npm ci --prefix tools/iztro-reference
 
 出生时间由 `BirthTime` 表示，对齐上游 `iztro` `timeIndex` `0..=12`。`EarlyZi` (`0`) 与 `LateZi` (`12`) 都投影到 `EarthlyBranch::Zi`；按地支传入的 request setters 继续把 `Zi` 映射为早子时，以保持向后兼容。
 
-`by_solar` 校验阳历日期，通过内部 `tyme4rs` 适配器（`core/calendar`）取得历法事实并推导事实性本命四柱：无歧义的日柱与时柱（连续日数、五鼠遁时柱，含晚子时换日）来自 `tyme4rs`，年柱（农历新年 / 立春分界）与月柱（五虎遁）由 `iztro-rs` 自有历法策略推导。它设置 `is_leap_month` 与 `fix_leap`，委托 `by_lunar` 安星，并把结果（`iztro-rs` 自有的 `FourPillars`）保留在 `Chart`。它本身不添加安星逻辑。显式 invariant：当 `Chart::four_pillars()` 存在时，其年柱等于 `Chart::birth_year()`。
+`by_solar` 校验阳历日期，通过内部 `core/calendar` 适配器（由 `tyme4rs` 支撑）取得历法事实并推导事实性本命四柱：无歧义的日柱与时柱（连续日数、五鼠遁时柱，含晚子时换日）来自该适配器，年柱（农历新年 / 立春分界）与月柱（五虎遁）由 `iztro-rs` 自有历法策略推导。它设置 `is_leap_month` 与 `fix_leap`，委托 `by_lunar` 安星，并把结果（`iztro-rs` 自有的 `FourPillars`）保留在 `Chart`。它本身不添加安星逻辑。显式 invariant：当 `Chart::four_pillars()` 存在时，其年柱等于 `Chart::birth_year()`。
 
 真太阳时仍是 `iztro-rs` 计算策略（`SolarTimePolicy::ApparentSolarTime`），在构造 `tyme4rs::SolarTime` **之前**对民用钟表时间应用；`tyme4rs` 只接收已解析的本地日期时间。
 
-`ChartCalculationConfig` 是 input/runtime calculation-policy 维度，不是算法或盘面维度。它包含 `SolarTimePolicy`、`YearBoundary`、`LeapMonthBoundary` 与 `NominalAgeBoundary`。`YearBoundary` 将上游 `yearDivide: "normal"` 映射到 `ChineseNewYearEve`，将 `"exact"` 映射到 `LiChun`；`ChineseNewYearEve` 表示上一年持续到除夕结束，新干支年从正月初一开始。`YearBoundary::LiChun` 为**时刻级**（精确瞬时）：以解析后的出生时刻与精确立春时刻比较，故立春当日、立春时刻之前出生仍属上一个干支年。这是对旧 `lunar-lite` 日期级行为与 `iztro@2.5.8` 的有意修正。兼容优先级为：(1) `iztro@2.5.8` supported-field fixture 一致性；(2) 来自 `tyme4rs` 的正确历法语义；(3) 旧 `lunar-lite-rs` 行为。唯一受影响的 supported-field fixture 用例为 `year_divide_exact_2000_02_04`（立春时刻之前的上午出生），其期望字段记录修正后的 `iztro-rs` 结果（`己卯`）并标注为有意偏离；其余用例保持与上游严格一致。`LeapMonthBoundary` 将上游 `fixLeap: false` 映射到 `AsPreviousMonth`，将 `fixLeap: true` 映射到 `MidMonth`。`NominalAgeBoundary` 将上游 `ageDivide: "normal"` 映射到 `NaturalYear`，将 `"birthday"` 映射到 `Birthday`，且只用于 runtime/full-horoscope 虚岁解析。
+`ChartCalculationConfig` 是 input/runtime calculation-policy 维度，不是算法或盘面维度。它包含 `SolarTimePolicy`、`YearBoundary`、`LeapMonthBoundary` 与 `NominalAgeBoundary`。`YearBoundary` 将上游 `yearDivide: "normal"` 映射到 `ChineseNewYearEve`，将 `"exact"` 映射到 `LiChun`；`ChineseNewYearEve` 表示上一年持续到除夕结束，新干支年从正月初一开始。`YearBoundary::LiChun` 为**时刻级**（精确瞬时）：以解析后的出生时刻与精确立春时刻比较，故立春当日、立春时刻之前出生仍属上一个干支年。旧 `BirthTime` / `timeIndex` API 不携带精确钟表分钟，因此用所给时辰的代表性合成中点比较立春；钟表时间 API 保留解析后的 hour/minute，并以该精确解析时刻比较立春。这是对旧 `lunar-lite` 日期级行为与 `iztro@2.5.8` 的有意修正。兼容优先级为：(1) `iztro@2.5.8` supported-field fixture 一致性；(2) 来自 `tyme4rs` 的正确历法语义；(3) 旧 `lunar-lite-rs` 行为。唯一受影响的 supported-field fixture 用例为 `year_divide_exact_2000_02_04`（立春时刻之前的上午出生），其期望字段记录修正后的 `iztro-rs` 结果（`己卯`）并标注为有意偏离；其余用例保持与上游严格一致。`LeapMonthBoundary` 将上游 `fixLeap: false` 映射到 `AsPreviousMonth`，将 `fixLeap: true` 映射到 `MidMonth`。`NominalAgeBoundary` 将上游 `ageDivide: "normal"` 映射到 `NaturalYear`，将 `"birthday"` 映射到 `Birthday`，且只用于 runtime/full-horoscope 虚岁解析。
 
 Generation reports 会为这个 supported surface 暴露计算诊断 snapshots。它们是 iztro-rs 的调试/export surface，不是完整上游 package parity 声明。`iztro-rs` 对 fixture-backed calculation configuration cases 具备与上游 `iztro@2.5.8` 的 supported-field parity；它不是每个上游 TS feature 的完整 drop-in semantic clone。
 
 `by_lunar` 保持保守：它接受显式出生年干支，但不会从农历 input 伪造月柱、日柱或时柱，因此该 slice 中 `by_lunar` chart 的 `Chart::four_pillars()` 为 `None`。未来 PR 可决定 `by_lunar` 是否接受显式 `FourPillars`，或通过规范化阳历日期推导。
 
 `iztro-rs` 拥有公开/领域层的天干、地支、干支与四柱值对象（`core/model/ganzhi` 的 `HeavenlyStem`、`EarthlyBranch`、`StemBranch`、`FourPillars`）；`tyme4rs` 是置于 `core/calendar` 之后的内部历法引擎，绝不出现在公开/领域 API。`core` 拥有紫微斗数特有的纳音与五行局逻辑。
+
+生产源码只允许 `core/calendar/tyme.rs` 直接依赖 `tyme4rs`。集成测试不得直接 import `tyme4rs`；应使用已提交 fixture facts，或通过 `iztro-rs` API 穿过内部历法适配器边界。
 
 ## 运限层模型
 

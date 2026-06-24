@@ -290,6 +290,38 @@ fn li_chun_2024_before_exact_instant_uses_previous_ganzhi_year() {
 }
 
 #[test]
+fn li_chun_2024_exact_clock_minute_splits_same_time_branch() {
+    // Both times are in the same 申时 branch. The exact clock minute must still
+    // decide the LiChun boundary: 2024-02-04 16:10 is before the ~16:27 instant,
+    // while 16:40 is after it.
+    let before = solar_to_lunar_with_resolved_datetime(
+        2024,
+        month(2),
+        day(4),
+        16,
+        10,
+        0,
+        YearBoundary::LiChun,
+    )
+    .expect("before instant");
+    let after = solar_to_lunar_with_resolved_datetime(
+        2024,
+        month(2),
+        day(4),
+        16,
+        40,
+        0,
+        YearBoundary::LiChun,
+    )
+    .expect("after instant");
+
+    assert_eq!(before.birth_year_stem(), HeavenlyStem::Gui);
+    assert_eq!(before.birth_year_branch(), EarthlyBranch::Mao);
+    assert_eq!(after.birth_year_stem(), HeavenlyStem::Jia);
+    assert_eq!(after.birth_year_branch(), EarthlyBranch::Chen);
+}
+
+#[test]
 fn year_boundary_after_chinese_new_year_before_li_chun_differs() {
     // Chinese New Year 2001 is 2001-01-24; Li Chun 2001 is 2001-02-03. On
     // 2001-01-28 the date is after the lunar new year (so the normal boundary

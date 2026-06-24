@@ -31,6 +31,9 @@ Fixture parity with `iztro@2.5.8` remains the first compatibility target.
 - Keep `tyme4rs` behind an internal `core/calendar` adapter. `core/calendar/tyme.rs`
   is the only module permitted to depend on `tyme4rs`; every `tyme4rs` value is
   converted into an `iztro-rs`-owned type at that boundary.
+- Production source code depends on `tyme4rs` only from `core/calendar/tyme.rs`.
+  Integration tests must not import `tyme4rs` directly; they should use committed
+  fixture facts or `iztro-rs` APIs that cross the internal adapter boundary.
 - `iztro-rs` owns the public/domain stem, branch, stem-branch, and four-pillar
   value objects (`core/model/ganzhi`). `tyme4rs` types never appear in
   public/domain APIs.
@@ -43,12 +46,17 @@ Fixture parity with `iztro@2.5.8` remains the first compatibility target.
   and hour pillars (continuous day count and 五鼠遁 hour, including the 晚子时 day
   roll) come from `tyme4rs`.
 - `YearBoundary::LiChun` is **datetime-level**: the resolved birth instant is
-  compared against the exact `立春` instant.
+  compared against the exact `立春` instant. Legacy `BirthTime` / `timeIndex`
+  APIs compare using the representative synthesized midpoint for the supplied
+  时辰, because they do not carry clock minutes. Clock-time APIs preserve the
+  resolved hour/minute and compare that exact resolved instant against LiChun.
 
 ## Consequences
 
 - Runtime calendar facts come from `tyme4rs`.
 - Public/domain APIs keep `iztro-rs`-owned types; no `tyme4rs` leak.
+- Adapter-boundary tests may exercise `tyme4rs` through `core/calendar/tyme.rs`,
+  but integration tests stay adapter-agnostic.
 - The LiChun boundary can be datetime-level. This intentionally diverges from
   `iztro@2.5.8` (date-level) for births before the exact `立春` instant on the
   `立春` day. The single affected supported-field fixture case

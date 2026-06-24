@@ -2,12 +2,12 @@
 //!
 //! [`by_solar`] mirrors iztro's `astro.bySolar(...)` conceptually through the
 //! typed [`SolarChartRequest`]. It is an adaptor layer: it validates the solar
-//! input, converts it to lunar facts with the internal `lunar-lite` calendar
-//! adapter, then delegates to [`by_lunar`] so chart construction reuses exactly
-//! the same supported slice. No new star-placement logic lives here.
+//! input, converts it to lunar facts with the internal `core/calendar` adapter,
+//! then delegates to [`by_lunar`] so chart construction reuses exactly the same
+//! supported slice. No new star-placement logic lives here.
 
 use crate::core::calculation::YearBoundary;
-use crate::core::calendar::solar_to_lunar_with_year_boundary;
+use crate::core::calendar::{LunarConversion, solar_to_lunar_with_year_boundary};
 use crate::core::error::ChartError;
 use crate::core::facade::by_lunar::{LunarChartRequest, by_lunar};
 use crate::core::model::calendar::{BirthTime, Gender, SolarDay, SolarMonth};
@@ -233,7 +233,7 @@ impl SolarChartRequestBuilder {
 /// Builds a natal chart with currently supported natal stars from a solar date.
 ///
 /// This facade validates the Gregorian/solar date, converts it to Chinese
-/// lunisolar facts with the internal `lunar-lite` adapter, derives the
+/// lunisolar facts with the internal `core/calendar` adapter, derives the
 /// birth-year stem/branch from the cyclic year, retains the factual natal four
 /// pillars, sets `is_leap_month` from the conversion and `fix_leap` from the
 /// request, then delegates star placement to [`by_lunar`]. It adds no placement
@@ -248,6 +248,13 @@ pub fn by_solar(request: SolarChartRequest) -> Result<Chart, ChartError> {
         request.year_boundary(),
     )?;
 
+    by_solar_with_conversion(request, conversion)
+}
+
+pub(crate) fn by_solar_with_conversion(
+    request: SolarChartRequest,
+    conversion: LunarConversion,
+) -> Result<Chart, ChartError> {
     let lunar_request = LunarChartRequest::builder()
         .lunar_year(conversion.lunar_year())
         .lunar_month(conversion.lunar_month())

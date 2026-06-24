@@ -12,6 +12,7 @@ use iztro::core::{
 };
 use serde_json::Value;
 
+use super::fixtures::horoscope_facade_fixture_cases;
 use super::normalize::{flow_star_kind, parse_flow_base, parse_key};
 
 /// Returns the `(year, month, day)` of a case's target solar date.
@@ -46,6 +47,33 @@ pub fn target_year(case: &Value) -> i32 {
     case["input"]["target"]["year"]
         .as_i64()
         .expect("fixture target year") as i32
+}
+
+/// Minimal target lunar-date facts committed in the facade fixture context.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct TargetLunarDate {
+    pub year: i32,
+    pub month: u8,
+    pub day: u8,
+    pub is_leap_month: bool,
+}
+
+/// Returns a case's committed target lunar date from the facade fixture.
+pub fn target_lunar_date(case: &Value) -> TargetLunarDate {
+    let case_id = case["id"].as_str().expect("case id");
+    let facade_case = horoscope_facade_fixture_cases()
+        .into_iter()
+        .find(|candidate| candidate["id"].as_str() == Some(case_id))
+        .unwrap_or_else(|| panic!("missing horoscope facade fixture case {case_id}"));
+    let lunar = &facade_case["facade"]["context"]["lunar_date"];
+    TargetLunarDate {
+        year: lunar["year"].as_i64().expect("target lunar year") as i32,
+        month: lunar["month"].as_u64().expect("target lunar month") as u8,
+        day: lunar["day"].as_u64().expect("target lunar day") as u8,
+        is_leap_month: lunar["is_leap_month"]
+            .as_bool()
+            .expect("target lunar leap-month flag"),
+    }
 }
 
 /// Returns the stem-branch declared on a per-scope supported block.
