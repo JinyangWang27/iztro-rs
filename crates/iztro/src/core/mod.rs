@@ -30,9 +30,12 @@ mod calendar;
 pub use error::{ChartError, validate_chart_algorithm_plane};
 
 pub use calculation::{
-    ApparentSolarTimeConfig, ChartCalculationConfig, ClockBirthTime, EquationOfTimePolicy,
-    LeapMonthBoundary, Longitude, NominalAgeBoundary, ResolvedBirthDateTime, SolarTimePolicy,
-    UtcOffset, YearBoundary,
+    ApparentSolarTimeConfig, BirthInputCalendarKind, BirthTimeResolutionSnapshot,
+    ChartCalculationConfig, ChartCalculationDiagnosticSnapshot, ClockBirthTime,
+    EquationOfTimePolicy, HoroscopeCalculationDiagnosticSnapshot, LeapMonthBoundary,
+    LeapMonthBoundaryDiagnosticSnapshot, Longitude, NominalAgeBoundary, ResolvedBirthDateTime,
+    SolarTimePolicy, SolarTimePolicyDiagnostic, UtcOffset, YearBoundary,
+    YearBoundaryDiagnosticSnapshot,
 };
 pub use lunar_lite::{
     EARTHLY_BRANCHES, EarthlyBranch, FourPillars, HEAVENLY_STEMS, HeavenlyStem, StemBranch,
@@ -130,7 +133,10 @@ pub use placement::overlay::decadal_horoscope::{
     DecadalHoroscopeInput, build_decadal_horoscope_chart, build_decadal_horoscope_layer,
 };
 pub use placement::overlay::flow::build_flow_star_layer;
-pub use placement::overlay::horoscope_stack::{HoroscopeStackInput, build_full_horoscope_chart};
+pub use placement::overlay::horoscope_stack::{
+    HoroscopeGenerationReport, HoroscopeStackInput, build_full_horoscope_chart,
+    build_full_horoscope_chart_report,
+};
 pub use placement::overlay::hourly_horoscope::build_hourly_horoscope_layer;
 pub use placement::overlay::monthly_horoscope::build_monthly_horoscope_layer;
 pub use placement::overlay::yearly::{YearlyMutagenLayerInput, build_yearly_mutagen_layer};
@@ -140,8 +146,9 @@ pub use placement::overlay::yearly_horoscope::build_yearly_horoscope_layer;
 pub use facade::by_lunar::{LunarChartRequest, LunarChartRequestBuilder, by_lunar};
 pub use facade::by_solar::{SolarChartRequest, SolarChartRequestBuilder, by_solar};
 pub use facade::options::{
-    LunarBirthInput, LunarDate, NatalChartOptions, SolarBirthInput, by_lunar_with_options,
-    by_solar_with_options,
+    LunarBirthInput, LunarDate, NatalChartGenerationReport, NatalChartOptions, SolarBirthInput,
+    by_lunar_with_options, by_lunar_with_options_report, by_solar_with_options,
+    by_solar_with_options_report, resolve_lunar_birth_input, resolve_solar_birth_input,
 };
 pub use facade::static_temporal_chart_view::{
     static_temporal_chart_view, temporal_selection_for_local_moment,

@@ -90,6 +90,8 @@ Decadal, age, and horoscope models are defined as typed facts and overlays. `bui
 
 Current supported chart-generation slice: `by_lunar` accepts explicit lunar inputs plus explicit birth-year stem and branch, validates them into a retained `Chart::birth_year()` fact, builds deterministic natal chart facts, and validates supported fields against selected `iztro@2.5.8` fixtures where upstream exposes a comparable surface. `by_solar` adds `lunar-lite` 1.0.0-backed solar-to-lunar conversion, derives the birth-year stem-branch through boundary-configurable four-pillar APIs, retains factual `lunar_lite::FourPillars`, and delegates placement to `by_lunar`. `ChartCalculationConfig` is a separate calculation-policy axis from `ChartAlgorithmKind` and `ChartPlane`; it covers solar time, year boundary, leap-month boundary, and runtime nominal-age boundary. Zhongzhou Earth/Human chart planes are Rust-only extensions because upstream `iztro@2.5.8` does not expose those planes.
 
+Calculation diagnostics are exposed as generation reports and preview/resolution snapshots. They inspect resolved input facts and runtime nominal-age facts without making `Chart` store calculation config or changing chart serialization.
+
 ## Phase 4: Snapshot, rendering, and static GUI
 
 - [x] Add `ChartStackSnapshot` as a renderer-neutral stacked read model.

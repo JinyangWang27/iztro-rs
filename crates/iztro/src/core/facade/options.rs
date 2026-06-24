@@ -13,8 +13,12 @@
 //! solar date before the chart is generated.
 
 use crate::core::calculation::{
-    ChartCalculationConfig, ClockBirthTime, LeapMonthBoundary, resolve_birth_datetime,
+    BirthInputCalendarKind, BirthTimeResolutionSnapshot, ChartCalculationConfig,
+    ChartCalculationDiagnosticSnapshot, ClockBirthTime, LeapMonthBoundary,
+    LeapMonthBoundaryDiagnosticSnapshot, ResolvedBirthDateTime, SolarTimePolicy,
+    SolarTimePolicyDiagnostic, YearBoundaryDiagnosticSnapshot, resolve_birth_datetime,
 };
+use crate::core::calendar::solar_to_lunar_with_year_boundary;
 use crate::core::error::ChartError;
 use crate::core::facade::by_lunar::{LunarChartRequest, by_lunar};
 use crate::core::facade::by_solar::{SolarChartRequest, by_solar};
@@ -165,6 +169,16 @@ const fn fix_leap_for(boundary: LeapMonthBoundary) -> bool {
     }
 }
 
+/// Natal chart generation report containing the chart and calculation facts
+/// resolved before chart generation.
+#[derive(Clone, Debug, PartialEq)]
+pub struct NatalChartGenerationReport {
+    /// Generated natal chart.
+    pub chart: Chart,
+    /// Calculation-resolution diagnostics for this chart generation.
+    pub calculation: ChartCalculationDiagnosticSnapshot,
+}
+
 /// Builds a natal chart from a clock-time solar birth input.
 ///
 /// The clock time is resolved to a local solar date/time and 时辰 through the
@@ -174,6 +188,15 @@ pub fn by_solar_with_options(
     input: SolarBirthInput,
     options: NatalChartOptions,
 ) -> Result<Chart, ChartError> {
+    Ok(by_solar_with_options_report(input, options)?.chart)
+}
+
+/// Builds a natal chart from a clock-time solar birth input and returns a
+/// report with the resolved calculation facts.
+pub fn by_solar_with_options_report(
+    input: SolarBirthInput,
+    options: NatalChartOptions,
+) -> Result<NatalChartGenerationReport, ChartError> {
     let resolved =
         resolve_birth_datetime(input.date, input.birth_time, &options.calculation_config)?;
     let resolved_date = resolved.resolved_date();
@@ -186,11 +209,14 @@ pub fn by_solar_with_options(
         .gender(input.gender)
         .year_boundary(options.calculation_config.year_boundary)
         .fix_leap(fix_leap_for(options.calculation_config.leap_month_boundary))
-        .method_profile(options.method_profile)
+        .method_profile(options.method_profile.clone())
         .chart_plane(options.chart_plane)
         .build()?;
 
-    by_solar(request)
+    let chart = by_solar(request)?;
+    let calculation = solar_calculation_diagnostic(&options, resolved, chart.birth_year())?;
+
+    Ok(NatalChartGenerationReport { chart, calculation })
 }
 
 /// Builds a natal chart from a clock-time lunar birth input.
@@ -203,8 +229,15 @@ pub fn by_lunar_with_options(
     input: LunarBirthInput,
     options: NatalChartOptions,
 ) -> Result<Chart, ChartError> {
-    use crate::core::calculation::SolarTimePolicy;
+    Ok(by_lunar_with_options_report(input, options)?.chart)
+}
 
+/// Builds a natal chart from a clock-time lunar birth input and returns a
+/// report with the resolved calculation facts.
+pub fn by_lunar_with_options_report(
+    input: LunarBirthInput,
+    options: NatalChartOptions,
+) -> Result<NatalChartGenerationReport, ChartError> {
     if matches!(
         options.calculation_config.solar_time,
         SolarTimePolicy::ApparentSolarTime(_)
@@ -226,11 +259,192 @@ pub fn by_lunar_with_options(
         .birth_year_branch(birth_year.branch())
         .is_leap_month(input.date.is_leap_month())
         .fix_leap(fix_leap_for(options.calculation_config.leap_month_boundary))
-        .method_profile(options.method_profile)
+        .method_profile(options.method_profile.clone())
         .chart_plane(options.chart_plane)
         .build()?;
 
-    by_lunar(request)
+    let chart = by_lunar(request)?;
+    let calculation = lunar_calculation_diagnostic(input, &options)?;
+
+    Ok(NatalChartGenerationReport { chart, calculation })
+}
+
+/// Resolves calculation facts for a solar clock-time birth input without
+/// generating a chart.
+pub fn resolve_solar_birth_input(
+    input: SolarBirthInput,
+    options: NatalChartOptions,
+) -> Result<ChartCalculationDiagnosticSnapshot, ChartError> {
+    let resolved =
+        resolve_birth_datetime(input.date, input.birth_time, &options.calculation_config)?;
+    let resolved_date = resolved.resolved_date();
+    let conversion = solar_to_lunar_with_year_boundary(
+        resolved_date.year(),
+        resolved_date.month(),
+        resolved_date.day(),
+        resolved.resolved_time_index(),
+        options.calculation_config.year_boundary,
+    )?;
+    let effective_birth_year =
+        StemBranch::try_new(conversion.birth_year_stem(), conversion.birth_year_branch()).map_err(
+            |err| match err {
+                lunar_lite::StemBranchError::InvalidStemBranchPair { stem, branch } => {
+                    ChartError::InvalidStemBranchPair { stem, branch }
+                }
+            },
+        )?;
+
+    solar_calculation_diagnostic(&options, resolved, effective_birth_year)
+}
+
+/// Resolves calculation facts for a lunar clock-time birth input without
+/// generating a chart.
+pub fn resolve_lunar_birth_input(
+    input: LunarBirthInput,
+    options: NatalChartOptions,
+) -> Result<ChartCalculationDiagnosticSnapshot, ChartError> {
+    lunar_calculation_diagnostic(input, &options)
+}
+
+fn solar_calculation_diagnostic(
+    options: &NatalChartOptions,
+    resolved: ResolvedBirthDateTime,
+    effective_birth_year: StemBranch,
+) -> Result<ChartCalculationDiagnosticSnapshot, ChartError> {
+    let resolved_date = resolved.resolved_date();
+    let conversion = solar_to_lunar_with_year_boundary(
+        resolved_date.year(),
+        resolved_date.month(),
+        resolved_date.day(),
+        resolved.resolved_time_index(),
+        options.calculation_config.year_boundary,
+    )?;
+
+    Ok(ChartCalculationDiagnosticSnapshot {
+        birth_time: solar_birth_time_diagnostic(resolved, &options.calculation_config),
+        year_boundary: YearBoundaryDiagnosticSnapshot {
+            policy: options.calculation_config.year_boundary,
+            effective_birth_year,
+        },
+        leap_month_boundary: LeapMonthBoundaryDiagnosticSnapshot {
+            policy: options.calculation_config.leap_month_boundary,
+            legacy_fix_leap: fix_leap_for(options.calculation_config.leap_month_boundary),
+            input_is_leap_month: conversion.is_leap_month(),
+        },
+    })
+}
+
+fn lunar_calculation_diagnostic(
+    input: LunarBirthInput,
+    options: &NatalChartOptions,
+) -> Result<ChartCalculationDiagnosticSnapshot, ChartError> {
+    if matches!(
+        options.calculation_config.solar_time,
+        SolarTimePolicy::ApparentSolarTime(_)
+    ) {
+        return Err(ChartError::ApparentSolarTimeRequiresSolarDate);
+    }
+
+    let time_index = time_index_for_hour(input.birth_time.hour());
+    let birth_time_variant = BirthTime::from_iztro_time_index(time_index)?;
+    let birth_year = StemBranch::from_lunar_year(input.date.year());
+
+    Ok(ChartCalculationDiagnosticSnapshot {
+        birth_time: BirthTimeResolutionSnapshot {
+            input_calendar: BirthInputCalendarKind::Lunar,
+            input_date: format_lunar_date(input.date),
+            input_clock_time: format_clock_time(input.birth_time.hour(), input.birth_time.minute()),
+            timezone_offset_minutes: input.birth_time.timezone().minutes(),
+            solar_time_policy: SolarTimePolicyDiagnostic::ClockTime,
+            longitude_degrees: None,
+            longitude_correction_minutes: None,
+            equation_of_time_minutes: None,
+            total_adjustment_minutes: 0.0,
+            resolved_solar_date: None,
+            resolved_clock_time: format_clock_time(
+                input.birth_time.hour(),
+                input.birth_time.minute(),
+            ),
+            resolved_time_index: time_index,
+            resolved_time_branch: birth_time_variant.branch(),
+        },
+        year_boundary: YearBoundaryDiagnosticSnapshot {
+            policy: options.calculation_config.year_boundary,
+            effective_birth_year: birth_year,
+        },
+        leap_month_boundary: LeapMonthBoundaryDiagnosticSnapshot {
+            policy: options.calculation_config.leap_month_boundary,
+            legacy_fix_leap: fix_leap_for(options.calculation_config.leap_month_boundary),
+            input_is_leap_month: input.date.is_leap_month(),
+        },
+    })
+}
+
+fn solar_birth_time_diagnostic(
+    resolved: ResolvedBirthDateTime,
+    config: &ChartCalculationConfig,
+) -> BirthTimeResolutionSnapshot {
+    let solar_time_policy = solar_time_policy_diagnostic(config.solar_time);
+    let longitude_degrees = match config.solar_time {
+        SolarTimePolicy::ClockTime => None,
+        SolarTimePolicy::ApparentSolarTime(apparent) => Some(apparent.longitude.degrees()),
+    };
+
+    BirthTimeResolutionSnapshot {
+        input_calendar: BirthInputCalendarKind::Solar,
+        input_date: format_solar_date(resolved.input_date()),
+        input_clock_time: format_clock_time(
+            resolved.input_time().hour(),
+            resolved.input_time().minute(),
+        ),
+        timezone_offset_minutes: resolved.input_time().timezone().minutes(),
+        solar_time_policy,
+        longitude_degrees,
+        longitude_correction_minutes: resolved.longitude_correction_minutes(),
+        equation_of_time_minutes: resolved.equation_of_time_minutes(),
+        total_adjustment_minutes: resolved.total_adjustment_minutes(),
+        resolved_solar_date: Some(format_solar_date(resolved.resolved_date())),
+        resolved_clock_time: format_clock_time(
+            resolved.resolved_hour(),
+            resolved.resolved_minute(),
+        ),
+        resolved_time_index: resolved.resolved_time_index(),
+        resolved_time_branch: resolved.resolved_time_branch(),
+    }
+}
+
+fn solar_time_policy_diagnostic(policy: SolarTimePolicy) -> SolarTimePolicyDiagnostic {
+    match policy {
+        SolarTimePolicy::ClockTime => SolarTimePolicyDiagnostic::ClockTime,
+        SolarTimePolicy::ApparentSolarTime(apparent) => {
+            SolarTimePolicyDiagnostic::ApparentSolarTime {
+                longitude_degrees: apparent.longitude.degrees(),
+                equation_of_time: apparent.equation_of_time,
+            }
+        }
+    }
+}
+
+fn format_solar_date(date: SolarDate) -> String {
+    format!(
+        "{:04}-{:02}-{:02}",
+        date.year(),
+        date.month().value(),
+        date.day().value()
+    )
+}
+
+fn format_lunar_date(date: LunarDate) -> String {
+    format!(
+        "{:04}-{:02}-{:02}",
+        date.year(),
+        date.month().value(),
+        date.day().value()
+    )
+}
+
+fn format_clock_time(hour: u8, minute: u8) -> String {
+    format!("{hour:02}:{minute:02}")
 }
 
 #[cfg(test)]

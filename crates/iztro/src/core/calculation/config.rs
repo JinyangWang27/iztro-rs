@@ -9,6 +9,7 @@
 //! not define a new chart plane.
 
 use crate::core::error::ChartError;
+use serde::{Deserialize, Serialize};
 
 /// Inclusive minute bound for the most western real-world UTC offset (`-12:00`).
 const MIN_UTC_OFFSET_MINUTES: i32 = -12 * 60;
@@ -133,7 +134,8 @@ impl ClockBirthTime {
 ///
 /// The equation of time is the difference between apparent solar time and mean
 /// solar time. It is independent of longitude.
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Hash)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum EquationOfTimePolicy {
     /// Equation-of-time minutes are treated as zero. Only the exact longitude
     /// correction is applied. This is the supported default.
@@ -182,7 +184,8 @@ pub enum SolarTimePolicy {
 /// separates one cyclic birth year (and year pillar) from the next. It is an
 /// input calculation policy for a supported field; it does not define a new
 /// algorithm or chart plane.
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Hash)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum YearBoundary {
     /// 年分界：按除夕. The cyclic year changes at the lunar new year (正月初一),
     /// upstream `yearDivide: 'normal'`. This is the default and preserves
@@ -201,7 +204,8 @@ pub enum YearBoundary {
 /// second half of a leap month advances month-based placement to the next month.
 /// It is an input calculation policy for a supported field; it does not define a
 /// new algorithm or chart plane.
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Hash)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum LeapMonthBoundary {
     /// 闰月分界：算上月. The whole leap month is treated as its own numeric
     /// month; the second half is not advanced. Equivalent to upstream
@@ -222,7 +226,8 @@ pub enum LeapMonthBoundary {
 /// calculation policy: it affects nominal-age resolution for 小限 and decadal
 /// selection only, never natal chart generation. It does not define a new
 /// algorithm or chart plane.
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Hash)]
+#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
 pub enum NominalAgeBoundary {
     /// 虚岁分界：按自然年. The nominal age increments at the natural-year boundary
     /// (the lunar new year), upstream `ageDivide: 'normal'`. This is the default

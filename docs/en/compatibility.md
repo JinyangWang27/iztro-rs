@@ -98,6 +98,8 @@ Birth time is represented by `BirthTime`, matching upstream `iztro` `timeIndex` 
 
 `ChartCalculationConfig` is an input/runtime calculation-policy axis, not an algorithm or chart-plane axis. It contains `SolarTimePolicy`, `YearBoundary`, `LeapMonthBoundary`, and `NominalAgeBoundary`. `YearBoundary` maps upstream `yearDivide: "normal"` to `ChineseNewYearEve` and `"exact"` to `LiChun`; `ChineseNewYearEve` means the previous year lasts through 除夕 and the new cyclic year begins at 正月初一. `LeapMonthBoundary` maps upstream `fixLeap: false` to `AsPreviousMonth` and `fixLeap: true` to `MidMonth`. `NominalAgeBoundary` maps upstream `ageDivide: "normal"` to `NaturalYear` and `"birthday"` to `Birthday`, and is applied only when resolving runtime/full-horoscope nominal age.
 
+Generation reports expose calculation diagnostic snapshots for this supported surface. They are an iztro-rs debugging/export surface, not a claim of full upstream package parity. `iztro-rs` has supported-field parity with upstream `iztro@2.5.8` for the fixture-backed calculation configuration cases; it is not a full drop-in semantic clone of every upstream TS feature.
+
 `by_lunar` remains conservative: it accepts explicit birth-year stem/branch facts, but it does not pretend to know month/day/hour pillars from lunar input alone, so `Chart::four_pillars()` is `None` for `by_lunar` charts in this slice. A future PR can decide whether `by_lunar` should accept explicit `FourPillars` or derive them through a normalized solar date.
 
 `lunar-lite` owns the canonical low-level stem/branch, sexagenary-cycle, and four-pillar primitives (`HeavenlyStem`, `EarthlyBranch`, `StemBranch`, `FourPillars`) that `core` re-exports. `core` owns Zi Wei-specific NaYin and five-element bureau logic.

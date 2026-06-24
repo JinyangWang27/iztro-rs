@@ -90,6 +90,8 @@
 
 当前支持切片：`by_lunar` 接受显式农历输入与显式出生年干支，生成确定性本命 chart facts，并在上游可比较 surface 上用 `iztro@2.5.8` fixtures 校验。`by_solar` 添加 `lunar-lite` 1.0.0-backed 阳历转农历，通过可配置年分界推导出生年干支与事实性四柱，并委托 `by_lunar` 安星。`ChartCalculationConfig` 是独立于 `ChartAlgorithmKind` 与 `ChartPlane` 的 calculation-policy 维度，覆盖 solar time、year boundary、leap-month boundary 和 runtime nominal-age boundary。中州地盘/人盘是 Rust-only extension，因为上游 `iztro@2.5.8` 不暴露这些 chart planes。
 
+计算诊断通过 generation reports 与 preview/resolution snapshots 暴露。它们检查解析后的输入事实与 runtime 虚岁事实，不让 `Chart` 存储 calculation config，也不改变 chart 序列化。
+
 ## Phase 4：Snapshot、rendering 与 static GUI
 
 - [x] 添加 `ChartStackSnapshot` 作为 renderer-neutral stacked read model。

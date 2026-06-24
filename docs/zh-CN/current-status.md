@@ -51,6 +51,8 @@
 
 计算策略现在包含 `SolarTimePolicy`、`YearBoundary`、`LeapMonthBoundary` 与 `NominalAgeBoundary`。默认值保持既有行为：钟表时间、农历新年干支年分界（`ChineseNewYearEve`：上一年持续到除夕结束，新年从正月初一开始）、闰月月中分界、按自然年虚岁。`YearBoundary` 与 `LeapMonthBoundary` 影响本命输入归一化；`NominalAgeBoundary` 只影响 runtime/full-horoscope 虚岁解析。
 
+钟表时间 facade 现在也暴露 report APIs：`by_solar_with_options_report`、`by_lunar_with_options_report`、`resolve_solar_birth_input`、`resolve_lunar_birth_input` 与 `build_full_horoscope_chart_report`。它们在生成 chart 或 horoscope 的同时返回计算诊断 snapshot，记录解析后的钟表时间、真太阳时经度/均时差校正、有效出生年、闰月 `fix_leap` 映射与解析后的虚岁，同时保持普通 `Chart` 序列化不变。
+
 默认策略（`SolarTimePolicy::ClockTime`）直接由钟表时间推导时辰。`SolarTimePolicy::ApparentSolarTime` 应用精确的经度校正（`4 * (经度 − 时区中央经线)` 分钟，经度差先做跨越对日线的归一化），并可能使解析后的公历日期跨越午夜。`EquationOfTimePolicy::Approximate` 尚未实现，返回 `ChartError::UnsupportedEquationOfTimePolicy`。农历日期输入拒绝真太阳时（`ChartError::ApparentSolarTimeRequiresSolarDate`）。
 
 注意：`ChartError` 现在派生 `PartialEq` 但不再派生 `Eq`，因为输入计算策略的校验错误可能携带浮点经度值。

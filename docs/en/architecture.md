@@ -190,6 +190,8 @@ This allows configurations such as `QuanShu chart generation + SanHe features + 
 
 `ChartCalculationConfig` currently includes `SolarTimePolicy`, `YearBoundary`, `LeapMonthBoundary`, and `NominalAgeBoundary`. `YearBoundary` and `LeapMonthBoundary` affect natal input normalization: `YearBoundary::ChineseNewYearEve` means the previous cyclic year lasts through 除夕 and the new cyclic year begins at 正月初一, while `YearBoundary::LiChun` uses 立春. `LeapMonthBoundary` maps to the legacy `fix_leap` split. `NominalAgeBoundary` is runtime-only: it affects horoscope nominal-age resolution and does not affect natal chart generation.
 
+`Chart` remains the immutable chart fact aggregate. Calculation diagnostics are exposed through generation reports and diagnostic snapshots, not stored inside `Chart`. These reports make resolved clock time, apparent-solar-time corrections, year-boundary effects, leap-month policy mapping, and nominal-age resolution inspectable without changing normal `Chart` serialization.
+
 The user always inputs a birth clock time. The calculation policy decides how that clock time becomes a 时辰:
 
 ```text
