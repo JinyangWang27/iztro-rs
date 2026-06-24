@@ -33,7 +33,7 @@ crates/
   iztro-cli/        # private (publish = false) command-line entry point
 ```
 
-The domain boundaries that originally lived in separate crates are now modules inside the single `iztro` crate. The project has implemented chart-generation slices, fixture-backed compatibility with `iztro@2.5.8`, `lunar-lite`-backed solar-to-lunar conversion, renderer-neutral `ChartStackSnapshot`, and a deterministic plain text renderer demo.
+The domain boundaries that originally lived in separate crates are now modules inside the single `iztro` crate. The project has implemented chart-generation slices, fixture-backed compatibility with `iztro@2.5.8`, `tyme4rs`-backed solar-to-lunar conversion (behind the internal `core/calendar` adapter), renderer-neutral `ChartStackSnapshot`, and a deterministic plain text renderer demo.
 
 The original non-goals below remain useful guardrails for incomplete areas: do not present deferred functionality as stable behavior.
 

@@ -56,6 +56,17 @@ request validation
 `by_solar` converts its input into lunar facts and delegates to the lunar path;
 it does not own separate star-placement behavior.
 
+Calendar/date resolution runs through the internal `core/calendar` adapter,
+which is the only place that depends on the `tyme4rs` calendar engine. Every
+`tyme4rs` value is converted into an `iztro-rs`-owned value object
+(`core/model/ganzhi`) at that boundary, so no third-party calendar type leaks
+into the domain or public API. The adapter supplies the lunar date, leap-month
+resolution, and the unambiguous day/hour pillars; `iztro-rs`-owned calendar
+policy (`core/calendar/policy.rs`) derives the year pillar (lunar-new-year /
+立春 boundary) and month pillar (五虎遁). `YearBoundary::LiChun` is datetime-level
+(exact 立春 instant). Apparent solar time is an `iztro-rs` calculation policy
+applied before the adapter builds a `tyme4rs::SolarTime`.
+
 The facade validates the algorithm and plane before calendar work. It derives
 normalized natal inputs, delegates Life Palace anchoring to the dedicated natal
 plane resolver, invokes deterministic construction, and attaches the final
