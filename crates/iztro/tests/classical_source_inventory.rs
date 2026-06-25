@@ -181,13 +181,11 @@ fn source_inventory_links_match_rule_source_ids() {
     }
 }
 
-/// Regression: the imported Volume 1 太微赋 wording is "马遇空亡，终身奔走".
-/// The pilot rule's own `source_text_zh_hans` may keep the variant "马落空亡",
-/// but the source inventory must not regress to that variant.
+/// The 天马空亡 source item must use the imported Volume 1 太微赋 wording
+/// "马遇空亡，终身奔走".
 #[test]
 fn tian_ma_void_source_uses_imported_wording() {
     const CANONICAL: &str = "马遇空亡，终身奔走";
-    const REGRESSION: &str = "马落空亡，终身奔走";
     const RULE_ID: &str = "migration.tian_ma_void.restless_movement";
 
     let inventory = source_inventory();
@@ -203,14 +201,6 @@ fn tian_ma_void_source_uses_imported_wording() {
     assert!(
         uses_canonical,
         "source item {} must use imported wording {CANONICAL:?}",
-        item.source_id
-    );
-
-    let regresses =
-        item.source_text_zh_hans.contains(REGRESSION) || normalized.contains(REGRESSION);
-    assert!(
-        !regresses,
-        "source item {} must not regress to {REGRESSION:?}",
         item.source_id
     );
 }

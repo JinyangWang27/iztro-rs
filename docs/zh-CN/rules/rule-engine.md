@@ -104,13 +104,13 @@
 `EvidenceKind::PatternShapeMatched { pattern: ChangQuJiaMing }`），但这不表示已经运行
 `core::pattern::detect_patterns`。判断仍携带格局识别所没有的领域/主题/吉凶/出处语义。
 
-## 示例：马落空亡，终身奔走
+## 示例：马遇空亡，终身奔走
 
 1. **出处。** 语料条目：
 
    ```toml
    id = "migration.tian_ma_void.restless_movement"
-   source_text_zh_hans = "马落空亡，终身奔走"
+   source_text_zh_hans = "马遇空亡，终身奔走"
    status = "executable"
    domain = "migration"
    themes = ["restless_movement", "instability"]

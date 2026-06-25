@@ -67,7 +67,6 @@ These are intentionally **allowed** in this pilot slice and are not test failure
 - `anchor = "TODO"` for items not yet located in the Markdown volumes;
 - `section = "待校"` for sections still pending source review;
 - `normalized_clause_zh_hans` differing from `source_text_zh_hans` (the imported Markdown wording is preserved as canonical, while the rule-facing clause shape is recorded separately);
-- the rule's own `source_text_zh_hans` may keep a variant (e.g. `马落空亡`) while the inventory records the imported canonical wording (`马遇空亡`); the divergence is recorded in `notes_zh_hans`;
 - the inventory contains only the five pilot entries for the currently encoded rules;
 - only `volume-01.toml` exists; Volume 2 and Volume 3 have no source inventory TOML yet.
 

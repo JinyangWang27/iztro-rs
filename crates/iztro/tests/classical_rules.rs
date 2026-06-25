@@ -123,7 +123,7 @@ fn corpus_deserializes_all_pilot_rules() {
 fn corpus_fields_match_metadata() {
     let migration = rule_by_id(TIAN_MA_VOID).expect("rule present");
     assert_eq!(migration.work, ClassicalWork::ZiWeiDouShuQuanShu);
-    assert_eq!(migration.source_text_zh_hans, "马落空亡，终身奔走");
+    assert_eq!(migration.source_text_zh_hans, "马遇空亡，终身奔走");
     assert_eq!(migration.status, RuleStatus::Executable);
     assert_eq!(migration.domain, ClaimDomain::Migration);
     assert_eq!(migration.polarity, ClaimPolarity::MixedNegative);
@@ -184,7 +184,7 @@ fn claim_id_supports_discriminator_for_multi_hit_rules() {
     );
 }
 
-// ---- 马落空亡 (executable; conservative void policy) -----------------------
+// ---- 马遇空亡 (executable; conservative void policy) -----------------------
 
 #[test]
 fn tian_ma_void_positive_on_modeled_void_star() {
@@ -200,7 +200,7 @@ fn tian_ma_void_positive_on_modeled_void_star() {
     let claim = claims
         .iter()
         .find(|c| c.rule_id.as_str() == TIAN_MA_VOID)
-        .expect("expected 马落空亡 claim");
+        .expect("expected 马遇空亡 claim");
     assert_eq!(claim.domain, ClaimDomain::Migration);
     assert_eq!(claim.scope, ClaimScope::Natal);
     assert!(claim.evidence.iter().any(|e| matches!(
@@ -213,7 +213,7 @@ fn tian_ma_void_positive_on_modeled_void_star() {
     )));
     assert_eq!(
         claim.source_refs[0].source_text_zh_hans,
-        "马落空亡，终身奔走"
+        "马遇空亡，终身奔走"
     );
 }
 
@@ -442,7 +442,7 @@ fn diagnostic_mode_matching_request_filters_unsupported_by_rule_id() {
 
 // ---- deterministic sorting -------------------------------------------------
 
-/// A chart fulfilling 羊陀夹命 + 昌曲夹命 (both Life) and 马落空亡 (Migration).
+/// A chart fulfilling 羊陀夹命 + 昌曲夹命 (both Life) and 马遇空亡 (Migration).
 fn multi_claim_chart() -> Chart {
     build_chart(
         EarthlyBranch::Zi,
@@ -624,7 +624,7 @@ fn claims_serialize_to_deterministic_json_with_required_fields() {
     // Source Chinese text is preserved verbatim.
     assert_eq!(
         obj["source_refs"][0]["source_text_zh_hans"],
-        serde_json::json!("马落空亡，终身奔走")
+        serde_json::json!("马遇空亡，终身奔走")
     );
 
     // Full round-trip.

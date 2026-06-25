@@ -120,13 +120,13 @@ pattern: ChangQuJiaMing }`), but this does not claim that
 `core::pattern::detect_patterns` was run. The claim still carries domain /
 theme / polarity / source semantics a pattern detection does not.
 
-## Worked example: 马落空亡，终身奔走
+## Worked example: 马遇空亡，终身奔走
 
 1. **Source.** The corpus line:
 
    ```toml
    id = "migration.tian_ma_void.restless_movement"
-   source_text_zh_hans = "马落空亡，终身奔走"
+   source_text_zh_hans = "马遇空亡，终身奔走"
    status = "executable"
    domain = "migration"
    themes = ["restless_movement", "instability"]

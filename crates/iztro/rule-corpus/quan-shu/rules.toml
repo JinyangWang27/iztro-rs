@@ -16,7 +16,7 @@
 id = "migration.tian_ma_void.restless_movement"
 source_id = "quan_shu.ma_yu_kong_wang"
 work = "zi_wei_dou_shu_quan_shu"
-source_text_zh_hans = "马落空亡，终身奔走"
+source_text_zh_hans = "马遇空亡，终身奔走"
 normalized_note_zh_hans = "天马受空亡影响，主奔波迁动之象。空亡仅取已建模的旬空、空亡、截路、截空等星，由 VoidPolicy 明确界定，天空、地空、地劫不在此列。"
 status = "executable"
 domain = "migration"
