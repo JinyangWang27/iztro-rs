@@ -119,17 +119,25 @@ const RI_YUE: &str = "life.ri_yue_fan_bei.hardship_pressure";
 
 #[test]
 fn corpus_deserializes_all_pilot_rules() {
-    // All five pilot rules load through the combined classical corpus.
-    assert_eq!(classical_rules().len(), 5);
+    // The five claim-bearing pilot rules still load through the combined corpus.
+    // The QuanShu corpus now also carries the 太微赋 normalization map (many
+    // normalized/ambiguous source-hit-only rules without claim metadata), so we
+    // assert structural invariants rather than a fixed total.
     for id in [TIAN_MA_VOID, YANG_TUO, CHANG_QU, LU_MA, RI_YUE] {
         let rule = rule_by_id(id).unwrap_or_else(|| panic!("missing rule {id}"));
         assert!(rule.claim.is_some(), "rule {id} should have claim metadata");
     }
 
-    // The QuanShu corpus holds only the three rules with a cited QuanShu
-    // passage; 羊陀夹命 / 昌曲夹命 are pattern-derived.
+    // The combined corpus is exactly the QuanShu rules followed by the pattern
+    // rules.
+    assert_eq!(
+        classical_rules().len(),
+        quan_shu_rules().len() + pattern_rules().len()
+    );
+
+    // The three pilot QuanShu rules live in the QuanShu corpus; 羊陀夹命 /
+    // 昌曲夹命 are pattern-derived and must not.
     let quan_shu_ids: Vec<&str> = quan_shu_rules().iter().map(|r| r.id.as_str()).collect();
-    assert_eq!(quan_shu_rules().len(), 3);
     assert!(quan_shu_ids.contains(&TIAN_MA_VOID));
     assert!(quan_shu_ids.contains(&LU_MA));
     assert!(quan_shu_ids.contains(&RI_YUE));
@@ -142,6 +150,56 @@ fn corpus_deserializes_all_pilot_rules() {
         assert_eq!(rule.work, ClassicalWork::IztroPatternCatalog);
         assert!(rule.source_id.starts_with("pattern."));
     }
+}
+
+/// The 太微赋 normalization map adds many non-executable, claimless rules to the
+/// QuanShu corpus. They must not change runtime behaviour: each loads cleanly,
+/// is `normalized`/`ambiguous`/`rejected`, carries no `[rule.claim]`, and so
+/// emits neither a claim nor a source hit (the evaluator returns
+/// `NotApplicable`).
+#[test]
+fn tai_wei_fu_normalized_rules_are_inert_at_runtime() {
+    let normalized_only: Vec<&iztro::rules::classical::ClassicalRule> = quan_shu_rules()
+        .iter()
+        .filter(|r| !matches!(r.id.as_str(), TIAN_MA_VOID | LU_MA | RI_YUE))
+        .collect();
+    assert!(
+        !normalized_only.is_empty(),
+        "expected the 太微赋 normalization map to add rules"
+    );
+    for rule in &normalized_only {
+        assert!(
+            matches!(
+                rule.status,
+                RuleStatus::Normalized | RuleStatus::Ambiguous | RuleStatus::Rejected
+            ),
+            "normalization-map rule {} should not be executable yet",
+            rule.id
+        );
+        assert!(
+            rule.claim.is_none(),
+            "normalization-map rule {} should not invent claim metadata",
+            rule.id
+        );
+    }
+
+    // None of them fire on a chart that only triggers the wired pilots.
+    let chart = multi_claim_chart();
+    let evaluation = evaluate_classical(&chart, &ClaimEvaluationRequest::default());
+    let inert_ids: std::collections::HashSet<&str> =
+        normalized_only.iter().map(|r| r.id.as_str()).collect();
+    assert!(
+        evaluation
+            .claims
+            .iter()
+            .all(|c| !inert_ids.contains(c.rule_id.as_str()))
+    );
+    assert!(
+        evaluation
+            .source_hits
+            .iter()
+            .all(|h| !inert_ids.contains(h.rule_id.as_str()))
+    );
 }
 
 #[test]

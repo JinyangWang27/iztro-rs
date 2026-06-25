@@ -217,3 +217,34 @@ fn quan_shu_coverage_report_is_current() {
          classical_source_coverage.rs::generate_report"
     );
 }
+
+/// The coverage report is deterministic: regenerating it from the same committed
+/// inventory and corpus yields byte-identical output. Status counts come from a
+/// `BTreeSet` of rule ids, so ordering and totals do not depend on corpus order.
+#[test]
+fn quan_shu_coverage_report_is_deterministic() {
+    assert_eq!(generate_report(), generate_report());
+}
+
+/// After completing the 太微赋 normalization map every clause is linked, so the
+/// report's unlinked count is zero and the linked-rule status counts add up to
+/// the number of distinct linked rules.
+#[test]
+fn quan_shu_coverage_has_no_unlinked_clauses() {
+    let inventory = source_inventory();
+    let rules = rules_corpus();
+    let m = CoverageMetrics::compute(&inventory, &rules);
+    assert_eq!(
+        m.unlinked_clauses, 0,
+        "expected a complete normalization map"
+    );
+    assert_eq!(m.linked_clauses, m.clauses);
+    assert_eq!(
+        m.executable_linked_rules
+            + m.normalized_linked_rules
+            + m.ambiguous_linked_rules
+            + m.rejected_linked_rules,
+        m.linked_rules,
+        "every linked rule must fall into a known status bucket"
+    );
+}

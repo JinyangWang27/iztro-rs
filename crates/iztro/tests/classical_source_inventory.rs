@@ -421,6 +421,85 @@ fn non_quan_shu_rules_are_not_required_in_quan_shu_source_inventory() {
     }
 }
 
+// ---- Tai Wei Fu normalization-map completeness --------------------------
+
+/// Every 太微赋 rule-candidate clause is linked to at least one runtime rule.
+///
+/// "Complete 太微赋" means no useful clause is left unlinked: each clause either
+/// links to a normalized/ambiguous/executable rule, or—when it is not a runtime
+/// rule candidate (e.g. the section's closing remark)—links to a `rejected`
+/// rule that documents the exclusion. This test fails if any 太微赋 clause
+/// regresses to an empty `linked_rule_ids`.
+#[test]
+fn tai_wei_fu_clauses_are_all_linked() {
+    let inventory = source_inventory();
+    let mut unlinked = Vec::new();
+    for item in &inventory.source_item {
+        if item.volume != 1 || item.section != "太微赋" {
+            continue;
+        }
+        for clause in &item.clause {
+            if clause.linked_rule_ids.is_empty() {
+                unlinked.push(format!("{}::{}", item.source_id, clause.clause_id));
+            }
+        }
+    }
+    assert!(
+        unlinked.is_empty(),
+        "太微赋 normalization map is incomplete; unlinked clauses: {unlinked:?}"
+    );
+}
+
+/// Every non-executable rule (`normalized` / `ambiguous` / `rejected`) carries a
+/// `normalized_note_zh_hans` explaining what the clause means and why it is not
+/// executable yet (or, for `rejected`, why it is not a runtime rule candidate).
+#[test]
+fn non_executable_rules_have_normalized_notes() {
+    let rules = rules_corpus();
+    for rule in &rules.rule {
+        if !matches!(
+            rule.status.as_str(),
+            "normalized" | "ambiguous" | "rejected"
+        ) {
+            continue;
+        }
+        let note = rule.normalized_note_zh_hans.as_deref().unwrap_or("");
+        assert!(
+            !note.trim().is_empty(),
+            "rule {} (status {}) must have a non-empty normalized_note_zh_hans",
+            rule.id,
+            rule.status
+        );
+    }
+}
+
+/// Every `executable` QuanShu rule must be one the evaluator actually wires a
+/// predicate for. The evaluator lives in `src/` and cannot be called from this
+/// corpus-governance test, so we pin the wired set explicitly: marking a rule
+/// `executable` in the corpus without adding (and listing) its evaluator branch
+/// fails here, keeping the `executable` status honest.
+#[test]
+fn executable_quan_shu_rules_are_wired_in_the_evaluator() {
+    // Rule ids with a hand-coded predicate branch in
+    // `src/rules/classical/evaluator.rs`. Pattern-catalog executables
+    // (羊陀夹命 / 昌曲夹命) are validated separately and are not QuanShu rules.
+    const WIRED_EXECUTABLE: [&str; 2] = [
+        "migration.tian_ma_void.restless_movement",
+        "life.ri_yue_fan_bei.hardship_pressure",
+    ];
+    let rules = rules_corpus();
+    for rule in &rules.rule {
+        if rule.status == "executable" {
+            assert!(
+                WIRED_EXECUTABLE.contains(&rule.id.as_str()),
+                "rule {} is marked executable but is not wired in the evaluator; \
+                 add an evaluator branch and list it in WIRED_EXECUTABLE",
+                rule.id
+            );
+        }
+    }
+}
+
 /// 羊陀夹命 / 昌曲夹命 must not re-enter the QuanShu source inventory: neither
 /// their old `quan_shu.pending.*` source ids nor their rule ids may appear.
 #[test]

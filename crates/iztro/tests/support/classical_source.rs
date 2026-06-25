@@ -65,6 +65,8 @@ pub struct RuleEntry {
     pub source_clause_id: Option<String>,
     pub work: String,
     pub source_text_zh_hans: String,
+    #[serde(default)]
+    pub normalized_note_zh_hans: Option<String>,
     pub status: String,
 }
 
