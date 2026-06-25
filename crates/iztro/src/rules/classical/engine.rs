@@ -7,9 +7,9 @@
 
 use crate::core::Chart;
 use crate::rules::classical::claim::{Claim, ClaimDomain, ClaimScope};
-use crate::rules::classical::corpus::quan_shu_rules;
+use crate::rules::classical::corpus::classical_rules;
+use crate::rules::classical::evaluator;
 use crate::rules::classical::outcome::{ClaimEvaluation, RuleDiagnostic, RuleOutcome};
-use crate::rules::classical::quan_shu;
 use crate::rules::classical::rule::ClassicalRuleId;
 use crate::rules::classical::source::ClassicalWork;
 use crate::rules::classical::theme::{ClaimPolarity, ClaimTheme};
@@ -103,8 +103,8 @@ pub fn evaluate_classical(chart: &Chart, request: &ClaimEvaluationRequest) -> Cl
     let mut claims = Vec::new();
     let mut diagnostics = Vec::new();
 
-    for rule in quan_shu_rules() {
-        match quan_shu::evaluate(rule, chart) {
+    for rule in classical_rules() {
+        match evaluator::evaluate(rule, chart) {
             RuleOutcome::Emitted(claim) => claims.push(*claim),
             RuleOutcome::NotApplicable => {}
             RuleOutcome::Unsupported(reason) => {

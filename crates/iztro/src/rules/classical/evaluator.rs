@@ -1,10 +1,14 @@
-//! 全书 pilot rule evaluators: predicate facts → structured [`Claim`].
+//! Classical rule evaluators: predicate facts → structured [`Claim`].
 //!
-//! Each evaluator pairs a rule's data-driven metadata (from the corpus) with its
-//! hand-coded predicate (from [`super::predicates`]). It returns a typed
-//! [`RuleOutcome`]: a claim is emitted only when the condition matches on modeled
-//! facts; otherwise the outcome is `NotApplicable` or, for rules whose condition
-//! is not yet modeled, `Unsupported`.
+//! Each evaluator pairs a rule's data-driven metadata (from the embedded rule
+//! corpora) with its hand-coded predicate (from [`super::predicates`]). It
+//! returns a typed [`RuleOutcome`]: a claim is emitted only when the condition
+//! matches on modeled facts; otherwise the outcome is `NotApplicable` or, for
+//! rules whose condition is not yet modeled, `Unsupported`.
+//!
+//! This module handles rules from multiple provenance corpora (currently QuanShu
+//! source rules and project pattern/格局 rules). It is intentionally named for the
+//! evaluation role rather than for any one source corpus.
 
 use crate::core::pattern::model::PatternId;
 use crate::core::pattern::relation::PalaceRelation;

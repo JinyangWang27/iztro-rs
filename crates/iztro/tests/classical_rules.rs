@@ -7,8 +7,8 @@
 use iztro::rules::classical::{
     Claim, ClaimDomain, ClaimEvaluationRequest, ClaimId, ClaimPolarity, ClaimScope, ClaimTheme,
     ClassicalRule, ClassicalRuleId, ClassicalWork, DiagnosticMode, Evidence, EvidenceKind,
-    RuleStatus, UnsupportedReason, VoidKind, VoidPolicy, evaluate_classical,
-    evaluate_classical_claims, quan_shu_rules, rule_by_id,
+    RuleStatus, UnsupportedReason, VoidKind, VoidPolicy, classical_rules, evaluate_classical,
+    evaluate_classical_claims, pattern_rules, quan_shu_rules, rule_by_id,
 };
 use iztro::{
     BirthContext, Brightness, CalendarDate, Chart, EarthlyBranch, Gender, HeavenlyStem, Mutagen,
@@ -112,10 +112,27 @@ const RI_YUE: &str = "life.ri_yue_fan_bei.hardship_pressure";
 
 #[test]
 fn corpus_deserializes_all_pilot_rules() {
-    let rules = quan_shu_rules();
-    assert_eq!(rules.len(), 5);
+    // All five pilot rules load through the combined classical corpus.
+    assert_eq!(classical_rules().len(), 5);
     for id in [TIAN_MA_VOID, YANG_TUO, CHANG_QU, LU_MA, RI_YUE] {
         assert!(rule_by_id(id).is_some(), "missing rule {id}");
+    }
+
+    // The QuanShu corpus holds only the three rules with a cited QuanShu
+    // passage; 羊陀夹命 / 昌曲夹命 are pattern-derived.
+    let quan_shu_ids: Vec<&str> = quan_shu_rules().iter().map(|r| r.id.as_str()).collect();
+    assert_eq!(quan_shu_rules().len(), 3);
+    assert!(quan_shu_ids.contains(&TIAN_MA_VOID));
+    assert!(quan_shu_ids.contains(&LU_MA));
+    assert!(quan_shu_ids.contains(&RI_YUE));
+    assert!(!quan_shu_ids.contains(&YANG_TUO));
+    assert!(!quan_shu_ids.contains(&CHANG_QU));
+
+    let pattern_ids: Vec<&str> = pattern_rules().iter().map(|r| r.id.as_str()).collect();
+    assert_eq!(pattern_ids, vec![YANG_TUO, CHANG_QU]);
+    for rule in pattern_rules() {
+        assert_eq!(rule.work, ClassicalWork::IztroPatternCatalog);
+        assert!(rule.source_id.starts_with("pattern."));
     }
 }
 
@@ -513,14 +530,28 @@ fn filter_by_rule_id() {
 }
 
 #[test]
-fn filter_by_work_includes_all_quan_shu_claims() {
+fn filter_by_work_separates_quan_shu_and_pattern_claims() {
     let chart = multi_claim_chart();
-    let request = ClaimEvaluationRequest {
+
+    // multi_claim_chart emits CHANG_QU, YANG_TUO (pattern) and TIAN_MA_VOID
+    // (QuanShu). Filtering by work splits them by provenance.
+    let quan_shu = ClaimEvaluationRequest {
         works: vec![ClassicalWork::ZiWeiDouShuQuanShu],
         ..Default::default()
     };
-    let claims = evaluate_classical_claims(&chart, &request);
-    assert_eq!(claims.len(), 3);
+    assert_eq!(
+        claim_ids(&evaluate_classical_claims(&chart, &quan_shu)),
+        vec![TIAN_MA_VOID]
+    );
+
+    let pattern = ClaimEvaluationRequest {
+        works: vec![ClassicalWork::IztroPatternCatalog],
+        ..Default::default()
+    };
+    assert_eq!(
+        claim_ids(&evaluate_classical_claims(&chart, &pattern)),
+        vec![CHANG_QU, YANG_TUO]
+    );
 }
 
 #[test]
