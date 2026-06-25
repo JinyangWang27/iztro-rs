@@ -1,19 +1,14 @@
 # Classical Rule Engine
 
-This document describes the **classical rule engine** introduced under
-`crates/iztro/src/rules/classical/`. It encodes rules from classical sources such
-as 《紫微斗数全书》 and turns chart facts into structured, evidence-backed
-**claims**.
+This document describes the **classical rule engine** under
+`crates/iztro/src/rules/classical/`. It is the active rule engine: it encodes
+rules from classical sources such as 《紫微斗数全书》 and turns chart facts into
+structured, evidence-backed **claims**.
 
-It complements the higher-level [`rule-engine.md`](../rule-engine.md), which
-describes the longer-term feature → claim engine. The classical engine is the
-first concrete, data-driven slice of that vision.
-
-> **Transitional status.** The placeholder scaffold in `crates/iztro/src/rules/`
-> (the feature-oriented `Claim` / `RuleEngine` / `Evidence` stubs) is **not** the
-> destination. It will be migrated into, or retired in favor of, the classical
-> engine in a follow-up. The two coexist today only so existing scaffold tests
-> keep passing.
+`rules::classical` is the canonical namespace for the rule engine. The
+`crates/iztro/src/rules/` module exposes it directly (`pub mod classical`) and
+re-exports the classical types/functions, so `rules::Claim` and friends point at
+the classical claim model.
 
 ## Pipeline
 
@@ -22,7 +17,8 @@ Chart facts
   -> feature/query predicates        (reuse core/pattern query helpers)
   -> classical rule evaluation       (corpus metadata + hand-coded predicates)
   -> ClassicalSourceHit[]            (matched source/provenance)
-  -> structured Claim[]              (only when rule.claim exists)
+  -> Claim[]                         (only when rule.claim exists)
+  -> RuleDiagnostic[]                (typed, visible unsupported conditions)
   -> [optional] localized rendering   (iztro-i18n, via claim_key)
   -> JSON export                      (serde)
 ```
