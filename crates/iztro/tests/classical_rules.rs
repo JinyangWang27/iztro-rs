@@ -5,10 +5,10 @@
 //! approach in `tests/patterns.rs`.
 
 use iztro::rules::classical::{
-    Claim, ClaimDomain, ClaimEvaluationRequest, ClaimId, ClaimPolarity, ClaimScope, ClaimTheme,
-    ClassicalRule, ClassicalRuleId, ClassicalWork, DiagnosticMode, Evidence, EvidenceKind,
-    RuleStatus, UnsupportedReason, VoidKind, VoidPolicy, classical_rules, evaluate_classical,
-    evaluate_classical_claims, pattern_rules, quan_shu_rules, rule_by_id,
+    Claim, ClaimDomain, ClaimEvaluationRequest, ClaimId, ClaimPolarity, ClaimScope, ClaimSpec,
+    ClaimTheme, ClassicalRule, ClassicalRuleId, ClassicalSourceHit, ClassicalWork, DiagnosticMode,
+    Evidence, EvidenceKind, RuleStatus, UnsupportedReason, VoidKind, VoidPolicy, classical_rules,
+    evaluate_classical, evaluate_classical_claims, pattern_rules, quan_shu_rules, rule_by_id,
 };
 use iztro::{
     BirthContext, Brightness, CalendarDate, Chart, EarthlyBranch, Gender, HeavenlyStem, Mutagen,
@@ -102,6 +102,13 @@ fn has_rule(claims: &[Claim], id: &str) -> bool {
     claims.iter().any(|c| c.rule_id.as_str() == id)
 }
 
+fn source_hit_ids(source_hits: &[ClassicalSourceHit]) -> Vec<String> {
+    source_hits
+        .iter()
+        .map(|hit| hit.rule_id.to_string())
+        .collect()
+}
+
 const TIAN_MA_VOID: &str = "migration.tian_ma_void.restless_movement";
 const YANG_TUO: &str = "life.yang_tuo_clamp_life.constraint_damage";
 const CHANG_QU: &str = "life.chang_qu_clamp_life.literary_reputation";
@@ -115,7 +122,8 @@ fn corpus_deserializes_all_pilot_rules() {
     // All five pilot rules load through the combined classical corpus.
     assert_eq!(classical_rules().len(), 5);
     for id in [TIAN_MA_VOID, YANG_TUO, CHANG_QU, LU_MA, RI_YUE] {
-        assert!(rule_by_id(id).is_some(), "missing rule {id}");
+        let rule = rule_by_id(id).unwrap_or_else(|| panic!("missing rule {id}"));
+        assert!(rule.claim.is_some(), "rule {id} should have claim metadata");
     }
 
     // The QuanShu corpus holds only the three rules with a cited QuanShu
@@ -142,17 +150,19 @@ fn corpus_fields_match_metadata() {
     assert_eq!(migration.work, ClassicalWork::ZiWeiDouShuQuanShu);
     assert_eq!(migration.source_text_zh_hans, "马遇空亡，终身奔走");
     assert_eq!(migration.status, RuleStatus::Executable);
-    assert_eq!(migration.domain, ClaimDomain::Migration);
-    assert_eq!(migration.polarity, ClaimPolarity::MixedNegative);
+    let claim = migration.claim.as_ref().expect("claim metadata");
+    assert_eq!(claim.domain, ClaimDomain::Migration);
+    assert_eq!(claim.polarity, ClaimPolarity::MixedNegative);
     assert_eq!(
-        migration.themes,
+        claim.themes,
         vec![ClaimTheme::RestlessMovement, ClaimTheme::Instability]
     );
-    assert!((migration.base_strength - 0.60).abs() < 1e-6);
+    assert!((claim.base_strength - 0.60).abs() < 1e-6);
 
     // 禄马交驰 is metadata-only / not executable.
     let lu_ma = rule_by_id(LU_MA).expect("rule present");
     assert_eq!(lu_ma.status, RuleStatus::Normalized);
+    assert!(lu_ma.claim.is_some());
 }
 
 // ---- enum serde names ------------------------------------------------------
@@ -184,6 +194,46 @@ fn enum_serde_names_are_snake_case() {
     // Round-trip a full rule through JSON.
     let rule = rule_by_id(TIAN_MA_VOID).unwrap();
     let value = serde_json::to_value(rule).unwrap();
+    assert_eq!(
+        value["claim"]["claim_key"],
+        serde_json::json!("claim.migration.tian-ma-void.restless-movement")
+    );
+    assert!(value.get("domain").is_none());
+    let back: ClassicalRule = serde_json::from_value(value).unwrap();
+    assert_eq!(&back, rule);
+}
+
+#[test]
+fn rule_without_claim_metadata_round_trips() {
+    let rule = ClassicalRule {
+        id: ClassicalRuleId::new("experimental.source_only"),
+        source_id: "pattern.source_only".to_string(),
+        source_clause_id: None,
+        work: ClassicalWork::IztroPatternCatalog,
+        source_text_zh_hans: "仅记录出处命中".to_string(),
+        normalized_note_zh_hans: None,
+        status: RuleStatus::Executable,
+        school: Default::default(),
+        claim: None,
+    };
+
+    let value = serde_json::to_value(&rule).unwrap();
+    assert!(value.get("claim").is_none());
+
+    let back: ClassicalRule = serde_json::from_value(value).unwrap();
+    assert_eq!(back, rule);
+}
+
+#[test]
+fn claim_spec_round_trips_inside_rule_json() {
+    let rule = rule_by_id(CHANG_QU).expect("rule present");
+    let value = serde_json::to_value(rule).unwrap();
+    let spec: ClaimSpec = serde_json::from_value(value["claim"].clone()).unwrap();
+    assert_eq!(
+        spec.claim_key,
+        "claim.life.chang-qu-clamp-life.literary-reputation"
+    );
+
     let back: ClassicalRule = serde_json::from_value(value).unwrap();
     assert_eq!(&back, rule);
 }
@@ -213,8 +263,9 @@ fn tian_ma_void_positive_on_modeled_void_star() {
             adj(EarthlyBranch::Wu, StarName::XunKong),
         ],
     );
-    let claims = evaluate_classical_claims(&chart, &ClaimEvaluationRequest::default());
-    let claim = claims
+    let evaluation = evaluate_classical(&chart, &ClaimEvaluationRequest::default());
+    let claim = evaluation
+        .claims
         .iter()
         .find(|c| c.rule_id.as_str() == TIAN_MA_VOID)
         .expect("expected 马遇空亡 claim");
@@ -232,6 +283,22 @@ fn tian_ma_void_positive_on_modeled_void_star() {
         claim.source_refs[0].source_text_zh_hans,
         "马遇空亡，终身奔走"
     );
+
+    let source_hit = evaluation
+        .source_hits
+        .iter()
+        .find(|hit| hit.rule_id.as_str() == TIAN_MA_VOID)
+        .expect("expected 马遇空亡 source hit");
+    assert_eq!(source_hit.work, ClassicalWork::ZiWeiDouShuQuanShu);
+    assert_eq!(source_hit.source_id, "quan_shu.v01.tai_wei_fu.001");
+    assert_eq!(
+        source_hit.source_clause_id.as_deref(),
+        Some("ma_yu_kong_wang")
+    );
+    assert_eq!(source_hit.source_text_zh_hans, "马遇空亡，终身奔走");
+    assert_eq!(source_hit.status, RuleStatus::Executable);
+    assert_eq!(source_hit.scope, ClaimScope::Natal);
+    assert_eq!(source_hit.evidence, claim.evidence);
 }
 
 #[test]
@@ -329,6 +396,33 @@ fn chang_qu_clamp_life_positive_emits_claim_with_pattern_shape_evidence() {
 }
 
 #[test]
+fn pattern_catalog_rule_emits_pattern_source_hit() {
+    let chart = build_chart(
+        EarthlyBranch::Zi,
+        &[
+            soft(EarthlyBranch::Hai, StarName::WenChang),
+            soft(EarthlyBranch::Chou, StarName::WenQu),
+        ],
+    );
+
+    let evaluation = evaluate_classical(&chart, &ClaimEvaluationRequest::default());
+    let source_hit = evaluation
+        .source_hits
+        .iter()
+        .find(|hit| hit.rule_id.as_str() == CHANG_QU)
+        .expect("expected 昌曲夹命 source hit");
+
+    assert_eq!(source_hit.work, ClassicalWork::IztroPatternCatalog);
+    assert_eq!(source_hit.source_id, "pattern.chang_qu_jia_ming");
+    assert_eq!(
+        source_hit.source_clause_id.as_deref(),
+        Some("chang_qu_jia_ming")
+    );
+    assert_eq!(source_hit.source_text_zh_hans, "昌曲夹命，主贵显");
+    assert_eq!(source_hit.scope, ClaimScope::Natal);
+}
+
+#[test]
 fn chang_qu_clamp_life_negative_when_one_star_outside() {
     let chart = build_chart(
         EarthlyBranch::Zi,
@@ -409,6 +503,13 @@ fn lu_ma_is_unsupported_and_never_emits() {
         !has_rule(&evaluation.claims, LU_MA),
         "禄马交驰 must not emit a claim"
     );
+    assert!(
+        evaluation
+            .source_hits
+            .iter()
+            .all(|hit| hit.rule_id.as_str() != LU_MA),
+        "unsupported rules should not emit source hits"
+    );
     let diagnostic = evaluation
         .diagnostics
         .iter()
@@ -483,6 +584,17 @@ fn claims_are_sorted_by_scope_domain_rule_key() {
     assert_eq!(claim_ids(&claims), vec![CHANG_QU, YANG_TUO, TIAN_MA_VOID]);
 }
 
+#[test]
+fn source_hits_are_sorted_by_scope_work_source_clause_rule() {
+    let chart = multi_claim_chart();
+    let evaluation = evaluate_classical(&chart, &ClaimEvaluationRequest::default());
+
+    assert_eq!(
+        source_hit_ids(&evaluation.source_hits),
+        vec![TIAN_MA_VOID, CHANG_QU, YANG_TUO]
+    );
+}
+
 // ---- request filtering -----------------------------------------------------
 
 #[test]
@@ -555,6 +667,29 @@ fn filter_by_work_separates_quan_shu_and_pattern_claims() {
 }
 
 #[test]
+fn work_filter_separates_quan_shu_and_pattern_source_hits() {
+    let chart = multi_claim_chart();
+
+    let quan_shu = ClaimEvaluationRequest {
+        works: vec![ClassicalWork::ZiWeiDouShuQuanShu],
+        ..Default::default()
+    };
+    assert_eq!(
+        source_hit_ids(&evaluate_classical(&chart, &quan_shu).source_hits),
+        vec![TIAN_MA_VOID]
+    );
+
+    let pattern = ClaimEvaluationRequest {
+        works: vec![ClassicalWork::IztroPatternCatalog],
+        ..Default::default()
+    };
+    assert_eq!(
+        source_hit_ids(&evaluate_classical(&chart, &pattern).source_hits),
+        vec![CHANG_QU, YANG_TUO]
+    );
+}
+
+#[test]
 fn filter_by_scope() {
     let chart = multi_claim_chart();
     // No claims are asserted in the Yearly scope yet.
@@ -569,6 +704,19 @@ fn filter_by_scope() {
         ..Default::default()
     };
     assert_eq!(evaluate_classical_claims(&chart, &natal).len(), 3);
+}
+
+#[test]
+fn evaluate_classical_claims_remains_claims_only() {
+    let chart = multi_claim_chart();
+    let request = ClaimEvaluationRequest::default();
+    let evaluation = evaluate_classical(&chart, &request);
+
+    assert_eq!(
+        evaluate_classical_claims(&chart, &request),
+        evaluation.claims
+    );
+    assert_eq!(evaluation.source_hits.len(), evaluation.claims.len());
 }
 
 // ---- void policy -----------------------------------------------------------
@@ -661,6 +809,26 @@ fn claims_serialize_to_deterministic_json_with_required_fields() {
     // Full round-trip.
     let back: Claim = serde_json::from_str(&first).unwrap();
     assert_eq!(&back, claim);
+}
+
+#[test]
+fn claim_evaluation_json_includes_deterministic_source_hits() {
+    let chart = multi_claim_chart();
+    let evaluation = evaluate_classical(&chart, &ClaimEvaluationRequest::default());
+
+    let first = serde_json::to_string(&evaluation).unwrap();
+    let second = serde_json::to_string(&evaluation).unwrap();
+    assert_eq!(first, second);
+
+    let value: serde_json::Value = serde_json::from_str(&first).unwrap();
+    let source_hits = value["source_hits"].as_array().expect("source_hits array");
+    assert_eq!(source_hits.len(), 3);
+    assert_eq!(source_hits[0]["rule_id"], serde_json::json!(TIAN_MA_VOID));
+    assert_eq!(
+        source_hits[0]["source_clause_id"],
+        serde_json::json!("ma_yu_kong_wang")
+    );
+    assert!(source_hits[0].get("claim_key").is_none());
 }
 
 // ---- evidence serialization ------------------------------------------------
