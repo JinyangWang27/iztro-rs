@@ -13,6 +13,9 @@ use serde::{Deserialize, Serialize};
 pub enum ClassicalWork {
     /// 《紫微斗数全书》.
     ZiWeiDouShuQuanShu,
+    /// Project-owned pattern/格局 catalog for rules derived from modeled chart
+    /// structures (e.g. 夹宫 shapes) rather than from a cited QuanShu passage.
+    IztroPatternCatalog,
 }
 
 /// An auditable reference to a classical source line.

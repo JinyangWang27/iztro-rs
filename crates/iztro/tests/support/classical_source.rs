@@ -71,13 +71,27 @@ pub struct RuleEntry {
 const SOURCE_INVENTORY_TOML: &str =
     include_str!("../../rule-corpus/quan-shu/source/volume-01.toml");
 const RULES_CORPUS_TOML: &str = include_str!("../../rule-corpus/quan-shu/rules.toml");
+const PATTERN_RULES_CORPUS_TOML: &str = include_str!("../../rule-corpus/patterns/rules.toml");
+
+/// The serde name of the only work the QuanShu source inventory validates
+/// against. Rules with any other `work` (e.g. the pattern catalog) are not
+/// QuanShu source rules and must not be required in the inventory.
+pub const QUAN_SHU_WORK: &str = "zi_wei_dou_shu_quan_shu";
 
 pub fn source_inventory() -> SourceInventory {
     toml::from_str(SOURCE_INVENTORY_TOML).expect("QuanShu source inventory TOML must deserialize")
 }
 
+/// The 《紫微斗数全书》 rule corpus (`rule-corpus/quan-shu/rules.toml`).
 pub fn rules_corpus() -> RulesCorpus {
     toml::from_str(RULES_CORPUS_TOML).expect("QuanShu rule corpus TOML must deserialize")
+}
+
+/// The project pattern/格局 rule corpus (`rule-corpus/patterns/rules.toml`).
+/// These are not QuanShu source rules and are not tracked by the QuanShu
+/// source inventory.
+pub fn pattern_rules_corpus() -> RulesCorpus {
+    toml::from_str(PATTERN_RULES_CORPUS_TOML).expect("pattern rule corpus TOML must deserialize")
 }
 
 /// Strips the punctuation we treat as insignificant when comparing Chinese

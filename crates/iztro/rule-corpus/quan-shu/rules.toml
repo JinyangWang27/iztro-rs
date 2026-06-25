@@ -27,34 +27,6 @@ base_strength = 0.60
 claim_key = "claim.migration.tian-ma-void.restless-movement"
 
 [[rule]]
-id = "life.yang_tuo_clamp_life.constraint_damage"
-source_id = "quan_shu.pending.yang_tuo_jia_ming"
-source_clause_id = "yang_tuo_jia_ming"
-work = "zi_wei_dou_shu_quan_shu"
-source_text_zh_hans = "羊陀夹命，为祸不轻"
-normalized_note_zh_hans = "擎羊与陀罗分居命宫两邻宫相夹，主牵制、压力与损伤之象。此处所夹为命宫，区别于羊陀夹忌（夹化忌星）。"
-status = "executable"
-domain = "life"
-themes = ["constraint", "damage", "work_pressure"]
-polarity = "negative"
-base_strength = 0.65
-claim_key = "claim.life.yang-tuo-clamp-life.constraint-damage"
-
-[[rule]]
-id = "life.chang_qu_clamp_life.literary_reputation"
-source_id = "quan_shu.pending.chang_qu_jia_ming"
-source_clause_id = "chang_qu_jia_ming"
-work = "zi_wei_dou_shu_quan_shu"
-source_text_zh_hans = "昌曲夹命，主贵显"
-normalized_note_zh_hans = "文昌与文曲分居命宫两邻宫相夹，主文才、声名与贵显之象。此规则产出结构化判断（Claim），区别于仅作格局识别的 PatternDetection。"
-status = "executable"
-domain = "life"
-themes = ["literary_talent", "reputation", "nobleman_support"]
-polarity = "positive"
-base_strength = 0.60
-claim_key = "claim.life.chang-qu-clamp-life.literary-reputation"
-
-[[rule]]
 id = "wealth.lu_ma_remote_wealth"
 source_id = "quan_shu.v01.tai_wei_fu.002"
 source_clause_id = "lu_ma_jiao_chi"

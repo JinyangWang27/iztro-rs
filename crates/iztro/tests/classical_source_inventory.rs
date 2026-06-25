@@ -20,7 +20,9 @@
 mod support;
 
 use std::collections::HashSet;
-use support::classical_source::{rules_corpus, source_inventory, strip_punct};
+use support::classical_source::{
+    QUAN_SHU_WORK, pattern_rules_corpus, rules_corpus, source_inventory, strip_punct,
+};
 
 #[test]
 fn quan_shu_source_inventory_parses() {
@@ -309,4 +311,86 @@ fn tian_ma_void_source_uses_imported_wording() {
         clause.text_zh_hans, CANONICAL,
         "clause linking {RULE_ID} must use imported wording {CANONICAL:?}"
     );
+}
+
+// ---- QuanShu-only provenance --------------------------------------------
+
+/// The QuanShu source inventory validates against QuanShu rules only: every
+/// rule in `rule-corpus/quan-shu/rules.toml` must carry the QuanShu `work`.
+/// Pattern/格局-derived rules live in `rule-corpus/patterns/` instead.
+#[test]
+fn quan_shu_corpus_rules_are_all_quan_shu_work() {
+    let rules = rules_corpus();
+    for rule in &rules.rule {
+        assert_eq!(
+            rule.work, QUAN_SHU_WORK,
+            "rule {} in the QuanShu corpus has non-QuanShu work {:?}",
+            rule.id, rule.work
+        );
+    }
+}
+
+/// Non-QuanShu rules (the pattern catalog) are not required to appear in the
+/// QuanShu source inventory: their `source_id`s are project `pattern.*` ids,
+/// not QuanShu inventory ids, and that must not be a validation failure.
+#[test]
+fn non_quan_shu_rules_are_not_required_in_quan_shu_source_inventory() {
+    let inventory = source_inventory();
+    let patterns = pattern_rules_corpus();
+    assert!(
+        !patterns.rule.is_empty(),
+        "pattern rule corpus should contain the moved 夹宫 rules"
+    );
+
+    let inventory_source_ids: HashSet<&str> = inventory
+        .source_item
+        .iter()
+        .map(|item| item.source_id.as_str())
+        .collect();
+
+    for rule in &patterns.rule {
+        assert_ne!(
+            rule.work, QUAN_SHU_WORK,
+            "pattern rule {} must not carry the QuanShu work",
+            rule.id
+        );
+        assert!(
+            !inventory_source_ids.contains(rule.source_id.as_str()),
+            "pattern rule {} source_id {} must not be a QuanShu source-inventory id",
+            rule.id,
+            rule.source_id
+        );
+    }
+}
+
+/// 羊陀夹命 / 昌曲夹命 must not re-enter the QuanShu source inventory: neither
+/// their old `quan_shu.pending.*` source ids nor their rule ids may appear.
+#[test]
+fn pattern_rules_are_not_in_quan_shu_source_inventory() {
+    const REMOVED_SOURCE_IDS: [&str; 2] = [
+        "quan_shu.pending.yang_tuo_jia_ming",
+        "quan_shu.pending.chang_qu_jia_ming",
+    ];
+    const PATTERN_RULE_IDS: [&str; 2] = [
+        "life.yang_tuo_clamp_life.constraint_damage",
+        "life.chang_qu_clamp_life.literary_reputation",
+    ];
+
+    let inventory = source_inventory();
+    for item in &inventory.source_item {
+        assert!(
+            !REMOVED_SOURCE_IDS.contains(&item.source_id.as_str()),
+            "removed pattern source_id {} is still in the QuanShu source inventory",
+            item.source_id
+        );
+        for clause in &item.clause {
+            for linked in &clause.linked_rule_ids {
+                assert!(
+                    !PATTERN_RULE_IDS.contains(&linked.as_str()),
+                    "clause {} still links pattern rule {linked} in the QuanShu source inventory",
+                    clause.clause_id
+                );
+            }
+        }
+    }
 }

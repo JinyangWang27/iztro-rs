@@ -133,7 +133,11 @@ fn generate_report() -> String {
 
     let mut out = String::new();
     out.push_str("# 《紫微斗数全书》语料覆盖报告\n\n");
-    out.push_str("本报告统计 `crates/iztro/rule-corpus/quan-shu/source/` 中已结构化的 source inventory。\n\n");
+    out.push_str(
+        "本报告统计 `crates/iztro/rule-corpus/quan-shu/source/` 中已结构化的 source \
+         inventory，仅覆盖《紫微斗数全书》出处条目，不包含项目 pattern/格局规则目录\
+         （`crates/iztro/rule-corpus/patterns/`）。\n\n",
+    );
     out.push_str(
         "本报告由 `crates/iztro/tests/classical_source_coverage.rs` 生成并校验：修改 source \
          inventory 或 rule corpus 后须重新生成本文件，否则测试 \

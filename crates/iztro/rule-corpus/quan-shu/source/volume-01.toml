@@ -17,9 +17,12 @@
 #
 # This is a source inventory, not executable rule metadata. Nothing in `src/`
 # parses it; it is validated by tests only (see
-# crates/iztro/tests/classical_source_inventory.rs). It is intentionally
-# permissive for this first slice: `section = "待校"` and `anchor = "TODO"` mark
-# passages not yet located in the Markdown volumes.
+# crates/iztro/tests/classical_source_inventory.rs). It records only genuine
+# QuanShu passages. The `section = "待校"` / `anchor = "TODO"` placeholders are
+# reserved for passages believed to be from QuanShu but not yet located in the
+# Markdown volumes; none are present in this slice. Rules derived from modeled
+# chart structures rather than a cited QuanShu passage (e.g. 羊陀夹命, 昌曲夹命)
+# live in rule-corpus/patterns/, not here.
 
 [[source_item]]
 source_id = "quan_shu.v01.tai_wei_fu.001"
@@ -64,40 +67,6 @@ clause_id = "lu_ma_jiao_chi"
 text_zh_hans = "禄马最喜交驰"
 linked_rule_ids = ["wealth.lu_ma_remote_wealth"]
 notes_zh_hans = "本 clause 链接到“禄马最喜交驰”的卷一出处；规则 wealth.lu_ma_remote_wealth 的 source_text “禄马交驰，发财远方” 为规则化（normalized）表达，与本 clause 字面不完全一致，后续可拆分或补充更精确出处。"
-
-[[source_item]]
-source_id = "quan_shu.pending.yang_tuo_jia_ming"
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "待校"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "TODO"
-source_text_zh_hans = "羊陀夹命，为祸不轻"
-notes_zh_hans = "该 pilot rule 已有规则化出处文本，但尚未在三卷 Markdown 中定位到具体段落；后续 source review 应补齐 volume/section/anchor 或调整 source_id。"
-
-[[source_item.clause]]
-clause_id = "yang_tuo_jia_ming"
-text_zh_hans = "羊陀夹命，为祸不轻"
-linked_rule_ids = ["life.yang_tuo_clamp_life.constraint_damage"]
-
-[[source_item]]
-source_id = "quan_shu.pending.chang_qu_jia_ming"
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "待校"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "TODO"
-source_text_zh_hans = "昌曲夹命，主贵显"
-notes_zh_hans = "该 pilot rule 已有规则化出处文本，但尚未在三卷 Markdown 中定位到具体段落；后续 source review 应补齐 volume/section/anchor 或调整 source_id。"
-
-[[source_item.clause]]
-clause_id = "chang_qu_jia_ming"
-text_zh_hans = "昌曲夹命，主贵显"
-linked_rule_ids = ["life.chang_qu_clamp_life.literary_reputation"]
 
 # --- 太微赋「例曰」段扩展（source inventory segmentation only） ---
 #

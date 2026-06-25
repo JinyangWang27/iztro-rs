@@ -47,7 +47,7 @@ pub mod theme;
 pub mod void;
 
 pub use claim::{Claim, ClaimDomain, ClaimId, ClaimScope, ClaimStrength};
-pub use corpus::{quan_shu_rules, rule_by_id};
+pub use corpus::{classical_rules, pattern_rules, quan_shu_rules, rule_by_id};
 pub use engine::{
     ClaimEvaluationRequest, DiagnosticMode, evaluate_classical, evaluate_classical_claims,
 };
