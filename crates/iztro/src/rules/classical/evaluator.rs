@@ -19,7 +19,8 @@ use crate::rules::classical::outcome::{RuleOutcome, UnsupportedReason};
 use crate::rules::classical::predicates::{
     stars_clamp_life, sun_and_moon_dim, tian_ma_affected_by_void,
 };
-use crate::rules::classical::rule::ClassicalRule;
+use crate::rules::classical::rule::{ClaimSpec, ClassicalRule};
+use crate::rules::classical::source_hit::ClassicalSourceHit;
 use crate::rules::classical::void::VoidPolicy;
 
 // Stable rule ids handled by this module.
@@ -54,20 +55,34 @@ pub fn evaluate(rule: &ClassicalRule, chart: &Chart) -> RuleOutcome {
 }
 
 /// Builds a natal claim from rule metadata and the given evidence.
-fn build_claim(rule: &ClassicalRule, evidence: Vec<Evidence>) -> Claim {
+fn build_claim(rule: &ClassicalRule, spec: &ClaimSpec, evidence: Vec<Evidence>) -> Claim {
     let scope = ClaimScope::Natal;
     Claim {
         id: ClaimId::new(&rule.id, scope),
         rule_id: rule.id.clone(),
-        domain: rule.domain,
-        themes: rule.themes.clone(),
-        polarity: rule.polarity,
-        strength: ClaimStrength::new(rule.base_strength),
+        domain: spec.domain,
+        themes: spec.themes.clone(),
+        polarity: spec.polarity,
+        strength: ClaimStrength::new(spec.base_strength),
         scope,
         evidence,
         counter_evidence: Vec::new(),
         source_refs: vec![rule.source_ref()],
-        claim_key: rule.claim_key.clone(),
+        claim_key: spec.claim_key.clone(),
+    }
+}
+
+fn matched(rule: &ClassicalRule, evidence: Vec<Evidence>) -> RuleOutcome {
+    let scope = ClaimScope::Natal;
+    let source_hit = ClassicalSourceHit::from_rule(rule, scope, evidence.clone());
+    let claim = rule
+        .claim
+        .as_ref()
+        .map(|spec| Box::new(build_claim(rule, spec, evidence)));
+
+    RuleOutcome::Matched {
+        source_hit: Box::new(source_hit),
+        claim,
     }
 }
 
@@ -79,7 +94,7 @@ fn evaluate_tian_ma_void(rule: &ClassicalRule, chart: &Chart) -> RuleOutcome {
                 void_kind: fact.void_kind,
                 branch: fact.tian_ma_branch,
             })];
-            RuleOutcome::Emitted(Box::new(build_claim(rule, evidence)))
+            matched(rule, evidence)
         }
         None => RuleOutcome::NotApplicable,
     }
@@ -122,7 +137,7 @@ fn evaluate_clamp_life(
         evidence.push(Evidence::new(EvidenceKind::PatternShapeMatched { pattern }));
     }
 
-    RuleOutcome::Emitted(Box::new(build_claim(rule, evidence)))
+    matched(rule, evidence)
 }
 
 fn evaluate_ri_yue_fan_bei(rule: &ClassicalRule, chart: &Chart) -> RuleOutcome {
@@ -140,8 +155,54 @@ fn evaluate_ri_yue_fan_bei(rule: &ClassicalRule, chart: &Chart) -> RuleOutcome {
                     branch: fact.moon.0,
                 }),
             ];
-            RuleOutcome::Emitted(Box::new(build_claim(rule, evidence)))
+            matched(rule, evidence)
         }
         None => RuleOutcome::NotApplicable,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use crate::core::EarthlyBranch;
+    use crate::rules::classical::rule::{ClassicalRuleId, RuleStatus};
+    use crate::rules::classical::source::ClassicalWork;
+
+    #[test]
+    fn matched_rule_without_claim_spec_emits_source_hit_only() {
+        let rule = ClassicalRule {
+            id: ClassicalRuleId::new("experimental.source_hit_only"),
+            source_id: "pattern.source_hit_only".to_string(),
+            source_clause_id: Some("source_hit_clause".to_string()),
+            work: ClassicalWork::IztroPatternCatalog,
+            source_text_zh_hans: "只记录出处命中".to_string(),
+            normalized_note_zh_hans: Some("测试无判断元数据的出处命中。".to_string()),
+            status: RuleStatus::Executable,
+            school: Default::default(),
+            claim: None,
+        };
+        let evidence = vec![Evidence::new(EvidenceKind::StarInPalace {
+            star: StarName::TianMa,
+            branch: EarthlyBranch::Wu,
+        })];
+
+        let outcome = matched(&rule, evidence.clone());
+
+        let RuleOutcome::Matched { source_hit, claim } = outcome else {
+            panic!("expected matched source hit");
+        };
+        assert!(claim.is_none());
+        assert_eq!(source_hit.rule_id, rule.id);
+        assert_eq!(source_hit.work, ClassicalWork::IztroPatternCatalog);
+        assert_eq!(source_hit.source_id, "pattern.source_hit_only");
+        assert_eq!(
+            source_hit.source_clause_id.as_deref(),
+            Some("source_hit_clause")
+        );
+        assert_eq!(source_hit.source_text_zh_hans, "只记录出处命中");
+        assert_eq!(source_hit.status, RuleStatus::Executable);
+        assert_eq!(source_hit.scope, ClaimScope::Natal);
+        assert_eq!(source_hit.evidence, evidence);
     }
 }

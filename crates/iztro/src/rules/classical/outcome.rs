@@ -13,6 +13,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::rules::classical::claim::Claim;
 use crate::rules::classical::rule::ClassicalRuleId;
+use crate::rules::classical::source_hit::ClassicalSourceHit;
 
 /// Why a rule could not be evaluated into a claim.
 ///
@@ -39,8 +40,15 @@ impl fmt::Display for UnsupportedReason {
 /// The typed result of evaluating one classical rule against a chart.
 #[derive(Clone, Debug, PartialEq)]
 pub enum RuleOutcome {
-    /// Facts were modeled and the condition matched: a claim was produced.
-    Emitted(Box<Claim>),
+    /// Facts were modeled and the condition matched: source provenance was
+    /// recorded, and a claim may have been produced when interpretation metadata
+    /// exists for the rule.
+    Matched {
+        /// Evidence-backed matched source/provenance data.
+        source_hit: Box<ClassicalSourceHit>,
+        /// Optional interpreted claim derived from the same match.
+        claim: Option<Box<Claim>>,
+    },
     /// Facts were modeled but the condition did not match: no claim.
     NotApplicable,
     /// The rule is encoded but its condition is not yet supported.
@@ -63,6 +71,8 @@ pub struct RuleDiagnostic {
 pub struct ClaimEvaluation {
     /// Claims emitted by rules whose conditions matched on modeled facts.
     pub claims: Vec<Claim>,
+    /// Source/provenance hits for executable rules whose conditions matched.
+    pub source_hits: Vec<ClassicalSourceHit>,
     /// Diagnostics for rules that could not be evaluated (typed, visible).
     pub diagnostics: Vec<RuleDiagnostic>,
 }

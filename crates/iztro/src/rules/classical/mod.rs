@@ -46,6 +46,7 @@ pub mod outcome;
 pub mod predicates;
 pub mod rule;
 pub mod source;
+pub mod source_hit;
 pub mod theme;
 pub mod void;
 
@@ -56,7 +57,8 @@ pub use engine::{
 };
 pub use evidence::{Evidence, EvidenceKind};
 pub use outcome::{ClaimEvaluation, RuleDiagnostic, RuleOutcome, UnsupportedReason};
-pub use rule::{ClassicalRule, ClassicalRuleId, RuleSchool, RuleStatus};
+pub use rule::{ClaimSpec, ClassicalRule, ClassicalRuleId, RuleSchool, RuleStatus};
 pub use source::{ClassicalWork, SourceRef};
+pub use source_hit::ClassicalSourceHit;
 pub use theme::{ClaimPolarity, ClaimTheme};
 pub use void::{VoidKind, VoidPolicy};

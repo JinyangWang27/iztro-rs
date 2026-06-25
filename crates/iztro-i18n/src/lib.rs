@@ -309,7 +309,10 @@ mod tests {
         let en = I18n::new(Locale::EnUs);
         let zh = I18n::new(Locale::ZhHans);
         for rule in iztro::rules::classical::quan_shu_rules() {
-            let key = crate::keys::claim_text_key(&rule.claim_key);
+            let Some(claim) = &rule.claim else {
+                continue;
+            };
+            let key = crate::keys::claim_text_key(&claim.claim_key);
             assert!(!en.text(&key).starts_with('!'), "missing en text {key}");
             assert!(!zh.text(&key).starts_with('!'), "missing zh text {key}");
         }

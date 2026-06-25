@@ -17,7 +17,8 @@
 图盘事实
   -> 特征/查询谓词        （复用 core/pattern 查询助手）
   -> 经典规则评估          （语料元数据 + 手写谓词）
-  -> 结构化 Claim[]        （类型化枚举，serde）
+  -> ClassicalSourceHit[]  （命中的出处/来源记录）
+  -> 结构化 Claim[]        （仅当 rule.claim 存在时产出）
   -> [可选] 本地化渲染      （iztro-i18n，经由 claim_key）
   -> JSON 导出             （serde）
 ```
@@ -31,7 +32,7 @@
 | 经典术语 | **中文原文** | `SourceRef::source_text_zh_hans`，在语料 TOML 中编写。 |
 | 机器逻辑 | **Rust 枚举 / 稳定键** | `ClassicalRuleId`、`ClaimDomain`、`ClaimTheme`……中文字符串绝不作逻辑键。 |
 | 输出渲染 | **Fluent `.ftl` 资源** | `iztro-i18n` 由稳定键渲染标签与判断短文。 |
-| 规则编写 | **语料 TOML** | `crates/iztro/rule-corpus/quan-shu/rules.toml`。 |
+| 规则编写 | **语料 TOML** | `crates/iztro/rule-corpus/quan-shu/rules.toml` 与 `crates/iztro/rule-corpus/patterns/rules.toml`。 |
 | 导出 | **JSON** | 判断的序列化结果；绝非编写来源。 |
 
 `iztro` 永不依赖 `iztro-i18n`：核心 crate 只产出稳定键与结构化事实；本地化文案
@@ -41,18 +42,20 @@
 
 目前刻意**不**做通用规则 DSL：
 
-1. **规则元数据数据驱动**，来自语料 TOML（id、出处、状态、领域、主题、吉凶、
-   基础强度、claim 键）。
+1. **规则出处/谓词元数据数据驱动**，来自语料 TOML（id、出处、状态、典籍、流派）。
+   可选 `[rule.claim]` 保存解释性判断字段（领域、主题、吉凶、基础强度、claim 键）。
 2. **规则谓词手写**于 `predicates.rs`，复用 `core/pattern/` 中只读的图盘查询
    助手（夹宫匹配、亮度判定、星曜查找），不重复该逻辑。
-3. `quan_shu.rs` 的评估器将每条规则的元数据与谓词配对，构建出 `Claim`。
+3. 评估器将每条规则的元数据与谓词配对，先构建 `ClassicalSourceHit`；只有
+   `rule.claim` 存在时才进一步构建 `Claim`。
 
 ## 保守触发与类型化诊断
 
-只有当条件在**已建模的图盘事实**上匹配时，才会产出判断。每个评估器返回类型化的
+只有当可执行规则的条件在**已建模的图盘事实**上匹配时，才会产出出处命中记录。
+判断只在同一次命中且规则带有 `ClaimSpec` 时产出。每个评估器返回类型化的
 `RuleOutcome`：
 
-- `Emitted(Claim)`——事实已建模且条件匹配；
+- `Matched { source_hit, claim }`——事实已建模且条件匹配；
 - `NotApplicable`——事实已建模但条件未匹配（无判断）；
 - `Unsupported(UnsupportedReason)`——规则已编码，但其条件尚未由已建模的事实/
   既定策略支撑。
@@ -60,20 +63,29 @@
 引擎提供两个入口：
 
 - `evaluate_classical_claims(chart, &request) -> Vec<Claim>`——仅返回判断；
-- `evaluate_classical(chart, &request) -> ClaimEvaluation { claims, diagnostics }`
-  ——同时返回类型化的 `RuleDiagnostic`，使“不支持”的条件**可见**，而非被静默丢弃。
+- `evaluate_classical(chart, &request) -> ClaimEvaluation { claims, source_hits, diagnostics }`
+  ——同时返回命中的 `ClassicalSourceHit` 与类型化的 `RuleDiagnostic`，使“不支持”的条件
+  **可见**，而非被静默丢弃。
+
+`SourceRef` 仍是 `Claim` 内面向判断的引用类型。`ClassicalSourceHit` 是评估结果中
+面向出处/来源命中的记录。
 
 ## 请求过滤与排序
 
 `ClaimEvaluationRequest` 按 `domains`、`themes`、`polarities`、`works`、
 `rule_ids`、`scopes` 过滤判断。每个字段都是允许列表；空向量表示该维度不施加约束。
 
+出处命中只按来源维度过滤：`works`、`rule_ids`、`scopes`。`domains`、`themes`、
+`polarities` 仍只过滤判断，不会压掉已经命中的来源记录。
+
 不支持诊断默认使用 `DiagnosticMode::AllUnsupported`：即使判断过滤器已生效，也返回
 所有不支持的语料规则诊断，使诊断通道保持完整。若调用方需要更窄的 UI/导出表面，
-可选 `DiagnosticMode::MatchingRequest`（尽可能按规则元数据套用请求过滤器），或
-`DiagnosticMode::None`（抑制诊断）。
+可选 `DiagnosticMode::MatchingRequest`（尽可能按规则元数据套用请求过滤器）。其中
+领域/主题/吉凶诊断过滤只匹配带有 `rule.claim` 的规则；纯出处规则不会伪造解释性
+元数据。`DiagnosticMode::None` 会抑制诊断。
 
 返回的判断按 `(scope, domain, rule_id, claim_key)` 确定性排序。
+返回的出处命中按 `(scope, work, source_id, source_clause_id, rule_id)` 确定性排序。
 
 ## 规则状态
 
@@ -114,6 +126,8 @@
    source_clause_id = "ma_yu_kong_wang"
    source_text_zh_hans = "马遇空亡，终身奔走"
    status = "executable"
+
+   [rule.claim]
    domain = "migration"
    themes = ["restless_movement", "instability"]
    polarity = "mixed_negative"
@@ -129,7 +143,9 @@
 3. **谓词。** `tian_ma_affected_by_void` 找到天马所在宫，检查是否有该策略所计的
    空亡星与之同宫。
 
-4. **判断。** 命中时，评估器产出携带
+4. **出处命中与判断。** 命中时，评估器先产出 `ClassicalSourceHit`，记录典籍、段落
+   id、clause id、中文原文、规则状态、作用范围与证据。由于该规则带有 `[rule.claim]`，
+   还会产出携带
    `EvidenceKind::StarAffectedByVoid { star: TianMa, void_kind, branch }` 的判断，
    连同语料的领域/主题/吉凶/强度、`SourceRef`（中文原文）与 `claim_key`。
 
@@ -147,6 +163,10 @@
 （`crates/iztro/rule-corpus/quan-shu/source/`）中的一段**原文段落**；
 `source_clause_id` 指向该段落内的单条候选短语（clause）。一段原文可含多条 clause，
 每条 clause 可链接零个或多个规则——正是这一点让 inventory 能从「一条规则一项」扩展开。
+
+对于全书规则，`ClassicalSourceHit` 引用典籍段落与 clause。对于 pattern 目录规则，
+它引用项目自有的 `pattern.*` 元数据条目；这些 pattern 条目不进入 QuanShu source
+inventory。
 
 source inventory 是**语料治理数据，而非运行时数据**：`src/` 不解析它，
 `evaluate_classical` 不依赖它，三卷 Markdown 也不在运行时解析。其一致性
