@@ -17,7 +17,7 @@ crates/iztro/rule-corpus/quan-shu/rules.toml
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
 | `id` | 字符串 | 稳定的规则标识，如 `migration.tian_ma_void.restless_movement`。 |
-| `source_id` | 字符串 | 稳定的出处行标识，如 `quan_shu.ma_luo_kong_wang`。 |
+| `source_id` | 字符串 | 稳定的出处行标识，如 `quan_shu.ma_yu_kong_wang`。 |
 | `work` | 枚举 | 典籍，目前为 `zi_wei_dou_shu_quan_shu`。 |
 | `source_text_zh_hans` | 字符串 | **中文原文**（术语的权威来源）。 |
 | `normalized_note_zh_hans` | 字符串（可选） | 规范化注记，说明该句如何被解读为规则。 |
@@ -62,7 +62,7 @@ crates/iztro/rule-corpus/quan-shu/rules.toml
 
 | id | 原文 | 状态 | 说明 |
 | --- | --- | --- | --- |
-| `migration.tian_ma_void.restless_movement` | 马落空亡，终身奔走 | `executable` | 天马与已建模空亡星同宫即触发。 |
+| `migration.tian_ma_void.restless_movement` | 马遇空亡，终身奔走 | `executable` | 天马与已建模空亡星同宫即触发。 |
 | `life.yang_tuo_clamp_life.constraint_damage` | 羊陀夹命，为祸不轻 | `executable` | 擎羊、陀罗夹命宫。 |
 | `life.chang_qu_clamp_life.literary_reputation` | 昌曲夹命，主贵显 | `executable` | 文昌、文曲夹命宫；记录对应的格局结构形态，不表示运行完整格局识别器。 |
 | `wealth.lu_ma_remote_wealth` | 禄马交驰，发财远方 | `normalized` | “交驰”关系随流派而异、尚未建模，**不触发**，给出类型化诊断。 |
