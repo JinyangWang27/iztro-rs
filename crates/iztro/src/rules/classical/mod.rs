@@ -1,6 +1,6 @@
-//! Chinese-first classical rule engine (《紫微斗数全书》 pilot).
+//! Chinese-first classical rule engine.
 //!
-//! This module encodes classical Zi Wei Dou Shu rules as data-driven metadata
+//! This module encodes Zi Wei Dou Shu rules as data-driven metadata
 //! (`rule-corpus/`) paired with hand-coded predicates, producing structured,
 //! evidence-backed [`Claim`]s:
 //!
@@ -18,6 +18,9 @@
 //! - **Chinese source text is canonical** for classical terminology
 //!   ([`SourceRef::source_text_zh_hans`]); Rust enum/key identity is canonical for
 //!   machine logic. Chinese strings are never used as logic keys.
+//! - **Rule provenance is explicit.** QuanShu source rules and project
+//!   pattern/格局 rules live in separate corpora but are evaluated through the same
+//!   classical rule path.
 //! - **Claims carry no prose.** Localized text is rendered by `iztro-i18n` from
 //!   [`Claim::claim_key`]. This crate never depends on `iztro-i18n`.
 //! - **Conservative emission.** A claim is emitted only when its condition matches
@@ -37,10 +40,10 @@
 pub mod claim;
 pub mod corpus;
 pub mod engine;
+pub mod evaluator;
 pub mod evidence;
 pub mod outcome;
 pub mod predicates;
-pub mod quan_shu;
 pub mod rule;
 pub mod source;
 pub mod theme;
