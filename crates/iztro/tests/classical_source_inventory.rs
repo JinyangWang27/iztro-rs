@@ -33,6 +33,64 @@ fn quan_shu_source_inventory_parses() {
     );
 }
 
+/// Regression: 太微赋 source items track rule-candidate clauses, not
+/// explanatory/commentary prose from the full source text. The numeric suffix
+/// of `source_id` is source-order based, so suffixes must be continuous from
+/// `001`, appear in increasing order, and start at the first `例曰`
+/// rule-candidate passage.
+#[test]
+fn tai_wei_fu_source_items_follow_rule_candidate_order() {
+    let inventory = source_inventory();
+    let tai_wei_fu: Vec<_> = inventory
+        .source_item
+        .iter()
+        .filter(|item| item.volume == 1 && item.section == "太微赋")
+        .collect();
+    assert!(
+        !tai_wei_fu.is_empty(),
+        "expected 太微赋 source items in the inventory"
+    );
+
+    // Suffixes are continuous 001..=N and appear in increasing numeric order.
+    for (idx, item) in tai_wei_fu.iter().enumerate() {
+        let suffix = item
+            .source_id
+            .strip_prefix("quan_shu.v01.tai_wei_fu.")
+            .unwrap_or_else(|| panic!("unexpected source_id format: {}", item.source_id));
+        let n: usize = suffix
+            .parse()
+            .unwrap_or_else(|_| panic!("source_id suffix is not numeric: {}", item.source_id));
+        assert_eq!(
+            n,
+            idx + 1,
+            "太微赋 source_id suffixes must be continuous and increasing from 001; \
+             item {} at position {} breaks the sequence",
+            item.source_id,
+            idx + 1
+        );
+    }
+
+    // This inventory tracks rule-candidate clauses, not commentary prose.
+    for item in &tai_wei_fu {
+        assert_ne!(
+            item.category, "commentary",
+            "commentary item {} belongs only in the raw full text, not in the source inventory",
+            item.source_id
+        );
+    }
+
+    let first = tai_wei_fu[0];
+    assert_eq!(
+        first.category, "aphorism_rule",
+        "first 太微赋 source item must be the first 例曰 rule-candidate passage"
+    );
+    assert!(
+        first.source_text_zh_hans.starts_with("禄逢冲破"),
+        "first 太微赋 source item must be the first 例曰 rule-candidate passage, got {:?}",
+        first.source_text_zh_hans
+    );
+}
+
 #[test]
 fn quan_shu_source_inventory_has_unique_source_ids() {
     let inventory = source_inventory();

@@ -28,7 +28,7 @@ claim_key = "claim.migration.tian-ma-void.restless-movement"
 
 [[rule]]
 id = "wealth.lu_ma_remote_wealth"
-source_id = "quan_shu.v01.tai_wei_fu.002"
+source_id = "quan_shu.v01.tai_wei_fu.004"
 source_clause_id = "lu_ma_jiao_chi"
 work = "zi_wei_dou_shu_quan_shu"
 source_text_zh_hans = "禄马交驰，发财远方"
@@ -42,7 +42,7 @@ claim_key = "claim.wealth.lu-ma-remote-wealth"
 
 [[rule]]
 id = "life.ri_yue_fan_bei.hardship_pressure"
-source_id = "quan_shu.v01.tai_wei_fu.002"
+source_id = "quan_shu.v01.tai_wei_fu.004"
 source_clause_id = "ri_yue_fan_bei"
 work = "zi_wei_dou_shu_quan_shu"
 source_text_zh_hans = "日月反背，劳碌辛苦"
