@@ -13,7 +13,7 @@ mod support;
 
 use std::collections::BTreeSet;
 use std::fmt::Write as _;
-use support::classical_source::{rules_corpus, source_inventory, RulesCorpus, SourceInventory};
+use support::classical_source::{RulesCorpus, SourceInventory, rules_corpus, source_inventory};
 
 const COVERAGE_REPORT: &str = include_str!("../../../docs/zh-CN/rules/quan-shu-coverage.md");
 
@@ -175,7 +175,11 @@ fn generate_report() -> String {
     let _ = writeln!(out, "| Source items | {} |", tai_wei_fu.source_items);
     let _ = writeln!(out, "| Clauses | {} |", tai_wei_fu.clauses);
     let _ = writeln!(out, "| Linked clauses | {} |", tai_wei_fu.linked_clauses);
-    let _ = writeln!(out, "| Unlinked clauses | {} |", tai_wei_fu.unlinked_clauses);
+    let _ = writeln!(
+        out,
+        "| Unlinked clauses | {} |",
+        tai_wei_fu.unlinked_clauses
+    );
     let _ = writeln!(
         out,
         "| Pending source items | {} |",
