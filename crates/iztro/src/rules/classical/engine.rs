@@ -10,8 +10,9 @@ use crate::rules::classical::claim::{Claim, ClaimDomain, ClaimScope};
 use crate::rules::classical::corpus::classical_rules;
 use crate::rules::classical::evaluator;
 use crate::rules::classical::outcome::{ClaimEvaluation, RuleDiagnostic, RuleOutcome};
-use crate::rules::classical::rule::ClassicalRuleId;
+use crate::rules::classical::rule::{ClassicalRule, ClassicalRuleId};
 use crate::rules::classical::source::ClassicalWork;
+use crate::rules::classical::source_hit::ClassicalSourceHit;
 use crate::rules::classical::theme::{ClaimPolarity, ClaimTheme};
 
 /// Controls whether unsupported-rule diagnostics are returned with an evaluation.
@@ -71,24 +72,39 @@ impl ClaimEvaluationRequest {
 
     /// Returns whether `rule` satisfies request filters that can be applied to
     /// rule metadata before a claim exists.
-    fn matches_rule_metadata(&self, rule: &crate::rules::classical::rule::ClassicalRule) -> bool {
-        let domain_ok = self.domains.is_empty() || self.domains.contains(&rule.domain);
-        let polarity_ok = self.polarities.is_empty() || self.polarities.contains(&rule.polarity);
+    fn matches_rule_metadata(&self, rule: &ClassicalRule) -> bool {
+        let claim_ok = match &rule.claim {
+            Some(spec) => {
+                let domain_ok = self.domains.is_empty() || self.domains.contains(&spec.domain);
+                let polarity_ok =
+                    self.polarities.is_empty() || self.polarities.contains(&spec.polarity);
+                let theme_ok =
+                    self.themes.is_empty() || spec.themes.iter().any(|t| self.themes.contains(t));
+                domain_ok && polarity_ok && theme_ok
+            }
+            None => self.domains.is_empty() && self.polarities.is_empty() && self.themes.is_empty(),
+        };
         let scope_ok = self.scopes.is_empty() || self.scopes.contains(&ClaimScope::Natal);
         let rule_ok = self.rule_ids.is_empty() || self.rule_ids.contains(&rule.id);
-        let theme_ok =
-            self.themes.is_empty() || rule.themes.iter().any(|t| self.themes.contains(t));
         let work_ok = self.works.is_empty() || self.works.contains(&rule.work);
-        domain_ok && polarity_ok && scope_ok && rule_ok && theme_ok && work_ok
+        claim_ok && scope_ok && rule_ok && work_ok
     }
 
     /// Returns whether an unsupported diagnostic should be included for `rule`.
-    fn includes_diagnostic(&self, rule: &crate::rules::classical::rule::ClassicalRule) -> bool {
+    fn includes_diagnostic(&self, rule: &ClassicalRule) -> bool {
         match self.diagnostic_mode {
             DiagnosticMode::AllUnsupported => true,
             DiagnosticMode::MatchingRequest => self.matches_rule_metadata(rule),
             DiagnosticMode::None => false,
         }
+    }
+
+    /// Returns whether `source_hit` satisfies the source-hit filters.
+    fn matches_source_hit(&self, source_hit: &ClassicalSourceHit) -> bool {
+        let work_ok = self.works.is_empty() || self.works.contains(&source_hit.work);
+        let rule_ok = self.rule_ids.is_empty() || self.rule_ids.contains(&source_hit.rule_id);
+        let scope_ok = self.scopes.is_empty() || self.scopes.contains(&source_hit.scope);
+        work_ok && rule_ok && scope_ok
     }
 }
 
@@ -101,11 +117,17 @@ impl ClaimEvaluationRequest {
 /// UI/export surfaces.
 pub fn evaluate_classical(chart: &Chart, request: &ClaimEvaluationRequest) -> ClaimEvaluation {
     let mut claims = Vec::new();
+    let mut source_hits = Vec::new();
     let mut diagnostics = Vec::new();
 
     for rule in classical_rules() {
         match evaluator::evaluate(rule, chart) {
-            RuleOutcome::Emitted(claim) => claims.push(*claim),
+            RuleOutcome::Matched { source_hit, claim } => {
+                source_hits.push(*source_hit);
+                if let Some(claim) = claim {
+                    claims.push(*claim);
+                }
+            }
             RuleOutcome::NotApplicable => {}
             RuleOutcome::Unsupported(reason) => {
                 if request.includes_diagnostic(rule) {
@@ -119,10 +141,13 @@ pub fn evaluate_classical(chart: &Chart, request: &ClaimEvaluationRequest) -> Cl
     }
 
     claims.retain(|claim| request.matches(claim));
+    source_hits.retain(|source_hit| request.matches_source_hit(source_hit));
     sort_claims(&mut claims);
+    sort_source_hits(&mut source_hits);
 
     ClaimEvaluation {
         claims,
+        source_hits,
         diagnostics,
     }
 }
@@ -140,5 +165,17 @@ fn sort_claims(claims: &mut [Claim]) {
             .then_with(|| a.domain.cmp(&b.domain))
             .then_with(|| a.rule_id.cmp(&b.rule_id))
             .then_with(|| a.claim_key.cmp(&b.claim_key))
+    });
+}
+
+/// Sorts source hits deterministically by `(scope, work, source_id, source_clause_id, rule_id)`.
+fn sort_source_hits(source_hits: &mut [ClassicalSourceHit]) {
+    source_hits.sort_by(|a, b| {
+        a.scope
+            .cmp(&b.scope)
+            .then_with(|| a.work.cmp(&b.work))
+            .then_with(|| a.source_id.cmp(&b.source_id))
+            .then_with(|| a.source_clause_id.cmp(&b.source_clause_id))
+            .then_with(|| a.rule_id.cmp(&b.rule_id))
     });
 }
