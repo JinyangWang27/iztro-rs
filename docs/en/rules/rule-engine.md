@@ -53,7 +53,7 @@ This is intentionally **not** a generic rule DSL yet:
 2. **Rule predicates are hand-coded** in `predicates.rs`, reusing the read-only
    chart query helpers in `core/pattern/` (clamp matching, brightness
    classification, star lookup) — no second copy of that logic.
-3. The `quan_shu.rs` evaluators pair each rule's metadata with its predicate and
+3. The evaluator module pairs each rule’s metadata with its predicate and
    build a `ClassicalSourceHit`; they build a `Claim` only when `rule.claim`
    exists.
 
