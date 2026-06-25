@@ -10,7 +10,7 @@ use fluent_bundle::{FluentArgs, FluentBundle, FluentResource};
 
 use crate::locale::Locale;
 
-/// The four embedded resource files for one locale.
+/// The embedded resource files for one locale.
 macro_rules! locale_resources {
     ($dir:literal) => {
         [
@@ -18,12 +18,13 @@ macro_rules! locale_resources {
             include_str!(concat!("../locales/", $dir, "/chart.ftl")),
             include_str!(concat!("../locales/", $dir, "/stars.ftl")),
             include_str!(concat!("../locales/", $dir, "/temporal.ftl")),
+            include_str!(concat!("../locales/", $dir, "/claims.ftl")),
         ]
     };
 }
 
-const EN_US_FTL: [&str; 4] = locale_resources!("en-US");
-const ZH_HANS_FTL: [&str; 4] = locale_resources!("zh-Hans");
+const EN_US_FTL: [&str; 5] = locale_resources!("en-US");
+const ZH_HANS_FTL: [&str; 5] = locale_resources!("zh-Hans");
 
 /// Builds one Fluent bundle for a locale from its embedded resources.
 ///
