@@ -1,0 +1,81 @@
+# 《紫微斗数全书》 source inventory — Volume 1 pilot slice.
+#
+# This file records source passages from docs/zh-CN/sources/quan_shu/volume-01.md
+# that correspond to the five classical pilot rules currently encoded in
+# crates/iztro/rule-corpus/quan-shu/rules.toml.
+#
+# This is a source inventory, not executable rule metadata. It is intentionally
+# permissive for this first slice: some `source_text_zh_hans` values preserve the
+# imported Markdown wording, while `normalized_clause_zh_hans` records the clause
+# shape currently used by the pilot rule. Source-review follow-ups can decide the
+# canonical edition wording and split broader passages more precisely.
+
+[[source_item]]
+source_id = "quan_shu.ma_luo_kong_wang"
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "太微赋"
+category = "aphorism_rule"
+status = "rule_linked"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "太微赋"
+source_text_zh_hans = "禄逢冲破，吉处藏凶。马遇空亡，终身奔走。"
+normalized_clause_zh_hans = "马落空亡，终身奔走"
+linked_rule_ids = ["migration.tian_ma_void.restless_movement"]
+notes_zh_hans = "当前 pilot rule 使用“马落空亡”；本次导入的卷一原文作“马遇空亡”。先保留异文差异，后续 source review 决定 canonical wording。"
+
+[[source_item]]
+source_id = "quan_shu.lu_ma_jiao_chi"
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "太微赋"
+category = "aphorism_rule"
+status = "rule_linked"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "太微赋"
+source_text_zh_hans = "日月最嫌反背，禄马最喜交驰。"
+normalized_clause_zh_hans = "禄马交驰，发财远方"
+linked_rule_ids = ["wealth.lu_ma_remote_wealth"]
+notes_zh_hans = "本条先链接到“禄马最喜交驰”的卷一出处；“发财远方”为当前 pilot rule 的现代/规则化表达，后续可拆分或补充更精确出处。"
+
+[[source_item]]
+source_id = "quan_shu.ri_yue_fan_bei"
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "太微赋"
+category = "aphorism_rule"
+status = "rule_linked"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "太微赋"
+source_text_zh_hans = "日月最嫌反背，禄马最喜交驰。"
+normalized_clause_zh_hans = "日月反背，劳碌辛苦"
+linked_rule_ids = ["life.ri_yue_fan_bei.hardship_pressure"]
+notes_zh_hans = "本条先链接到“日月最嫌反背”的卷一出处；“劳碌辛苦”为当前 pilot rule 的规则化 claim text，后续可补充更精确出处或异文。"
+
+[[source_item]]
+source_id = "quan_shu.yang_tuo_jia_ming"
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "待校"
+category = "aphorism_rule"
+status = "rule_linked"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "TODO"
+source_text_zh_hans = "羊陀夹命，为祸不轻"
+normalized_clause_zh_hans = "羊陀夹命，为祸不轻"
+linked_rule_ids = ["life.yang_tuo_clamp_life.constraint_damage"]
+notes_zh_hans = "该 pilot rule 已有规则化出处文本，但尚未在三卷 Markdown 中定位到具体段落；后续 source review 应补齐 volume/section/anchor 或调整 source_id。"
+
+[[source_item]]
+source_id = "quan_shu.chang_qu_jia_ming"
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "待校"
+category = "aphorism_rule"
+status = "rule_linked"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "TODO"
+source_text_zh_hans = "昌曲夹命，主贵显"
+normalized_clause_zh_hans = "昌曲夹命，主贵显"
+linked_rule_ids = ["life.chang_qu_clamp_life.literary_reputation"]
+notes_zh_hans = "该 pilot rule 已有规则化出处文本，但尚未在三卷 Markdown 中定位到具体段落；后续 source review 应补齐 volume/section/anchor 或调整 source_id。"
