@@ -18,6 +18,12 @@ source Markdown
   -> structured Claim[]
 ```
 
+## Files
+
+- `volume-01.toml`: pilot source inventory for the five currently encoded classical pilot rules.
+
+This is not a complete line-by-line inventory of Volume 1. It is a deliberately small first slice that establishes the inventory format and links the existing rule `source_id`s to reviewed source passages where possible.
+
 ## Status values
 
 The `status` field tracks source-processing maturity, not executable rule maturity:
@@ -39,6 +45,14 @@ The `category` field is deliberately broad. Common values include:
 - `modifier_rule`: 加会、逢煞、逢忌、破格等修正规则;
 - `temporal_rule`: 大限、流年、流月等限运规则;
 - `commentary`: explanatory text retained for context.
+
+## Text fields
+
+- `source_text_zh_hans` preserves the source passage as found in the imported Markdown whenever possible.
+- `normalized_clause_zh_hans` records the rule-facing clause shape currently used by the pilot rule.
+- `notes_zh_hans` records source variants, unresolved location work, and normalization caveats.
+
+Some pilot rules predate this source inventory, so their existing `rules.toml` source text may differ from the imported Markdown wording. This inventory records those differences explicitly instead of silently rewriting the executable rule corpus.
 
 ## Notes
 
