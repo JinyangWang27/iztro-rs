@@ -52,7 +52,7 @@ The `category` field is deliberately broad. Common values include:
 - `normalized_clause_zh_hans` records the rule-facing clause shape currently used by the pilot rule.
 - `notes_zh_hans` records source variants, unresolved location work, and normalization caveats.
 
-Some pilot rules predate this source inventory, so their existing `rules.toml` source text may differ from the imported Markdown wording. This inventory records those differences explicitly instead of silently rewriting the executable rule corpus.
+The Markdown source text is treated as canonical for this source-import PR. If existing pilot rules use a different normalized wording, the inventory records that difference in `normalized_clause_zh_hans` and `notes_zh_hans` instead of rewriting the imported volumes.
 
 ## Notes
 
