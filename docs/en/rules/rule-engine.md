@@ -21,7 +21,8 @@ first concrete, data-driven slice of that vision.
 Chart facts
   -> feature/query predicates        (reuse core/pattern query helpers)
   -> classical rule evaluation       (corpus metadata + hand-coded predicates)
-  -> structured Claim[]              (typed enums, serde)
+  -> ClassicalSourceHit[]            (matched source/provenance)
+  -> structured Claim[]              (only when rule.claim exists)
   -> [optional] localized rendering   (iztro-i18n, via claim_key)
   -> JSON export                      (serde)
 ```
@@ -35,7 +36,7 @@ The engine deliberately keeps four representations separate:
 | Classical terminology | **Chinese source text** | `SourceRef::source_text_zh_hans`, authored in the corpus TOML. |
 | Machine logic | **Rust enums / stable keys** | `ClassicalRuleId`, `ClaimDomain`, `ClaimTheme`, … Chinese strings are never logic keys. |
 | Output rendering | **Fluent `.ftl` resources** | `iztro-i18n` renders labels and claim short text from stable keys. |
-| Rule authoring | **Corpus TOML** | `crates/iztro/rule-corpus/quan-shu/rules.toml`. |
+| Rule authoring | **Corpus TOML** | `crates/iztro/rule-corpus/quan-shu/rules.toml` and `crates/iztro/rule-corpus/patterns/rules.toml`. |
 | Export | **JSON** | A serialization of claims; never the authoring source. |
 
 `iztro` never depends on `iztro-i18n`: the core crate emits stable keys and
@@ -45,20 +46,25 @@ structured facts only; localized prose lives in Fluent resources.
 
 This is intentionally **not** a generic rule DSL yet:
 
-1. **Rule metadata is data-driven** from the corpus TOML (id, source, status,
-   domain, themes, polarity, base strength, claim key).
+1. **Rule source/predicate metadata is data-driven** from the corpus TOML (id,
+   source, status, work, school).
+   Optional `[rule.claim]` metadata holds interpretation fields (domain, themes,
+   polarity, base strength, claim key).
 2. **Rule predicates are hand-coded** in `predicates.rs`, reusing the read-only
    chart query helpers in `core/pattern/` (clamp matching, brightness
    classification, star lookup) — no second copy of that logic.
 3. The `quan_shu.rs` evaluators pair each rule's metadata with its predicate and
-   build a `Claim`.
+   build a `ClassicalSourceHit`; they build a `Claim` only when `rule.claim`
+   exists.
 
 ## Conservative emission and typed diagnostics
 
-A claim is emitted **only when its condition matches on modeled chart facts**.
+A source hit is emitted **only when an executable rule condition matches on
+modeled chart facts**. A claim is emitted only for that same match when the rule
+has a `ClaimSpec`.
 Each evaluator returns a typed `RuleOutcome`:
 
-- `Emitted(Claim)` — facts modeled and the condition matched;
+- `Matched { source_hit, claim }` — facts modeled and the condition matched;
 - `NotApplicable` — facts modeled, condition did not match (no claim);
 - `Unsupported(UnsupportedReason)` — the rule is encoded but its condition is not
   yet backed by a modeled fact / defined policy.
@@ -66,9 +72,12 @@ Each evaluator returns a typed `RuleOutcome`:
 The engine exposes two entry points:
 
 - `evaluate_classical_claims(chart, &request) -> Vec<Claim>` — claims only;
-- `evaluate_classical(chart, &request) -> ClaimEvaluation { claims, diagnostics }`
-  — also returns the typed `RuleDiagnostic`s, so unsupported conditions are
+- `evaluate_classical(chart, &request) -> ClaimEvaluation { claims, source_hits, diagnostics }`
+  — also returns matched `ClassicalSourceHit`s and typed `RuleDiagnostic`s, so unsupported conditions are
   **visible**, not silently dropped.
+
+`SourceRef` remains the claim-facing citation type. `ClassicalSourceHit` is the
+evaluation-facing source/provenance record for a matched predicate.
 
 ## Request filtering and ordering
 
@@ -76,15 +85,22 @@ The engine exposes two entry points:
 `works`, `rule_ids`, and `scopes`. Each field is an allow-list; an empty vec
 imposes no constraint.
 
+Source hits are filtered only by provenance dimensions: `works`, `rule_ids`, and
+`scopes`. Domain/theme/polarity filters remain claim filters and do not suppress
+matched source provenance.
+
 Unsupported diagnostics default to `DiagnosticMode::AllUnsupported`: every
 unsupported corpus rule remains visible even when claim filters are applied.
 Callers that want a narrower UI/export surface may choose
 `DiagnosticMode::MatchingRequest`, which applies the request filters to rule
-metadata as far as possible, or `DiagnosticMode::None`, which suppresses
-diagnostics.
+metadata as far as possible. Domain/theme/polarity diagnostic filters only match
+rules that have `rule.claim`; source-only rules do not pretend to have
+interpretive metadata. `DiagnosticMode::None` suppresses diagnostics.
 
 Returned claims are sorted deterministically by
 `(scope, domain, rule_id, claim_key)`.
+Returned source hits are sorted deterministically by
+`(scope, work, source_id, source_clause_id, rule_id)`.
 
 ## Rule statuses
 
@@ -130,6 +146,8 @@ theme / polarity / source semantics a pattern detection does not.
    source_clause_id = "ma_yu_kong_wang"
    source_text_zh_hans = "马遇空亡，终身奔走"
    status = "executable"
+
+   [rule.claim]
    domain = "migration"
    themes = ["restless_movement", "instability"]
    polarity = "mixed_negative"
@@ -146,7 +164,10 @@ theme / polarity / source semantics a pattern detection does not.
 3. **Predicate.** `tian_ma_affected_by_void` finds 天马's palace and checks
    whether a void star counted by the policy shares it.
 
-4. **Claim.** On a match the evaluator emits a claim carrying
+4. **Source hit and claim.** On a match the evaluator emits a
+   `ClassicalSourceHit` carrying the QuanShu work, passage id, clause id,
+   Chinese source text, rule status, scope, and evidence. Because this rule has
+   `[rule.claim]`, it also emits a claim carrying
    `EvidenceKind::StarAffectedByVoid { star: TianMa, void_kind, branch }`, the
    corpus domain/themes/polarity/strength, the `SourceRef` (Chinese text), and
    `claim_key`.
@@ -170,6 +191,10 @@ inventory (`crates/iztro/rule-corpus/quan-shu/source/`); `source_clause_id`
 identifies an individual candidate phrase (a *clause*) within that passage. One
 passage can hold several clauses, each linking zero or more rules — this is what
 lets the inventory scale beyond one item per rule.
+
+For QuanShu rules, `ClassicalSourceHit` cites the classical passage/clause. For
+pattern-catalog rules, it cites the project-owned `pattern.*` metadata entry
+instead; those pattern entries are not tracked by the QuanShu source inventory.
 
 The source inventory is **corpus-governance data, not runtime data**: nothing in
 `src/` parses it, `evaluate_classical` never depends on it, and the Markdown

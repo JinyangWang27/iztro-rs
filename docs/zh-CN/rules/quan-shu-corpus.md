@@ -31,11 +31,22 @@ crates/iztro/rule-corpus/quan-shu/rules.toml
 | `normalized_note_zh_hans` | 字符串（可选） | 规范化注记，说明该句如何被解读为规则。 |
 | `status` | 枚举 | 编码成熟度，见下。 |
 | `school` | 枚举（可选） | 流派，缺省 `general`。 |
+| `claim` | 表（可选） | 判断元数据。存在时，命中的可执行规则会在 `ClassicalSourceHit` 之外再产出 `Claim`；不存在时只记录出处命中。 |
+
+`[rule.claim]` 字段如下：
+
+| 字段 | 类型 | 说明 |
+| --- | --- | --- |
 | `domain` | 枚举 | 判断领域（`migration`、`life`、`wealth`……）。 |
 | `themes` | 枚举数组 | 判断主题（`restless_movement`、`instability`……）。 |
 | `polarity` | 枚举 | 吉凶（`positive`/`negative`/`mixed`/`mixed_positive`/`mixed_negative`）。 |
 | `base_strength` | 浮点 | 基础强度，规范化到 `0.0..=1.0`。 |
 | `claim_key` | 字符串 | 渲染本地化短文所用的 i18n 键（点分形式）。 |
+
+命中的可执行规则一定会先产出 `ClassicalSourceHit`，记录 `work`、`source_id`、
+`source_clause_id`、中文原文、状态、scope 与证据。`Claim` 是解释性语义输出，必须有
+`[rule.claim]` 才会产出。全书规则的 source hit 引用典籍 clause；pattern 目录规则的
+source hit 引用项目自有的 `pattern.*` 元数据条目。
 
 ## 关于枚举大小写
 
@@ -64,7 +75,8 @@ crates/iztro/rule-corpus/quan-shu/rules.toml
 | `rejected` | 不予采用。 |
 
 并非每句全书原文都能立即可执行。当某条规则的条件尚未建模时，应将其标为非
-`executable`，其评估器返回类型化的 `Unsupported` 诊断（例如禄马交驰）。
+`executable`，其评估器返回类型化的 `Unsupported` 诊断（例如禄马交驰）。不支持规则
+只产出 `RuleDiagnostic`，不产出 `ClassicalSourceHit`。
 
 ## 当前试点规则
 
@@ -100,9 +112,11 @@ PR 可以只新增未链接 clause（`linked_rule_ids = []`，表示已分句但
 ## 新增规则的步骤
 
 1. 在 `rules.toml` 中新增 `[[rule]]`，填好上述字段（中文原文必填）。
-2. 若可执行：在 `predicates.rs` 写谓词（尽量复用 `core/pattern` 助手），在
-   `quan_shu.rs` 接线产出 `Claim`。
-3. 在 `iztro-i18n` 的 `claims.ftl`（en-US 与 zh-Hans）中补齐 `claim_key`（连字符
-   形式）及任何新主题/领域键。
-4. 加测试：正例、反例，以及（若条件尚未建模）类型化的 `Unsupported` 诊断用例。
-5. 更新中英文档。
+2. 若该规则要产出解释性判断，新增 `[rule.claim]`；若只是先记录来源命中，可暂不加。
+3. 若可执行：在 `predicates.rs` 写谓词（尽量复用 `core/pattern` 助手），在评估器中
+   接线产出 `ClassicalSourceHit`，并在有 `[rule.claim]` 时产出 `Claim`。
+4. 若新增了 `claim_key`，在 `iztro-i18n` 的 `claims.ftl`（en-US 与 zh-Hans）中补齐
+   连字符形式的键及任何新主题/领域键。
+5. 加测试：正例、反例、source hit 输出，以及（若条件尚未建模）类型化的
+   `Unsupported` 诊断用例。
+6. 更新中英文档。
