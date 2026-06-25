@@ -704,3 +704,258 @@ notes_zh_hans = "同一断语（会合于宫+应验），暂作单条 clause 不
 clause_id = "tai_yang_hui_wen_chang"
 text_zh_hans = "太阳会文昌于官禄，皇殿朝班，富贵全美"
 linked_rule_ids = []
+
+[[source_item]]
+source_id = "quan_shu.v01.tai_wei_fu.034"
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "太微赋"
+category = "aphorism_rule"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "太微赋"
+source_text_zh_hans = "太阴会文曲于妻宫，蟾宫折桂，文章全盛。"
+notes_zh_hans = "同一断语（会合于宫+应验），暂作单条 clause 不再细分。"
+
+[[source_item.clause]]
+clause_id = "tai_yin_hui_wen_qu"
+text_zh_hans = "太阴会文曲于妻宫，蟾宫折桂，文章全盛"
+linked_rule_ids = []
+
+[[source_item]]
+source_id = "quan_shu.v01.tai_wei_fu.035"
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "太微赋"
+category = "aphorism_rule"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "太微赋"
+source_text_zh_hans = "禄存守于田财，堆金积玉。财荫坐于迁移，巨商高贾。"
+
+[[source_item.clause]]
+clause_id = "lu_cun_tian_cai"
+text_zh_hans = "禄存守于田财，堆金积玉"
+linked_rule_ids = []
+
+[[source_item.clause]]
+clause_id = "cai_yin_qian_yi"
+text_zh_hans = "财荫坐于迁移，巨商高贾"
+linked_rule_ids = []
+
+[[source_item]]
+source_id = "quan_shu.v01.tai_wei_fu.036"
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "太微赋"
+category = "aphorism_rule"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "太微赋"
+source_text_zh_hans = "耗居禄位，沿途乞食。贪会旺宫，终身鼠窃。"
+
+[[source_item.clause]]
+clause_id = "hao_ju_lu_wei"
+text_zh_hans = "耗居禄位，沿途乞食"
+linked_rule_ids = []
+
+[[source_item.clause]]
+clause_id = "tan_hui_wang_gong"
+text_zh_hans = "贪会旺宫，终身鼠窃"
+linked_rule_ids = []
+
+[[source_item]]
+source_id = "quan_shu.v01.tai_wei_fu.037"
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "太微赋"
+category = "aphorism_rule"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "太微赋"
+source_text_zh_hans = "杀居绝地，天年夭似颜回。贪坐生乡，寿考永如彭祖。"
+
+[[source_item.clause]]
+clause_id = "sha_ju_jue_di"
+text_zh_hans = "杀居绝地，天年夭似颜回"
+linked_rule_ids = []
+
+[[source_item.clause]]
+clause_id = "tan_zuo_sheng_xiang"
+text_zh_hans = "贪坐生乡，寿考永如彭祖"
+linked_rule_ids = []
+
+[[source_item]]
+source_id = "quan_shu.v01.tai_wei_fu.038"
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "太微赋"
+category = "aphorism_rule"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "太微赋"
+source_text_zh_hans = "忌暗同居身命疾厄，沉困尪赢，凶星会于父母迁移，刑伤破祖。"
+
+[[source_item.clause]]
+clause_id = "ji_an_tong_ju"
+text_zh_hans = "忌暗同居身命疾厄，沉困尪赢"
+linked_rule_ids = []
+
+[[source_item.clause]]
+clause_id = "xiong_xing_fu_mu_qian_yi"
+text_zh_hans = "凶星会于父母迁移，刑伤破祖"
+linked_rule_ids = []
+
+[[source_item]]
+source_id = "quan_shu.v01.tai_wei_fu.039"
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "太微赋"
+category = "aphorism_rule"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "太微赋"
+source_text_zh_hans = "刑杀同廉贞于官禄，枷扭难逃，官符加刑杀于迁移，离乡遭配。"
+
+[[source_item.clause]]
+clause_id = "xing_sha_lian_zhen"
+text_zh_hans = "刑杀同廉贞于官禄，枷扭难逃"
+linked_rule_ids = []
+
+[[source_item.clause]]
+clause_id = "guan_fu_xing_sha"
+text_zh_hans = "官符加刑杀于迁移，离乡遭配"
+linked_rule_ids = []
+
+[[source_item]]
+source_id = "quan_shu.v01.tai_wei_fu.040"
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "太微赋"
+category = "aphorism_rule"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "太微赋"
+source_text_zh_hans = "善福居空位，天竺生涯。辅弼单守命宫，离宗庶出。"
+
+[[source_item.clause]]
+clause_id = "shan_fu_ju_kong"
+text_zh_hans = "善福居空位，天竺生涯"
+linked_rule_ids = []
+
+[[source_item.clause]]
+clause_id = "fu_bi_dan_shou"
+text_zh_hans = "辅弼单守命宫，离宗庶出"
+linked_rule_ids = []
+
+[[source_item]]
+source_id = "quan_shu.v01.tai_wei_fu.041"
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "太微赋"
+category = "aphorism_rule"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "太微赋"
+source_text_zh_hans = "七杀临于身命加恶杀，必定死亡。铃羊合于命宫遇白虎，须当刑戮。"
+
+[[source_item.clause]]
+clause_id = "sha_lin_shen_ming"
+text_zh_hans = "七杀临于身命加恶杀，必定死亡"
+linked_rule_ids = []
+
+[[source_item.clause]]
+clause_id = "ling_yang_he_ming"
+text_zh_hans = "铃羊合于命宫遇白虎，须当刑戮"
+linked_rule_ids = []
+
+[[source_item]]
+source_id = "quan_shu.v01.tai_wei_fu.042"
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "太微赋"
+category = "aphorism_rule"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "太微赋"
+source_text_zh_hans = "官府发于吉曜，流杀怕逢破军。羊陀凭太岁以引行，病符官符皆作祸。"
+
+[[source_item.clause]]
+clause_id = "guan_fu_fa_ji_yao"
+text_zh_hans = "官府发于吉曜，流杀怕逢破军"
+linked_rule_ids = []
+
+[[source_item.clause]]
+clause_id = "yang_tuo_ping_tai_sui"
+text_zh_hans = "羊陀凭太岁以引行，病符官符皆作祸"
+linked_rule_ids = []
+
+[[source_item]]
+source_id = "quan_shu.v01.tai_wei_fu.043"
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "太微赋"
+category = "aphorism_rule"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "太微赋"
+source_text_zh_hans = "奏书博士与流禄，尽作吉祥。力士将军同青龙，显其权势。"
+
+[[source_item.clause]]
+clause_id = "zou_shu_bo_shi"
+text_zh_hans = "奏书博士与流禄，尽作吉祥"
+linked_rule_ids = []
+
+[[source_item.clause]]
+clause_id = "li_shi_jiang_jun"
+text_zh_hans = "力士将军同青龙，显其权势"
+linked_rule_ids = []
+
+[[source_item]]
+source_id = "quan_shu.v01.tai_wei_fu.044"
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "太微赋"
+category = "aphorism_rule"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "太微赋"
+source_text_zh_hans = "童子限如水上泡沤，老人限似风中燃烛。遇杀无制乃流年最忌，"
+notes_zh_hans = "末句「遇杀无制乃流年最忌」在原书与下一行（045）连读，此处依 Markdown 分行保留本行用字（含行末逗号）。"
+
+[[source_item.clause]]
+clause_id = "tong_zi_xian"
+text_zh_hans = "童子限如水上泡沤，老人限似风中燃烛"
+linked_rule_ids = []
+
+[[source_item.clause]]
+clause_id = "yu_sha_wu_zhi"
+text_zh_hans = "遇杀无制乃流年最忌"
+linked_rule_ids = []
+
+[[source_item]]
+source_id = "quan_shu.v01.tai_wei_fu.045"
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "太微赋"
+category = "aphorism_rule"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "太微赋"
+source_text_zh_hans = "人生荣辱限元必有休咎，处世孤贫数中逢乎驳杂，学至此诚玄微矣。"
+notes_zh_hans = "承接 044 末句连读；末句「学至此诚玄微矣」为太微赋例曰之收束语，非断语。"
+
+[[source_item.clause]]
+clause_id = "ren_sheng_rong_ru"
+text_zh_hans = "人生荣辱限元必有休咎"
+linked_rule_ids = []
+
+[[source_item.clause]]
+clause_id = "chu_shi_gu_pin"
+text_zh_hans = "处世孤贫数中逢乎驳杂"
+linked_rule_ids = []
+
+[[source_item.clause]]
+clause_id = "xue_zhi_ci_xuan_wei"
+text_zh_hans = "学至此诚玄微矣"
+linked_rule_ids = []
