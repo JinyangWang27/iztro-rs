@@ -70,6 +70,21 @@ pub enum RuleSchool {
     General,
 }
 
+/// Optional interpretation metadata for a rule that can produce a claim.
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
+pub struct ClaimSpec {
+    /// Claim domain this rule produces.
+    pub domain: ClaimDomain,
+    /// Claim themes this rule produces.
+    pub themes: Vec<ClaimTheme>,
+    /// Claim polarity this rule produces.
+    pub polarity: ClaimPolarity,
+    /// Base claim strength before any modifiers.
+    pub base_strength: f32,
+    /// The i18n key used to render the produced claim's localized text.
+    pub claim_key: String,
+}
+
 /// Metadata for one classical rule, authored in `rule-corpus/`.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct ClassicalRule {
@@ -96,16 +111,10 @@ pub struct ClassicalRule {
     /// Interpretive school.
     #[serde(default)]
     pub school: RuleSchool,
-    /// Claim domain this rule produces.
-    pub domain: ClaimDomain,
-    /// Claim themes this rule produces.
-    pub themes: Vec<ClaimTheme>,
-    /// Claim polarity this rule produces.
-    pub polarity: ClaimPolarity,
-    /// Base claim strength before any modifiers.
-    pub base_strength: f32,
-    /// The i18n key used to render the produced claim's localized text.
-    pub claim_key: String,
+    /// Optional interpretation metadata. Rules without a claim still produce
+    /// source hits when their executable predicate matches.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub claim: Option<ClaimSpec>,
 }
 
 impl ClassicalRule {
