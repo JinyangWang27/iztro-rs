@@ -59,3 +59,557 @@ themes = ["work_pressure", "instability"]
 polarity = "negative"
 base_strength = 0.55
 claim_key = "claim.life.ri-yue-fan-bei.hardship-pressure"
+
+# --- 太微赋规范化补全（normalization map）---
+# 以下规则把 volume-01.toml 中其余太微赋 clause 全部链接到运行时规则元数据。
+# 多数为 normalized/ambiguous（尚未建模为可执行谓词），可执行覆盖刻意保守。
+# 这些规则均无 [rule.claim]：未实现前不臆测领域/主题/吉凶。
+
+[[rule]]
+id = "wealth.lu_feng_chong_po.fortune_undermined"
+source_id = "quan_shu.v01.tai_wei_fu.001"
+source_clause_id = "lu_feng_chong_po"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "禄逢冲破，吉处藏凶"
+normalized_note_zh_hans = "禄存或化禄逢『冲破』（空亡、煞星冲照等）则吉中藏凶。『冲破』的判定（取空亡、四煞、对宫冲照中的哪些）随流派而异，尚未建模为确定图盘事实，待明确判定口径后再实现。"
+status = "ambiguous"
+
+[[rule]]
+id = "fortune.sheng_feng_bai_di.illusory_bloom"
+source_id = "quan_shu.v01.tai_wei_fu.002"
+source_clause_id = "sheng_feng_bai_di"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "生逢败地，发也虚花"
+normalized_note_zh_hans = "句意结构：星曜（或命）落于十二长生之『败（沐浴）』地，则发达虚浮不实。十二长生神尚未建模，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "fortune.jue_chu_feng_sheng.revival"
+source_id = "quan_shu.v01.tai_wei_fu.002"
+source_clause_id = "jue_chu_feng_sheng"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "绝处逢生，生花不败"
+normalized_note_zh_hans = "句意结构：落于十二长生之『绝』地却逢『长生』救应，则转危为安、不败。与上句同属十二长生体系，该体系尚未建模，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "method.xing_lin_miao_wang.brightness_then_relation"
+source_id = "quan_shu.v01.tai_wei_fu.003"
+source_clause_id = "xing_lin_miao_wang"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "星临庙旺，再观生克之机"
+normalized_note_zh_hans = "方法论指引：星入庙旺后仍须参看五行生克，非单一应验断语。亮度（庙旺）已建模，但五行生克之机尚未建模，且本句不产出确定判断，故标为歧义。"
+status = "ambiguous"
+
+[[rule]]
+id = "method.ming_zuo_qiang_gong.restraint_transformation"
+source_id = "quan_shu.v01.tai_wei_fu.003"
+source_clause_id = "ming_zuo_qiang_gong"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "命坐强宫，细察制化之理"
+normalized_note_zh_hans = "方法论指引：命坐强宫仍须细察五行制化之理，非单一应验断语。五行制化尚未建模，且本句不产出确定判断，故标为歧义。"
+status = "ambiguous"
+
+[[rule]]
+id = "fortune.tang_ju_kong_wang.gain_loss_critical"
+source_id = "quan_shu.v01.tai_wei_fu.005"
+source_clause_id = "tang_ju_kong_wang"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "倘居空亡，得失最为要紧"
+normalized_note_zh_hans = "句意结构：命或星居空亡之地，得失利害最须权衡。空亡已由 VoidPolicy 建模，但本句仅为『须重点权衡得失』之提示，未给出确定吉凶，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "fortune.ruo_feng_bai_di.support_turnaround"
+source_id = "quan_shu.v01.tai_wei_fu.005"
+source_clause_id = "ruo_feng_bai_di"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "若逢败地，扶持大有奇功"
+normalized_note_zh_hans = "句意结构：落于败地若得吉星或贵人扶持，反有奇功。败地（十二长生）与『扶持』的聚合尚未建模，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "status.zi_fu_yi_fu_bi.needs_assistant_stars"
+source_id = "quan_shu.v01.tai_wei_fu.006"
+source_clause_id = "zi_fu_yi_fu_bi"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "紫微天府全依辅弼之功"
+normalized_note_zh_hans = "句意结构：紫微、天府须得左辅右弼辅佐（同宫、夹或会照）方显其功。辅佐关系的具体形态尚未建模为确定图盘事实，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "risk.sha_po_yi_yang_ling.malefic_aggravation"
+source_id = "quan_shu.v01.tai_wei_fu.006"
+source_clause_id = "sha_po_yi_yang_ling"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "七杀破军专依羊铃之虐"
+normalized_note_zh_hans = "句意结构：七杀、破军遇擎羊、铃星则凶性逞虐。星曜同宫或会照关系尚未为本规则建模，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "fortune.zhu_xing_ji.benefic_dominance"
+source_id = "quan_shu.v01.tai_wei_fu.007"
+source_clause_id = "zhu_xing_ji"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "诸星吉，逢凶也吉"
+normalized_note_zh_hans = "句意结构：众吉星会聚，即便逢凶星亦能化吉。需要对全盘吉凶星作加权聚合，尚未建模，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "fortune.zhu_xing_xiong.malefic_dominance"
+source_id = "quan_shu.v01.tai_wei_fu.007"
+source_clause_id = "zhu_xing_xiong"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "诸星凶，逢凶也凶"
+normalized_note_zh_hans = "句意结构：众凶星会聚，逢凶则更凶。需要对全盘吉凶星作加权聚合，尚未建模，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "status.fu_bi_jia_di.top_grade"
+source_id = "quan_shu.v01.tai_wei_fu.008"
+source_clause_id = "fu_bi_jia_di"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "辅弼夹帝为上品"
+normalized_note_zh_hans = "句意结构：左辅右弼夹紫微（帝），为上品贵格。夹宫结构可复用 clamp 助手，但目标为紫微所在宫而非命宫，尚未接线，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "relationship.tao_hua_fan_zhu.excess_romance"
+source_id = "quan_shu.v01.tai_wei_fu.008"
+source_clause_id = "tao_hua_fan_zhu"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "桃花犯主为至淫"
+normalized_note_zh_hans = "桃花诸星犯紫微（主）则主淫。『桃花星』集合（廉贞、贪狼、咸池、红鸾、天姚等）与『犯』的判定随流派而异，尚未建模，故标为歧义。"
+status = "ambiguous"
+
+[[rule]]
+id = "status.jun_chen_qing_hui.statesmanship"
+source_id = "quan_shu.v01.tai_wei_fu.009"
+source_clause_id = "jun_chen_qing_hui"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "君臣庆会，材善经邦"
+normalized_note_zh_hans = "句意结构：紫微（君）与辅弼、府相等（臣）庆会，主经邦之才。『君臣庆会』为复合星群格局，其构成随流派略异，聚合形态尚未建模，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "status.kui_yue_tong_xing.office_support"
+source_id = "quan_shu.v01.tai_wei_fu.010"
+source_clause_id = "kui_yue_tong_xing"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "魁钺同行，位居台辅"
+normalized_note_zh_hans = "句意结构：天魁、天钺同行（同宫或夹拱），主位居台辅之贵。魁钺同宫或夹拱关系尚未为本规则建模，故暂不可执行；为后续可执行的有力候选。"
+status = "normalized"
+
+[[rule]]
+id = "status.lu_wen_gong_ming.noble_and_virtuous"
+source_id = "quan_shu.v01.tai_wei_fu.011"
+source_clause_id = "lu_wen_gong_ming"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "禄文拱命，贵而且贤"
+normalized_note_zh_hans = "句意结构：禄（禄存或化禄）与文昌、文曲拱命，主既贵且贤。三方拱照关系尚未为本规则建模，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "wealth.ri_yue_jia_cai.authority_or_wealth"
+source_id = "quan_shu.v01.tai_wei_fu.012"
+source_clause_id = "ri_yue_jia_cai"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "日月夹财，不权则富"
+normalized_note_zh_hans = "句意结构：太阳、太阴夹财帛宫，不掌权即主富。夹宫结构可复用 clamp 助手，但目标为财帛宫而非命宫，尚未接线，故暂不可执行；为后续可执行的有力候选。"
+status = "normalized"
+
+[[rule]]
+id = "risk.ma_tou_dai_jian.border_command"
+source_id = "quan_shu.v01.tai_wei_fu.013"
+source_clause_id = "ma_tou_dai_jian"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "马头带剑，镇卫边疆"
+normalized_note_zh_hans = "天马带擎羊（剑），主镇守边疆之武职。『马头带剑』定义随流派而异（或指午宫擎羊，或天马擎羊同宫，或特定宫位），口径未定，故标为歧义。"
+status = "ambiguous"
+
+[[rule]]
+id = "risk.xing_qiu_jia_yin.judicial_punishment"
+source_id = "quan_shu.v01.tai_wei_fu.014"
+source_clause_id = "xing_qiu_jia_yin"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "刑囚夹印，刑杖惟司"
+normalized_note_zh_hans = "句意结构：擎羊（刑）、廉贞（囚）夹天相（印），主刑杖司法之事。复合夹宫结构尚未建模，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "temperament.shan_yin_chao_gang.benevolent_leader"
+source_id = "quan_shu.v01.tai_wei_fu.015"
+source_clause_id = "shan_yin_chao_gang"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "善荫朝纲，仁慈之长"
+normalized_note_zh_hans = "句意结构：善（天机）、荫（天梁）朝拱命垣，主仁慈之长者。星曜化气对应与朝拱关系尚未为本规则建模，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "status.gui_ru_gui_xiang.nobility"
+source_id = "quan_shu.v01.tai_wei_fu.016"
+source_clause_id = "gui_ru_gui_xiang"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "贵入贵乡，逢之富贵"
+normalized_note_zh_hans = "贵人星入贵乡，逢之主富贵。『贵乡』的界定（庙旺之地、特定贵宫或三方贵格）不明确，随流派而异，故标为歧义。"
+status = "ambiguous"
+
+[[rule]]
+id = "wealth.cai_ju_cai_wei.affluence"
+source_id = "quan_shu.v01.tai_wei_fu.017"
+source_clause_id = "cai_ju_cai_wei"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "财居财位，遇者富奢"
+normalized_note_zh_hans = "句意结构：财星（武曲、天府等）居财帛宫（财位），主富奢。财星集合与本命财帛宫的判定尚未为本规则建模，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "career.tai_yang_ju_wu.authority_status"
+source_id = "quan_shu.v01.tai_wei_fu.018"
+source_clause_id = "tai_yang_ju_wu"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "太阳居午，谓之日丽中天，有专权之贵，敌国之富"
+normalized_note_zh_hans = "句意结构：太阳居午宫，谓之『日丽中天』，主专权之贵、敌国之富。太阳在午为单纯入位事实（午为太阳庙地），是后续可执行的有力候选；本批次保守起见暂不接线。"
+status = "normalized"
+
+[[rule]]
+id = "career.tai_yin_ju_zi.clean_office_admonition"
+source_id = "quan_shu.v01.tai_wei_fu.019"
+source_clause_id = "tai_yin_ju_zi"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "太阴居子，号曰水澄桂萼，得清要之职，忠谏之材"
+normalized_note_zh_hans = "句意结构：太阴居子宫，号曰『水澄桂萼』，主清要之职、忠谏之材。太阴在子为单纯入位事实，是后续可执行的有力候选；本批次保守起见暂不接线。"
+status = "normalized"
+
+[[rule]]
+id = "status.zi_wei_fu_bi_tong_gong.commanding_leader"
+source_id = "quan_shu.v01.tai_wei_fu.020"
+source_clause_id = "zi_wei_fu_bi_tong_gong"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "紫微辅弼同宫，一呼百诺居上品"
+normalized_note_zh_hans = "句意结构：紫微与左辅右弼同宫，主一呼百诺、居上品。三星同宫为可建模事实，尚未接线，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "career.wen_hao_ju_yin_mao.water_flows_east"
+source_id = "quan_shu.v01.tai_wei_fu.020"
+source_clause_id = "wen_hao_ju_yin_mao"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "文耗居寅卯，谓之众水朝东"
+normalized_note_zh_hans = "文（文曲）、耗（破军或大耗）居寅卯，谓之『众水朝东』。『文』『耗』所指与该格象义晦涩、随流派而异，故标为歧义。"
+status = "ambiguous"
+
+[[rule]]
+id = "method.ri_yue_shou_zhao_he.illumination_over_sitting"
+source_id = "quan_shu.v01.tai_wei_fu.021"
+source_clause_id = "ri_yue_shou_zhao_he"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "日月守不如照合"
+normalized_note_zh_hans = "方法论结构：太阳太阴坐守命垣，不如三方照合为佳。坐守与照合的优劣比较为解读取向，尚未建模为确定判断，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "fortune.yin_fu_ju.protection_from_harm"
+source_id = "quan_shu.v01.tai_wei_fu.021"
+source_clause_id = "yin_fu_ju"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "荫福聚不怕凶危"
+normalized_note_zh_hans = "句意结构：荫（天梁）、福（天同或福德）聚会，不惧凶危（逢凶化吉）。星曜化气对应与聚会关系尚未建模，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "relationship.tan_ju_hai_zi.water_romance"
+source_id = "quan_shu.v01.tai_wei_fu.022"
+source_clause_id = "tan_ju_hai_zi"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "贪居亥子，名为犯水桃花"
+normalized_note_zh_hans = "句意结构：贪狼居亥、子（水乡），名为『泛水桃花』，主淫。贪狼在亥或子为单纯入位事实，尚未为本规则接线，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "relationship.xing_yu_tan_lang.romance_with_penalty"
+source_id = "quan_shu.v01.tai_wei_fu.022"
+source_clause_id = "xing_yu_tan_lang"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "刑遇贪狼，号曰风流彩杖"
+normalized_note_zh_hans = "句意结构：擎羊（刑）与贪狼同会，号曰『风流彩杖』，主桃花带刑。星曜同宫或会照关系尚未为本规则建模，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "risk.sha_lian_tong_wei.violent_death"
+source_id = "quan_shu.v01.tai_wei_fu.023"
+source_clause_id = "sha_lian_tong_wei"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "七杀廉贞同位，路上埋尸"
+normalized_note_zh_hans = "句意结构：七杀与廉贞同宫，主凶死横祸（路上埋尸）。二星同宫为可建模事实，尚未接线，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "risk.po_an_tong_xiang.drowning_risk"
+source_id = "quan_shu.v01.tai_wei_fu.023"
+source_clause_id = "po_an_tong_xiang"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "破军暗曜同乡，水中作冢"
+normalized_note_zh_hans = "句意结构：破军与暗曜（巨门）同宫，主水厄（水中作冢）。『暗曜』所指（巨门）与同宫关系尚未为本规则建模，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "wealth.lu_ju_nu_pu.toil_for_others"
+source_id = "quan_shu.v01.tai_wei_fu.024"
+source_clause_id = "lu_ju_nu_pu"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "禄居奴仆纵有官也奔驰"
+normalized_note_zh_hans = "句意结构：禄存或化禄落奴仆宫（交友宫），纵有官位亦为他人奔走。星入特定宫位为可建模事实，尚未接线，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "status.di_yu_xiong_tu.power_without_virtue"
+source_id = "quan_shu.v01.tai_wei_fu.024"
+source_clause_id = "di_yu_xiong_tu"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "帝遇凶徒虽获吉而无道"
+normalized_note_zh_hans = "句意结构：紫微（帝）遇凶星而无吉辅，虽得吉亦行事无道。『凶徒』集合与无吉辅的聚合判定尚未建模，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "status.di_zuo_jin_che.imperial_carriage"
+source_id = "quan_shu.v01.tai_wei_fu.025"
+source_clause_id = "di_zuo_jin_che"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "帝坐金车则曰金轝捧栉"
+normalized_note_zh_hans = "紫微（帝）坐『金车』则曰『金轝捧栉』之贵。『金车』所指无明确星曜或宫位对应，术语晦涩，故标为歧义。"
+status = "ambiguous"
+
+[[rule]]
+id = "fortune.fu_an_wen_yao.refined_blessing"
+source_id = "quan_shu.v01.tai_wei_fu.025"
+source_clause_id = "fu_an_wen_yao"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "福安文曜谓之玉袖天香"
+normalized_note_zh_hans = "句意结构：福德宫安文曜（文昌、文曲），谓之『玉袖天香』，主才情之福。福德宫与文曜的判定尚未为本规则建模，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "career.tai_yang_hui_wen_chang.court_honor"
+source_id = "quan_shu.v01.tai_wei_fu.026"
+source_clause_id = "tai_yang_hui_wen_chang"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "太阳会文昌于官禄，皇殿朝班，富贵全美"
+normalized_note_zh_hans = "句意结构：太阳会文昌于官禄宫，主皇殿朝班、富贵全美。星曜会于特定宫位为可建模事实，尚未接线，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "career.tai_yin_hui_wen_qu.literary_eminence"
+source_id = "quan_shu.v01.tai_wei_fu.027"
+source_clause_id = "tai_yin_hui_wen_qu"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "太阴会文曲于妻宫，蟾宫折桂，文章全盛"
+normalized_note_zh_hans = "句意结构：太阴会文曲于夫妻宫，主蟾宫折桂、文章全盛。星曜会于特定宫位为可建模事实，尚未接线，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "wealth.lu_cun_tian_cai.asset_accumulation"
+source_id = "quan_shu.v01.tai_wei_fu.028"
+source_clause_id = "lu_cun_tian_cai"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "禄存守于田财，堆金积玉"
+normalized_note_zh_hans = "句意结构：禄存守田宅或财帛宫（田财），主堆金积玉。禄存入特定宫位为可建模事实，尚未接线，故暂不可执行；为后续可执行的有力候选。"
+status = "normalized"
+
+[[rule]]
+id = "wealth.cai_yin_qian_yi.merchant_success"
+source_id = "quan_shu.v01.tai_wei_fu.028"
+source_clause_id = "cai_yin_qian_yi"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "财荫坐于迁移，巨商高贾"
+normalized_note_zh_hans = "句意结构：财（武曲）、荫（天梁）坐迁移宫，主巨商高贾。『财荫』星曜化气对应与迁移宫判定尚未为本规则建模，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "wealth.hao_ju_lu_wei.poverty"
+source_id = "quan_shu.v01.tai_wei_fu.029"
+source_clause_id = "hao_ju_lu_wei"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "耗居禄位，沿途乞食"
+normalized_note_zh_hans = "句意结构：耗星（大耗或破军）居禄位，主沿途乞食之贫。『耗』『禄位』的界定与同宫判定尚未为本规则建模，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "risk.tan_hui_wang_gong.thievery"
+source_id = "quan_shu.v01.tai_wei_fu.029"
+source_clause_id = "tan_hui_wang_gong"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "贪会旺宫，终身鼠窃"
+normalized_note_zh_hans = "贪狼会旺宫，主终身鼠窃之性。『旺宫』的界定（庙旺之地或特定宫位）不明确，随流派而异，故标为歧义。"
+status = "ambiguous"
+
+[[rule]]
+id = "risk.sha_ju_jue_di.early_death"
+source_id = "quan_shu.v01.tai_wei_fu.030"
+source_clause_id = "sha_ju_jue_di"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "杀居绝地，天年夭似颜回"
+normalized_note_zh_hans = "句意结构：七杀居十二长生之『绝』地，主寿夭。十二长生神尚未建模，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "fortune.tan_zuo_sheng_xiang.longevity"
+source_id = "quan_shu.v01.tai_wei_fu.030"
+source_clause_id = "tan_zuo_sheng_xiang"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "贪坐生乡，寿考永如彭祖"
+normalized_note_zh_hans = "句意结构：贪狼坐十二长生之『生』地，主长寿。十二长生神尚未建模，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "health.ji_an_tong_ju.chronic_illness"
+source_id = "quan_shu.v01.tai_wei_fu.031"
+source_clause_id = "ji_an_tong_ju"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "忌暗同居身命疾厄，沉困尪赢"
+normalized_note_zh_hans = "句意结构：化忌与暗曜（巨门）同居身命或疾厄宫，主久病体弱（沉困尪赢）。四化已建模，但『暗曜』判定与多宫聚合尚未为本规则接线，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "risk.xiong_xing_fu_mu_qian_yi.family_harm"
+source_id = "quan_shu.v01.tai_wei_fu.031"
+source_clause_id = "xiong_xing_fu_mu_qian_yi"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "凶星会于父母迁移，刑伤破祖"
+normalized_note_zh_hans = "句意结构：凶星会于父母、迁移宫，主刑伤破祖。『凶星』集合与多宫会照判定尚未为本规则建模，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "risk.xing_sha_lian_zhen.imprisonment"
+source_id = "quan_shu.v01.tai_wei_fu.032"
+source_clause_id = "xing_sha_lian_zhen"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "刑杀同廉贞于官禄，枷扭难逃"
+normalized_note_zh_hans = "句意结构：擎羊（刑）、七杀同廉贞于官禄宫，主牢狱（枷扭难逃）。复合星群于特定宫位的判定尚未建模，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "risk.guan_fu_xing_sha.exile"
+source_id = "quan_shu.v01.tai_wei_fu.032"
+source_clause_id = "guan_fu_xing_sha"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "官符加刑杀于迁移，离乡遭配"
+normalized_note_zh_hans = "官符加刑杀于迁移宫，主离乡遭配（流放）。『官符』为流年杂曜，依太岁起例，尚未建模；流曜口径随流派而异，故标为歧义。"
+status = "ambiguous"
+
+[[rule]]
+id = "fortune.shan_fu_ju_kong.monastic_life"
+source_id = "quan_shu.v01.tai_wei_fu.033"
+source_clause_id = "shan_fu_ju_kong"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "善福居空位，天竺生涯"
+normalized_note_zh_hans = "句意结构：善（天机）、福（天同）居空亡之位，主出家入道（天竺生涯）。星曜化气对应与空亡聚合尚未为本规则建模，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "life.fu_bi_dan_shou.illegitimate_or_adopted"
+source_id = "quan_shu.v01.tai_wei_fu.033"
+source_clause_id = "fu_bi_dan_shou"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "辅弼单守命宫，离宗庶出"
+normalized_note_zh_hans = "句意结构：左辅或右弼单守命宫（辅弼不成对），主离宗庶出。『单守』（仅一颗入命）判定尚未为本规则建模，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "risk.sha_lin_shen_ming.fatal_affliction"
+source_id = "quan_shu.v01.tai_wei_fu.034"
+source_clause_id = "sha_lin_shen_ming"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "七杀临于身命加恶杀，必定死亡"
+normalized_note_zh_hans = "句意结构：七杀临身命再加恶煞（羊陀火铃），主死亡之危。七杀入命与恶煞聚合判定尚未为本规则接线，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "risk.ling_yang_he_ming.execution_risk"
+source_id = "quan_shu.v01.tai_wei_fu.034"
+source_clause_id = "ling_yang_he_ming"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "铃羊合于命宫遇白虎，须当刑戮"
+normalized_note_zh_hans = "铃星、擎羊合于命宫又遇白虎，主刑戮。『白虎』为流年杂曜，依太岁起例，尚未建模；流曜口径随流派而异，故标为歧义。"
+status = "ambiguous"
+
+[[rule]]
+id = "risk.guan_fu_fa_ji_yao.annual_malefic"
+source_id = "quan_shu.v01.tai_wei_fu.035"
+source_clause_id = "guan_fu_fa_ji_yao"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "官府发于吉曜，流杀怕逢破军"
+normalized_note_zh_hans = "官府发于吉曜、流杀怕逢破军。『官府』『流杀』为流年杂曜，依太岁或流年起例，尚未建模，故标为歧义。"
+status = "ambiguous"
+
+[[rule]]
+id = "risk.yang_tuo_ping_tai_sui.annual_misfortune"
+source_id = "quan_shu.v01.tai_wei_fu.035"
+source_clause_id = "yang_tuo_ping_tai_sui"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "羊陀凭太岁以引行，病符官符皆作祸"
+normalized_note_zh_hans = "流羊、流陀凭太岁引动，病符、官符皆作祸。涉及流羊陀、太岁及病符官符等流年杂曜，尚未建模，故标为歧义。"
+status = "ambiguous"
+
+[[rule]]
+id = "fortune.zou_shu_bo_shi.auspicious_minor_stars"
+source_id = "quan_shu.v01.tai_wei_fu.036"
+source_clause_id = "zou_shu_bo_shi"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "奏书博士与流禄，尽作吉祥"
+normalized_note_zh_hans = "奏书、博士与流禄，俱主吉祥。奏书、博士属博士十二神（随流年起例），流禄为流曜，均尚未建模，故标为歧义。"
+status = "ambiguous"
+
+[[rule]]
+id = "status.li_shi_jiang_jun.authority_minor_stars"
+source_id = "quan_shu.v01.tai_wei_fu.036"
+source_clause_id = "li_shi_jiang_jun"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "力士将军同青龙，显其权势"
+normalized_note_zh_hans = "力士、将军同青龙，显其权势。力士、将军、青龙属博士十二神（随流年起例），尚未建模，故标为歧义。"
+status = "ambiguous"
+
+[[rule]]
+id = "timing.tong_zi_xian.fragile_life_stages"
+source_id = "quan_shu.v01.tai_wei_fu.037"
+source_clause_id = "tong_zi_xian"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "童子限如水上泡沤，老人限似风中燃烛"
+normalized_note_zh_hans = "句意结构：童子限（幼年大限）如水上泡沤，老人限（老年大限）似风中残烛，皆主脆弱。幼或老限的判定依赖运限年龄段，尚未为本规则建模，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "timing.yu_sha_wu_zhi.unchecked_malefic_year"
+source_id = "quan_shu.v01.tai_wei_fu.037"
+source_clause_id = "yu_sha_wu_zhi"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "遇杀无制乃流年最忌"
+normalized_note_zh_hans = "句意结构：流年遇煞星而无制化，为流年最忌。煞星已建模，但『制化』（解救）判定与流年 scope 接线尚未完成，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "timing.ren_sheng_rong_ru.fortune_in_decades"
+source_id = "quan_shu.v01.tai_wei_fu.038"
+source_clause_id = "ren_sheng_rong_ru"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "人生荣辱限元必有休咎"
+normalized_note_zh_hans = "人生荣辱于限元（大限或限度）必有休咎。本句为泛指性原则，无具体星曜或宫位条件可供判定，故标为歧义。"
+status = "ambiguous"
+
+[[rule]]
+id = "life.chu_shi_gu_pin.solitary_poverty"
+source_id = "quan_shu.v01.tai_wei_fu.038"
+source_clause_id = "chu_shi_gu_pin"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "处世孤贫数中逢乎驳杂"
+normalized_note_zh_hans = "处世孤贫，源于命数逢驳杂（吉凶混杂）。『驳杂』缺乏明确量化口径，随解读而异，故标为歧义。"
+status = "ambiguous"
+
+[[rule]]
+id = "meta.xue_zhi_ci_xuan_wei.closing_remark"
+source_id = "quan_shu.v01.tai_wei_fu.038"
+source_clause_id = "xue_zhi_ci_xuan_wei"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "学至此诚玄微矣"
+normalized_note_zh_hans = "『学至此诚玄微矣』为太微赋例曰之收束语（赞叹治学），非断语、非规则候选，故标记为 rejected，排除于运行时规则之外。"
+status = "rejected"
