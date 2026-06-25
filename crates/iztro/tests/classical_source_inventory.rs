@@ -6,6 +6,12 @@
 //! exist only to keep the inventory internally consistent and correctly linked
 //! to the executable rule corpus (`rule-corpus/quan-shu/rules.toml`).
 //!
+//! Structure: a `source_item` is a source passage/location identified by
+//! `source_id`; each item holds one or more `clause`s (individual candidate rule
+//! phrases identified by `clause_id`); a rule links to a clause by carrying both
+//! `source_id` and `source_clause_id`, and the clause mirrors that link via
+//! `linked_rule_ids`.
+//!
 //! The structs below are private, test-only deserialization shapes. They are
 //! intentionally not exported from the crate; adding runtime APIs purely to
 //! validate corpus tracking data would blur the layer boundary.
@@ -30,9 +36,26 @@ struct SourceItem {
     doc_path: String,
     anchor: String,
     source_text_zh_hans: String,
-    normalized_clause_zh_hans: Option<String>,
-    linked_rule_ids: Vec<String>,
+    #[serde(default)]
+    clause: Vec<SourceClause>,
     #[allow(dead_code)]
+    notes_zh_hans: Option<String>,
+}
+
+impl SourceItem {
+    /// Pending items (not yet located in the Markdown volumes) are flagged with
+    /// the placeholder `section`/`anchor`. Passage-vs-clause containment is not
+    /// asserted for them.
+    fn is_pending(&self) -> bool {
+        self.anchor == "TODO" || self.section == "待校"
+    }
+}
+
+#[derive(Debug, serde::Deserialize)]
+struct SourceClause {
+    clause_id: String,
+    text_zh_hans: String,
+    linked_rule_ids: Vec<String>,
     notes_zh_hans: Option<String>,
 }
 
@@ -50,9 +73,11 @@ struct RulesCorpus {
 struct RuleEntry {
     id: String,
     source_id: String,
+    #[serde(default)]
+    source_clause_id: Option<String>,
     work: String,
-    #[allow(dead_code)]
     source_text_zh_hans: String,
+    status: String,
 }
 
 const SOURCE_INVENTORY_TOML: &str = include_str!("../rule-corpus/quan-shu/source/volume-01.toml");
@@ -64,6 +89,16 @@ fn source_inventory() -> SourceInventory {
 
 fn rules_corpus() -> RulesCorpus {
     toml::from_str(RULES_CORPUS_TOML).expect("QuanShu rule corpus TOML must deserialize")
+}
+
+/// Strips the punctuation we treat as insignificant when comparing Chinese
+/// passage/clause/rule text. Intentionally light: we do not normalize the
+/// characters themselves, only drop separators so containment is not defeated by
+/// a trailing comma or full stop.
+fn strip_punct(s: &str) -> String {
+    s.chars()
+        .filter(|c| !matches!(c, '，' | '。' | '、' | '；' | '：' | ' '))
+        .collect()
 }
 
 #[test]
@@ -110,6 +145,49 @@ fn quan_shu_source_inventory_required_fields_are_not_empty() {
                 item.source_id
             );
         }
+        assert!(
+            !item.clause.is_empty(),
+            "source item {} must record at least one clause",
+            item.source_id
+        );
+    }
+}
+
+/// 5.1 Clause IDs are unique within a source item.
+#[test]
+fn clause_ids_are_unique_within_a_source_item() {
+    let inventory = source_inventory();
+    for item in &inventory.source_item {
+        let mut seen = HashSet::new();
+        for clause in &item.clause {
+            assert!(
+                seen.insert(clause.clause_id.as_str()),
+                "duplicate clause_id {} within source item {}",
+                clause.clause_id,
+                item.source_id
+            );
+        }
+    }
+}
+
+/// 5.2 Clause id and text are non-empty.
+#[test]
+fn clause_required_fields_are_not_empty() {
+    let inventory = source_inventory();
+    for item in &inventory.source_item {
+        for clause in &item.clause {
+            assert!(
+                !clause.clause_id.trim().is_empty(),
+                "source item {} has a clause with empty clause_id",
+                item.source_id
+            );
+            assert!(
+                !clause.text_zh_hans.trim().is_empty(),
+                "source item {} clause {} has empty text_zh_hans",
+                item.source_id,
+                clause.clause_id
+            );
+        }
     }
 }
 
@@ -133,6 +211,35 @@ fn classical_rules_reference_known_source_items() {
     }
 }
 
+/// 5.3 Every rule `source_clause_id` exists inside its referenced source item.
+#[test]
+fn rule_source_clause_ids_exist_in_their_source_item() {
+    let inventory = source_inventory();
+    let rules = rules_corpus();
+
+    for rule in &rules.rule {
+        let Some(clause_id) = rule.source_clause_id.as_deref() else {
+            continue;
+        };
+        let item = inventory
+            .source_item
+            .iter()
+            .find(|item| item.source_id == rule.source_id)
+            .unwrap_or_else(|| {
+                panic!(
+                    "rule {} references source_id {} not present in the source inventory",
+                    rule.id, rule.source_id
+                )
+            });
+        assert!(
+            item.clause.iter().any(|c| c.clause_id == clause_id),
+            "rule {} references clause {clause_id} not present in source item {}",
+            rule.id,
+            item.source_id
+        );
+    }
+}
+
 #[test]
 fn source_inventory_linked_rule_ids_exist() {
     let inventory = source_inventory();
@@ -140,48 +247,129 @@ fn source_inventory_linked_rule_ids_exist() {
     let rule_ids: HashSet<&str> = rules.rule.iter().map(|r| r.id.as_str()).collect();
 
     for item in &inventory.source_item {
-        for linked in &item.linked_rule_ids {
-            assert!(
-                rule_ids.contains(linked.as_str()),
-                "source item {} links to unknown rule id {linked}",
-                item.source_id
-            );
+        for clause in &item.clause {
+            for linked in &clause.linked_rule_ids {
+                assert!(
+                    rule_ids.contains(linked.as_str()),
+                    "source item {} clause {} links to unknown rule id {linked}",
+                    item.source_id,
+                    clause.clause_id
+                );
+            }
         }
     }
 }
 
+/// 5.4 Linked clauses and rules agree on source_id, clause_id, and work.
 #[test]
-fn source_inventory_links_match_rule_source_ids() {
+fn source_inventory_clause_links_match_rules() {
     let inventory = source_inventory();
     let rules = rules_corpus();
 
     for item in &inventory.source_item {
-        for linked in &item.linked_rule_ids {
-            let rule = rules
-                .rule
-                .iter()
-                .find(|r| r.id == *linked)
-                .unwrap_or_else(|| {
-                    panic!(
-                        "source item {} links to unknown rule id {linked}",
-                        item.source_id
-                    )
-                });
-            assert_eq!(
-                rule.source_id, item.source_id,
-                "rule {} source_id {} disagrees with linking source item {}",
-                rule.id, rule.source_id, item.source_id
-            );
-            assert_eq!(
-                rule.work, item.work,
-                "rule {} work {} disagrees with linking source item {}",
-                rule.id, rule.work, item.source_id
+        for clause in &item.clause {
+            for linked in &clause.linked_rule_ids {
+                let rule = rules
+                    .rule
+                    .iter()
+                    .find(|r| r.id == *linked)
+                    .unwrap_or_else(|| {
+                        panic!(
+                            "source item {} clause {} links to unknown rule id {linked}",
+                            item.source_id, clause.clause_id
+                        )
+                    });
+                assert_eq!(
+                    rule.source_id, item.source_id,
+                    "rule {} source_id {} disagrees with linking source item {}",
+                    rule.id, rule.source_id, item.source_id
+                );
+                assert_eq!(
+                    rule.source_clause_id.as_deref(),
+                    Some(clause.clause_id.as_str()),
+                    "rule {} source_clause_id {:?} disagrees with linking clause {}",
+                    rule.id,
+                    rule.source_clause_id,
+                    clause.clause_id
+                );
+                assert_eq!(
+                    rule.work, item.work,
+                    "rule {} work {} disagrees with linking source item {}",
+                    rule.id, rule.work, item.source_id
+                );
+            }
+        }
+    }
+}
+
+/// 5.5 Clause text matches or contains the linked rule's source text.
+///
+/// For `executable` rules we normally require containment in either direction.
+/// Two pilot rules carry already-normalized claim phrasing that does not match
+/// its clause verbatim (`wealth.lu_ma_remote_wealth` is `normalized`;
+/// `life.ri_yue_fan_bei.hardship_pressure` is `executable`). Those are accepted
+/// only when the clause or source item documents the divergence via
+/// `notes_zh_hans`. See docs/zh-CN/sources/quan_shu/README.md.
+#[test]
+fn clause_text_matches_or_contains_rule_source_text() {
+    let inventory = source_inventory();
+    let rules = rules_corpus();
+
+    for item in &inventory.source_item {
+        for clause in &item.clause {
+            let clause_text = strip_punct(&clause.text_zh_hans);
+            for linked in &clause.linked_rule_ids {
+                let rule = rules
+                    .rule
+                    .iter()
+                    .find(|r| r.id == *linked)
+                    .expect("linked rule must exist");
+                let rule_text = strip_punct(&rule.source_text_zh_hans);
+                let contained =
+                    clause_text.contains(&rule_text) || rule_text.contains(&clause_text);
+                let documented = clause.notes_zh_hans.is_some() || item.notes_zh_hans.is_some();
+                assert!(
+                    contained || documented,
+                    "rule {} (status {}) source text {:?} neither matches nor is contained by \
+                     clause {} text {:?}, and no notes_zh_hans explains the divergence",
+                    rule.id,
+                    rule.status,
+                    rule.source_text_zh_hans,
+                    clause.clause_id,
+                    clause.text_zh_hans
+                );
+            }
+        }
+    }
+}
+
+/// 5.6 For located source items, the passage text contains every clause text.
+///
+/// Pending items (`section = "待校"` / `anchor = "TODO"`) are not yet located, so
+/// this is skipped for them.
+#[test]
+fn located_source_text_contains_each_clause() {
+    let inventory = source_inventory();
+    for item in &inventory.source_item {
+        if item.is_pending() {
+            continue;
+        }
+        let passage = strip_punct(&item.source_text_zh_hans);
+        for clause in &item.clause {
+            let clause_text = strip_punct(&clause.text_zh_hans);
+            assert!(
+                passage.contains(&clause_text),
+                "located source item {} text {:?} does not contain clause {} text {:?}",
+                item.source_id,
+                item.source_text_zh_hans,
+                clause.clause_id,
+                clause.text_zh_hans
             );
         }
     }
 }
 
-/// The 天马空亡 source item must use the imported Volume 1 太微赋 wording
+/// The 天马空亡 clause must use the imported Volume 1 太微赋 wording
 /// "马遇空亡，终身奔走".
 #[test]
 fn tian_ma_void_source_uses_imported_wording() {
@@ -189,18 +377,15 @@ fn tian_ma_void_source_uses_imported_wording() {
     const RULE_ID: &str = "migration.tian_ma_void.restless_movement";
 
     let inventory = source_inventory();
-    let item = inventory
+    let clause = inventory
         .source_item
         .iter()
-        .find(|item| item.linked_rule_ids.iter().any(|id| id == RULE_ID))
-        .unwrap_or_else(|| panic!("no source item links to {RULE_ID}"));
+        .flat_map(|item| &item.clause)
+        .find(|clause| clause.linked_rule_ids.iter().any(|id| id == RULE_ID))
+        .unwrap_or_else(|| panic!("no clause links to {RULE_ID}"));
 
-    let normalized = item.normalized_clause_zh_hans.as_deref().unwrap_or("");
-    let uses_canonical =
-        item.source_text_zh_hans.contains(CANONICAL) || normalized.contains(CANONICAL);
-    assert!(
-        uses_canonical,
-        "source item {} must use imported wording {CANONICAL:?}",
-        item.source_id
+    assert_eq!(
+        clause.text_zh_hans, CANONICAL,
+        "clause linking {RULE_ID} must use imported wording {CANONICAL:?}"
     );
 }

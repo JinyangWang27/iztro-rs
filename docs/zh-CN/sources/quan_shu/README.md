@@ -20,7 +20,17 @@ crates/iztro/rule-corpus/quan-shu/source/
   volume-01.toml
 ```
 
-`volume-01.toml` 只登记当前 classical pilot rules 对应的五条 source item，用来建立 source inventory 的格式和链接方式。它不是完整的卷一分句清单；完整 line-by-line inventory、lint 和 coverage report 应在后续 PR 中继续扩展。
+`volume-01.toml` 采用「原文段落 + 嵌套 clause」结构，登记当前 classical pilot rules 对应的出处，用来建立 source inventory 的格式和链接方式。它不是完整的卷一分句清单；完整 line-by-line inventory、lint 和 coverage report 应在后续 PR 中继续扩展。
+
+结构分三层：
+
+```text
+source item = 一段原文/出处位置，由 `source_id` 标识
+clause      = 该段落内的单条候选规则短语，由 `clause_id` 标识（在同一 source item 内唯一）
+rule        = 链接到某条 clause 的可执行/规范化解释，通过 `linked_rule_ids` 关联
+```
+
+`source_id` 标识**原文段落**而非语义规则短语，因此一段含多条断语的原文可以拆成多个 clause 分别链接规则。规则一侧通过 `source_id` + `source_clause_id` 指向具体 clause；clause 一侧通过 `linked_rule_ids` 反向链接。`待校` / `TODO` 仍为允许的 pilot 限制，表示尚未在三卷 Markdown 中定位到该段落。source inventory 仅由测试校验，不进入运行时评估路径。
 
 ## 用途
 

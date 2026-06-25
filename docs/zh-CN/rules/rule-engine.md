@@ -110,6 +110,8 @@
 
    ```toml
    id = "migration.tian_ma_void.restless_movement"
+   source_id = "quan_shu.v01.tai_wei_fu.001"
+   source_clause_id = "ma_yu_kong_wang"
    source_text_zh_hans = "马遇空亡，终身奔走"
    status = "executable"
    domain = "migration"
@@ -138,3 +140,16 @@
    键、中文原文、领域、主题、吉凶、强度、证据与反证。
 
 语料编写格式详见 [`quan-shu-corpus.md`](./quan-shu-corpus.md)。
+
+## Source inventory（段落 + clause）
+
+规则的 `source_id` 指向 QuanShu source inventory
+（`crates/iztro/rule-corpus/quan-shu/source/`）中的一段**原文段落**；
+`source_clause_id` 指向该段落内的单条候选短语（clause）。一段原文可含多条 clause，
+每条 clause 可链接零个或多个规则——正是这一点让 inventory 能从「一条规则一项」扩展开。
+
+source inventory 是**语料治理数据，而非运行时数据**：`src/` 不解析它，
+`evaluate_classical` 不依赖它，三卷 Markdown 也不在运行时解析。其一致性
+（段落/clause 结构、clause↔规则链接、文本包含关系）仅由
+`crates/iztro/tests/classical_source_inventory.rs` 校验。未定位的段落可暂用
+`section = "待校"` 与 `anchor = "TODO"`。

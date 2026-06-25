@@ -75,8 +75,15 @@ pub enum RuleSchool {
 pub struct ClassicalRule {
     /// Stable rule identifier.
     pub id: ClassicalRuleId,
-    /// Stable source-line identifier.
+    /// Stable identifier of the source passage/location this rule cites.
     pub source_id: String,
+    /// Stable identifier of the clause within that source passage, if known.
+    ///
+    /// `source_id` identifies the passage; `source_clause_id` identifies the
+    /// individual candidate phrase inside it. This is rule metadata only; it does
+    /// not load or depend on the test-only source inventory.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub source_clause_id: Option<String>,
     /// The classical work the rule is drawn from.
     pub work: ClassicalWork,
     /// Canonical classical text (Simplified Chinese).

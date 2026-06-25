@@ -126,6 +126,8 @@ theme / polarity / source semantics a pattern detection does not.
 
    ```toml
    id = "migration.tian_ma_void.restless_movement"
+   source_id = "quan_shu.v01.tai_wei_fu.001"
+   source_clause_id = "ma_yu_kong_wang"
    source_text_zh_hans = "马遇空亡，终身奔走"
    status = "executable"
    domain = "migration"
@@ -160,3 +162,18 @@ theme / polarity / source semantics a pattern detection does not.
 
 See [`quan-shu-corpus.md`](../../zh-CN/rules/quan-shu-corpus.md) (Chinese) for the
 corpus authoring format.
+
+## Source inventory (passage + clauses)
+
+A rule's `source_id` identifies a **source passage** in the QuanShu source
+inventory (`crates/iztro/rule-corpus/quan-shu/source/`); `source_clause_id`
+identifies an individual candidate phrase (a *clause*) within that passage. One
+passage can hold several clauses, each linking zero or more rules — this is what
+lets the inventory scale beyond one item per rule.
+
+The source inventory is **corpus-governance data, not runtime data**: nothing in
+`src/` parses it, `evaluate_classical` never depends on it, and the Markdown
+volumes are never parsed at runtime. Its consistency (passage/clause structure,
+clause ↔ rule links, text containment) is enforced only by
+`crates/iztro/tests/classical_source_inventory.rs`. Pending passages may use
+`section = "待校"` and `anchor = "TODO"` until located.

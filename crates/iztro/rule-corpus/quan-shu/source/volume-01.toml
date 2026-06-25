@@ -1,17 +1,28 @@
 # 《紫微斗数全书》 source inventory — Volume 1 pilot slice.
 #
 # This file records source passages from docs/zh-CN/sources/quan_shu/volume-01.md
-# that correspond to the five classical pilot rules currently encoded in
+# that correspond to the classical pilot rules currently encoded in
 # crates/iztro/rule-corpus/quan-shu/rules.toml.
 #
-# This is a source inventory, not executable rule metadata. It is intentionally
-# permissive for this first slice: some `source_text_zh_hans` values preserve the
-# imported Markdown wording, while `normalized_clause_zh_hans` records the clause
-# shape currently used by the pilot rule. Source-review follow-ups can decide the
-# canonical edition wording and split broader passages more precisely.
+# Structure (see docs/zh-CN/sources/quan_shu/README.md):
+#
+#   source item = a source passage / location (identified by `source_id`)
+#   clause      = an individual candidate rule phrase inside that passage
+#                 (identified by `clause_id`, unique within the source item)
+#   rule        = an executable/normalized interpretation linked from a clause
+#                 via `linked_rule_ids`
+#
+# So `source_id` identifies the passage, not the semantic rule phrase. One passage
+# may contain several clauses, and each clause may link zero or more rules.
+#
+# This is a source inventory, not executable rule metadata. Nothing in `src/`
+# parses it; it is validated by tests only (see
+# crates/iztro/tests/classical_source_inventory.rs). It is intentionally
+# permissive for this first slice: `section = "待校"` and `anchor = "TODO"` mark
+# passages not yet located in the Markdown volumes.
 
 [[source_item]]
-source_id = "quan_shu.ma_yu_kong_wang"
+source_id = "quan_shu.v01.tai_wei_fu.001"
 work = "zi_wei_dou_shu_quan_shu"
 volume = 1
 section = "太微赋"
@@ -20,12 +31,19 @@ status = "rule_linked"
 doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
 anchor = "太微赋"
 source_text_zh_hans = "禄逢冲破，吉处藏凶。马遇空亡，终身奔走。"
-normalized_clause_zh_hans = "马遇空亡，终身奔走"
+
+[[source_item.clause]]
+clause_id = "lu_feng_chong_po"
+text_zh_hans = "禄逢冲破，吉处藏凶"
+linked_rule_ids = []
+
+[[source_item.clause]]
+clause_id = "ma_yu_kong_wang"
+text_zh_hans = "马遇空亡，终身奔走"
 linked_rule_ids = ["migration.tian_ma_void.restless_movement"]
-notes_zh_hans = ""
 
 [[source_item]]
-source_id = "quan_shu.lu_ma_jiao_chi"
+source_id = "quan_shu.v01.tai_wei_fu.002"
 work = "zi_wei_dou_shu_quan_shu"
 volume = 1
 section = "太微赋"
@@ -34,26 +52,21 @@ status = "rule_linked"
 doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
 anchor = "太微赋"
 source_text_zh_hans = "日月最嫌反背，禄马最喜交驰。"
-normalized_clause_zh_hans = "禄马交驰，发财远方"
-linked_rule_ids = ["wealth.lu_ma_remote_wealth"]
-notes_zh_hans = "本条先链接到“禄马最喜交驰”的卷一出处；“发财远方”为当前 pilot rule 的现代/规则化表达，后续可拆分或补充更精确出处。"
 
-[[source_item]]
-source_id = "quan_shu.ri_yue_fan_bei"
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
-source_text_zh_hans = "日月最嫌反背，禄马最喜交驰。"
-normalized_clause_zh_hans = "日月反背，劳碌辛苦"
+[[source_item.clause]]
+clause_id = "ri_yue_fan_bei"
+text_zh_hans = "日月最嫌反背"
 linked_rule_ids = ["life.ri_yue_fan_bei.hardship_pressure"]
-notes_zh_hans = "本条先链接到“日月最嫌反背”的卷一出处；“劳碌辛苦”为当前 pilot rule 的规则化 claim text，后续可补充更精确出处或异文。"
+notes_zh_hans = "本 clause 链接到“日月最嫌反背”的卷一出处；规则 life.ri_yue_fan_bei.hardship_pressure 的 source_text “日月反背，劳碌辛苦” 为规则化 claim 表达，与本 clause 字面不完全一致，后续可补充更精确出处或异文。"
+
+[[source_item.clause]]
+clause_id = "lu_ma_jiao_chi"
+text_zh_hans = "禄马最喜交驰"
+linked_rule_ids = ["wealth.lu_ma_remote_wealth"]
+notes_zh_hans = "本 clause 链接到“禄马最喜交驰”的卷一出处；规则 wealth.lu_ma_remote_wealth 的 source_text “禄马交驰，发财远方” 为规则化（normalized）表达，与本 clause 字面不完全一致，后续可拆分或补充更精确出处。"
 
 [[source_item]]
-source_id = "quan_shu.yang_tuo_jia_ming"
+source_id = "quan_shu.pending.yang_tuo_jia_ming"
 work = "zi_wei_dou_shu_quan_shu"
 volume = 1
 section = "待校"
@@ -62,12 +75,15 @@ status = "rule_linked"
 doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
 anchor = "TODO"
 source_text_zh_hans = "羊陀夹命，为祸不轻"
-normalized_clause_zh_hans = "羊陀夹命，为祸不轻"
-linked_rule_ids = ["life.yang_tuo_clamp_life.constraint_damage"]
 notes_zh_hans = "该 pilot rule 已有规则化出处文本，但尚未在三卷 Markdown 中定位到具体段落；后续 source review 应补齐 volume/section/anchor 或调整 source_id。"
 
+[[source_item.clause]]
+clause_id = "yang_tuo_jia_ming"
+text_zh_hans = "羊陀夹命，为祸不轻"
+linked_rule_ids = ["life.yang_tuo_clamp_life.constraint_damage"]
+
 [[source_item]]
-source_id = "quan_shu.chang_qu_jia_ming"
+source_id = "quan_shu.pending.chang_qu_jia_ming"
 work = "zi_wei_dou_shu_quan_shu"
 volume = 1
 section = "待校"
@@ -76,6 +92,9 @@ status = "rule_linked"
 doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
 anchor = "TODO"
 source_text_zh_hans = "昌曲夹命，主贵显"
-normalized_clause_zh_hans = "昌曲夹命，主贵显"
-linked_rule_ids = ["life.chang_qu_clamp_life.literary_reputation"]
 notes_zh_hans = "该 pilot rule 已有规则化出处文本，但尚未在三卷 Markdown 中定位到具体段落；后续 source review 应补齐 volume/section/anchor 或调整 source_id。"
+
+[[source_item.clause]]
+clause_id = "chang_qu_jia_ming"
+text_zh_hans = "昌曲夹命，主贵显"
+linked_rule_ids = ["life.chang_qu_clamp_life.literary_reputation"]
