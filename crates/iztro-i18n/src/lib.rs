@@ -297,7 +297,10 @@ mod tests {
             "Restless movement"
         );
         assert_eq!(zh.claim_theme(ClaimTheme::RestlessMovement), "奔波迁动");
-        assert_eq!(en.claim_polarity(ClaimPolarity::MixedNegative), "Mixed-negative");
+        assert_eq!(
+            en.claim_polarity(ClaimPolarity::MixedNegative),
+            "Mixed-negative"
+        );
         assert_eq!(zh.claim_polarity(ClaimPolarity::MixedNegative), "偏凶");
     }
 

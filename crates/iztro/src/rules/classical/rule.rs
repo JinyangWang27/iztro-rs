@@ -59,7 +59,9 @@ pub enum RuleStatus {
 /// A placeholder for future multi-school support. Rules default to [`RuleSchool::General`]
 /// until schools are explicitly modeled, keeping school selection out of scattered
 /// `if`/`match` logic.
-#[derive(Clone, Copy, Debug, Default, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
+#[derive(
+    Clone, Copy, Debug, Default, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize,
+)]
 #[serde(rename_all = "snake_case")]
 pub enum RuleSchool {
     /// 通用 — not tied to a specific school.

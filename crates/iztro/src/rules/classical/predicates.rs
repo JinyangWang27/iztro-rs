@@ -26,14 +26,16 @@ pub struct TianMaVoid {
 /// 地空, and 地劫 are never treated as 空亡.
 pub fn tian_ma_affected_by_void(chart: &Chart, policy: VoidPolicy) -> Option<TianMaVoid> {
     let branch = find_star_branch(chart, StarName::TianMa)?;
-    stars_in_palace(chart, branch).into_iter().find_map(|placement| {
-        VoidKind::from_star(placement.name())
-            .filter(|kind| policy.includes(*kind))
-            .map(|void_kind| TianMaVoid {
-                tian_ma_branch: branch,
-                void_kind,
-            })
-    })
+    stars_in_palace(chart, branch)
+        .into_iter()
+        .find_map(|placement| {
+            VoidKind::from_star(placement.name())
+                .filter(|kind| policy.includes(*kind))
+                .map(|void_kind| TianMaVoid {
+                    tian_ma_branch: branch,
+                    void_kind,
+                })
+        })
 }
 
 /// Two stars clamping (夹) the Life palace, one on each adjacent branch.

@@ -157,8 +157,9 @@ pub struct Claim {
     pub scope: ClaimScope,
     /// Machine-readable supporting evidence.
     pub evidence: Vec<Evidence>,
-    /// Machine-readable counter-evidence, where applicable.
-    #[serde(default, skip_serializing_if = "Vec::is_empty")]
+    /// Machine-readable counter-evidence, where applicable. Always present in
+    /// JSON (as `[]` when empty) so consumers can rely on the field.
+    #[serde(default)]
     pub counter_evidence: Vec<Evidence>,
     /// Classical source references backing the claim.
     pub source_refs: Vec<SourceRef>,

@@ -13,7 +13,7 @@ use crate::rules::classical::claim::{Claim, ClaimId, ClaimScope, ClaimStrength};
 use crate::rules::classical::evidence::{Evidence, EvidenceKind};
 use crate::rules::classical::outcome::{RuleOutcome, UnsupportedReason};
 use crate::rules::classical::predicates::{
-    sun_and_moon_dim, stars_clamp_life, tian_ma_affected_by_void,
+    stars_clamp_life, sun_and_moon_dim, tian_ma_affected_by_void,
 };
 use crate::rules::classical::rule::ClassicalRule;
 use crate::rules::classical::void::VoidPolicy;
