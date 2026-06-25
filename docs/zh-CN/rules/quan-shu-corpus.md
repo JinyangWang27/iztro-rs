@@ -17,7 +17,7 @@ crates/iztro/rule-corpus/quan-shu/rules.toml
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
 | `id` | 字符串 | 稳定的规则标识，如 `migration.tian_ma_void.restless_movement`。 |
-| `source_id` | 字符串 | 稳定的出处行标识，如 `quan_shu.ma_luo_kong_wang`。 |
+| `source_id` | 字符串 | 稳定的出处行标识，如 `quan_shu.ma_yu_kong_wang`。 |
 | `work` | 枚举 | 典籍，目前为 `zi_wei_dou_shu_quan_shu`。 |
 | `source_text_zh_hans` | 字符串 | **中文原文**（术语的权威来源）。 |
 | `normalized_note_zh_hans` | 字符串（可选） | 规范化注记，说明该句如何被解读为规则。 |
