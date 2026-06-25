@@ -280,3 +280,427 @@ notes_zh_hans = "上下句为同一断语的条件与应验，紧密成对，暂
 clause_id = "xing_qiu_jia_yin"
 text_zh_hans = "刑囚夹印，刑杖惟司"
 linked_rule_ids = []
+
+# --- 太微赋 开篇释义段（source inventory segmentation only） ---
+#
+# 以下 source item 为「例曰」之前的太微赋开篇总论/释义文字，属说明性
+# （commentary）文体，非断语，故 category = "commentary"，不链接可执行规则。
+# 仍保留 volume-01.md 原文用字，status 为 segmented。
+
+[[source_item]]
+source_id = "quan_shu.v01.tai_wei_fu.014"
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "太微赋"
+category = "commentary"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "太微赋"
+source_text_zh_hans = "斗数至玄至微，理旨难明，虽设问于百篇之中，犹有言而未尽，至如星之分野，各有所属，寿夭贤愚，富贵贫贱，不可一概论议。"
+notes_zh_hans = "太微赋开篇总论，属说明性文字而非断语；分句仅为出处校读之便。"
+
+[[source_item.clause]]
+clause_id = "dou_shu_xuan_wei"
+text_zh_hans = "斗数至玄至微，理旨难明"
+linked_rule_ids = []
+
+[[source_item.clause]]
+clause_id = "she_wen_bai_pian"
+text_zh_hans = "虽设问于百篇之中，犹有言而未尽"
+linked_rule_ids = []
+
+[[source_item.clause]]
+clause_id = "xing_zhi_fen_ye"
+text_zh_hans = "至如星之分野，各有所属"
+linked_rule_ids = []
+
+[[source_item.clause]]
+clause_id = "bu_ke_yi_gai_lun"
+text_zh_hans = "寿夭贤愚，富贵贫贱，不可一概论议"
+linked_rule_ids = []
+
+[[source_item]]
+source_id = "quan_shu.v01.tai_wei_fu.015"
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "太微赋"
+category = "commentary"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "太微赋"
+source_text_zh_hans = "其星分布一十二垣，数定乎三十六位，入庙为奇，失度为虚，大抵以身命为福德之本，加以根源为穷通之资。"
+notes_zh_hans = "太微赋开篇总论，属说明性文字而非断语；分句仅为出处校读之便。"
+
+[[source_item.clause]]
+clause_id = "xing_bu_shi_er_yuan"
+text_zh_hans = "其星分布一十二垣，数定乎三十六位"
+linked_rule_ids = []
+
+[[source_item.clause]]
+clause_id = "ru_miao_wei_qi"
+text_zh_hans = "入庙为奇，失度为虚"
+linked_rule_ids = []
+
+[[source_item.clause]]
+clause_id = "shen_ming_fu_de_ben"
+text_zh_hans = "大抵以身命为福德之本，加以根源为穷通之资"
+linked_rule_ids = []
+
+[[source_item]]
+source_id = "quan_shu.v01.tai_wei_fu.016"
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "太微赋"
+category = "commentary"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "太微赋"
+source_text_zh_hans = "星有同躔，数有分定，须明其生克之要，必详乎得垣失度之分。"
+notes_zh_hans = "太微赋开篇总论，属说明性文字而非断语；分句仅为出处校读之便。"
+
+[[source_item.clause]]
+clause_id = "xing_you_tong_chan"
+text_zh_hans = "星有同躔，数有分定"
+linked_rule_ids = []
+
+[[source_item.clause]]
+clause_id = "ming_sheng_ke_yao"
+text_zh_hans = "须明其生克之要，必详乎得垣失度之分"
+linked_rule_ids = []
+
+[[source_item]]
+source_id = "quan_shu.v01.tai_wei_fu.017"
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "太微赋"
+category = "commentary"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "太微赋"
+source_text_zh_hans = "观乎紫微舍躔，司一天仪之象，率列宿而成垣，土星茍居其垣，若可移动，金星专司财库，最怕空亡。"
+notes_zh_hans = "太微赋开篇总论，属说明性文字而非断语；分句仅为出处校读之便。"
+
+[[source_item.clause]]
+clause_id = "zi_wei_she_chan"
+text_zh_hans = "观乎紫微舍躔，司一天仪之象，率列宿而成垣"
+linked_rule_ids = []
+
+[[source_item.clause]]
+clause_id = "tu_xing_ju_yuan"
+text_zh_hans = "土星茍居其垣，若可移动"
+linked_rule_ids = []
+
+[[source_item.clause]]
+clause_id = "jin_xing_cai_ku"
+text_zh_hans = "金星专司财库，最怕空亡"
+linked_rule_ids = []
+
+[[source_item]]
+source_id = "quan_shu.v01.tai_wei_fu.018"
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "太微赋"
+category = "commentary"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "太微赋"
+source_text_zh_hans = "帝星动则列宿奔驰，贪守空而财源不聚。"
+notes_zh_hans = "太微赋开篇总论，属说明性文字而非断语；分句仅为出处校读之便。"
+
+[[source_item.clause]]
+clause_id = "di_xing_dong"
+text_zh_hans = "帝星动则列宿奔驰"
+linked_rule_ids = []
+
+[[source_item.clause]]
+clause_id = "tan_shou_kong"
+text_zh_hans = "贪守空而财源不聚"
+linked_rule_ids = []
+
+[[source_item]]
+source_id = "quan_shu.v01.tai_wei_fu.019"
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "太微赋"
+category = "commentary"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "太微赋"
+source_text_zh_hans = "各司其职，不可参差。"
+notes_zh_hans = "太微赋开篇总论，属说明性文字而非断语；单句不再细分。"
+
+[[source_item.clause]]
+clause_id = "ge_si_qi_zhi"
+text_zh_hans = "各司其职，不可参差"
+linked_rule_ids = []
+
+[[source_item]]
+source_id = "quan_shu.v01.tai_wei_fu.020"
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "太微赋"
+category = "commentary"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "太微赋"
+source_text_zh_hans = "茍或不察其机，更忘其变，则数之造化远矣。"
+notes_zh_hans = "太微赋开篇总论收束语，属说明性文字而非断语；单句不再细分。"
+
+[[source_item.clause]]
+clause_id = "bu_cha_qi_ji"
+text_zh_hans = "茍或不察其机，更忘其变，则数之造化远矣"
+linked_rule_ids = []
+
+# --- 太微赋「例曰」段续补（source inventory segmentation only） ---
+#
+# 接续 003-013 的「例曰」断语分句。以下 source item 仍仅做出处分句，
+# 保留 volume-01.md 原文用字，暂不链接可执行规则。status 一律为 segmented。
+
+[[source_item]]
+source_id = "quan_shu.v01.tai_wei_fu.021"
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "太微赋"
+category = "aphorism_rule"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "太微赋"
+source_text_zh_hans = "诸星吉，逢凶也吉。诸星凶，逢凶也凶。"
+
+[[source_item.clause]]
+clause_id = "zhu_xing_ji"
+text_zh_hans = "诸星吉，逢凶也吉"
+linked_rule_ids = []
+
+[[source_item.clause]]
+clause_id = "zhu_xing_xiong"
+text_zh_hans = "诸星凶，逢凶也凶"
+linked_rule_ids = []
+
+[[source_item]]
+source_id = "quan_shu.v01.tai_wei_fu.022"
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "太微赋"
+category = "aphorism_rule"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "太微赋"
+source_text_zh_hans = "善荫朝纲，仁慈之长。"
+notes_zh_hans = "上下句为同一断语的条件与应验，紧密成对，暂作单条 clause 不再细分。"
+
+[[source_item.clause]]
+clause_id = "shan_yin_chao_gang"
+text_zh_hans = "善荫朝纲，仁慈之长"
+linked_rule_ids = []
+
+[[source_item]]
+source_id = "quan_shu.v01.tai_wei_fu.023"
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "太微赋"
+category = "aphorism_rule"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "太微赋"
+source_text_zh_hans = "贵入贵乡，逢之富贵。"
+notes_zh_hans = "上下句为同一断语的条件与应验，紧密成对，暂作单条 clause 不再细分。"
+
+[[source_item.clause]]
+clause_id = "gui_ru_gui_xiang"
+text_zh_hans = "贵入贵乡，逢之富贵"
+linked_rule_ids = []
+
+[[source_item]]
+source_id = "quan_shu.v01.tai_wei_fu.024"
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "太微赋"
+category = "aphorism_rule"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "太微赋"
+source_text_zh_hans = "财居财位，遇者富奢。"
+notes_zh_hans = "上下句为同一断语的条件与应验，紧密成对，暂作单条 clause 不再细分。"
+
+[[source_item.clause]]
+clause_id = "cai_ju_cai_wei"
+text_zh_hans = "财居财位，遇者富奢"
+linked_rule_ids = []
+
+[[source_item]]
+source_id = "quan_shu.v01.tai_wei_fu.025"
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "太微赋"
+category = "aphorism_rule"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "太微赋"
+source_text_zh_hans = "太阳居午，谓之日丽中天，有专权之贵，敌国之富。"
+notes_zh_hans = "同一断语（星曜入位+命名+应验），暂作单条 clause 不再细分。"
+
+[[source_item.clause]]
+clause_id = "tai_yang_ju_wu"
+text_zh_hans = "太阳居午，谓之日丽中天，有专权之贵，敌国之富"
+linked_rule_ids = []
+
+[[source_item]]
+source_id = "quan_shu.v01.tai_wei_fu.026"
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "太微赋"
+category = "aphorism_rule"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "太微赋"
+source_text_zh_hans = "太阴居子，号曰水澄桂萼，得清要之职，忠谏之材。"
+notes_zh_hans = "同一断语（星曜入位+命名+应验），暂作单条 clause 不再细分。"
+
+[[source_item.clause]]
+clause_id = "tai_yin_ju_zi"
+text_zh_hans = "太阴居子，号曰水澄桂萼，得清要之职，忠谏之材"
+linked_rule_ids = []
+
+[[source_item]]
+source_id = "quan_shu.v01.tai_wei_fu.027"
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "太微赋"
+category = "aphorism_rule"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "太微赋"
+source_text_zh_hans = "紫微辅弼同宫，一呼百诺居上品。文耗居寅卯，谓之众水朝东。"
+
+[[source_item.clause]]
+clause_id = "zi_wei_fu_bi_tong_gong"
+text_zh_hans = "紫微辅弼同宫，一呼百诺居上品"
+linked_rule_ids = []
+
+[[source_item.clause]]
+clause_id = "wen_hao_ju_yin_mao"
+text_zh_hans = "文耗居寅卯，谓之众水朝东"
+linked_rule_ids = []
+
+[[source_item]]
+source_id = "quan_shu.v01.tai_wei_fu.028"
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "太微赋"
+category = "aphorism_rule"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "太微赋"
+source_text_zh_hans = "日月守不如照合，荫福聚不怕凶危。"
+
+[[source_item.clause]]
+clause_id = "ri_yue_shou_zhao_he"
+text_zh_hans = "日月守不如照合"
+linked_rule_ids = []
+
+[[source_item.clause]]
+clause_id = "yin_fu_ju"
+text_zh_hans = "荫福聚不怕凶危"
+linked_rule_ids = []
+
+[[source_item]]
+source_id = "quan_shu.v01.tai_wei_fu.029"
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "太微赋"
+category = "aphorism_rule"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "太微赋"
+source_text_zh_hans = "贪居亥子，名为犯水桃花。刑遇贪狼，号曰风流彩杖。"
+
+[[source_item.clause]]
+clause_id = "tan_ju_hai_zi"
+text_zh_hans = "贪居亥子，名为犯水桃花"
+linked_rule_ids = []
+
+[[source_item.clause]]
+clause_id = "xing_yu_tan_lang"
+text_zh_hans = "刑遇贪狼，号曰风流彩杖"
+linked_rule_ids = []
+
+[[source_item]]
+source_id = "quan_shu.v01.tai_wei_fu.030"
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "太微赋"
+category = "aphorism_rule"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "太微赋"
+source_text_zh_hans = "七杀廉贞同位，路上埋尸。破军暗曜同乡，水中作冢。"
+
+[[source_item.clause]]
+clause_id = "sha_lian_tong_wei"
+text_zh_hans = "七杀廉贞同位，路上埋尸"
+linked_rule_ids = []
+
+[[source_item.clause]]
+clause_id = "po_an_tong_xiang"
+text_zh_hans = "破军暗曜同乡，水中作冢"
+linked_rule_ids = []
+
+[[source_item]]
+source_id = "quan_shu.v01.tai_wei_fu.031"
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "太微赋"
+category = "aphorism_rule"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "太微赋"
+source_text_zh_hans = "禄居奴仆纵有官也奔驰，帝遇凶徒虽获吉而无道。"
+
+[[source_item.clause]]
+clause_id = "lu_ju_nu_pu"
+text_zh_hans = "禄居奴仆纵有官也奔驰"
+linked_rule_ids = []
+
+[[source_item.clause]]
+clause_id = "di_yu_xiong_tu"
+text_zh_hans = "帝遇凶徒虽获吉而无道"
+linked_rule_ids = []
+
+[[source_item]]
+source_id = "quan_shu.v01.tai_wei_fu.032"
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "太微赋"
+category = "aphorism_rule"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "太微赋"
+source_text_zh_hans = "帝坐金车则曰金轝捧栉，福安文曜谓之玉袖天香。"
+
+[[source_item.clause]]
+clause_id = "di_zuo_jin_che"
+text_zh_hans = "帝坐金车则曰金轝捧栉"
+linked_rule_ids = []
+
+[[source_item.clause]]
+clause_id = "fu_an_wen_yao"
+text_zh_hans = "福安文曜谓之玉袖天香"
+linked_rule_ids = []
+
+[[source_item]]
+source_id = "quan_shu.v01.tai_wei_fu.033"
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "太微赋"
+category = "aphorism_rule"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "太微赋"
+source_text_zh_hans = "太阳会文昌于官禄，皇殿朝班，富贵全美。"
+notes_zh_hans = "同一断语（会合于宫+应验），暂作单条 clause 不再细分。"
+
+[[source_item.clause]]
+clause_id = "tai_yang_hui_wen_chang"
+text_zh_hans = "太阳会文昌于官禄，皇殿朝班，富贵全美"
+linked_rule_ids = []
