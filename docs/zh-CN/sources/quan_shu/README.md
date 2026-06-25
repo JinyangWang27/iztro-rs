@@ -20,7 +20,17 @@ crates/iztro/rule-corpus/quan-shu/source/
   volume-01.toml
 ```
 
-`volume-01.toml` 采用「原文段落 + 嵌套 clause」结构，登记当前 classical pilot rules 对应的出处，用来建立 source inventory 的格式和链接方式。它不是完整的卷一分句清单；完整 line-by-line inventory、lint 和 coverage report 应在后续 PR 中继续扩展。
+`volume-01.toml` 采用「原文段落 + 嵌套 clause」结构，登记当前 classical pilot rules 对应的出处，并已分句（segmentation）一批太微赋「例曰」段落（`linked_rule_ids = []`，尚未链接规则）。它不是完整的卷一分句清单；完整 line-by-line inventory、lint 应在后续 PR 中继续扩展。
+
+已链接和未链接的 clause 都有价值：未链接 clause 记录已分句但尚未规范化/实现为规则的原文。分句类 PR 不必同时新增可执行规则。
+
+source inventory 的覆盖情况由维护在仓库中的覆盖报告统计：
+
+```text
+docs/zh-CN/rules/quan-shu-coverage.md
+```
+
+该报告由测试 `crates/iztro/tests/classical_source_coverage.rs` 生成并校验；扩展 source inventory 后须重新生成该报告，否则测试失败。
 
 结构分三层：
 
@@ -71,4 +81,4 @@ rule        = 链接到某条 clause 的可执行/规范化解释，通过 `link
 2. 为每条 source item 补齐稳定 `source_id`、`volume`、`anchor`、`status` 和 `source_text_zh_hans`。
 3. 继续校对现有 pilot rules 与原文异文、出处段落、规范化 clause 的关系。
 4. 增加 corpus lint，确保 rule 引用的 `source_id` 必须存在。
-5. 增加 coverage report，追踪每条原文处于 raw / segmented / normalized / executable / tested / ambiguous / rejected 中的哪一类。
+5. 扩展现有 coverage report（`docs/zh-CN/rules/quan-shu-coverage.md`），细化各原文/规则的状态分类（raw / segmented / normalized / executable / tested / ambiguous / rejected）。

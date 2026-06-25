@@ -69,6 +69,20 @@ crates/iztro/rule-corpus/quan-shu/rules.toml
 | `wealth.lu_ma_remote_wealth` | 禄马交驰，发财远方 | `normalized` | “交驰”关系随流派而异、尚未建模，**不触发**，给出类型化诊断。 |
 | `life.ri_yue_fan_bei.hardship_pressure` | 日月反背，劳碌辛苦 | `executable` | 太阳、太阴俱失辉（不/陷）。 |
 
+## 出处与覆盖
+
+每条规则通过 `source_id` + `source_clause_id` 链接到 source inventory
+（`crates/iztro/rule-corpus/quan-shu/source/`）中的某条 clause。source inventory 是仅供
+测试校验的语料管理数据，不进入运行时评估。其覆盖情况维护在仓库中的覆盖报告：
+
+```
+docs/zh-CN/rules/quan-shu-coverage.md
+```
+
+该报告由 `crates/iztro/tests/classical_source_coverage.rs` 生成并校验。分句（segmentation）
+PR 可以只新增未链接 clause（`linked_rule_ids = []`，表示已分句但尚未规范化/实现为规则），
+不必同时新增可执行规则；此类改动须同步重新生成覆盖报告。
+
 ## 新增规则的步骤
 
 1. 在 `rules.toml` 中新增 `[[rule]]`，填好上述字段（中文原文必填）。

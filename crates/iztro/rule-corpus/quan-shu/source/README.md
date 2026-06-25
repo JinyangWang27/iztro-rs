@@ -55,9 +55,19 @@ linked_rule_ids = ["migration.tian_ma_void.restless_movement"]
 
 ## Files
 
-- `volume-01.toml`: pilot source inventory for the five currently encoded classical pilot rules, grouped into 太微赋 passages with nested clauses, plus two `待校`/`TODO` pending items not yet located.
+- `volume-01.toml`: source inventory for Volume 1. It links the five currently encoded classical pilot rules to reviewed 太微赋 passages, keeps two `待校`/`TODO` pending items not yet located, and segments a first batch of additional 太微赋「例曰」passages into clauses that are **not yet linked to rules** (`linked_rule_ids = []`).
 
-This is not a complete line-by-line inventory of Volume 1. It is a deliberately small first slice that establishes the inventory format and links the existing rule `source_id`/`source_clause_id`s to reviewed source passages where possible.
+This is not a complete line-by-line inventory of Volume 1. It is a deliberately small slice that establishes the inventory format, links existing rule `source_id`/`source_clause_id`s to reviewed source passages where possible, and exercises the coverage report. Both linked and unlinked clauses are useful: an unlinked clause records reviewed source text that has been segmented but not yet normalized or implemented as a rule.
+
+## Coverage report
+
+A committed-but-generated coverage report lives at:
+
+```text
+docs/zh-CN/rules/quan-shu-coverage.md
+```
+
+It summarizes the inventory (source items, clauses, linked/unlinked clauses, and linked rules by status) and is maintained by tests: `crates/iztro/tests/classical_source_coverage.rs` recomputes the metrics and asserts the committed file is current. Expanding this inventory must regenerate the report, or the test fails. A segmentation PR does not need to add executable rules; it can add unlinked clauses (`linked_rule_ids = []`) and update the report.
 
 ## Status values
 
@@ -102,11 +112,11 @@ These are intentionally **allowed** in this pilot slice and are not test failure
 - `anchor = "TODO"` for items not yet located in the Markdown volumes;
 - `section = "待校"` for sections still pending source review;
 - a clause text differing from its linked rule's `source_text_zh_hans` (the imported Markdown wording is preserved as canonical, while a normalized rule clause is documented via `notes_zh_hans`);
-- the inventory contains only the clauses for the five currently encoded pilot rules;
+- the inventory covers the five encoded pilot rules plus a first batch of segmented-but-unlinked 太微赋 clauses; it is not a complete inventory of Volume 1;
 - only `volume-01.toml` exists; Volume 2 and Volume 3 have no source inventory TOML yet.
 
 Tightening these (resolving TODO anchors, 待校 sections, and reconciling variants) is deferred to follow-up source-review PRs.
 
 ## Notes
 
-For this PR, the inventory is intentionally a pilot slice: it only records source entries for the five existing classical pilot rules. Full line-by-line inventory, linting, and coverage reporting should be added in follow-up PRs.
+The inventory is still a partial slice: it records the five existing classical pilot rules and a first batch of segmented 太微赋 clauses, with a maintained coverage report (`docs/zh-CN/rules/quan-shu-coverage.md`). A complete line-by-line inventory and corpus linting should be added in follow-up PRs; normalizing and implementing the segmented clauses is handled separately from segmentation.
