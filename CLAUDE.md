@@ -3,7 +3,9 @@
 ## Tooling: rtk (token-optimized command output)
 
 In Claude Code on the web, a SessionStart hook (`.claude/hooks/session-start.sh`)
-installs [`rtk`](https://github.com/rtk-ai/rtk), a CLI proxy that condenses
+installs a **pinned, checksum-verified** [`rtk`](https://github.com/rtk-ai/rtk)
+release (the downloaded archive is checked against a per-arch SHA256 before
+extraction; a mismatch aborts the install). `rtk` is a CLI proxy that condenses
 command output before it reaches the model. When `rtk` is on `PATH`, prefer it
 for high-volume output:
 
