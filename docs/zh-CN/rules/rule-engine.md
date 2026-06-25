@@ -1,15 +1,12 @@
 # 经典规则引擎
 
-本文档介绍 `crates/iztro/src/rules/classical/` 下引入的**经典规则引擎**。它将
-《紫微斗数全书》等典籍中的规则编码为数据，并把图盘事实转化为结构化、带证据的
-**判断（Claim）**。
+本文档介绍 `crates/iztro/src/rules/classical/` 下的**经典规则引擎**。它是当前
+启用的规则引擎：将《紫微斗数全书》等典籍中的规则编码为数据，并把图盘事实转化为
+结构化、带证据的**判断（Claim）**。
 
-它与上层的 [`rule-engine.md`](../rule-engine.md)（描述更长期的“特征 → 判断”引擎）
-互补。经典规则引擎是该愿景的第一个具体的、数据驱动的切片。
-
-> **过渡状态。** `crates/iztro/src/rules/` 中面向特征的占位脚手架
-> （`Claim` / `RuleEngine` / `Evidence` 桩）**不是**最终形态。它将在后续 PR 中
-> 迁移并入、或被经典引擎取代。二者目前并存，仅为保证既有脚手架测试继续通过。
+`rules::classical` 是规则引擎的权威命名空间。`crates/iztro/src/rules/` 模块直接
+暴露它（`pub mod classical`）并再导出经典类型/函数，因此 `rules::Claim` 等指向
+经典判断模型。
 
 ## 流水线
 
@@ -18,7 +15,8 @@
   -> 特征/查询谓词        （复用 core/pattern 查询助手）
   -> 经典规则评估          （语料元数据 + 手写谓词）
   -> ClassicalSourceHit[]  （命中的出处/来源记录）
-  -> 结构化 Claim[]        （仅当 rule.claim 存在时产出）
+  -> Claim[]               （仅当 rule.claim 存在时产出）
+  -> RuleDiagnostic[]      （类型化、可见的不支持条件）
   -> [可选] 本地化渲染      （iztro-i18n，经由 claim_key）
   -> JSON 导出             （serde）
 ```

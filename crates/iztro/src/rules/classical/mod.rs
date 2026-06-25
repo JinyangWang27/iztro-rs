@@ -28,14 +28,6 @@
 //!   typed [`RuleOutcome::Unsupported`], surfaced as a visible [`RuleDiagnostic`].
 //! - **Hybrid, not a DSL.** Rule metadata is data-driven; predicates are Rust. A
 //!   fully generic condition DSL is intentionally deferred.
-//!
-//! # Transitional status
-//!
-//! This module is a **transitional implementation slice, not a permanent second
-//! rule engine**. The placeholder scaffold in [`crate::rules`] (the
-//! feature-oriented `Claim`/`RuleEngine`/`Evidence` types) will be migrated into,
-//! or retired in favor of, this classical engine in a follow-up PR. The two
-//! coexist for now only so existing scaffold tests keep passing.
 
 pub mod claim;
 pub mod corpus;

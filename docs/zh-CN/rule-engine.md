@@ -2,20 +2,26 @@
 
 规则引擎把提取后的特征转换成结构化判断。它不应该直接生成最终文章。
 
-> 首个具体的、数据驱动的实现是**经典规则引擎**（中文优先的《紫微斗数全书》试点）。
-> 参见 [`rules/rule-engine.md`](./rules/rule-engine.md)、
+> **当前启用的具体实现是经典规则引擎**（中文优先的《紫微斗数全书》）。它位于
+> `rules::classical`，是唯一的规则引擎。其实现设计、语料格式与流水线参见
+> [`rules/rule-engine.md`](./rules/rule-engine.md)、
 > [`rules/quan-shu-corpus.md`](./rules/quan-shu-corpus.md) 与
 > [ADR 0007](./adr/0007-classical-rule-engine.md)。
+>
+> 本文余下部分是“特征 → 判断”愿景的**概念性设计词汇**，并非第二套已实现的引擎；
+> 下面的通用条件/效果草案仅为示意——经典引擎刻意采用数据驱动元数据加手写谓词，
+> 而非通用条件 DSL。
 
-## 规则形态
+## 规则形态（概念性）
 
-一条规则包含三类内容：
+概念上，一条规则包含三类内容：
 
 1. 元数据。
 2. 条件。
 3. 效果。
 
-TOML 示例草案：
+示意 TOML 草案（并非已实现的语料格式——真实经典语料形态见
+[`rules/rule-engine.md`](./rules/rule-engine.md)）：
 
 ```toml
 id = "career.wuqu_huaquan.in_career"

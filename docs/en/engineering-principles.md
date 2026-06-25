@@ -58,9 +58,7 @@ Good examples:
 
 - `ChartGenerator`;
 - `FeatureExtractor`;
-- `RuleEvaluator`;
-- `ReportRenderer`;
-- `RuleSetProvider`.
+- `ReportRenderer`.
 
 Avoid a single trait that combines chart generation, feature extraction, rule evaluation, localization, rule loading, and report rendering.
 

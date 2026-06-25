@@ -35,9 +35,10 @@ with a hybrid design:
   `RuleOutcome::Unsupported`, surfaced as a visible `RuleDiagnostic`.
 - `iztro` stays independent of `iztro-i18n`. Localized labels and claim text live
   in Fluent resources, keyed off stable enum identity.
-- The classical engine is a **transitional slice**: the placeholder scaffold will
-  be migrated into it (or retired) in a follow-up. They coexist for now only to
-  keep existing tests passing.
+- The classical engine is the **active rule engine**. (Update: the placeholder
+  `rules/` scaffold it originally coexisted with has since been removed.
+  `rules::classical` is now the sole rule engine, and the `rules::*` re-exports
+  point at the classical types/functions.)
 
 Corpus enum values use the crate-wide `snake_case` serde convention (consistent
 with every other enum in `iztro`), so authored TOML and exported JSON share one
@@ -49,6 +50,6 @@ casing.
   code.
 - Claims are testable, filterable, serializable, and localizable.
 - Unsupported rules are explicit and visible rather than silently non-firing.
-- A second `Claim` type temporarily coexists with the scaffold; convergence is
-  tracked as follow-up work.
+- The classical `Claim` is now the sole claim type; the earlier placeholder
+  scaffold `Claim` has been removed.
 - A generic condition DSL is deferred until enough rules justify it.

@@ -2,20 +2,29 @@
 
 The rule engine converts extracted features into structured claims. It should not directly generate final prose.
 
-> The first concrete, data-driven implementation is the **classical rule engine**
-> (Chinese-first 《紫微斗数全书》 pilot). See
-> [`rules/rule-engine.md`](./rules/rule-engine.md) and
-> [ADR 0007](./adr/0007-classical-rule-engine.md).
+> The **active, concrete implementation is the classical rule engine**
+> (Chinese-first 《紫微斗数全书》). It lives under `rules::classical` and is the
+> sole rule engine. See [`rules/rule-engine.md`](./rules/rule-engine.md) and
+> [ADR 0007](./adr/0007-classical-rule-engine.md) for the implemented design,
+> corpus format, and pipeline.
+>
+> The rest of this document is **conceptual design vocabulary** for the
+> feature → claim vision. It is not a second implemented engine, and the
+> generic condition/effect sketch below is illustrative only — the classical
+> engine deliberately uses data-driven metadata plus hand-coded predicates
+> rather than a generic condition DSL.
 
-## Rule shape
+## Rule shape (conceptual)
 
-A rule has three conceptual parts:
+Conceptually a rule has three parts:
 
 1. Metadata.
 2. Conditions.
 3. Effects.
 
-Example TOML sketch:
+Illustrative TOML sketch (not the implemented corpus format — see
+[`rules/rule-engine.md`](./rules/rule-engine.md) for the real classical corpus
+shape):
 
 ```toml
 id = "career.wuqu_huaquan.in_career"
