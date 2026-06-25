@@ -54,6 +54,25 @@ The `category` field is deliberately broad. Common values include:
 
 The Markdown source text is treated as canonical for this source-import PR. If existing pilot rules use a different normalized wording, the inventory records that difference in `normalized_clause_zh_hans` and `notes_zh_hans` instead of rewriting the imported volumes.
 
+## Relationship to the rule corpus and runtime
+
+- The Markdown volumes under `docs/zh-CN/sources/quan_shu/` are the canonical, human-readable source text.
+- This source inventory TOML is machine-checkable corpus tracking only. It is **not** part of the runtime chart-evaluation path: nothing in `crates/iztro/src/` parses it, `evaluate_classical` does not depend on it, and the Markdown volumes are never parsed at runtime.
+- `crates/iztro/tests/classical_source_inventory.rs` validates the inventory and its links to `crates/iztro/rule-corpus/quan-shu/rules.toml` using private, test-only structs. It asserts that the inventory parses, has unique `source_id`s, has non-empty required fields, that every rule `source_id` exists in the inventory, that every `linked_rule_ids` entry exists in the rule corpus, and that linked source items and rules agree on `source_id` and `work`. It also locks the 天马空亡 source wording to `马遇空亡，终身奔走`.
+
+## Known pilot limitations
+
+These are intentionally **allowed** in this pilot slice and are not test failures yet:
+
+- `anchor = "TODO"` for items not yet located in the Markdown volumes;
+- `section = "待校"` for sections still pending source review;
+- `normalized_clause_zh_hans` differing from `source_text_zh_hans` (the imported Markdown wording is preserved as canonical, while the rule-facing clause shape is recorded separately);
+- the rule's own `source_text_zh_hans` may keep a variant (e.g. `马落空亡`) while the inventory records the imported canonical wording (`马遇空亡`); the divergence is recorded in `notes_zh_hans`;
+- the inventory contains only the five pilot entries for the currently encoded rules;
+- only `volume-01.toml` exists; Volume 2 and Volume 3 have no source inventory TOML yet.
+
+Tightening these (resolving TODO anchors, 待校 sections, and reconciling variants) is deferred to follow-up source-review PRs.
+
 ## Notes
 
 For this PR, the inventory is intentionally a pilot slice: it only records source entries for the five existing classical pilot rules. Full line-by-line inventory, linting, and coverage reporting should be added in follow-up PRs.
