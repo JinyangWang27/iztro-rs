@@ -1,0 +1,91 @@
+//! Test-only deserialization shapes for the 《紫微斗数全书》 source inventory and
+//! its linked rule corpus.
+//!
+//! These mirror `rule-corpus/quan-shu/source/volume-01.toml` and
+//! `rule-corpus/quan-shu/rules.toml`. They are intentionally private to the
+//! test binaries and not exported from the crate: adding runtime APIs purely to
+//! validate corpus-tracking data would blur the layer boundary. Each binary
+//! uses a different subset of the fields, so the structs carry
+//! `#[allow(dead_code)]`.
+
+#![allow(dead_code)]
+
+/// Test-only mirror of `rule-corpus/quan-shu/source/volume-01.toml`.
+#[derive(Debug, serde::Deserialize)]
+pub struct SourceInventory {
+    pub source_item: Vec<SourceItem>,
+}
+
+#[derive(Debug, serde::Deserialize)]
+pub struct SourceItem {
+    pub source_id: String,
+    pub work: String,
+    pub volume: u8,
+    pub section: String,
+    pub category: String,
+    pub status: String,
+    pub doc_path: String,
+    pub anchor: String,
+    pub source_text_zh_hans: String,
+    #[serde(default)]
+    pub clause: Vec<SourceClause>,
+    pub notes_zh_hans: Option<String>,
+}
+
+impl SourceItem {
+    /// Pending items (not yet located in the Markdown volumes) are flagged with
+    /// the placeholder `section`/`anchor`. Passage-vs-clause containment is not
+    /// asserted for them, and they count as pending in the coverage report.
+    pub fn is_pending(&self) -> bool {
+        self.anchor == "TODO" || self.section == "待校"
+    }
+}
+
+#[derive(Debug, serde::Deserialize)]
+pub struct SourceClause {
+    pub clause_id: String,
+    pub text_zh_hans: String,
+    pub linked_rule_ids: Vec<String>,
+    pub notes_zh_hans: Option<String>,
+}
+
+/// Test-only minimal mirror of `rule-corpus/quan-shu/rules.toml`. The runtime
+/// corpus loader deserializes the full typed metadata; here we only need the
+/// fields that link rules to the source inventory plus the coverage `status`.
+#[derive(Debug, serde::Deserialize)]
+pub struct RulesCorpus {
+    pub rule: Vec<RuleEntry>,
+}
+
+#[derive(Debug, serde::Deserialize)]
+pub struct RuleEntry {
+    pub id: String,
+    pub source_id: String,
+    #[serde(default)]
+    pub source_clause_id: Option<String>,
+    pub work: String,
+    pub source_text_zh_hans: String,
+    pub status: String,
+}
+
+const SOURCE_INVENTORY_TOML: &str =
+    include_str!("../../rule-corpus/quan-shu/source/volume-01.toml");
+const RULES_CORPUS_TOML: &str = include_str!("../../rule-corpus/quan-shu/rules.toml");
+
+pub fn source_inventory() -> SourceInventory {
+    toml::from_str(SOURCE_INVENTORY_TOML).expect("QuanShu source inventory TOML must deserialize")
+}
+
+pub fn rules_corpus() -> RulesCorpus {
+    toml::from_str(RULES_CORPUS_TOML).expect("QuanShu rule corpus TOML must deserialize")
+}
+
+/// Strips the punctuation we treat as insignificant when comparing Chinese
+/// passage/clause/rule text. Intentionally light: we do not normalize the
+/// characters themselves, only drop separators so containment is not defeated by
+/// a trailing comma or full stop.
+pub fn strip_punct(s: &str) -> String {
+    s.chars()
+        .filter(|c| !matches!(c, '，' | '。' | '、' | '；' | '：' | ' '))
+        .collect()
+}
