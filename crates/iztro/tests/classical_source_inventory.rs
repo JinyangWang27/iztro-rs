@@ -33,6 +33,65 @@ fn quan_shu_source_inventory_parses() {
     );
 }
 
+/// Regression: 太微赋 source items must follow the original book order from
+/// `docs/zh-CN/sources/quan_shu/volume-01.md`. The numeric suffix of
+/// `source_id` is source-order based, so the suffixes must be continuous from
+/// `001`, appear in increasing order, begin with the opening commentary text,
+/// and never place a commentary item after an `例曰` aphorism item.
+#[test]
+fn tai_wei_fu_source_items_follow_book_order() {
+    let inventory = source_inventory();
+    let tai_wei_fu: Vec<_> = inventory
+        .source_item
+        .iter()
+        .filter(|item| item.volume == 1 && item.section == "太微赋")
+        .collect();
+    assert!(
+        !tai_wei_fu.is_empty(),
+        "expected 太微赋 source items in the inventory"
+    );
+
+    // Suffixes are continuous 001..=N and appear in increasing numeric order.
+    for (idx, item) in tai_wei_fu.iter().enumerate() {
+        let suffix = item
+            .source_id
+            .strip_prefix("quan_shu.v01.tai_wei_fu.")
+            .unwrap_or_else(|| panic!("unexpected source_id format: {}", item.source_id));
+        let n: usize = suffix
+            .parse()
+            .unwrap_or_else(|_| panic!("source_id suffix is not numeric: {}", item.source_id));
+        assert_eq!(
+            n,
+            idx + 1,
+            "太微赋 source_id suffixes must be continuous and increasing from 001; \
+             item {} at position {} breaks the sequence",
+            item.source_id,
+            idx + 1
+        );
+    }
+
+    // The first 太微赋 item is the opening commentary.
+    let first = tai_wei_fu[0];
+    assert!(
+        first.source_text_zh_hans.starts_with("斗数至玄至微"),
+        "first 太微赋 source item must be the opening commentary (斗数至玄至微), got {:?}",
+        first.source_text_zh_hans
+    );
+
+    // No commentary item may appear after an aphorism (例曰) item.
+    let first_aphorism = tai_wei_fu
+        .iter()
+        .position(|item| item.category == "aphorism_rule")
+        .expect("expected at least one 例曰 aphorism item");
+    for item in &tai_wei_fu[first_aphorism..] {
+        assert_ne!(
+            item.category, "commentary",
+            "commentary item {} must not appear after 例曰 aphorism items",
+            item.source_id
+        );
+    }
+}
+
 #[test]
 fn quan_shu_source_inventory_has_unique_source_ids() {
     let inventory = source_inventory();
