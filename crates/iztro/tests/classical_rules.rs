@@ -287,7 +287,7 @@ fn yang_tuo_clamp_life_negative_when_not_clamping() {
 // ---- 昌曲夹命 --------------------------------------------------------------
 
 #[test]
-fn chang_qu_clamp_life_positive_emits_claim_with_pattern_evidence() {
+fn chang_qu_clamp_life_positive_emits_claim_with_pattern_shape_evidence() {
     let chart = build_chart(
         EarthlyBranch::Zi,
         &[
