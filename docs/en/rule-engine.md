@@ -2,6 +2,11 @@
 
 The rule engine converts extracted features into structured claims. It should not directly generate final prose.
 
+> The first concrete, data-driven implementation is the **classical rule engine**
+> (Chinese-first 《紫微斗数全书》 pilot). See
+> [`rules/rule-engine.md`](./rules/rule-engine.md) and
+> [ADR 0007](./adr/0007-classical-rule-engine.md).
+
 ## Rule shape
 
 A rule has three conceptual parts:

@@ -2,6 +2,11 @@
 
 规则引擎把提取后的特征转换成结构化判断。它不应该直接生成最终文章。
 
+> 首个具体的、数据驱动的实现是**经典规则引擎**（中文优先的《紫微斗数全书》试点）。
+> 参见 [`rules/rule-engine.md`](./rules/rule-engine.md)、
+> [`rules/quan-shu-corpus.md`](./rules/quan-shu-corpus.md) 与
+> [ADR 0007](./adr/0007-classical-rule-engine.md)。
+
 ## 规则形态
 
 一条规则包含三类内容：

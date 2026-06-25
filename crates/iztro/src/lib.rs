@@ -97,3 +97,8 @@ pub use core::{
     by_lunar_with_options_report, by_solar_with_options, by_solar_with_options_report,
     resolve_lunar_birth_input, resolve_solar_birth_input,
 };
+// Classical rule engine (Chinese-first 《紫微斗数全书》 pilot). The full typed
+// schema lives under [`rules::classical`]; these are the headline entry points.
+pub use rules::classical::{
+    ClaimEvaluation, ClaimEvaluationRequest, evaluate_classical, evaluate_classical_claims,
+};

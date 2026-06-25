@@ -10,6 +10,7 @@ use iztro::core::{
     Brightness, EarthlyBranch, FiveElementBureau, Gender, HeavenlyStem, Mutagen, PalaceName, Scope,
     StarName, WesternZodiac,
 };
+use iztro::rules::classical::{ClaimDomain, ClaimPolarity, ClaimTheme};
 
 /// Converts a `CamelCase` / `PascalCase` identifier to `kebab-case`.
 ///
@@ -86,6 +87,31 @@ pub fn constellation_key(sign: WesternZodiac) -> String {
     format!("constellation-{}", variant_kebab(&sign))
 }
 
+/// Fluent key for a claim domain (`claim-domain-migration` …).
+pub fn claim_domain_key(domain: ClaimDomain) -> String {
+    format!("claim-domain-{}", variant_kebab(&domain))
+}
+
+/// Fluent key for a claim theme (`claim-theme-restless-movement` …).
+pub fn claim_theme_key(theme: ClaimTheme) -> String {
+    format!("claim-theme-{}", variant_kebab(&theme))
+}
+
+/// Fluent key for a claim polarity (`claim-polarity-mixed-negative` …).
+pub fn claim_polarity_key(polarity: ClaimPolarity) -> String {
+    format!("claim-polarity-{}", variant_kebab(&polarity))
+}
+
+/// Fluent-safe message id for a claim's localized short text.
+///
+/// A claim's `claim_key` is dotted (e.g. `claim.migration.tian-ma-void.restless-movement`),
+/// but Fluent identifiers cannot contain dots, so the `.ftl` files key the text on
+/// the dot-to-hyphen form (`claim-migration-tian-ma-void-restless-movement`). This
+/// derives that id deterministically.
+pub fn claim_text_key(claim_key: &str) -> String {
+    claim_key.replace('.', "-")
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -101,6 +127,27 @@ mod tests {
         assert_eq!(
             constellation_key(WesternZodiac::Gemini),
             "constellation-gemini"
+        );
+    }
+
+    #[test]
+    fn claim_keys_match_expected_kebab_shape() {
+        assert_eq!(
+            claim_domain_key(ClaimDomain::Migration),
+            "claim-domain-migration"
+        );
+        assert_eq!(claim_domain_key(ClaimDomain::Life), "claim-domain-life");
+        assert_eq!(
+            claim_theme_key(ClaimTheme::RestlessMovement),
+            "claim-theme-restless-movement"
+        );
+        assert_eq!(
+            claim_polarity_key(ClaimPolarity::MixedNegative),
+            "claim-polarity-mixed-negative"
+        );
+        assert_eq!(
+            claim_text_key("claim.migration.tian-ma-void.restless-movement"),
+            "claim-migration-tian-ma-void-restless-movement"
         );
     }
 }

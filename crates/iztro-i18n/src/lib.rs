@@ -27,6 +27,7 @@ use iztro::core::{
     Brightness, EarthlyBranch, FiveElementBureau, Gender, HeavenlyStem, LunarDateView, Mutagen,
     PalaceName, Scope, StarName, StemBranch, WesternZodiac,
 };
+use iztro::rules::classical::{Claim, ClaimDomain, ClaimPolarity, ClaimTheme};
 
 pub use fluent_bundle::FluentArgs;
 pub use locale::{Locale, UnsupportedLocale};
@@ -227,6 +228,29 @@ impl I18n {
             },
         }
     }
+
+    /// Localized classical-claim domain label (领域).
+    pub fn claim_domain(&self, domain: ClaimDomain) -> String {
+        self.text(&keys::claim_domain_key(domain))
+    }
+
+    /// Localized classical-claim theme label (主题).
+    pub fn claim_theme(&self, theme: ClaimTheme) -> String {
+        self.text(&keys::claim_theme_key(theme))
+    }
+
+    /// Localized classical-claim polarity label (吉凶).
+    pub fn claim_polarity(&self, polarity: ClaimPolarity) -> String {
+        self.text(&keys::claim_polarity_key(polarity))
+    }
+
+    /// Localized short text for a claim, resolved from its `claim_key`.
+    ///
+    /// The core crate emits only the stable key and structured facts; the
+    /// localized prose lives here, in the Fluent resources.
+    pub fn claim_text(&self, claim: &Claim) -> String {
+        self.text(&keys::claim_text_key(claim.claim_key()))
+    }
 }
 
 #[cfg(test)]
@@ -258,6 +282,73 @@ mod tests {
         // Temporal label
         assert_eq!(en.temporal_label(Scope::Decadal), "Decade");
         assert_eq!(zh.temporal_label(Scope::Decadal), "大限");
+    }
+
+    #[test]
+    fn claim_labels_resolve_in_both_locales() {
+        let en = I18n::new(Locale::EnUs);
+        let zh = I18n::new(Locale::ZhHans);
+
+        assert_eq!(en.claim_domain(ClaimDomain::Migration), "Migration");
+        assert_eq!(zh.claim_domain(ClaimDomain::Migration), "迁移");
+        assert_eq!(zh.claim_domain(ClaimDomain::Life), "命身");
+        assert_eq!(
+            en.claim_theme(ClaimTheme::RestlessMovement),
+            "Restless movement"
+        );
+        assert_eq!(zh.claim_theme(ClaimTheme::RestlessMovement), "奔波迁动");
+        assert_eq!(
+            en.claim_polarity(ClaimPolarity::MixedNegative),
+            "Mixed-negative"
+        );
+        assert_eq!(zh.claim_polarity(ClaimPolarity::MixedNegative), "偏凶");
+    }
+
+    #[test]
+    fn every_pilot_claim_text_exists_in_both_locales() {
+        let en = I18n::new(Locale::EnUs);
+        let zh = I18n::new(Locale::ZhHans);
+        for rule in iztro::rules::classical::quan_shu_rules() {
+            let key = crate::keys::claim_text_key(&rule.claim_key);
+            assert!(!en.text(&key).starts_with('!'), "missing en text {key}");
+            assert!(!zh.text(&key).starts_with('!'), "missing zh text {key}");
+        }
+    }
+
+    #[test]
+    fn claim_text_renders_from_claim_key() {
+        use iztro::rules::classical::{ClaimId, ClaimScope, ClaimStrength, ClassicalRuleId};
+
+        let rule_id = ClassicalRuleId::new("migration.tian_ma_void.restless_movement");
+        let claim = Claim {
+            id: ClaimId::new(&rule_id, ClaimScope::Natal),
+            rule_id,
+            domain: ClaimDomain::Migration,
+            themes: vec![ClaimTheme::RestlessMovement],
+            polarity: ClaimPolarity::MixedNegative,
+            strength: ClaimStrength::new(0.6),
+            scope: ClaimScope::Natal,
+            evidence: Vec::new(),
+            counter_evidence: Vec::new(),
+            source_refs: Vec::new(),
+            claim_key: "claim.migration.tian-ma-void.restless-movement".to_owned(),
+        };
+
+        assert_eq!(
+            I18n::new(Locale::ZhHans).claim_text(&claim),
+            "天马受空亡影响，主奔波迁动之象。"
+        );
+        assert!(
+            I18n::new(Locale::EnUs)
+                .claim_text(&claim)
+                .starts_with("Tian Ma is affected by a void")
+        );
+    }
+
+    #[test]
+    fn missing_claim_key_returns_visible_placeholder() {
+        let zh = I18n::new(Locale::ZhHans);
+        assert_eq!(zh.text("claim-nonexistent-key"), "!claim-nonexistent-key!");
     }
 
     #[test]
