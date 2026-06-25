@@ -11,7 +11,7 @@
 # canonical edition wording and split broader passages more precisely.
 
 [[source_item]]
-source_id = "quan_shu.ma_luo_kong_wang"
+source_id = "quan_shu.ma_yu_kong_wang"
 work = "zi_wei_dou_shu_quan_shu"
 volume = 1
 section = "太微赋"
@@ -20,7 +20,7 @@ status = "rule_linked"
 doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
 anchor = "太微赋"
 source_text_zh_hans = "禄逢冲破，吉处藏凶。马遇空亡，终身奔走。"
-normalized_clause_zh_hans = "马落空亡，终身奔走"
+normalized_clause_zh_hans = "马遇空亡，终身奔走"
 linked_rule_ids = ["migration.tian_ma_void.restless_movement"]
 notes_zh_hans = "当前 pilot rule 使用“马落空亡”；本次导入的卷一原文作“马遇空亡”。先保留异文差异，后续 source review 决定 canonical wording。"
 
