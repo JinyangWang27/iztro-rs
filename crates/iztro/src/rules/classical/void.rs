@@ -25,6 +25,8 @@ pub enum VoidKind {
     JieKong,
 }
 
+const XUN_KONG_ONLY_KINDS: [VoidKind; 1] = [VoidKind::XunKong];
+
 impl VoidKind {
     /// All modeled void kinds, in a stable order.
     pub const ALL: [VoidKind; 4] = [
@@ -70,10 +72,31 @@ pub struct VoidPolicy {
 }
 
 impl VoidPolicy {
+    /// Builds a policy from a static slice of modeled void kinds.
+    pub const fn new(kinds: &'static [VoidKind]) -> Self {
+        Self { kinds }
+    }
+
     /// The default policy: every modeled 空亡-family star counts.
-    pub const DEFAULT: VoidPolicy = VoidPolicy {
-        kinds: &VoidKind::ALL,
-    };
+    pub const DEFAULT: VoidPolicy = Self::all_modeled();
+
+    /// A narrow policy: only 旬空 counts.
+    pub const XUN_KONG_ONLY: VoidPolicy = Self::xun_kong_only();
+
+    /// Builds the default policy over all modeled void kinds.
+    pub const fn all_modeled() -> Self {
+        Self::new(&VoidKind::ALL)
+    }
+
+    /// Builds a narrow policy where only 旬空 counts.
+    pub const fn xun_kong_only() -> Self {
+        Self::new(&XUN_KONG_ONLY_KINDS)
+    }
+
+    /// Returns the modeled void kinds counted by this policy.
+    pub const fn kinds(&self) -> &'static [VoidKind] {
+        self.kinds
+    }
 
     /// Returns whether `kind` is treated as 空亡 under this policy.
     pub fn includes(&self, kind: VoidKind) -> bool {

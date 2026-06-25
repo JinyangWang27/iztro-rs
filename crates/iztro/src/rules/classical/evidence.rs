@@ -70,9 +70,12 @@ pub enum EvidenceKind {
         /// The relation of `to` to `from`.
         relation: PalaceRelation,
     },
-    /// A corroborating 格局 pattern was detected for the same arrangement.
-    PatternDetected {
-        /// The detected pattern.
+    /// A structural shape matched a known 格局 pattern id.
+    ///
+    /// This does not imply [`crate::core::pattern::detect_patterns`] was run; it
+    /// records that the rule's own predicate matched the same chart shape.
+    PatternShapeMatched {
+        /// The corresponding pattern id.
         pattern: PatternId,
     },
     /// The rule's condition is not yet supported by modeled facts.

@@ -120,16 +120,37 @@ impl ClaimStrength {
 
 /// A stable identifier for an emitted claim.
 ///
-/// Derived deterministically from the rule id and scope, so repeated evaluations
-/// produce identical ids.
+/// Derived deterministically from the rule id, scope, and optional discriminator,
+/// so repeated evaluations produce identical ids.
 #[derive(Clone, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 #[serde(transparent)]
 pub struct ClaimId(String);
 
 impl ClaimId {
     /// Builds a claim id from a rule id and scope (e.g. `rule.id@natal`).
+    ///
+    /// Use this only for rules that emit at most one claim per rule/scope pair.
+    /// Multi-hit rules should use [`Self::with_discriminator`] to keep ids
+    /// unique across anchors, palaces, paths, or temporal activations.
     pub fn new(rule_id: &ClassicalRuleId, scope: ClaimScope) -> Self {
         Self(format!("{}@{}", rule_id.as_str(), scope.token()))
+    }
+
+    /// Builds a claim id from a rule id, scope, and stable discriminator.
+    ///
+    /// The discriminator is appended after `#`, yielding
+    /// `rule.id@scope#discriminator`.
+    pub fn with_discriminator(
+        rule_id: &ClassicalRuleId,
+        scope: ClaimScope,
+        discriminator: impl Into<String>,
+    ) -> Self {
+        Self(format!(
+            "{}@{}#{}",
+            rule_id.as_str(),
+            scope.token(),
+            discriminator.into()
+        ))
     }
 
     /// Returns the id as a string slice.

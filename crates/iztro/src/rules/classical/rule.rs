@@ -46,7 +46,8 @@ pub enum RuleStatus {
     Normalized,
     /// 可执行 — backed by a working predicate over modeled facts.
     Executable,
-    /// 已测试 — covered by rule-matching tests.
+    /// 已测试 — executable with positive/negative realistic or source-grounded
+    /// fixtures, suitable for stable public consumption.
     Tested,
     /// 有歧义 — meaning or condition is ambiguous.
     Ambiguous,

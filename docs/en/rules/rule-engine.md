@@ -76,6 +76,13 @@ The engine exposes two entry points:
 `works`, `rule_ids`, and `scopes`. Each field is an allow-list; an empty vec
 imposes no constraint.
 
+Unsupported diagnostics default to `DiagnosticMode::AllUnsupported`: every
+unsupported corpus rule remains visible even when claim filters are applied.
+Callers that want a narrower UI/export surface may choose
+`DiagnosticMode::MatchingRequest`, which applies the request filters to rule
+metadata as far as possible, or `DiagnosticMode::None`, which suppresses
+diagnostics.
+
 Returned claims are sorted deterministically by
 `(scope, domain, rule_id, claim_key)`.
 
@@ -89,7 +96,7 @@ Returned claims are sorted deterministically by
 | `Segmented` | Split into discrete statements. |
 | `Normalized` | Normalized into a structured intent. |
 | `Executable` | Backed by a working predicate over modeled facts. |
-| `Tested` | Covered by rule-matching tests. |
+| `Tested` | Executable with positive/negative fixtures over realistic generated charts or reviewed source-grounded fixtures, suitable for stable public consumption. Synthetic pilot tests alone do not imply this status. |
 | `Ambiguous` | Meaning or condition is ambiguous. |
 | `Rejected` | Not used. |
 
@@ -107,8 +114,10 @@ distinct:
   strength, evidence, counter-evidence, source) intended for downstream
   interpretation, filtering, and localized rendering.
 
-A classical rule may *use* a pattern as corroborating evidence (the 昌曲夹命
-claim records `EvidenceKind::PatternDetected`), but the claim carries domain /
+A classical rule may match the same structural shape as a known pattern (the
+昌曲夹命 claim records `EvidenceKind::PatternShapeMatched {
+pattern: ChangQuJiaMing }`), but this does not claim that
+`core::pattern::detect_patterns` was run. The claim still carries domain /
 theme / polarity / source semantics a pattern detection does not.
 
 ## Worked example: 马落空亡，终身奔走
@@ -128,7 +137,9 @@ theme / polarity / source semantics a pattern detection does not.
 2. **What is 空亡?** Not every star whose name contains 空. `VoidKind` enumerates
    only the modeled 空亡 family (旬空 `XunKong`, 空亡 `KongWang`, 截路 `JieLu`,
    截空 `JieKong`) and **excludes** 天空/地空/地劫. A `VoidPolicy` names the set a
-   rule consults.
+   rule consults; `VoidPolicy::DEFAULT` includes every modeled kind, while
+   `VoidPolicy::XUN_KONG_ONLY` and `VoidPolicy::new(...)` support narrower
+   policies for future rules or schools.
 
 3. **Predicate.** `tian_ma_affected_by_void` finds 天马's palace and checks
    whether a void star counted by the policy shares it.

@@ -5,10 +5,10 @@
 //! approach in `tests/patterns.rs`.
 
 use iztro::rules::classical::{
-    Claim, ClaimDomain, ClaimEvaluationRequest, ClaimPolarity, ClaimScope, ClaimTheme,
-    ClassicalRule, ClassicalRuleId, ClassicalWork, Evidence, EvidenceKind, RuleStatus,
-    UnsupportedReason, VoidKind, evaluate_classical, evaluate_classical_claims, quan_shu_rules,
-    rule_by_id,
+    Claim, ClaimDomain, ClaimEvaluationRequest, ClaimId, ClaimPolarity, ClaimScope, ClaimTheme,
+    ClassicalRule, ClassicalRuleId, ClassicalWork, DiagnosticMode, Evidence, EvidenceKind,
+    RuleStatus, UnsupportedReason, VoidKind, VoidPolicy, evaluate_classical,
+    evaluate_classical_claims, quan_shu_rules, rule_by_id,
 };
 use iztro::{
     BirthContext, Brightness, CalendarDate, Chart, EarthlyBranch, Gender, HeavenlyStem, Mutagen,
@@ -171,6 +171,19 @@ fn enum_serde_names_are_snake_case() {
     assert_eq!(&back, rule);
 }
 
+#[test]
+fn claim_id_supports_discriminator_for_multi_hit_rules() {
+    let rule_id = ClassicalRuleId::new(YANG_TUO);
+    assert_eq!(
+        ClaimId::new(&rule_id, ClaimScope::Natal).as_str(),
+        format!("{YANG_TUO}@natal")
+    );
+    assert_eq!(
+        ClaimId::with_discriminator(&rule_id, ClaimScope::Natal, "anchor=zi").as_str(),
+        format!("{YANG_TUO}@natal#anchor=zi")
+    );
+}
+
 // ---- 马落空亡 (executable; conservative void policy) -----------------------
 
 #[test]
@@ -292,7 +305,7 @@ fn chang_qu_clamp_life_positive_emits_claim_with_pattern_evidence() {
     assert!(claim.themes.contains(&ClaimTheme::LiteraryTalent));
     assert!(claim.evidence.iter().any(|e| matches!(
         e.kind(),
-        EvidenceKind::PatternDetected {
+        EvidenceKind::PatternShapeMatched {
             pattern: iztro::PatternId::ChangQuJiaMing
         }
     )));
@@ -385,6 +398,46 @@ fn lu_ma_is_unsupported_and_never_emits() {
         .find(|d| d.rule_id.as_str() == LU_MA)
         .expect("expected a typed diagnostic for 禄马交驰");
     assert_eq!(diagnostic.reason, UnsupportedReason::LuMaRelationNotModeled);
+}
+
+#[test]
+fn diagnostic_mode_none_suppresses_unsupported_diagnostics() {
+    let chart = build_chart(EarthlyBranch::Zi, &[tian_ma(EarthlyBranch::Wu)]);
+    let request = ClaimEvaluationRequest {
+        diagnostic_mode: DiagnosticMode::None,
+        ..Default::default()
+    };
+    let evaluation = evaluate_classical(&chart, &request);
+    assert!(evaluation.diagnostics.is_empty());
+}
+
+#[test]
+fn diagnostic_mode_matching_request_filters_unsupported_by_rule_id() {
+    let chart = build_chart(EarthlyBranch::Zi, &[tian_ma(EarthlyBranch::Wu)]);
+
+    let yang_tuo_request = ClaimEvaluationRequest {
+        diagnostic_mode: DiagnosticMode::MatchingRequest,
+        rule_ids: vec![ClassicalRuleId::new(YANG_TUO)],
+        ..Default::default()
+    };
+    assert!(
+        evaluate_classical(&chart, &yang_tuo_request)
+            .diagnostics
+            .is_empty()
+    );
+
+    let lu_ma_request = ClaimEvaluationRequest {
+        diagnostic_mode: DiagnosticMode::MatchingRequest,
+        rule_ids: vec![ClassicalRuleId::new(LU_MA)],
+        ..Default::default()
+    };
+    let evaluation = evaluate_classical(&chart, &lu_ma_request);
+    assert!(
+        evaluation
+            .diagnostics
+            .iter()
+            .any(|d| d.rule_id.as_str() == LU_MA)
+    );
 }
 
 // ---- deterministic sorting -------------------------------------------------
@@ -485,6 +538,41 @@ fn filter_by_scope() {
         ..Default::default()
     };
     assert_eq!(evaluate_classical_claims(&chart, &natal).len(), 3);
+}
+
+// ---- void policy -----------------------------------------------------------
+
+#[test]
+fn default_void_policy_includes_all_modeled_void_kinds() {
+    let kinds = VoidPolicy::DEFAULT.kinds();
+    assert_eq!(
+        kinds,
+        &[
+            VoidKind::XunKong,
+            VoidKind::KongWang,
+            VoidKind::JieLu,
+            VoidKind::JieKong
+        ]
+    );
+    for kind in kinds {
+        assert!(VoidPolicy::DEFAULT.includes(*kind));
+    }
+}
+
+#[test]
+fn xun_kong_only_void_policy_includes_only_xun_kong() {
+    assert_eq!(VoidPolicy::XUN_KONG_ONLY.kinds(), &[VoidKind::XunKong]);
+    assert!(VoidPolicy::XUN_KONG_ONLY.includes(VoidKind::XunKong));
+    assert!(!VoidPolicy::XUN_KONG_ONLY.includes(VoidKind::KongWang));
+    assert!(!VoidPolicy::XUN_KONG_ONLY.includes(VoidKind::JieLu));
+    assert!(!VoidPolicy::XUN_KONG_ONLY.includes(VoidKind::JieKong));
+}
+
+#[test]
+fn non_void_empty_stars_do_not_map_to_void_kind() {
+    assert_eq!(VoidKind::from_star(StarName::TianKong), None);
+    assert_eq!(VoidKind::from_star(StarName::DiKong), None);
+    assert_eq!(VoidKind::from_star(StarName::DiJie), None);
 }
 
 // ---- JSON export -----------------------------------------------------------

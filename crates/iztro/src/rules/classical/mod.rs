@@ -48,7 +48,9 @@ pub mod void;
 
 pub use claim::{Claim, ClaimDomain, ClaimId, ClaimScope, ClaimStrength};
 pub use corpus::{quan_shu_rules, rule_by_id};
-pub use engine::{ClaimEvaluationRequest, evaluate_classical, evaluate_classical_claims};
+pub use engine::{
+    ClaimEvaluationRequest, DiagnosticMode, evaluate_classical, evaluate_classical_claims,
+};
 pub use evidence::{Evidence, EvidenceKind};
 pub use outcome::{ClaimEvaluation, RuleDiagnostic, RuleOutcome, UnsupportedReason};
 pub use rule::{ClassicalRule, ClassicalRuleId, RuleSchool, RuleStatus};

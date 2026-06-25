@@ -115,7 +115,7 @@ fn evaluate_clamp_life(
         }),
     ];
     if let Some(pattern) = corroborating_pattern {
-        evidence.push(Evidence::new(EvidenceKind::PatternDetected { pattern }));
+        evidence.push(Evidence::new(EvidenceKind::PatternShapeMatched { pattern }));
     }
 
     RuleOutcome::Emitted(Box::new(build_claim(rule, evidence)))

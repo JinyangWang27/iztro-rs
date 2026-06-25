@@ -68,6 +68,11 @@
 `ClaimEvaluationRequest` 按 `domains`、`themes`、`polarities`、`works`、
 `rule_ids`、`scopes` 过滤判断。每个字段都是允许列表；空向量表示该维度不施加约束。
 
+不支持诊断默认使用 `DiagnosticMode::AllUnsupported`：即使判断过滤器已生效，也返回
+所有不支持的语料规则诊断，使诊断通道保持完整。若调用方需要更窄的 UI/导出表面，
+可选 `DiagnosticMode::MatchingRequest`（尽可能按规则元数据套用请求过滤器），或
+`DiagnosticMode::None`（抑制诊断）。
+
 返回的判断按 `(scope, domain, rule_id, claim_key)` 确定性排序。
 
 ## 规则状态
@@ -80,7 +85,7 @@
 | `Segmented` | 已拆分为独立陈述。 |
 | `Normalized` | 已规范为结构化意图。 |
 | `Executable` | 已有可运行的谓词，基于已建模事实。 |
-| `Tested` | 已被规则匹配测试覆盖。 |
+| `Tested` | 可执行，且已有真实生成盘或经审核的出处依据 fixture 的正反例覆盖，适合稳定公开使用。仅有合成试点测试不代表可标为此状态。 |
 | `Ambiguous` | 含义或条件存在歧义。 |
 | `Rejected` | 不予采用。 |
 
@@ -95,9 +100,9 @@
 - **`Claim`** 是规则给出的结构化**判断**（领域、主题、吉凶、强度、证据、反证、
   出处），供下游解读、过滤与本地化渲染。
 
-经典规则可以把格局**用作**佐证（昌曲夹命的判断会记录
-`EvidenceKind::PatternDetected`），但判断携带了格局识别所没有的领域/主题/吉凶/
-出处语义。
+经典规则可以匹配与某已知格局相同的结构形态（昌曲夹命的判断会记录
+`EvidenceKind::PatternShapeMatched { pattern: ChangQuJiaMing }`），但这不表示已经运行
+`core::pattern::detect_patterns`。判断仍携带格局识别所没有的领域/主题/吉凶/出处语义。
 
 ## 示例：马落空亡，终身奔走
 
@@ -115,7 +120,9 @@
 
 2. **何为空亡？** 并非名字含“空”的都算。`VoidKind` 只列举已建模的空亡族
    （旬空 `XunKong`、空亡 `KongWang`、截路 `JieLu`、截空 `JieKong`），并**排除**
-   天空/地空/地劫。`VoidPolicy` 明确规则所采用的集合。
+   天空/地空/地劫。`VoidPolicy` 明确规则所采用的集合；`VoidPolicy::DEFAULT` 包含所有
+   已建模种类，`VoidPolicy::XUN_KONG_ONLY` 与 `VoidPolicy::new(...)` 可供未来规则或
+   流派采用更窄策略。
 
 3. **谓词。** `tian_ma_affected_by_void` 找到天马所在宫，检查是否有该策略所计的
    空亡星与之同宫。

@@ -51,7 +51,7 @@ crates/iztro/rule-corpus/quan-shu/rules.toml
 | `segmented` | 已断句。 |
 | `normalized` | 已规范为结构化意图。 |
 | `executable` | 已有可运行谓词，基于已建模事实。 |
-| `tested` | 已被规则匹配测试覆盖。 |
+| `tested` | 可执行，且已有真实生成盘或经审核的出处依据 fixture 的正反例覆盖，适合稳定公开使用。仅有合成试点测试不代表可标为此状态。 |
 | `ambiguous` | 含义/条件有歧义。 |
 | `rejected` | 不予采用。 |
 
@@ -64,7 +64,7 @@ crates/iztro/rule-corpus/quan-shu/rules.toml
 | --- | --- | --- | --- |
 | `migration.tian_ma_void.restless_movement` | 马落空亡，终身奔走 | `executable` | 天马与已建模空亡星同宫即触发。 |
 | `life.yang_tuo_clamp_life.constraint_damage` | 羊陀夹命，为祸不轻 | `executable` | 擎羊、陀罗夹命宫。 |
-| `life.chang_qu_clamp_life.literary_reputation` | 昌曲夹命，主贵显 | `executable` | 文昌、文曲夹命宫；附格局佐证。 |
+| `life.chang_qu_clamp_life.literary_reputation` | 昌曲夹命，主贵显 | `executable` | 文昌、文曲夹命宫；记录对应的格局结构形态，不表示运行完整格局识别器。 |
 | `wealth.lu_ma_remote_wealth` | 禄马交驰，发财远方 | `normalized` | “交驰”关系随流派而异、尚未建模，**不触发**，给出类型化诊断。 |
 | `life.ri_yue_fan_bei.hardship_pressure` | 日月反背，劳碌辛苦 | `executable` | 太阳、太阴俱失辉（不/陷）。 |
 
