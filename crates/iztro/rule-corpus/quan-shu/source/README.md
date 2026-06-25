@@ -18,11 +18,46 @@ source Markdown
   -> structured Claim[]
 ```
 
+## Structure: passage + clauses
+
+A source passage often contains several candidate rule phrases, e.g.
+
+```text
+禄逢冲破，吉处藏凶。马遇空亡，终身奔走。
+```
+
+The inventory therefore models three levels:
+
+```text
+source item = a source passage / location, identified by `source_id`
+clause      = an individual candidate rule phrase inside that passage,
+              identified by `clause_id` (unique within the source item)
+rule        = an executable/normalized interpretation linked from a clause
+              via `linked_rule_ids`
+```
+
+`source_id` identifies the **passage**, not the semantic rule phrase (so it
+scales when one passage yields multiple rules). A rule links to a clause by
+carrying both `source_id` and `source_clause_id`; the clause mirrors that link
+through its `linked_rule_ids`.
+
+```toml
+[[source_item]]
+source_id = "quan_shu.v01.tai_wei_fu.001"
+section = "太微赋"
+source_text_zh_hans = "禄逢冲破，吉处藏凶。马遇空亡，终身奔走。"
+
+[[source_item.clause]]
+clause_id = "ma_yu_kong_wang"
+text_zh_hans = "马遇空亡，终身奔走"
+linked_rule_ids = ["migration.tian_ma_void.restless_movement"]
+```
+
 ## Files
 
-- `volume-01.toml`: pilot source inventory for the five currently encoded classical pilot rules.
+- `volume-01.toml`: pilot source inventory for the five currently encoded classical pilot rules, grouped into 太微赋 passages with nested clauses, plus two `待校`/`TODO` pending items not yet located.
 
-This is not a complete line-by-line inventory of Volume 1. It is a deliberately small first slice that establishes the inventory format and links the existing rule `source_id`s to reviewed source passages where possible.
+This is not a complete line-by-line inventory of Volume 1. It is a deliberately small first slice that establishes the inventory format and links the existing rule `source_id`/`source_clause_id`s to reviewed source passages where possible.
 
 ## Status values
 
@@ -48,17 +83,17 @@ The `category` field is deliberately broad. Common values include:
 
 ## Text fields
 
-- `source_text_zh_hans` preserves the source passage as found in the imported Markdown whenever possible.
-- `normalized_clause_zh_hans` records the rule-facing clause shape currently used by the pilot rule.
-- `notes_zh_hans` records source variants, unresolved location work, and normalization caveats.
+- `source_text_zh_hans` (source item) preserves the whole source passage as found in the imported Markdown whenever possible.
+- `text_zh_hans` (clause) records one candidate rule phrase carved out of that passage.
+- `notes_zh_hans` (on the source item or on a clause) records source variants, unresolved location work, and normalization caveats.
 
-The Markdown source text is treated as canonical for this source-import PR. If existing pilot rules use a different normalized wording, the inventory records that difference in `normalized_clause_zh_hans` and `notes_zh_hans` instead of rewriting the imported volumes.
+The Markdown source text is treated as canonical for this source-import PR. If an existing pilot rule uses a different normalized wording than its clause, the inventory records that difference in the clause/source-item `notes_zh_hans` instead of rewriting the imported volumes.
 
 ## Relationship to the rule corpus and runtime
 
 - The Markdown volumes under `docs/zh-CN/sources/quan_shu/` are the canonical, human-readable source text.
 - This source inventory TOML is machine-checkable corpus tracking only. It is **not** part of the runtime chart-evaluation path: nothing in `crates/iztro/src/` parses it, `evaluate_classical` does not depend on it, and the Markdown volumes are never parsed at runtime.
-- `crates/iztro/tests/classical_source_inventory.rs` validates the inventory and its links to `crates/iztro/rule-corpus/quan-shu/rules.toml` using private, test-only structs. It asserts that the inventory parses, has unique `source_id`s, has non-empty required fields, that every rule `source_id` exists in the inventory, that every `linked_rule_ids` entry exists in the rule corpus, and that linked source items and rules agree on `source_id` and `work`. It also locks the 天马空亡 source wording to `马遇空亡，终身奔走`.
+- `crates/iztro/tests/classical_source_inventory.rs` validates the inventory and its links to `crates/iztro/rule-corpus/quan-shu/rules.toml` using private, test-only structs. It asserts that the inventory parses, has unique `source_id`s, has non-empty required fields, that `clause_id`s are unique within a source item and clause fields are non-empty, that every rule `source_id`/`source_clause_id` exists in the inventory, that every `linked_rule_ids` entry exists in the rule corpus, that linked clauses and rules agree on `source_id`, `source_clause_id` and `work`, that clause text matches/contains the linked rule's source text (or a `notes_zh_hans` documents the divergence), and that a located passage's text contains each of its clause texts. It also locks the 天马空亡 clause wording to `马遇空亡，终身奔走`.
 
 ## Known pilot limitations
 
@@ -66,8 +101,8 @@ These are intentionally **allowed** in this pilot slice and are not test failure
 
 - `anchor = "TODO"` for items not yet located in the Markdown volumes;
 - `section = "待校"` for sections still pending source review;
-- `normalized_clause_zh_hans` differing from `source_text_zh_hans` (the imported Markdown wording is preserved as canonical, while the rule-facing clause shape is recorded separately);
-- the inventory contains only the five pilot entries for the currently encoded rules;
+- a clause text differing from its linked rule's `source_text_zh_hans` (the imported Markdown wording is preserved as canonical, while a normalized rule clause is documented via `notes_zh_hans`);
+- the inventory contains only the clauses for the five currently encoded pilot rules;
 - only `volume-01.toml` exists; Volume 2 and Volume 3 have no source inventory TOML yet.
 
 Tightening these (resolving TODO anchors, 待校 sections, and reconciling variants) is deferred to follow-up source-review PRs.
