@@ -25,7 +25,7 @@ pub enum ClassicalWork {
 pub struct SourceRef {
     /// The work this line is drawn from.
     pub work: ClassicalWork,
-    /// Stable identifier for the source line (e.g. `quan_shu.ma_luo_kong_wang`).
+    /// Stable identifier for the source line (e.g. `quan_shu.ma_yu_kong_wang`).
     pub source_id: String,
     /// Canonical classical text, Simplified Chinese.
     pub source_text_zh_hans: String,
