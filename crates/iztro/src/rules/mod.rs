@@ -1,27 +1,15 @@
-//! Structured rule and claim contracts for iztro-rs.
+//! Classical rule engine contracts for iztro-rs.
 //!
-//! Two layers currently coexist here:
-//!
-//! - the original **placeholder scaffold** ([`claim`], [`condition`], [`effect`],
-//!   [`engine`], [`loader`], [`rule`]) — a feature-oriented stub; and
-//! - the **classical rule engine** ([`classical`]) — the Chinese-first,
-//!   data-driven engine that turns chart facts into evidence-backed claims.
-//!
-//! The scaffold is transitional: it will be migrated into, or retired in favor of,
-//! [`classical`] in a follow-up PR. They coexist for now so existing scaffold
-//! tests keep passing.
+//! The active rule engine lives in [`classical`]. It is the Chinese-first,
+//! corpus-backed engine that evaluates chart facts into source hits, claims,
+//! and diagnostics.
 
-pub mod claim;
 pub mod classical;
-pub mod condition;
-pub mod effect;
-pub mod engine;
-pub mod loader;
-pub mod rule;
 
-pub use claim::{Claim, ClaimPolarity, Evidence, SourceMetadata};
-pub use condition::Condition;
-pub use effect::Effect;
-pub use engine::{RuleEngine, RuleEvaluationError, RuleEvaluator};
-pub use loader::{EmptyRuleSetProvider, RuleLoadError, RuleSetProvider};
-pub use rule::{Rule, RuleMetadata};
+pub use classical::{
+    Claim, ClaimDomain, ClaimEvaluation, ClaimEvaluationRequest, ClaimId, ClaimPolarity, ClaimScope,
+    ClaimSpec, ClaimStrength, ClaimTheme, ClassicalRule, ClassicalRuleId, ClassicalSourceHit,
+    ClassicalWork, DiagnosticMode, Evidence, EvidenceKind, RuleDiagnostic, RuleOutcome, RuleSchool,
+    RuleStatus, SourceRef, UnsupportedReason, VoidKind, VoidPolicy, classical_rules,
+    evaluate_classical, evaluate_classical_claims, pattern_rules, quan_shu_rules, rule_by_id,
+};
