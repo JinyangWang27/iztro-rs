@@ -33,13 +33,13 @@ fn quan_shu_source_inventory_parses() {
     );
 }
 
-/// Regression: 太微赋 source items must follow the original book order from
-/// `docs/zh-CN/sources/quan_shu/volume-01.md`. The numeric suffix of
-/// `source_id` is source-order based, so the suffixes must be continuous from
-/// `001`, appear in increasing order, begin with the opening commentary text,
-/// and never place a commentary item after an `例曰` aphorism item.
+/// Regression: 太微赋 source items track rule-candidate clauses, not
+/// explanatory/commentary prose from the full source text. The numeric suffix
+/// of `source_id` is source-order based, so suffixes must be continuous from
+/// `001`, appear in increasing order, and start at the first `例曰`
+/// rule-candidate passage.
 #[test]
-fn tai_wei_fu_source_items_follow_book_order() {
+fn tai_wei_fu_source_items_follow_rule_candidate_order() {
     let inventory = source_inventory();
     let tai_wei_fu: Vec<_> = inventory
         .source_item
@@ -70,26 +70,25 @@ fn tai_wei_fu_source_items_follow_book_order() {
         );
     }
 
-    // The first 太微赋 item is the opening commentary.
-    let first = tai_wei_fu[0];
-    assert!(
-        first.source_text_zh_hans.starts_with("斗数至玄至微"),
-        "first 太微赋 source item must be the opening commentary (斗数至玄至微), got {:?}",
-        first.source_text_zh_hans
-    );
-
-    // No commentary item may appear after an aphorism (例曰) item.
-    let first_aphorism = tai_wei_fu
-        .iter()
-        .position(|item| item.category == "aphorism_rule")
-        .expect("expected at least one 例曰 aphorism item");
-    for item in &tai_wei_fu[first_aphorism..] {
+    // This inventory tracks rule-candidate clauses, not commentary prose.
+    for item in &tai_wei_fu {
         assert_ne!(
             item.category, "commentary",
-            "commentary item {} must not appear after 例曰 aphorism items",
+            "commentary item {} belongs only in the raw full text, not in the source inventory",
             item.source_id
         );
     }
+
+    let first = tai_wei_fu[0];
+    assert_eq!(
+        first.category, "aphorism_rule",
+        "first 太微赋 source item must be the first 例曰 rule-candidate passage"
+    );
+    assert!(
+        first.source_text_zh_hans.starts_with("禄逢冲破"),
+        "first 太微赋 source item must be the first 例曰 rule-candidate passage, got {:?}",
+        first.source_text_zh_hans
+    );
 }
 
 #[test]
