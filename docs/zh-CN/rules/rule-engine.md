@@ -163,6 +163,24 @@
 
 语料编写格式详见 [`quan-shu-corpus.md`](./quan-shu-corpus.md)。
 
+## 星曜标签（重叠的解读型分类）
+
+`StarTag` 是核心星曜模型中挂在 `StarName` 上的**可重叠**分类，叠加在互斥的粗分类
+`StarCategory`（`Major` / `Minor` / `Adjective`）之上。一颗星可同时携带多个标签，如
+地空既属空劫（`KongJie`）又属空曜（`VoidSymbol`）。基于该层现已新增两条可执行全书规则：
+
+- **贪居亥子，名为犯水桃花**（`relationship.tan_ju_hai_zi.water_romance`）：保守取贪狼
+  居亥或子二支。
+- **刑遇贪狼，号曰风流彩杖**（`relationship.xing_yu_tan_lang.romance_with_penalty`）：
+  保守取贪狼与刑曜（`StarTag::Punishment` = 擎羊、天刑）同宫。
+
+`StarTag::VoidSymbol`（空曜）为**广义解读型分类**，与 `VoidKind` 刻意区分：后者仍是
+马遇空亡所用的**狭义、未改动**的空亡星族（旬空 / 空亡 / 截路 / 截空）。
+二者概念不同，但并非完全无交集：旬空、截空可同时出现在两个分类中。
+`VoidKind` 回答马遇空亡等规则所需的狭义空亡星族问题；
+`StarTag::VoidSymbol` 回答更广义的空曜解读分类问题。
+天空、地空、地劫属空曜，但绝不属 `VoidKind`。
+
 ## Source inventory（原子 source item）
 
 规则的 `source_id` 指向 QuanShu source inventory

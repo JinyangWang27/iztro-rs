@@ -7,7 +7,9 @@
 //! claim or any prose.
 
 use crate::core::pattern::query::{clamp_pair_matches, find_star_branch, is_dim, stars_in_palace};
-use crate::core::{Brightness, Chart, EarthlyBranch, StarName};
+use crate::core::{
+    Brightness, Chart, EarthlyBranch, StarName, StarTag, StarTagStrength, star_tag_strength,
+};
 use crate::rules::classical::void::{VoidKind, VoidPolicy};
 
 /// 天马 sharing a palace with a modeled 空亡-family star.
@@ -86,4 +88,78 @@ pub fn sun_and_moon_dim(chart: &Chart) -> Option<RiYueDim> {
     } else {
         None
     }
+}
+
+/// A specific star found directly in a specific branch.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct StarBranchFact {
+    /// The star.
+    pub star: StarName,
+    /// The branch it occupies.
+    pub branch: EarthlyBranch,
+}
+
+/// Returns the fact that `star` sits in one of the `allowed` branches, if it
+/// does. A generic direct star-in-branch check reusing [`find_star_branch`].
+pub fn star_in_branches(
+    chart: &Chart,
+    star: StarName,
+    allowed: &[EarthlyBranch],
+) -> Option<StarBranchFact> {
+    let branch = find_star_branch(chart, star)?;
+    allowed
+        .contains(&branch)
+        .then_some(StarBranchFact { star, branch })
+}
+
+/// An `anchor_star` sharing a palace with a star carrying a given [`StarTag`].
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct StarTagEncounter {
+    /// The anchor star whose palace is inspected.
+    pub anchor_star: StarName,
+    /// The co-resident star carrying the tag.
+    pub matched_star: StarName,
+    /// The shared palace branch.
+    pub branch: EarthlyBranch,
+    /// The tag matched.
+    pub tag: StarTag,
+    /// The strength of `matched_star`'s membership in `tag`.
+    pub strength: StarTagStrength,
+}
+
+/// Returns every star sharing `anchor_star`'s palace that carries `tag`,
+/// deterministically sorted. Empty if `anchor_star` is absent or no co-resident
+/// star carries `tag`.
+pub fn star_meets_tag_same_palace(
+    chart: &Chart,
+    anchor_star: StarName,
+    tag: StarTag,
+) -> Vec<StarTagEncounter> {
+    let Some(branch) = find_star_branch(chart, anchor_star) else {
+        return Vec::new();
+    };
+
+    let mut encounters: Vec<_> = stars_in_palace(chart, branch)
+        .into_iter()
+        .filter_map(|placement| {
+            let matched_star = placement.name();
+            if matched_star == anchor_star {
+                return None;
+            }
+
+            star_tag_strength(matched_star, tag).map(|strength| StarTagEncounter {
+                anchor_star,
+                matched_star,
+                branch,
+                tag,
+                strength,
+            })
+        })
+        .collect();
+
+    // All encounters share `anchor_star`'s palace branch, so it is constant and
+    // omitted from the sort key (`EarthlyBranch` is not `Ord`).
+    encounters.sort_by_key(|encounter| (encounter.tag, encounter.strength, encounter.matched_star));
+
+    encounters
 }
