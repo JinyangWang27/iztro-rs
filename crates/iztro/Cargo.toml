@@ -10,7 +10,10 @@ version.workspace = true
 readme = "../../README.md"
 exclude = [
     "fixtures/**",
-    "tests/**"
+    "tests/**",
+    # Governance/test-only source inventory; runtime never parses it. The
+    # runtime-embedded rules.toml files under rule-corpus/ are NOT excluded.
+    "rule-corpus/quan-shu/source/**"
 ]
 
 
