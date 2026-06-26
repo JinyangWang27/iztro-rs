@@ -923,7 +923,8 @@ fn from_chart_matches_request_path_for_natal_selection() {
     let selection = StaticTemporalNavigationSelection::Natal;
     let via_request = static_temporal_chart_view(spec_request(), selection).unwrap();
     let via_chart =
-        static_temporal_chart_view_from_chart(by_solar(spec_request()).unwrap(), selection).unwrap();
+        static_temporal_chart_view_from_chart(by_solar(spec_request()).unwrap(), selection)
+            .unwrap();
     assert_eq!(via_request, via_chart);
 }
 
@@ -932,7 +933,8 @@ fn from_chart_matches_request_path_for_pre_decadal_selection() {
     let selection = StaticTemporalNavigationSelection::PreDecadal;
     let via_request = static_temporal_chart_view(spec_request(), selection).unwrap();
     let via_chart =
-        static_temporal_chart_view_from_chart(by_solar(spec_request()).unwrap(), selection).unwrap();
+        static_temporal_chart_view_from_chart(by_solar(spec_request()).unwrap(), selection)
+            .unwrap();
     assert_eq!(via_request, via_chart);
 }
 

@@ -215,7 +215,10 @@ fn developer_request_surfaces_unsupported_lu_ma_diagnostic() {
     let chart = build_chart(EarthlyBranch::Zi, &[tian_ma(EarthlyBranch::Wu)]);
     let panel = classical_rule_panel_view(&chart, &ClassicalRulePanelRequest::developer());
     assert!(
-        panel.diagnostics.iter().any(|d| d.rule_id.as_str() == LU_MA),
+        panel
+            .diagnostics
+            .iter()
+            .any(|d| d.rule_id.as_str() == LU_MA),
         "developer panel should surface the unsupported 禄马交驰 diagnostic"
     );
     assert_eq!(panel.summary.diagnostic_count, panel.diagnostics.len());
