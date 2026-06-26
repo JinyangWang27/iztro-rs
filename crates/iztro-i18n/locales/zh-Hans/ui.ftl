@@ -69,3 +69,43 @@ center-body-palace = 身宫
 
 # 复合标签
 age-label = { $n }岁
+
+# 右侧检视面板（全书规则 / 格局 / 设置）
+right-panel-toggle = 侧栏
+right-panel-tab-quan-shu-rules = 全书规则
+right-panel-tab-patterns = 格局
+right-panel-tab-settings = 设置
+
+rules-panel-empty = 当前视图未命中已支持的全书规则。
+rules-panel-unknown-rule = 未知全书规则
+rules-panel-no-claim = 暂未生成解释文本
+
+patterns-panel-empty = 当前视图未命中已支持的格局。
+patterns-status-fulfilled = 成格
+patterns-status-partial = 近格
+patterns-status-weakened = 减力
+patterns-status-broken = 破格
+
+settings-panel-title = 设置
+settings-language = 语言
+settings-sidebar-mode = 侧栏模式
+settings-sidebar-hidden = 隐藏
+settings-sidebar-compact = 紧凑
+settings-sidebar-expanded = 展开
+
+rules-scope-natal = 本命
+rules-scope-decadal = 大限
+rules-scope-age = 小限
+rules-scope-yearly = 流年
+rules-scope-monthly = 流月
+rules-scope-daily = 流日
+rules-scope-hourly = 流时
+
+# 格局展开详情行标签
+patterns-detail-strength = 强度
+patterns-detail-stars = 星曜
+patterns-detail-palaces = 宫位
+patterns-detail-mutagens = 四化
+pattern-strength-weak = 弱
+pattern-strength-medium = 中
+pattern-strength-strong = 强

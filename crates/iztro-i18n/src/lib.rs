@@ -25,7 +25,7 @@ mod star_table;
 use iztro::core::labels::chinese_date;
 use iztro::core::{
     Brightness, EarthlyBranch, FiveElementBureau, Gender, HeavenlyStem, LunarDateView, Mutagen,
-    PalaceName, Scope, StarName, StemBranch, WesternZodiac,
+    PalaceName, PatternStatus, Scope, StarName, StemBranch, WesternZodiac,
 };
 use iztro::rules::classical::{Claim, ClaimDomain, ClaimPolarity, ClaimTheme};
 
@@ -76,6 +76,35 @@ impl I18n {
     /// Short temporal label for the compact stepper arrows.
     pub fn temporal_short(&self, scope: Scope) -> String {
         self.text(&format!("{}-short", keys::scope_key(scope)))
+    }
+
+    /// Localized scope label for the analysis inspector group headers
+    /// (本命 / 大限 / 小限 / 流年 / 流月 / 流日 / 流时).
+    ///
+    /// These intentionally use dedicated `rules-scope-*` keys rather than
+    /// [`temporal_label`](Self::temporal_label): the inspector wants a compact,
+    /// uniform set of scope captions (e.g. `本命` / `Natal`) shared by the
+    /// 全书规则 and 格局 tabs, independent of the stepper's `大限`/`Decade` wording.
+    pub fn analysis_scope_label(&self, scope: Scope) -> String {
+        self.text(match scope {
+            Scope::Natal => "rules-scope-natal",
+            Scope::Decadal => "rules-scope-decadal",
+            Scope::Age => "rules-scope-age",
+            Scope::Yearly => "rules-scope-yearly",
+            Scope::Monthly => "rules-scope-monthly",
+            Scope::Daily => "rules-scope-daily",
+            Scope::Hourly => "rules-scope-hourly",
+        })
+    }
+
+    /// Localized pattern fulfilment-status label (成格 / 近格 / 减力 / 破格).
+    pub fn pattern_status_label(&self, status: PatternStatus) -> String {
+        self.text(match status {
+            PatternStatus::Fulfilled => "patterns-status-fulfilled",
+            PatternStatus::Partial => "patterns-status-partial",
+            PatternStatus::Weakened => "patterns-status-weakened",
+            PatternStatus::Broken => "patterns-status-broken",
+        })
     }
 
     /// Localized star brightness (亮度). [`Brightness::Unknown`] renders as the
@@ -250,6 +279,15 @@ impl I18n {
     /// localized prose lives here, in the Fluent resources.
     pub fn claim_text(&self, claim: &Claim) -> String {
         self.text(&keys::claim_text_key(claim.claim_key()))
+    }
+
+    /// Localized short claim text resolved from a bare `claim_key` string.
+    ///
+    /// A compact rule hit (e.g. `ClassicalRuleHitRef`) carries only the claim
+    /// key, not a full [`Claim`]; this resolves its localized prose the same way
+    /// [`claim_text`](Self::claim_text) does.
+    pub fn claim_text_by_key(&self, claim_key: &str) -> String {
+        self.text(&keys::claim_text_key(claim_key))
     }
 }
 

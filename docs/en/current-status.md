@@ -112,7 +112,17 @@ solar input -> by_solar -> ChartStackSnapshot -> render module plain text output
 
 `StaticChartViewSnapshot` is the GUI-facing static-chart read model. It supports a 文墨天机-style 12-palace chart, selected natal/temporal overlays, prepared palace relationships for 三方四正 highlighting, mutagen display facts, and reserved highlight annotations. The local `iztro-gui` crate is an Iced desktop prototype that consumes this read model, persists saved chart inputs locally, regenerates charts deterministically through core facades, and drives temporal selection through `static_temporal_chart_view` rather than mutating the natal chart.
 
-The GUI is currently a chart-fact viewer. It does not perform star placement, temporal derivation, mutagen calculation, 三方四正 branch arithmetic, 成格 detection, BaZi interpretation, rule matching, or narrative generation in UI code.
+The GUI renderer derives nothing: it performs no star placement, temporal derivation, mutagen calculation, 三方四正 branch arithmetic, 成格 detection, BaZi interpretation, rule evaluation, pattern detection, or narrative generation in UI code. It only displays prepared values. Rule and pattern data shown in the right inspector is not computed in the GUI either — app state *requests* structured, per-layer analysis through the core analysis API (`detect_analysis_layer`) and caches the results; the derivation itself lives in core (see the right inspector section below).
+
+### Right analysis inspector
+
+The GUI adds a collapsible right-side inspector rendered *beside* the fixed-size scrollable chart canvas (never inside it, so palace cells never shrink). It has three tabs — 全书规则 (QuanShu rules), 格局 (patterns), and 设置 (settings) — and is renderer-side only: it reads cached, structured analysis values and performs no rule evaluation, pattern detection, or overlay derivation.
+
+Analysis stays lightweight and per-layer. The GUI calls the core `analysis_layers_for_selection(selection)` API to expand the current temporal view into the `AnalysisLayerKey`s it makes visible, requests only the layers missing from its in-memory `AnalysisCache` via `detect_analysis_layer`, and groups cached results into the 全书规则 and 格局 tabs (hiding empty groups). Because each result is keyed by `AnalysisLayerKey`, ancestor layers (本命 / 大限 / …) are never recomputed when a deeper overlay changes: switching 流月 / 流日 / 流时 under the same 流年 reuses the cached 流年 layer. Generating a new birth input clears the cache; analysis results are never persisted. Rule hits stay compact — the GUI resolves verbatim source text once per rule id through `classical_rule_metadata`, never duplicating `source_text_zh_hans` into GUI state, and the user-facing rule stream is QuanShu-only via `AnalysisLayerRequest::user_facing`.
+
+For this first inspector the analysis context is natal-only (`TemporalAnalysisContext::natal`): the static temporal flow exposes a prepared `StaticChartViewSnapshot` rather than a `HoroscopeChart`, so a horoscope context is deferred instead of duplicating core's private overlay-building in UI code. Current executable classical rules match natal facts only, so this loses nothing today.
+
+GUI settings (display locale, right-panel mode, active tab) are persisted **separately** from saved charts: charts live in `charts.json` via `ChartStore`, while preferences live in `settings.json` via a distinct `SettingsStore`, following the same path-injectable, no-cwd-fallback, tolerant-load policy.
 
 ## Runtime localization direction
 

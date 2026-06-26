@@ -1,10 +1,11 @@
-use iced::widget::{button, column, container, scrollable, stack, text};
-use iced::{Element, Length};
+use iced::widget::{button, column, container, row, scrollable, stack, text};
+use iced::{Alignment, Element, Length, Padding};
 use iztro::core::StaticChartViewSnapshot;
 use iztro_i18n::I18n;
 
 use crate::app::{Message, StaticChartApp};
 
+use super::inspector::right_inspector;
 use super::lines::san_fang_overlay;
 use super::palace::palace_grid;
 
@@ -18,6 +19,10 @@ pub(super) const MIN_PALACE_CELL_HEIGHT: f32 = 190.0;
 pub(super) const MIN_CHART_WIDTH: f32 = MIN_PALACE_CELL_WIDTH * 4.0;
 /// Minimum height of the whole 4x4 chart canvas: four palace rows tall.
 pub(super) const MIN_CHART_HEIGHT: f32 = MIN_PALACE_CELL_HEIGHT * 4.0;
+/// Gutter reserved on the chart canvas's right and bottom edges so the
+/// scrollable's floating scrollbars sit over padding rather than over the
+/// rightmost palace column / bottom row.
+const SCROLLBAR_GUTTER: f32 = 16.0;
 
 /// The generated static chart screen: a slim toolbar above the palace grid, with
 /// a transparent 三方四正 line overlay stacked over the grid.
@@ -35,7 +40,16 @@ pub(super) fn chart_screen<'a>(
         .width(Length::Fixed(MIN_CHART_WIDTH))
         .height(Length::Fixed(MIN_CHART_HEIGHT));
 
-    let chart_area = scrollable(grid)
+    // Inset the fixed canvas by a gutter on the right and bottom so the
+    // scrollable's floating scrollbars overlay padding, not palace content.
+    let padded = container(grid).padding(Padding {
+        top: 0.0,
+        right: SCROLLBAR_GUTTER,
+        bottom: SCROLLBAR_GUTTER,
+        left: 0.0,
+    });
+
+    let chart_area = scrollable(padded)
         .direction(scrollable::Direction::Both {
             vertical: scrollable::Scrollbar::new(),
             horizontal: scrollable::Scrollbar::new(),
@@ -43,20 +57,40 @@ pub(super) fn chart_screen<'a>(
         .width(Length::Fill)
         .height(Length::Fill);
 
-    column![chart_toolbar(i18n), chart_area]
+    // The inspector lives beside the chart canvas, never inside it: the canvas
+    // keeps its fixed minimum size and scrolls, while the side panel takes a
+    // fixed-width slot to its right (or is absent when hidden).
+    // The row must fill the available width: a default `Shrink` row would
+    // collapse the `Fill` chart canvas to nothing and let the fixed-width panel
+    // overlap where the chart should be.
+    let mut body = row![chart_area]
+        .spacing(8)
+        .width(Length::Fill)
+        .height(Length::Fill);
+    if let Some(inspector) = right_inspector(app, i18n) {
+        body = body.push(inspector);
+    }
+
+    column![chart_toolbar(i18n), body]
         .spacing(8)
         .padding(12)
         .into()
 }
 
-/// Top bar of the chart screen: just a return action. 三方四正 is always shown as
-/// connecting lines, matching the original iztro chart, so there is no toggle.
+/// Top bar of the chart screen: a return action on the left and the right-panel
+/// toggle on the right. 三方四正 is always shown as connecting lines, matching the
+/// original iztro chart, so there is no toggle for it.
 pub(super) fn chart_toolbar<'a>(i18n: &I18n) -> Element<'a, Message> {
-    container(
+    let bar = row![
         button(text(i18n.text("button-back")).size(14))
             .on_press(Message::BackToStartup)
             .style(button::secondary),
-    )
-    .width(Length::Fill)
-    .into()
+        iced::widget::horizontal_space(),
+        button(text(i18n.text("right-panel-toggle")).size(14))
+            .on_press(Message::ToggleRightPanel)
+            .style(button::secondary),
+    ]
+    .align_y(Alignment::Center);
+
+    container(bar).width(Length::Fill).into()
 }

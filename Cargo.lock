@@ -1409,6 +1409,7 @@ version = "0.9.0"
 dependencies = [
  "fluent-bundle",
  "iztro",
+ "serde",
  "unic-langid",
 ]
 

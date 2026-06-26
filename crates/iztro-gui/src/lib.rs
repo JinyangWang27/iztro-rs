@@ -1,17 +1,25 @@
 //! Local Iced desktop GUI prototype for rendering one `iztro` static chart
 //! snapshot. The crate consumes [`StaticChartViewSnapshot`] read models and
-//! renders them; it implements no astrology placement, rules, or 成格 logic.
+//! renders them; it derives no astrology facts itself — no star placement, rule
+//! evaluation, pattern detection, or 成格 logic. The right inspector's rule and
+//! pattern data comes from the core analysis API ([`iztro::analysis`]): app
+//! state *requests* structured, per-layer [`AnalysisLayerResult`]s and caches
+//! them, while the renderer only displays already-computed values.
 //!
 //! [`StaticChartViewSnapshot`]: iztro::core::StaticChartViewSnapshot
+//! [`AnalysisLayerResult`]: iztro::analysis::AnalysisLayerResult
 
+pub mod analysis;
 pub mod app;
 pub mod fonts;
 pub mod persistence;
+pub mod settings;
 pub mod static_chart_screen;
 mod system_clock;
 
 use app::{Message, StaticChartApp};
 use persistence::ChartStore;
+use settings::SettingsStore;
 
 const WINDOW_TITLE: &str = "iztro-rs";
 
@@ -21,9 +29,11 @@ pub fn run() -> iced::Result {
         .font(fonts::CJK_FONT_BYTES)
         .default_font(fonts::CJK_FONT)
         .window(iced::window::Settings {
-            // Default large enough to show the full fixed-size chart canvas
-            // (MIN_CHART_WIDTH x MIN_CHART_HEIGHT) plus toolbar and padding.
-            size: iced::Size::new(1180.0, 900.0),
+            // Default sized to fit the full fixed chart canvas (MIN_CHART_WIDTH x
+            // MIN_CHART_HEIGHT) plus toolbar, padding, and the right inspector at
+            // its expanded width — snugly, so the `Fill` chart area does not leave
+            // a wide gap between the chart and the panel at the default size.
+            size: iced::Size::new(1360.0, 900.0),
             // The window may shrink well below the chart's preferred layout so it
             // fits a 13-inch laptop screen; the chart area is wrapped in a
             // both-directions `scrollable`, so it scrolls rather than squeezing
@@ -33,7 +43,10 @@ pub fn run() -> iced::Result {
         })
         .run_with(|| {
             (
-                StaticChartApp::with_optional_store(ChartStore::default_store()),
+                StaticChartApp::with_optional_stores(
+                    ChartStore::default_store(),
+                    SettingsStore::default_store(),
+                ),
                 iced::Task::none(),
             )
         })
