@@ -88,6 +88,16 @@ fn metadata_table() -> &'static [ClassicalRuleMetadata] {
 /// Returns `None` for unknown ids. The returned reference is process-lifetime, so
 /// a GUI can cache it freely and resolve verbatim `source_text_zh_hans` without
 /// re-cloning per rule hit.
+///
+/// This lookup is intentionally **work-agnostic**: it resolves metadata for any
+/// rule id, including [`ClassicalWork::IztroPatternCatalog`] entries. Filtering by
+/// work is a concern of the rule *stream*, not this metadata table. The future
+/// 全书规则 tab should therefore consume QuanShu-filtered rule hits — e.g. those
+/// produced by [`AnalysisLayerRequest::user_facing`], which restricts `works` to
+/// [`ClassicalWork::ZiWeiDouShuQuanShu`] — rather than relying on this lookup to
+/// exclude pattern-catalog rules.
+///
+/// [`AnalysisLayerRequest::user_facing`]: crate::analysis::AnalysisLayerRequest::user_facing
 pub fn classical_rule_metadata(rule_id: ClassicalRuleId) -> Option<&'static ClassicalRuleMetadata> {
     metadata_table()
         .iter()

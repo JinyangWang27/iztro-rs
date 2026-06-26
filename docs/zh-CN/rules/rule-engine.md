@@ -141,9 +141,18 @@ evaluate_classical_in_context(&ClassicalRuleContext, &request) -> ClaimEvaluatio
   `StaticTemporalNavigationSelection` 展开为它所呈现的祖先层链。选中某一年时会
   **同时**包含 `Age`（小限）与 `Yearly`（流年），二者是不同的作用范围。
 - `detect_analysis_layer(&ctx, key, &request) -> AnalysisLayerResult`——在
-  `TemporalAnalysisContext { natal, horoscope }` 上分析恰好一层。它把底层的
-  全书/格局请求收窄到 `key`，返回紧凑的 `rule_hits: Vec<ClassicalRuleHitRef>`
-  与 `pattern_hits: Vec<PatternDetection>`。
+  `TemporalAnalysisContext { natal, horoscope }` 上分析恰好一层。它只把底层
+  全书/格局请求的**作用范围**改写为 `key`（其余过滤条件——尤其是 `works`——
+  均沿用调用方的请求），返回紧凑的 `rule_hits: Vec<ClassicalRuleHitRef>`
+  与 `pattern_hits: Vec<PatternDetection>`。`TemporalAnalysisContext` 必须与
+  `key` 对应：`key` 用于缓存标识与作用范围归属，当前**不会**针对横盘已选叠加做
+  校验，因此保持上下文与 `key` 一致是调用方的责任。
+- `AnalysisLayerRequest::user_facing()` 把全书规则流限制为
+  `ClassicalWork::ZiWeiDouShuQuanShu`。由于 GUI 将全书规则与格局放在**分开**的
+  标签页，分析的规则命中流不得包含项目格局目录规则
+  （`ClassicalWork::IztroPatternCatalog`）——它们应通过格局流呈现。未来的全书规则
+  标签页应消费这些经全书过滤的规则命中；`classical_rule_metadata` 保持与 work
+  无关，可解析任意规则 id（含格局目录条目）的元数据。
 - `ClassicalRuleHitRef`——紧凑命中（`rule_id`、`scope`、`claim_key`、`evidence`），
   刻意**不含** `source_text_zh_hans`；渲染层通过
   `classical_rule_metadata(rule_id) -> Option<&'static ClassicalRuleMetadata>`

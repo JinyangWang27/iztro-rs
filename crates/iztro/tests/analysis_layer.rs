@@ -56,8 +56,28 @@ fn major(branch: EarthlyBranch, star: StarName) -> Spec {
     (branch, star, StarKind::Major, None)
 }
 
+fn soft(branch: EarthlyBranch, star: StarName) -> Spec {
+    (branch, star, StarKind::Soft, None)
+}
+
 /// The id of the 马遇空亡 QuanShu rule, the natal classical hit under test.
 const TIAN_MA_VOID: &str = "migration.tian_ma_void.restless_movement";
+
+/// The id of the 昌曲夹命 rule, a project pattern-catalog
+/// (`ClassicalWork::IztroPatternCatalog`) classical rule.
+const CHANG_QU: &str = "life.chang_qu_clamp_life.literary_reputation";
+
+/// A chart where 文昌/文曲 clamp the Life palace at Zi, firing the project
+/// pattern-catalog 昌曲夹命 classical rule (not a QuanShu source rule).
+fn chang_qu_jia_ming_chart() -> Chart {
+    build_chart(
+        EarthlyBranch::Zi,
+        &[
+            soft(EarthlyBranch::Hai, StarName::WenChang),
+            soft(EarthlyBranch::Chou, StarName::WenQu),
+        ],
+    )
+}
 
 /// A chart that fires both the natal 马遇空亡 classical rule (TianMa sharing a
 /// palace with 旬空) and three natal patterns (紫府朝垣 / 机月同梁 / 羊陀夹忌).
@@ -403,6 +423,38 @@ fn rule_hit_ref_resolves_claim_key_from_metadata_without_duplicating_source_text
     // verbatim source text.
     assert_eq!(hit.claim_key.as_deref(), metadata.claim_key);
     assert!(!hit.evidence.is_empty());
+}
+
+#[test]
+fn user_facing_rule_hits_exclude_pattern_catalog_rules() {
+    let chart = chang_qu_jia_ming_chart();
+
+    // Sanity: the unfiltered classical engine does fire the pattern-catalog rule
+    // (昌曲夹命) on this chart.
+    let unfiltered = evaluate_classical(&chart, &ClaimEvaluationRequest::default());
+    assert!(
+        unfiltered
+            .source_hits
+            .iter()
+            .any(|hit| hit.rule_id.as_str() == CHANG_QU),
+        "the chart should fire the 昌曲夹命 pattern-catalog rule"
+    );
+
+    // The user-facing analysis request is QuanShu-only, so 全书规则 rule hits must
+    // not include the IztroPatternCatalog rule — it belongs to the 格局 stream.
+    let ctx = TemporalAnalysisContext::natal(&chart);
+    let result = detect_analysis_layer(
+        &ctx,
+        AnalysisLayerKey::Natal,
+        &AnalysisLayerRequest::user_facing(),
+    );
+    assert!(
+        result
+            .rule_hits
+            .iter()
+            .all(|hit| hit.rule_id.as_str() != CHANG_QU),
+        "user-facing rule hits must exclude pattern-catalog rules"
+    );
 }
 
 // ---- detect_analysis_layer: patterns -------------------------------------

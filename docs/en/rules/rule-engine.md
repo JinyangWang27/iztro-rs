@@ -163,8 +163,21 @@ Key types:
   which are distinct scopes.
 - `detect_analysis_layer(&ctx, key, &request) -> AnalysisLayerResult` — analyzes
   exactly one layer over a `TemporalAnalysisContext { natal, horoscope }`. It
-  scopes the underlying classical/pattern requests to `key` and returns compact
-  `rule_hits: Vec<ClassicalRuleHitRef>` plus `pattern_hits: Vec<PatternDetection>`.
+  overrides only the **scope** of the underlying classical/pattern requests to
+  `key` (every other filter — notably `works` — is preserved from the caller's
+  request) and returns compact `rule_hits: Vec<ClassicalRuleHitRef>` plus
+  `pattern_hits: Vec<PatternDetection>`. The `TemporalAnalysisContext` must
+  correspond to `key`: the key drives cache identity and scope assignment and is
+  **not** currently validated against the horoscope's selected overlays, so
+  keeping context and key in sync is the caller's responsibility.
+- `AnalysisLayerRequest::user_facing()` restricts the classical rule stream to
+  `ClassicalWork::ZiWeiDouShuQuanShu`. Because the GUI shows 全书规则 and 格局 in
+  **separate** tabs, the analysis rule-hit stream must not include project
+  pattern-catalog rules (`ClassicalWork::IztroPatternCatalog`), which surface
+  through the pattern (格局) stream instead. The future 全书规则 tab should
+  therefore consume these QuanShu-filtered rule hits; `classical_rule_metadata`
+  stays work-agnostic and resolves metadata for any rule id, including
+  pattern-catalog entries.
 - `ClassicalRuleHitRef` — a compact hit (`rule_id`, `scope`, `claim_key`,
   `evidence`). It deliberately **omits** `source_text_zh_hans`; a renderer
   resolves verbatim source text once per rule via

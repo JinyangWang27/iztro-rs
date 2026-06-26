@@ -7,8 +7,8 @@ use crate::core::pattern::{
 };
 use crate::core::{Chart, HoroscopeChart, Scope};
 use crate::rules::classical::{
-    ClaimEvaluationRequest, ClassicalRuleContext, ClassicalRuleHitRef, DiagnosticMode,
-    evaluate_classical_in_context,
+    ClaimEvaluationRequest, ClassicalRuleContext, ClassicalRuleHitRef, ClassicalWork,
+    DiagnosticMode, evaluate_classical_in_context,
 };
 
 use crate::analysis::layer::AnalysisLayerKey;
@@ -19,6 +19,16 @@ use crate::analysis::layer::AnalysisLayerKey;
 /// are enough to analyze any requested layer. Detection of a deep layer may
 /// inspect ancestor overlays through the horoscope, but the result is always
 /// assigned to the requested layer (see [`detect_analysis_layer`]).
+///
+/// # Caller contract
+///
+/// The context must correspond to the [`AnalysisLayerKey`] passed to
+/// [`detect_analysis_layer`]: its `horoscope` should already be projected to the
+/// temporal selection the key addresses. The key is used for cache identity and
+/// scope assignment; it is **not** currently validated against the horoscope's
+/// selected overlays, so supplying a mismatched context/key pair yields hits
+/// keyed to the requested layer over whatever overlays the context actually
+/// carries. Keeping them in sync is the caller's responsibility.
 #[derive(Clone, Debug)]
 pub struct TemporalAnalysisContext<'a> {
     /// The natal chart facts.
@@ -70,12 +80,19 @@ impl AnalysisLayerRequest {
     /// see them). Pattern visibility follows the existing
     /// [`PatternDetectionRequest`] defaults: fulfilled, weakened, and broken
     /// patterns are included; partial patterns are not.
+    ///
+    /// The classical rule stream is restricted to
+    /// [`ClassicalWork::ZiWeiDouShuQuanShu`]: the future GUI shows 全书规则 and
+    /// 格局 in **separate** tabs, so the analysis rule-hit stream must not include
+    /// project pattern-catalog rules ([`ClassicalWork::IztroPatternCatalog`]),
+    /// which surface through the pattern (格局) stream instead.
     pub fn user_facing() -> Self {
         Self {
             include_rules: true,
             include_patterns: true,
             classical: ClaimEvaluationRequest {
                 diagnostic_mode: DiagnosticMode::None,
+                works: vec![ClassicalWork::ZiWeiDouShuQuanShu],
                 ..Default::default()
             },
             patterns: PatternDetectionRequest::default(),
@@ -172,11 +189,18 @@ fn active_scopes_for(key: &AnalysisLayerKey) -> Vec<Scope> {
 }
 
 /// Evaluates classical rules narrowed to `key`'s scope and compacts the hits.
+///
+/// Only the scope filter is overridden to the requested layer; every other filter
+/// on `request.classical` — notably `works` (e.g. the QuanShu-only restriction in
+/// [`AnalysisLayerRequest::user_facing`]) — is preserved from the caller's
+/// request.
 fn detect_rule_hits(
     ctx: &TemporalAnalysisContext<'_>,
     key: &AnalysisLayerKey,
     request: &AnalysisLayerRequest,
 ) -> Vec<ClassicalRuleHitRef> {
+    // Clone preserves every caller-supplied filter (works, domains, themes, …);
+    // we override only the scope to the requested layer.
     let mut classical = request.classical.clone();
     classical.scopes = vec![key.claim_scope()];
 
