@@ -114,6 +114,8 @@ const YANG_TUO: &str = "life.yang_tuo_clamp_life.constraint_damage";
 const CHANG_QU: &str = "life.chang_qu_clamp_life.literary_reputation";
 const LU_MA: &str = "fortune.lu_ma_jiao_chi.favorable_convergence";
 const RI_YUE: &str = "life.ri_yue_fan_bei.hardship_pressure";
+const TAN_LANG_HAI_ZI: &str = "relationship.tan_ju_hai_zi.water_romance";
+const XING_YU_TAN_LANG: &str = "relationship.xing_yu_tan_lang.romance_with_penalty";
 
 // ---- corpus deserialization ----------------------------------------------
 
@@ -128,6 +130,12 @@ fn corpus_deserializes_all_pilot_rules() {
     for id in [TIAN_MA_VOID, YANG_TUO, CHANG_QU, RI_YUE] {
         let rule = rule_by_id(id).unwrap_or_else(|| panic!("missing rule {id}"));
         assert!(rule.claim.is_some(), "rule {id} should have claim metadata");
+    }
+    // The two Tan Lang QuanShu rules are now executable and claim-bearing.
+    for id in [TAN_LANG_HAI_ZI, XING_YU_TAN_LANG] {
+        let rule = rule_by_id(id).unwrap_or_else(|| panic!("missing rule {id}"));
+        assert!(rule.claim.is_some(), "rule {id} should have claim metadata");
+        assert_eq!(rule.status, RuleStatus::Executable);
     }
     let lu_ma = rule_by_id(LU_MA).unwrap_or_else(|| panic!("missing rule {LU_MA}"));
     assert!(
@@ -168,7 +176,12 @@ fn corpus_deserializes_all_pilot_rules() {
 fn tai_wei_fu_normalized_rules_are_inert_at_runtime() {
     let normalized_only: Vec<&iztro::rules::classical::ClassicalRule> = quan_shu_rules()
         .iter()
-        .filter(|r| !matches!(r.id.as_str(), TIAN_MA_VOID | LU_MA | RI_YUE))
+        .filter(|r| {
+            !matches!(
+                r.id.as_str(),
+                TIAN_MA_VOID | LU_MA | RI_YUE | TAN_LANG_HAI_ZI | XING_YU_TAN_LANG
+            )
+        })
         .collect();
     assert!(
         !normalized_only.is_empty(),
@@ -559,6 +572,151 @@ fn ri_yue_fan_bei_negative_when_one_bright() {
     );
     let claims = evaluate_classical_claims(&chart, &ClaimEvaluationRequest::default());
     assert!(!has_rule(&claims, RI_YUE));
+}
+
+// ---- 贪居亥子 (executable; 贪狼居亥或子) ----------------------------------
+
+fn assert_tan_ju_hai_zi(chart: &Chart, branch: EarthlyBranch) {
+    let evaluation = evaluate_classical(chart, &ClaimEvaluationRequest::default());
+    let claim = evaluation
+        .claims
+        .iter()
+        .find(|c| c.rule_id.as_str() == TAN_LANG_HAI_ZI)
+        .expect("expected 贪居亥子 claim");
+    assert_eq!(claim.domain, ClaimDomain::Relationship);
+    assert_eq!(claim.scope, ClaimScope::Natal);
+    assert!(claim.evidence.iter().any(|e| matches!(
+        e.kind(),
+        EvidenceKind::StarInPalace {
+            star: StarName::TanLang,
+            branch: b,
+        } if *b == branch
+    )));
+
+    let source_hit = evaluation
+        .source_hits
+        .iter()
+        .find(|hit| hit.rule_id.as_str() == TAN_LANG_HAI_ZI)
+        .expect("expected 贪居亥子 source hit");
+    assert_eq!(source_hit.source_text_zh_hans, "贪居亥子，名为犯水桃花");
+    assert_eq!(source_hit.status, RuleStatus::Executable);
+}
+
+#[test]
+fn tan_ju_hai_zi_positive_in_hai() {
+    let chart = build_chart(
+        EarthlyBranch::Zi,
+        &[tough(EarthlyBranch::Hai, StarName::TanLang)],
+    );
+    assert_tan_ju_hai_zi(&chart, EarthlyBranch::Hai);
+}
+
+#[test]
+fn tan_ju_hai_zi_positive_in_zi() {
+    let chart = build_chart(
+        EarthlyBranch::Zi,
+        &[tough(EarthlyBranch::Zi, StarName::TanLang)],
+    );
+    assert_tan_ju_hai_zi(&chart, EarthlyBranch::Zi);
+}
+
+#[test]
+fn tan_ju_hai_zi_negative_in_other_branch() {
+    let chart = build_chart(
+        EarthlyBranch::Zi,
+        &[tough(EarthlyBranch::Yin, StarName::TanLang)],
+    );
+    let claims = evaluate_classical_claims(&chart, &ClaimEvaluationRequest::default());
+    assert!(!has_rule(&claims, TAN_LANG_HAI_ZI));
+}
+
+// ---- 刑遇贪狼 (executable; 贪狼与刑曜同宫) --------------------------------
+
+fn assert_xing_yu_tan_lang(chart: &Chart, penalty_star: StarName) {
+    let evaluation = evaluate_classical(chart, &ClaimEvaluationRequest::default());
+    let claim = evaluation
+        .claims
+        .iter()
+        .find(|c| c.rule_id.as_str() == XING_YU_TAN_LANG)
+        .expect("expected 刑遇贪狼 claim");
+    assert_eq!(claim.domain, ClaimDomain::Relationship);
+    assert_eq!(claim.scope, ClaimScope::Natal);
+    assert!(claim.evidence.iter().any(|e| matches!(
+        e.kind(),
+        EvidenceKind::StarInPalace {
+            star: StarName::TanLang,
+            ..
+        }
+    )));
+    assert!(claim.evidence.iter().any(|e| matches!(
+        e.kind(),
+        EvidenceKind::StarInPalace { star, .. } if *star == penalty_star
+    )));
+
+    let source_hit = evaluation
+        .source_hits
+        .iter()
+        .find(|hit| hit.rule_id.as_str() == XING_YU_TAN_LANG)
+        .expect("expected 刑遇贪狼 source hit");
+    assert_eq!(source_hit.source_text_zh_hans, "刑遇贪狼，号曰风流彩杖");
+    assert_eq!(source_hit.status, RuleStatus::Executable);
+}
+
+#[test]
+fn xing_yu_tan_lang_positive_with_qing_yang() {
+    let chart = build_chart(
+        EarthlyBranch::Zi,
+        &[
+            tough(EarthlyBranch::Wu, StarName::TanLang),
+            tough(EarthlyBranch::Wu, StarName::QingYang),
+        ],
+    );
+    assert_xing_yu_tan_lang(&chart, StarName::QingYang);
+}
+
+#[test]
+fn xing_yu_tan_lang_positive_with_tian_xing() {
+    let chart = build_chart(
+        EarthlyBranch::Zi,
+        &[
+            tough(EarthlyBranch::Wu, StarName::TanLang),
+            adj(EarthlyBranch::Wu, StarName::TianXing),
+        ],
+    );
+    assert_xing_yu_tan_lang(&chart, StarName::TianXing);
+}
+
+#[test]
+fn xing_yu_tan_lang_negative_when_penalty_in_other_palace() {
+    let chart = build_chart(
+        EarthlyBranch::Zi,
+        &[
+            tough(EarthlyBranch::Wu, StarName::TanLang),
+            adj(EarthlyBranch::Zi, StarName::TianXing),
+        ],
+    );
+    let claims = evaluate_classical_claims(&chart, &ClaimEvaluationRequest::default());
+    assert!(!has_rule(&claims, XING_YU_TAN_LANG));
+}
+
+#[test]
+fn xing_yu_tan_lang_negative_with_void_symbol_star() {
+    // 空劫/空曜 stars (地空、天空) carry KongJie/VoidSymbol tags, not Punishment,
+    // so 刑遇贪狼 must not fire on them.
+    for void_star in [StarName::DiKong, StarName::TianKong] {
+        let chart = build_chart(
+            EarthlyBranch::Zi,
+            &[
+                tough(EarthlyBranch::Wu, StarName::TanLang),
+                adj(EarthlyBranch::Wu, void_star),
+            ],
+        );
+        let claims = evaluate_classical_claims(&chart, &ClaimEvaluationRequest::default());
+        assert!(
+            !has_rule(&claims, XING_YU_TAN_LANG),
+            "{void_star:?} should not trigger 刑遇贪狼"
+        );
+    }
 }
 
 // ---- 禄马交驰 (metadata-only / unsupported, typed + visible) ---------------

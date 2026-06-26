@@ -16,8 +16,8 @@ source inventory 以原子 source item 记录每条受引出处单元；`source_
 | Linked source items | 64 |
 | Unlinked source items | 0 |
 | Linked rules | 64 |
-| Executable linked rules | 2 |
-| Normalized linked rules | 44 |
+| Executable linked rules | 4 |
+| Normalized linked rules | 42 |
 | Ambiguous linked rules | 17 |
 | Rejected linked rules | 1 |
 
