@@ -284,16 +284,30 @@ id = "relationship.tan_ju_hai_zi.water_romance"
 source_id = "quan_shu.v01.tai_wei_fu.tan_ju_hai_zi"
 work = "zi_wei_dou_shu_quan_shu"
 source_text_zh_hans = "贪居亥子，名为犯水桃花"
-normalized_note_zh_hans = "句意结构：贪狼居亥、子（水乡），名为『泛水桃花』，主淫。贪狼在亥或子为单纯入位事实，尚未为本规则接线，故暂不可执行。"
-status = "normalized"
+normalized_note_zh_hans = "本实现取贪狼居亥、子二支为命中条件；不额外判定桃花诸曜或流派修正。"
+status = "executable"
+
+[rule.claim]
+domain = "relationship"
+themes = ["impulsiveness", "hidden_risk"]
+polarity = "mixed_negative"
+base_strength = 0.50
+claim_key = "claim.relationship.tan-ju-hai-zi.water-romance"
 
 [[rule]]
 id = "relationship.xing_yu_tan_lang.romance_with_penalty"
 source_id = "quan_shu.v01.tai_wei_fu.xing_yu_tan_lang"
 work = "zi_wei_dou_shu_quan_shu"
 source_text_zh_hans = "刑遇贪狼，号曰风流彩杖"
-normalized_note_zh_hans = "句意结构：擎羊（刑）与贪狼同会，号曰『风流彩杖』，主桃花带刑。星曜同宫或会照关系尚未为本规则建模，故暂不可执行。"
-status = "normalized"
+normalized_note_zh_hans = "本实现暂取「刑遇贪狼」为贪狼与刑曜同宫；刑曜取核心星曜标签 StarTag::Punishment（擎羊、天刑）。三方四正、夹照等扩展口径暂不纳入。"
+status = "executable"
+
+[rule.claim]
+domain = "relationship"
+themes = ["impulsiveness", "conflict", "injury_risk"]
+polarity = "negative"
+base_strength = 0.60
+claim_key = "claim.relationship.xing-yu-tan-lang.romance-with-penalty"
 
 [[rule]]
 id = "risk.sha_lian_tong_wei.violent_death"

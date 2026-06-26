@@ -69,6 +69,8 @@ claim-migration-tian-ma-void-restless-movement = Tian Ma is affected by a void c
 claim-life-yang-tuo-clamp-life-constraint-damage = Qing Yang and Tuo Luo clamp the Life palace, indicating pressure, constraint, or damage.
 claim-life-chang-qu-clamp-life-literary-reputation = Wen Chang and Wen Qu clamp the Life palace, indicating literary talent, reputation, or distinction.
 claim-life-ri-yue-fan-bei-hardship-pressure = The Sun and Moon are both in weak brightness states, indicating toil, pressure, or reduced clarity.
+claim-relationship-tan-ju-hai-zi-water-romance = Tan Lang is placed in Hai or Zi, indicating a water-romance peach-blossom pattern.
+claim-relationship-xing-yu-tan-lang-romance-with-penalty = Tan Lang meets a punishment star, indicating romance entangled with conflict or penalty.
 
 # -- Evidence templates (illustrative; rendered by a future narrative layer) -
 claim-evidence-star-clamps-palace = { $star } clamps the palace at { $target } from { $clamp }
