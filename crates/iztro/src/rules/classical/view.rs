@@ -26,8 +26,11 @@
 use serde::{Deserialize, Serialize};
 
 use crate::core::Chart;
+use crate::rules::classical::context::ClassicalRuleContext;
 use crate::rules::classical::corpus::classical_rules;
-use crate::rules::classical::engine::{ClaimEvaluationRequest, DiagnosticMode, evaluate_classical};
+use crate::rules::classical::engine::{
+    ClaimEvaluationRequest, DiagnosticMode, evaluate_classical_in_context,
+};
 use crate::rules::classical::{
     Claim, ClaimDomain, ClaimPolarity, ClaimScope, ClaimTheme, ClassicalRule, ClassicalRuleId,
     ClassicalSourceHit, ClassicalWork, RuleDiagnostic, RuleSchool, RuleStatus,
@@ -195,7 +198,20 @@ pub fn classical_rule_panel_view(
     chart: &Chart,
     request: &ClassicalRulePanelRequest,
 ) -> ClassicalRulePanelView {
-    let evaluation = evaluate_classical(chart, &request.evaluation);
+    classical_rule_panel_view_in_context(&ClassicalRuleContext::natal(chart), request)
+}
+
+/// Builds a classical rule panel for an explicit [`ClassicalRuleContext`].
+///
+/// This is the layer-ready panel API. [`classical_rule_panel_view`] is the
+/// natal-only compatibility wrapper over it. As with the engine, current
+/// executable rules evaluate against natal facts only, so a horoscope context
+/// produces the same panel as a natal context until temporal rules exist.
+pub fn classical_rule_panel_view_in_context(
+    ctx: &ClassicalRuleContext<'_>,
+    request: &ClassicalRulePanelRequest,
+) -> ClassicalRulePanelView {
+    let evaluation = evaluate_classical_in_context(ctx, &request.evaluation);
 
     let corpus_rules = if request.include_corpus {
         build_corpus_rules(&request.evaluation, &request.corpus_statuses)
