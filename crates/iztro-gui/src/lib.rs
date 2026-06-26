@@ -36,7 +36,10 @@ pub fn run() -> iced::Result {
         })
         .run_with(|| {
             (
-                StaticChartApp::with_optional_store(ChartStore::default_store()),
+                StaticChartApp::with_optional_stores(
+                    ChartStore::default_store(),
+                    SettingsStore::default_store(),
+                ),
                 iced::Task::none(),
             )
         })

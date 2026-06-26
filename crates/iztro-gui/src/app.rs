@@ -8,15 +8,23 @@
 //! temporal-overlay, 三方四正, mutagen, or 成格 derivation lives here — those
 //! facts are read from prepared snapshots only.
 
-use std::collections::HashMap;
+use std::collections::{BTreeSet, HashMap};
 
 use serde::{Deserialize, Serialize};
 
+use crate::analysis::{
+    AnalysisCache, PatternHitExpansionKey, RuleHitExpansionKey, missing_analysis_layers,
+};
 use crate::persistence::ChartStore;
+use crate::settings::{AppSettings, RightPanelMode, RightPanelTab, SettingsStore};
+use iztro::analysis::{
+    AnalysisLayerKey, AnalysisLayerRequest, TemporalAnalysisContext, analysis_layers_for_selection,
+    detect_analysis_layer,
+};
 use iztro::core::{
-    BirthTime, ChartAlgorithmKind, ChartError, EarthlyBranch, Gender, MethodProfile,
+    BirthTime, Chart, ChartAlgorithmKind, ChartError, EarthlyBranch, Gender, MethodProfile,
     SolarChartRequest, SolarDay, SolarMonth, StaticChartCenterView, StaticChartViewSnapshot,
-    StaticPalaceView, StaticTemporalNavigationSelection, static_temporal_chart_view,
+    StaticPalaceView, StaticTemporalNavigationSelection, by_solar, static_temporal_chart_view,
     temporal_selection_for_solar_moment,
 };
 use iztro_i18n::{I18n, Locale};
@@ -529,6 +537,16 @@ pub enum Message {
     BackToStartup,
     /// Switch the active display locale.
     SetLocale(Locale),
+    /// Toggle the right inspector between hidden and visible (compact).
+    ToggleRightPanel,
+    /// Set the right inspector visibility/width mode.
+    SetRightPanelMode(RightPanelMode),
+    /// Switch the active right inspector tab.
+    SetRightPanelTab(RightPanelTab),
+    /// Toggle the expansion of one 全书规则 rule hit line.
+    ToggleRuleHit(RuleHitExpansionKey),
+    /// Toggle the expansion of one 格局 pattern hit line.
+    TogglePatternHit(PatternHitExpansionKey),
 }
 
 /// Pure application state backing the static chart screen.
@@ -543,12 +561,26 @@ pub struct StaticChartApp {
     selected_temporal_selection: StaticTemporalNavigationSelection,
     error: Option<FormError>,
     cache: ChartCache,
-    locale: Locale,
     saved: Vec<SavedChart>,
     /// Index into `saved` currently being edited, if any. When set, generating
     /// updates that record in place instead of appending a new one.
     editing_saved_index: Option<usize>,
     store: Option<ChartStore>,
+    /// Persisted user preferences (locale + right-inspector layout). The locale
+    /// lives here, not as a standalone field, so a locale change is one settings
+    /// mutation that is persisted alongside the panel state.
+    settings: AppSettings,
+    settings_store: Option<SettingsStore>,
+    /// In-memory, per-layer analysis cache for the current chart. Cleared when a
+    /// new birth input is generated; never persisted.
+    analysis_cache: AnalysisCache,
+    /// The natal chart backing analysis for the current input, built once per
+    /// input through the `by_solar` facade. `None` until a chart is generated.
+    natal_chart: Option<Chart>,
+    /// Which 全书规则 lines are expanded in the inspector.
+    expanded_rule_hits: BTreeSet<RuleHitExpansionKey>,
+    /// Which 格局 lines are expanded in the inspector.
+    expanded_pattern_hits: BTreeSet<PatternHitExpansionKey>,
 }
 
 impl StaticChartApp {
@@ -567,10 +599,15 @@ impl StaticChartApp {
             selected_temporal_selection: StaticTemporalNavigationSelection::PreDecadal,
             error: None,
             cache: ChartCache::default(),
-            locale: Locale::default(),
             saved: Vec::new(),
             editing_saved_index: None,
             store: None,
+            settings: AppSettings::default(),
+            settings_store: None,
+            analysis_cache: AnalysisCache::default(),
+            natal_chart: None,
+            expanded_rule_hits: BTreeSet::new(),
+            expanded_pattern_hits: BTreeSet::new(),
         }
     }
 
@@ -599,6 +636,28 @@ impl StaticChartApp {
                 app
             }
         }
+    }
+
+    /// Builds an app from optional chart and settings stores, seeding both saved
+    /// charts and persisted settings from disk where available.
+    ///
+    /// The chart store drives the same non-fatal persistence notice as
+    /// [`with_optional_store`](Self::with_optional_store). The settings store is
+    /// independent: when present, persisted preferences (locale + inspector
+    /// layout) are loaded; when absent, in-memory defaults are used and settings
+    /// changes simply are not written to disk.
+    pub fn with_optional_stores(
+        chart_store: Option<ChartStore>,
+        settings_store: Option<SettingsStore>,
+    ) -> Self {
+        let settings = settings_store
+            .as_ref()
+            .map(SettingsStore::load)
+            .unwrap_or_default();
+        let mut app = Self::with_optional_store(chart_store);
+        app.settings = settings;
+        app.settings_store = settings_store;
+        app
     }
 
     /// Replaces the saved-charts list (e.g. when seeding from persistence).
@@ -631,9 +690,46 @@ impl StaticChartApp {
         self.error.as_ref()
     }
 
-    /// The active display locale.
+    /// The active display locale (read from persisted settings).
     pub fn locale(&self) -> Locale {
-        self.locale
+        self.settings.locale
+    }
+
+    /// The persisted user preferences (locale + right-inspector layout).
+    pub fn settings(&self) -> &AppSettings {
+        &self.settings
+    }
+
+    /// The current right inspector visibility/width mode.
+    pub fn right_panel_mode(&self) -> RightPanelMode {
+        self.settings.right_panel_mode
+    }
+
+    /// The active right inspector tab.
+    pub fn right_panel_tab(&self) -> RightPanelTab {
+        self.settings.right_panel_tab
+    }
+
+    /// The per-layer analysis cache backing the inspector (read-only).
+    pub fn analysis_cache(&self) -> &AnalysisCache {
+        &self.analysis_cache
+    }
+
+    /// The analysis layers the current temporal selection makes visible, in
+    /// natal-outward order. The inspector reads cached results for these keys and
+    /// hides any whose group is empty.
+    pub fn required_analysis_layers(&self) -> Vec<AnalysisLayerKey> {
+        analysis_layers_for_selection(self.selected_temporal_selection)
+    }
+
+    /// Whether the given 全书规则 line is currently expanded.
+    pub fn is_rule_hit_expanded(&self, key: &RuleHitExpansionKey) -> bool {
+        self.expanded_rule_hits.contains(key)
+    }
+
+    /// Whether the given 格局 line is currently expanded.
+    pub fn is_pattern_hit_expanded(&self, key: &PatternHitExpansionKey) -> bool {
+        self.expanded_pattern_hits.contains(key)
     }
 
     /// Returns the chart cache (read-only).
@@ -829,11 +925,20 @@ impl StaticChartApp {
                 // the original iztro chart's initial state.
                 self.selected = snapshot.center.life_palace_branch;
                 self.snapshot = Some(snapshot);
+                // A new birth input invalidates the analysis cache and the natal
+                // chart it was built from; the same input reuses them.
+                if self.input != Some(input) {
+                    self.analysis_cache.clear();
+                    self.expanded_rule_hits.clear();
+                    self.expanded_pattern_hits.clear();
+                    self.natal_chart = build_request(&input).and_then(by_solar).ok();
+                }
                 self.input = Some(input);
                 self.hovered_palace = None;
                 self.selected_temporal_selection = StaticTemporalNavigationSelection::PreDecadal;
                 self.error = None;
                 self.screen = Screen::Chart;
+                self.refresh_analysis();
                 self.save_record(SavedChart { name, input });
                 if hit {
                     GenerateOutcome::CacheHit
@@ -875,8 +980,42 @@ impl StaticChartApp {
                 self.selected_temporal_selection = selection;
                 self.snapshot = Some(snapshot);
                 self.error = None;
+                // Request only the layers the new selection adds; cached ancestor
+                // layers (本命/大限/…) are reused untouched.
+                self.refresh_analysis();
             }
             Err(error) => self.error = Some(form_error_from_chart_error(error)),
+        }
+    }
+
+    /// Fills the analysis cache for the layers the current temporal selection
+    /// makes visible, requesting detection only for the layers still missing.
+    ///
+    /// # Current limitation
+    ///
+    /// The analysis context is **natal-only** for this first GUI inspector: it is
+    /// built from the natal [`Chart`] via [`TemporalAnalysisContext::natal`], not
+    /// from a projected [`HoroscopeChart`]. The static temporal flow exposes a
+    /// prepared [`StaticChartViewSnapshot`] (not a `HoroscopeChart`), so threading
+    /// a horoscope context through public APIs is deferred rather than duplicating
+    /// core's private overlay-building here. In practice this loses nothing today:
+    /// current executable classical rules match natal facts only, so non-natal
+    /// `rule_hits` are empty regardless, and pattern detection is still scoped per
+    /// layer. When a public horoscope facade is available, swap the context here.
+    fn refresh_analysis(&mut self) {
+        let Some(natal) = self.natal_chart.as_ref() else {
+            return;
+        };
+        let required = analysis_layers_for_selection(self.selected_temporal_selection);
+        let missing = missing_analysis_layers(&required, &self.analysis_cache);
+        if missing.is_empty() {
+            return;
+        }
+        let ctx = TemporalAnalysisContext::natal(natal);
+        let request = AnalysisLayerRequest::user_facing();
+        for key in missing {
+            let result = detect_analysis_layer(&ctx, key.clone(), &request);
+            self.analysis_cache.insert(key, result);
         }
     }
 
@@ -1164,8 +1303,11 @@ impl StaticChartApp {
                 self.selected_temporal_selection = StaticTemporalNavigationSelection::PreDecadal;
             }
             Message::SetLocale(locale) => {
-                let previous = self.locale;
-                self.locale = locale;
+                let previous = self.settings.locale;
+                if previous == locale {
+                    return;
+                }
+                self.settings.locale = locale;
                 // If the user has not customized the (auto-seeded) chart name,
                 // re-seed it in the new locale so the default stays localized.
                 if self.editing_saved_index.is_none() {
@@ -1175,7 +1317,50 @@ impl StaticChartApp {
                         }
                     }
                 }
+                self.persist_settings();
             }
+            Message::ToggleRightPanel => {
+                // Toggle hides a visible panel and restores the compact panel from
+                // hidden; the explicit mode controls live in the 设置 tab.
+                let mode = match self.settings.right_panel_mode {
+                    RightPanelMode::Hidden => RightPanelMode::Compact,
+                    RightPanelMode::Compact | RightPanelMode::Expanded => RightPanelMode::Hidden,
+                };
+                self.set_right_panel_mode(mode);
+            }
+            Message::SetRightPanelMode(mode) => self.set_right_panel_mode(mode),
+            Message::SetRightPanelTab(tab) => {
+                if self.settings.right_panel_tab != tab {
+                    self.settings.right_panel_tab = tab;
+                    self.persist_settings();
+                }
+            }
+            Message::ToggleRuleHit(key) => {
+                if !self.expanded_rule_hits.remove(&key) {
+                    self.expanded_rule_hits.insert(key);
+                }
+            }
+            Message::TogglePatternHit(key) => {
+                if !self.expanded_pattern_hits.remove(&key) {
+                    self.expanded_pattern_hits.insert(key);
+                }
+            }
+        }
+    }
+
+    /// Sets the right inspector mode and persists it when it changes.
+    fn set_right_panel_mode(&mut self, mode: RightPanelMode) {
+        if self.settings.right_panel_mode != mode {
+            self.settings.right_panel_mode = mode;
+            self.persist_settings();
+        }
+    }
+
+    /// Persists the settings to the backing store, if one is configured. A write
+    /// failure is non-fatal: the in-memory settings stay authoritative.
+    fn persist_settings(&mut self) {
+        if let Some(store) = &self.settings_store {
+            let _ = store.save(&self.settings);
         }
     }
 }
@@ -2430,5 +2615,152 @@ mod tests {
             app_src.contains("static_temporal_chart_view"),
             "charts must be built through the static_temporal_chart_view facade"
         );
+    }
+
+    #[test]
+    fn generating_runs_only_the_natal_analysis_layer() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        let cache = app.analysis_cache();
+        assert!(cache.contains(&AnalysisLayerKey::Natal));
+        assert_eq!(cache.len(), 1);
+        // The natal view needs no further layers.
+        assert!(missing_analysis_layers(&app.required_analysis_layers(), cache).is_empty());
+    }
+
+    #[test]
+    fn moving_from_natal_to_decadal_does_not_re_request_natal() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+
+        // Planning the decadal view leaves only the decadal layer missing; the
+        // cached natal layer is reused.
+        let required = analysis_layers_for_selection(
+            StaticTemporalNavigationSelection::Decadal { decadal_index: 0 },
+        );
+        assert_eq!(
+            missing_analysis_layers(&required, app.analysis_cache()),
+            vec![AnalysisLayerKey::Decadal { decadal_index: 0 }]
+        );
+
+        app.update(Message::SelectTemporalCell(TemporalCell::Decadal(0)));
+        assert!(app.analysis_cache().contains(&AnalysisLayerKey::Natal));
+        assert!(
+            app.analysis_cache()
+                .contains(&AnalysisLayerKey::Decadal { decadal_index: 0 })
+        );
+    }
+
+    #[test]
+    fn moving_within_the_same_year_requests_only_the_new_monthly_layer() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        app.update(Message::SelectTemporalCell(TemporalCell::Decadal(0)));
+        app.update(Message::SelectTemporalCell(TemporalCell::YearlyAge(0)));
+
+        // Cache holds the full yearly chain.
+        for key in app.required_analysis_layers() {
+            assert!(app.analysis_cache().contains(&key), "{key:?} should be cached");
+        }
+
+        // A monthly view under the same 流年 leaves only the 流月 layer missing —
+        // 本命/大限/小限/流年 are reused, never re-requested.
+        let monthly = StaticTemporalNavigationSelection::Monthly {
+            decadal_index: 0,
+            year_index: 0,
+            month_index: 0,
+        };
+        assert_eq!(
+            missing_analysis_layers(&analysis_layers_for_selection(monthly), app.analysis_cache()),
+            vec![AnalysisLayerKey::Monthly {
+                decadal_index: 0,
+                year_index: 0,
+                month_index: 0,
+            }]
+        );
+    }
+
+    #[test]
+    fn moving_from_monthly_to_daily_requests_only_daily() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        app.update(Message::SelectTemporalCell(TemporalCell::Decadal(0)));
+        app.update(Message::SelectTemporalCell(TemporalCell::YearlyAge(0)));
+        app.update(Message::SelectTemporalCell(TemporalCell::Month(0)));
+
+        let daily = StaticTemporalNavigationSelection::Daily {
+            decadal_index: 0,
+            year_index: 0,
+            month_index: 0,
+            day_index: 0,
+        };
+        assert_eq!(
+            missing_analysis_layers(&analysis_layers_for_selection(daily), app.analysis_cache()),
+            vec![AnalysisLayerKey::Daily {
+                decadal_index: 0,
+                year_index: 0,
+                month_index: 0,
+                day_index: 0,
+            }]
+        );
+    }
+
+    #[test]
+    fn a_new_birth_input_clears_the_analysis_cache() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        app.update(Message::SelectTemporalCell(TemporalCell::Decadal(0)));
+        app.update(Message::SelectTemporalCell(TemporalCell::YearlyAge(0)));
+        assert!(app.analysis_cache().len() > 1);
+
+        // A different birth input resets analysis to just the new natal layer.
+        app.update(Message::YearChanged("2000".to_string()));
+        app.update(Message::NameChanged("第二张命盘".to_string()));
+        app.generate();
+
+        assert_eq!(
+            app.selected_temporal_selection(),
+            StaticTemporalNavigationSelection::PreDecadal
+        );
+        assert_eq!(app.analysis_cache().len(), 1);
+        assert!(app.analysis_cache().contains(&AnalysisLayerKey::Natal));
+    }
+
+    #[test]
+    fn toggling_the_right_panel_hides_then_restores_compact() {
+        let mut app = StaticChartApp::new();
+        assert_eq!(app.right_panel_mode(), RightPanelMode::Compact);
+        app.update(Message::ToggleRightPanel);
+        assert_eq!(app.right_panel_mode(), RightPanelMode::Hidden);
+        app.update(Message::ToggleRightPanel);
+        assert_eq!(app.right_panel_mode(), RightPanelMode::Compact);
+    }
+
+    #[test]
+    fn changing_locale_mode_and_tab_persists_through_the_settings_store() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let chart_store = crate::persistence::ChartStore::new(dir.path().join("charts.json"));
+        let settings_store = crate::settings::SettingsStore::new(dir.path().join("settings.json"));
+        let mut app = StaticChartApp::with_optional_stores(
+            Some(chart_store),
+            Some(settings_store.clone()),
+        );
+
+        app.update(Message::SetLocale(Locale::ZhHans));
+        app.update(Message::SetRightPanelMode(RightPanelMode::Expanded));
+        app.update(Message::SetRightPanelTab(RightPanelTab::Patterns));
+
+        // A fresh load from the same store sees every persisted preference.
+        let reloaded = settings_store.load();
+        assert_eq!(reloaded.locale, Locale::ZhHans);
+        assert_eq!(reloaded.right_panel_mode, RightPanelMode::Expanded);
+        assert_eq!(reloaded.right_panel_tab, RightPanelTab::Patterns);
+    }
+
+    #[test]
+    fn settings_default_when_no_store_is_configured() {
+        let app = StaticChartApp::new();
+        assert_eq!(app.settings(), &AppSettings::default());
+        assert_eq!(app.right_panel_tab(), RightPanelTab::QuanShuRules);
     }
 }
