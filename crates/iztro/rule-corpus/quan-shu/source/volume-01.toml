@@ -1,29 +1,15 @@
-
 # 《紫微斗数全书》 source inventory — Volume 1 pilot slice.
 #
-# This file tracks atomic cited QuanShu source units (rule-candidate aphorisms)
-# from volume-01.md, preserving source order. It does not duplicate
-# explanatory/commentary prose; the raw full text remains in
-# docs/zh-CN/sources/quan_shu/volume-01.md.
-#
-# Model (see docs/zh-CN/sources/quan_shu/README.md):
-#
-#   source item = one atomic cited QuanShu source unit / rule-candidate aphorism
-#                 (identified by a stable mnemonic `source_id`)
-#   rule        = an executable / normalized / ambiguous / rejected interpretation
-#                 linked from a source item via `linked_rule_ids`
+# Canonical, compact, grouped form. A `source_group` carries shared metadata /
+# section defaults; each `source_group.item` is one atomic cited QuanShu source
+# unit (a rule-candidate aphorism). The full `source_id` of an item is
+# `source_id_prefix + item.key`. `source_order` preserves source order
+# separately from stable identity.
 #
 # A physical Markdown line may contain several source items. Source-item
 # boundaries are semantic, not typographical: `。` is the default top-level
 # breaker, and a single `。` sentence holding parallel independent aphorisms is
 # split further; condition/result commas of one aphorism are not split.
-#
-# `source_id` identifies the cited source unit, not a physical line/passage, and
-# is a stable mnemonic derived from the aphorism (e.g. `ma_yu_kong_wang`).
-# `source_order` preserves source order separately from stable identity, so
-# inserting an earlier aphorism only requires reviewing `source_order`, never
-# rewriting stable `source_id` references.
-#
 # `source_text_zh_hans` quotes the cited source unit verbatim (no sentence-final
 # `。`). Interpretation belongs in the linked rule's `normalized_note_zh_hans`,
 # `ClaimSpec`, or i18n claim text — never here.
@@ -39,9 +25,9 @@
 
 # --- 太微赋「例曰」段（source inventory，原子化补全） ---
 #
-# 以下每个 source item 为「例曰」一句断语/规则候选，依 volume-01.md 语义顺序排列，
-# 物理换行不决定 source item 边界。全部太微赋 source item 现已链接到运行时规则元数据
-# （status = rule_linked）：
+# 以下每个 source_group.item 为「例曰」一句断语/规则候选，依 volume-01.md 语义顺序
+# 排列，物理换行不决定 source item 边界。全部太微赋 source item 现已链接到运行时规则
+# 元数据（status = rule_linked）：
 #   - 可执行 pilot（马遇空亡、日月反背）保持 executable；
 #   - 禄马交驰保持 normalized；
 #   - 其余 source item 已链接到 normalized / ambiguous 规则，或对收束语链接到
@@ -50,10 +36,8 @@
 # 的 status 字段如实标注成熟度，规则链接与状态分布见
 # docs/zh-CN/rules/quan-shu-coverage.md。
 
-
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.lu_feng_chong_po"
-source_order = 1
+[[source_group]]
+source_id_prefix = "quan_shu.v01.tai_wei_fu."
 work = "zi_wei_dou_shu_quan_shu"
 volume = 1
 section = "太微赋"
@@ -61,826 +45,389 @@ category = "aphorism_rule"
 status = "rule_linked"
 doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
 anchor = "太微赋"
+
+[[source_group.item]]
+key = "lu_feng_chong_po"
+source_order = 1
 source_text_zh_hans = "禄逢冲破，吉处藏凶"
 linked_rule_ids = ["wealth.lu_feng_chong_po.fortune_undermined"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.ma_yu_kong_wang"
+[[source_group.item]]
+key = "ma_yu_kong_wang"
 source_order = 2
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "马遇空亡，终身奔走"
 linked_rule_ids = ["migration.tian_ma_void.restless_movement"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.sheng_feng_bai_di"
+[[source_group.item]]
+key = "sheng_feng_bai_di"
 source_order = 3
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "生逢败地，发也虚花"
 linked_rule_ids = ["fortune.sheng_feng_bai_di.illusory_bloom"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.jue_chu_feng_sheng"
+[[source_group.item]]
+key = "jue_chu_feng_sheng"
 source_order = 4
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "绝处逢生，生花不败"
 linked_rule_ids = ["fortune.jue_chu_feng_sheng.revival"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.xing_lin_miao_wang"
+[[source_group.item]]
+key = "xing_lin_miao_wang"
 source_order = 5
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "星临庙旺，再观生克之机"
 linked_rule_ids = ["method.xing_lin_miao_wang.brightness_then_relation"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.ming_zuo_qiang_gong"
+[[source_group.item]]
+key = "ming_zuo_qiang_gong"
 source_order = 6
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "命坐强宫，细察制化之理"
 linked_rule_ids = ["method.ming_zuo_qiang_gong.restraint_transformation"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.ri_yue_fan_bei"
+[[source_group.item]]
+key = "ri_yue_fan_bei"
 source_order = 7
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "日月最嫌反背"
 linked_rule_ids = ["life.ri_yue_fan_bei.hardship_pressure"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.lu_ma_jiao_chi"
+[[source_group.item]]
+key = "lu_ma_jiao_chi"
 source_order = 8
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "禄马最喜交驰"
 linked_rule_ids = ["fortune.lu_ma_jiao_chi.favorable_convergence"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.tang_ju_kong_wang"
+[[source_group.item]]
+key = "tang_ju_kong_wang"
 source_order = 9
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "倘居空亡，得失最为要紧"
 linked_rule_ids = ["fortune.tang_ju_kong_wang.gain_loss_critical"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.ruo_feng_bai_di"
+[[source_group.item]]
+key = "ruo_feng_bai_di"
 source_order = 10
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "若逢败地，扶持大有奇功"
 linked_rule_ids = ["fortune.ruo_feng_bai_di.support_turnaround"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.zi_fu_yi_fu_bi"
+[[source_group.item]]
+key = "zi_fu_yi_fu_bi"
 source_order = 11
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "紫微天府全依辅弼之功"
 linked_rule_ids = ["status.zi_fu_yi_fu_bi.needs_assistant_stars"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.sha_po_yi_yang_ling"
+[[source_group.item]]
+key = "sha_po_yi_yang_ling"
 source_order = 12
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "七杀破军专依羊铃之虐"
 linked_rule_ids = ["risk.sha_po_yi_yang_ling.malefic_aggravation"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.zhu_xing_ji"
+[[source_group.item]]
+key = "zhu_xing_ji"
 source_order = 13
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "诸星吉，逢凶也吉"
 linked_rule_ids = ["fortune.zhu_xing_ji.benefic_dominance"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.zhu_xing_xiong"
+[[source_group.item]]
+key = "zhu_xing_xiong"
 source_order = 14
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "诸星凶，逢凶也凶"
 linked_rule_ids = ["fortune.zhu_xing_xiong.malefic_dominance"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.fu_bi_jia_di"
+[[source_group.item]]
+key = "fu_bi_jia_di"
 source_order = 15
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "辅弼夹帝为上品"
 linked_rule_ids = ["status.fu_bi_jia_di.top_grade"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.tao_hua_fan_zhu"
+[[source_group.item]]
+key = "tao_hua_fan_zhu"
 source_order = 16
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "桃花犯主为至淫"
 linked_rule_ids = ["relationship.tao_hua_fan_zhu.excess_romance"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.jun_chen_qing_hui"
+[[source_group.item]]
+key = "jun_chen_qing_hui"
 source_order = 17
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "君臣庆会，材善经邦"
 linked_rule_ids = ["status.jun_chen_qing_hui.statesmanship"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.kui_yue_tong_xing"
+[[source_group.item]]
+key = "kui_yue_tong_xing"
 source_order = 18
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "魁钺同行，位居台辅"
 linked_rule_ids = ["status.kui_yue_tong_xing.office_support"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.lu_wen_gong_ming"
+[[source_group.item]]
+key = "lu_wen_gong_ming"
 source_order = 19
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "禄文拱命，贵而且贤"
 linked_rule_ids = ["status.lu_wen_gong_ming.noble_and_virtuous"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.ri_yue_jia_cai"
+[[source_group.item]]
+key = "ri_yue_jia_cai"
 source_order = 20
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "日月夹财，不权则富"
 linked_rule_ids = ["wealth.ri_yue_jia_cai.authority_or_wealth"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.ma_tou_dai_jian"
+[[source_group.item]]
+key = "ma_tou_dai_jian"
 source_order = 21
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "马头带剑，镇卫边疆"
 linked_rule_ids = ["risk.ma_tou_dai_jian.border_command"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.xing_qiu_jia_yin"
+[[source_group.item]]
+key = "xing_qiu_jia_yin"
 source_order = 22
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "刑囚夹印，刑杖惟司"
 linked_rule_ids = ["risk.xing_qiu_jia_yin.judicial_punishment"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.shan_yin_chao_gang"
+[[source_group.item]]
+key = "shan_yin_chao_gang"
 source_order = 23
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "善荫朝纲，仁慈之长"
 linked_rule_ids = ["temperament.shan_yin_chao_gang.benevolent_leader"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.gui_ru_gui_xiang"
+[[source_group.item]]
+key = "gui_ru_gui_xiang"
 source_order = 24
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "贵入贵乡，逢之富贵"
 linked_rule_ids = ["status.gui_ru_gui_xiang.nobility"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.cai_ju_cai_wei"
+[[source_group.item]]
+key = "cai_ju_cai_wei"
 source_order = 25
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "财居财位，遇者富奢"
 linked_rule_ids = ["wealth.cai_ju_cai_wei.affluence"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.tai_yang_ju_wu"
+[[source_group.item]]
+key = "tai_yang_ju_wu"
 source_order = 26
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "太阳居午，谓之日丽中天，有专权之贵，敌国之富"
 linked_rule_ids = ["career.tai_yang_ju_wu.authority_status"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.tai_yin_ju_zi"
+[[source_group.item]]
+key = "tai_yin_ju_zi"
 source_order = 27
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "太阴居子，号曰水澄桂萼，得清要之职，忠谏之材"
 linked_rule_ids = ["career.tai_yin_ju_zi.clean_office_admonition"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.zi_wei_fu_bi_tong_gong"
+[[source_group.item]]
+key = "zi_wei_fu_bi_tong_gong"
 source_order = 28
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "紫微辅弼同宫，一呼百诺居上品"
 linked_rule_ids = ["status.zi_wei_fu_bi_tong_gong.commanding_leader"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.wen_hao_ju_yin_mao"
+[[source_group.item]]
+key = "wen_hao_ju_yin_mao"
 source_order = 29
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "文耗居寅卯，谓之众水朝东"
 linked_rule_ids = ["career.wen_hao_ju_yin_mao.water_flows_east"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.ri_yue_shou_zhao_he"
+[[source_group.item]]
+key = "ri_yue_shou_zhao_he"
 source_order = 30
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "日月守不如照合"
 linked_rule_ids = ["method.ri_yue_shou_zhao_he.illumination_over_sitting"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.yin_fu_ju"
+[[source_group.item]]
+key = "yin_fu_ju"
 source_order = 31
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "荫福聚不怕凶危"
 linked_rule_ids = ["fortune.yin_fu_ju.protection_from_harm"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.tan_ju_hai_zi"
+[[source_group.item]]
+key = "tan_ju_hai_zi"
 source_order = 32
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "贪居亥子，名为犯水桃花"
 linked_rule_ids = ["relationship.tan_ju_hai_zi.water_romance"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.xing_yu_tan_lang"
+[[source_group.item]]
+key = "xing_yu_tan_lang"
 source_order = 33
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "刑遇贪狼，号曰风流彩杖"
 linked_rule_ids = ["relationship.xing_yu_tan_lang.romance_with_penalty"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.sha_lian_tong_wei"
+[[source_group.item]]
+key = "sha_lian_tong_wei"
 source_order = 34
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "七杀廉贞同位，路上埋尸"
 linked_rule_ids = ["risk.sha_lian_tong_wei.violent_death"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.po_an_tong_xiang"
+[[source_group.item]]
+key = "po_an_tong_xiang"
 source_order = 35
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "破军暗曜同乡，水中作冢"
 linked_rule_ids = ["risk.po_an_tong_xiang.drowning_risk"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.lu_ju_nu_pu"
+[[source_group.item]]
+key = "lu_ju_nu_pu"
 source_order = 36
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "禄居奴仆纵有官也奔驰"
 linked_rule_ids = ["wealth.lu_ju_nu_pu.toil_for_others"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.di_yu_xiong_tu"
+[[source_group.item]]
+key = "di_yu_xiong_tu"
 source_order = 37
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "帝遇凶徒虽获吉而无道"
 linked_rule_ids = ["status.di_yu_xiong_tu.power_without_virtue"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.di_zuo_jin_che"
+[[source_group.item]]
+key = "di_zuo_jin_che"
 source_order = 38
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "帝坐金车则曰金轝捧栉"
 linked_rule_ids = ["status.di_zuo_jin_che.imperial_carriage"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.fu_an_wen_yao"
+[[source_group.item]]
+key = "fu_an_wen_yao"
 source_order = 39
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "福安文曜谓之玉袖天香"
 linked_rule_ids = ["fortune.fu_an_wen_yao.refined_blessing"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.tai_yang_hui_wen_chang"
+[[source_group.item]]
+key = "tai_yang_hui_wen_chang"
 source_order = 40
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "太阳会文昌于官禄，皇殿朝班，富贵全美"
 linked_rule_ids = ["career.tai_yang_hui_wen_chang.court_honor"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.tai_yin_hui_wen_qu"
+[[source_group.item]]
+key = "tai_yin_hui_wen_qu"
 source_order = 41
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "太阴会文曲于妻宫，蟾宫折桂，文章全盛"
 linked_rule_ids = ["career.tai_yin_hui_wen_qu.literary_eminence"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.lu_cun_tian_cai"
+[[source_group.item]]
+key = "lu_cun_tian_cai"
 source_order = 42
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "禄存守于田财，堆金积玉"
 linked_rule_ids = ["wealth.lu_cun_tian_cai.asset_accumulation"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.cai_yin_qian_yi"
+[[source_group.item]]
+key = "cai_yin_qian_yi"
 source_order = 43
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "财荫坐于迁移，巨商高贾"
 linked_rule_ids = ["wealth.cai_yin_qian_yi.merchant_success"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.hao_ju_lu_wei"
+[[source_group.item]]
+key = "hao_ju_lu_wei"
 source_order = 44
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "耗居禄位，沿途乞食"
 linked_rule_ids = ["wealth.hao_ju_lu_wei.poverty"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.tan_hui_wang_gong"
+[[source_group.item]]
+key = "tan_hui_wang_gong"
 source_order = 45
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "贪会旺宫，终身鼠窃"
 linked_rule_ids = ["risk.tan_hui_wang_gong.thievery"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.sha_ju_jue_di"
+[[source_group.item]]
+key = "sha_ju_jue_di"
 source_order = 46
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "杀居绝地，天年夭似颜回"
 linked_rule_ids = ["risk.sha_ju_jue_di.early_death"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.tan_zuo_sheng_xiang"
+[[source_group.item]]
+key = "tan_zuo_sheng_xiang"
 source_order = 47
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "贪坐生乡，寿考永如彭祖"
 linked_rule_ids = ["fortune.tan_zuo_sheng_xiang.longevity"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.ji_an_tong_ju"
+[[source_group.item]]
+key = "ji_an_tong_ju"
 source_order = 48
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "忌暗同居身命疾厄，沉困尪赢"
 linked_rule_ids = ["health.ji_an_tong_ju.chronic_illness"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.xiong_xing_fu_mu_qian_yi"
+[[source_group.item]]
+key = "xiong_xing_fu_mu_qian_yi"
 source_order = 49
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "凶星会于父母迁移，刑伤破祖"
 linked_rule_ids = ["risk.xiong_xing_fu_mu_qian_yi.family_harm"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.xing_sha_lian_zhen"
+[[source_group.item]]
+key = "xing_sha_lian_zhen"
 source_order = 50
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "刑杀同廉贞于官禄，枷扭难逃"
 linked_rule_ids = ["risk.xing_sha_lian_zhen.imprisonment"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.guan_fu_xing_sha"
+[[source_group.item]]
+key = "guan_fu_xing_sha"
 source_order = 51
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "官符加刑杀于迁移，离乡遭配"
 linked_rule_ids = ["risk.guan_fu_xing_sha.exile"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.shan_fu_ju_kong"
+[[source_group.item]]
+key = "shan_fu_ju_kong"
 source_order = 52
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "善福居空位，天竺生涯"
 linked_rule_ids = ["fortune.shan_fu_ju_kong.monastic_life"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.fu_bi_dan_shou"
+[[source_group.item]]
+key = "fu_bi_dan_shou"
 source_order = 53
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "辅弼单守命宫，离宗庶出"
 linked_rule_ids = ["life.fu_bi_dan_shou.illegitimate_or_adopted"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.sha_lin_shen_ming"
+[[source_group.item]]
+key = "sha_lin_shen_ming"
 source_order = 54
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "七杀临于身命加恶杀，必定死亡"
 linked_rule_ids = ["risk.sha_lin_shen_ming.fatal_affliction"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.ling_yang_he_ming"
+[[source_group.item]]
+key = "ling_yang_he_ming"
 source_order = 55
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "铃羊合于命宫遇白虎，须当刑戮"
 linked_rule_ids = ["risk.ling_yang_he_ming.execution_risk"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.guan_fu_fa_ji_yao"
+[[source_group.item]]
+key = "guan_fu_fa_ji_yao"
 source_order = 56
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "官府发于吉曜，流杀怕逢破军"
 linked_rule_ids = ["risk.guan_fu_fa_ji_yao.annual_malefic"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.yang_tuo_ping_tai_sui"
+[[source_group.item]]
+key = "yang_tuo_ping_tai_sui"
 source_order = 57
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "羊陀凭太岁以引行，病符官符皆作祸"
 linked_rule_ids = ["risk.yang_tuo_ping_tai_sui.annual_misfortune"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.zou_shu_bo_shi"
+[[source_group.item]]
+key = "zou_shu_bo_shi"
 source_order = 58
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "奏书博士与流禄，尽作吉祥"
 linked_rule_ids = ["fortune.zou_shu_bo_shi.auspicious_minor_stars"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.li_shi_jiang_jun"
+[[source_group.item]]
+key = "li_shi_jiang_jun"
 source_order = 59
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "力士将军同青龙，显其权势"
 linked_rule_ids = ["status.li_shi_jiang_jun.authority_minor_stars"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.tong_zi_xian"
+[[source_group.item]]
+key = "tong_zi_xian"
 source_order = 60
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "童子限如水上泡沤，老人限似风中燃烛"
 linked_rule_ids = ["timing.tong_zi_xian.fragile_life_stages"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.yu_sha_wu_zhi"
+[[source_group.item]]
+key = "yu_sha_wu_zhi"
 source_order = 61
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "遇杀无制乃流年最忌"
 linked_rule_ids = ["timing.yu_sha_wu_zhi.unchecked_malefic_year"]
 notes_zh_hans = "「遇杀无制乃流年最忌」在原书与下句「人生荣辱限元必有休咎」连读，此处依语义切分为独立 source item。"
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.ren_sheng_rong_ru"
+[[source_group.item]]
+key = "ren_sheng_rong_ru"
 source_order = 62
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "人生荣辱限元必有休咎"
 linked_rule_ids = ["timing.ren_sheng_rong_ru.fortune_in_decades"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.chu_shi_gu_pin"
+[[source_group.item]]
+key = "chu_shi_gu_pin"
 source_order = 63
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "处世孤贫数中逢乎驳杂"
 linked_rule_ids = ["life.chu_shi_gu_pin.solitary_poverty"]
 
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.xue_zhi_ci_xuan_wei"
+[[source_group.item]]
+key = "xue_zhi_ci_xuan_wei"
 source_order = 64
-work = "zi_wei_dou_shu_quan_shu"
-volume = 1
-section = "太微赋"
-category = "aphorism_rule"
-status = "rule_linked"
-doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
-anchor = "太微赋"
 source_text_zh_hans = "学至此诚玄微矣"
 linked_rule_ids = ["meta.xue_zhi_ci_xuan_wei.closing_remark"]
 notes_zh_hans = "太微赋例曰之收束语（赞叹治学），非断语；以独立 source item 记录并链接到 rejected 规则。"
