@@ -207,8 +207,11 @@ executable on this layer:
 
 `StarTag::VoidSymbol` (空曜) is **broad interpretive taxonomy** and is deliberately
 kept distinct from `VoidKind`, which remains the **narrow, unchanged** 空亡-family
-used by 马遇空亡 (旬空 / 空亡 / 截路 / 截空). They do not share membership: 天空 and 地空
-are `VoidSymbol`, never `VoidKind`.
+used by 马遇空亡 (旬空 / 空亡 / 截路 / 截空). The concepts are distinct even though some 
+stars, such as 旬空 and 截空, may appear in both taxonomies. `VoidKind` answers the 
+narrow 空亡-family question for rules like 马遇空亡; `StarTag::VoidSymbol` answers 
+the broader interpretive 空曜 question. 天空、地空、地劫 are `VoidSymbol` members 
+but never `VoidKind`.
 
 ## Source inventory (atomic source items)
 
