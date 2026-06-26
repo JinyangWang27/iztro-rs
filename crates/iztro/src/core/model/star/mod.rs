@@ -7,6 +7,7 @@ pub mod kind;
 pub mod metadata;
 pub mod mutagen;
 pub mod name;
+pub mod tag;
 
 pub use brightness::Brightness;
 pub use flow::{FlowStarBase, FlowStarScope, flow_star_name, try_flow_star_parts};
@@ -19,3 +20,4 @@ pub use metadata::{
     try_known_star_metadata, try_major_star_metadata, try_minor_star_metadata, try_star_metadata,
 };
 pub use name::StarName;
+pub use tag::{StarTag, StarTagStrength, has_star_tag, star_tag_strength};
