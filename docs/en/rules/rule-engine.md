@@ -191,6 +191,25 @@ theme / polarity / source semantics a pattern detection does not.
 See [`quan-shu-corpus.md`](../../zh-CN/rules/quan-shu-corpus.md) (Chinese) for the
 corpus authoring format.
 
+## Star tags (overlapping interpretive taxonomy)
+
+`StarTag` is a reusable, **overlapping** taxonomy on `StarName` in the core star
+model, layered above the mutually exclusive coarse grouping `StarCategory`
+(`Major` / `Minor` / `Adjective`). A star may carry several tags; for example 地空
+is both 空劫 (`KongJie`) and 空曜 (`VoidSymbol`). Two Tan Lang QuanShu rules are now
+executable on this layer:
+
+- **贪居亥子，名为犯水桃花** (`relationship.tan_ju_hai_zi.water_romance`):
+  conservatively 贪狼 placed in the 亥 or 子 branch.
+- **刑遇贪狼，号曰风流彩杖** (`relationship.xing_yu_tan_lang.romance_with_penalty`):
+  conservatively 贪狼 sharing a palace with a 刑曜 (`StarTag::Punishment` = 擎羊、
+  天刑).
+
+`StarTag::VoidSymbol` (空曜) is **broad interpretive taxonomy** and is deliberately
+kept distinct from `VoidKind`, which remains the **narrow, unchanged** 空亡-family
+used by 马遇空亡 (旬空 / 空亡 / 截路 / 截空). They do not share membership: 天空 and 地空
+are `VoidSymbol`, never `VoidKind`.
+
 ## Source inventory (atomic source items)
 
 A rule's `source_id` identifies an **atomic cited source unit** (one
