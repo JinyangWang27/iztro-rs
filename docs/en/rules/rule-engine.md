@@ -122,6 +122,78 @@ As elsewhere, `iztro` emits no localized prose here. The panel carries
 `claim_key`, typed enums, and Chinese source text; localized rendering stays in
 `iztro-i18n`.
 
+## Context-oriented evaluation
+
+Alongside the natal-only `evaluate_classical(chart, &request)`, the engine
+exposes a context-oriented entry point:
+
+```rust
+evaluate_classical_in_context(&ClassicalRuleContext, &request) -> ClaimEvaluation
+```
+
+`ClassicalRuleContext` mirrors `core::pattern::PatternContext`: it carries the
+natal `chart`, an optional `&HoroscopeChart`, and the `active_scopes` a rule may
+inspect. `ClassicalRuleContext::natal(chart)` and
+`ClassicalRuleContext::horoscope(chart, active_scopes)` are the constructors.
+`evaluate_classical(chart, &request)` is a thin natal-only wrapper over the
+context API, and `classical_rule_panel_view` likewise wraps
+`classical_rule_panel_view_in_context`, so existing call sites are unchanged.
+
+Current executable rules still match natal facts only, so a horoscope context
+produces the same result as a natal one today. The context exists so future
+temporal rules can inspect ancestor overlays without an API change.
+
+## Layer-level analysis (`analysis`)
+
+The `analysis` module is a lightweight coordinator that composes the pattern and
+classical engines for **cacheable, per-layer** detection. It lives outside
+`core` (which must not depend on `rules`) and exists to back a future GUI's two
+sidebar tabs — 全书规则 (classical rules) and 格局 (patterns) — without eagerly
+computing every overlay or shipping a heavy grouped-text payload.
+
+Key types:
+
+- `AnalysisLayerKey` — identifies one cacheable layer (`Natal`, `Decadal`,
+  `Age`, `Yearly`, `Monthly`, `Daily`, `Hourly`) with the temporal indexes that
+  address it. `scope()`, `claim_scope()`, and `pattern_scope()` map it to the
+  existing `Scope` / `ClaimScope` / `PatternScope` types.
+- `analysis_layers_for_selection(selection)` — expands a
+  `StaticTemporalNavigationSelection` into the ancestor chain of layers it makes
+  visible. A year selection includes **both** `Age` (小限) and `Yearly` (流年),
+  which are distinct scopes.
+- `detect_analysis_layer(&ctx, key, &request) -> AnalysisLayerResult` — analyzes
+  exactly one layer over a `TemporalAnalysisContext { natal, horoscope }`. It
+  scopes the underlying classical/pattern requests to `key` and returns compact
+  `rule_hits: Vec<ClassicalRuleHitRef>` plus `pattern_hits: Vec<PatternDetection>`.
+- `ClassicalRuleHitRef` — a compact hit (`rule_id`, `scope`, `claim_key`,
+  `evidence`). It deliberately **omits** `source_text_zh_hans`; a renderer
+  resolves verbatim source text once per rule via
+  `classical_rule_metadata(rule_id) -> Option<&'static ClassicalRuleMetadata>`.
+  `ClassicalRuleMetadata::source_text_zh_hans` is the verbatim source clause and
+  never carries an interpretation or claim text. Current executable rules carry
+  `applicable_scopes = &[ClaimScope::Natal]`; QuanShu / 太微赋 rules are not
+  promoted to every temporal scope automatically.
+
+**Layer assignment and caching.** Detection of a layer may *inspect* ancestor
+overlays, but the returned hits always belong to the requested layer.
+`detect_analysis_layer` never computes ancestor layers; the caller requests
+missing ancestors separately and caches each result by `AnalysisLayerKey`.
+Future cross-layer rules (e.g. 流年化忌冲照本命命宫, not implemented here) must
+assign their hit to the **deepest** triggering layer:
+
+| Interaction | Assigned layer |
+| --- | --- |
+| 本命 + 流年 | Yearly (流年) |
+| 大限 + 流年 | Yearly (流年) |
+| 流年 + 流月 | Monthly (流月) |
+| 流月 + 流日 | Daily (流日) |
+
+This keeps caching natural: changing month/day/hour within the same year never
+invalidates the cached yearly result, and changing day/hour within the same
+month never invalidates the cached monthly result. The GUI groups cached results
+by `AnalysisLayerKey::scope()` and hides empty groups; no rendering lives in
+`iztro`.
+
 ## Rule statuses
 
 `RuleStatus` records a rule's encoding maturity:
