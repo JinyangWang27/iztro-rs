@@ -152,8 +152,8 @@ pub use facade::options::{
     by_solar_with_options_report, resolve_lunar_birth_input, resolve_solar_birth_input,
 };
 pub use facade::static_temporal_chart_view::{
-    static_temporal_chart_view, temporal_selection_for_local_moment,
-    temporal_selection_for_solar_moment,
+    static_temporal_chart_view, static_temporal_chart_view_from_chart,
+    temporal_selection_for_local_moment, temporal_selection_for_solar_moment,
 };
 
 pub use view::static_chart::{

@@ -16,6 +16,6 @@ pub use options::{
     by_solar_with_options,
 };
 pub use static_temporal_chart_view::{
-    static_temporal_chart_view, temporal_selection_for_local_moment,
-    temporal_selection_for_solar_moment,
+    static_temporal_chart_view, static_temporal_chart_view_from_chart,
+    temporal_selection_for_local_moment, temporal_selection_for_solar_moment,
 };

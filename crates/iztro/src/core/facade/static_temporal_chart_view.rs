@@ -51,6 +51,24 @@ pub fn static_temporal_chart_view(
     selection: StaticTemporalNavigationSelection,
 ) -> Result<StaticChartViewSnapshot, ChartError> {
     let natal = by_solar(request)?;
+    static_temporal_chart_view_from_chart(natal, selection)
+}
+
+/// Builds a prepared static chart view from an already-built natal [`Chart`].
+///
+/// This is the chart-building-free half of [`static_temporal_chart_view`]: a
+/// GUI/app layer can build the natal `Chart` once with [`by_solar`] and then
+/// derive both the static chart snapshot (here) and the classical rule panel
+/// from that same chart, avoiding a duplicate chart generation.
+///
+/// Behavior, selection validation, and overlay derivation are identical to
+/// [`static_temporal_chart_view`]; only the chart-building step is hoisted out.
+/// The natal `Chart` is taken by value because the partial-overlay path
+/// ([`build_partial_horoscope_chart`]) consumes it.
+pub fn static_temporal_chart_view_from_chart(
+    natal: Chart,
+    selection: StaticTemporalNavigationSelection,
+) -> Result<StaticChartViewSnapshot, ChartError> {
     validate_selection_indices(selection)?;
 
     match selection {
