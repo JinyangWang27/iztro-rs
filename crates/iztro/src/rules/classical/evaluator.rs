@@ -12,12 +12,13 @@
 
 use crate::core::pattern::model::PatternId;
 use crate::core::pattern::relation::PalaceRelation;
-use crate::core::{Chart, StarName};
+use crate::core::{Chart, EarthlyBranch, StarName, StarTag};
 use crate::rules::classical::claim::{Claim, ClaimId, ClaimScope, ClaimStrength};
 use crate::rules::classical::evidence::{Evidence, EvidenceKind};
 use crate::rules::classical::outcome::{RuleOutcome, UnsupportedReason};
 use crate::rules::classical::predicates::{
-    stars_clamp_life, sun_and_moon_dim, tian_ma_affected_by_void,
+    star_in_branches, star_meets_tag_same_palace, stars_clamp_life, sun_and_moon_dim,
+    tian_ma_affected_by_void,
 };
 use crate::rules::classical::rule::{ClaimSpec, ClassicalRule};
 use crate::rules::classical::source_hit::ClassicalSourceHit;
@@ -29,6 +30,8 @@ const YANG_TUO_CLAMP_LIFE: &str = "life.yang_tuo_clamp_life.constraint_damage";
 const CHANG_QU_CLAMP_LIFE: &str = "life.chang_qu_clamp_life.literary_reputation";
 const LU_MA_JIAO_CHI: &str = "fortune.lu_ma_jiao_chi.favorable_convergence";
 const RI_YUE_FAN_BEI: &str = "life.ri_yue_fan_bei.hardship_pressure";
+const TAN_LANG_HAI_ZI: &str = "relationship.tan_ju_hai_zi.water_romance";
+const XING_YU_TAN_LANG: &str = "relationship.xing_yu_tan_lang.romance_with_penalty";
 
 /// Evaluates `rule` against `chart`, returning a typed outcome.
 ///
@@ -47,6 +50,8 @@ pub fn evaluate(rule: &ClassicalRule, chart: &Chart) -> RuleOutcome {
             Some(PatternId::ChangQuJiaMing),
         ),
         RI_YUE_FAN_BEI => evaluate_ri_yue_fan_bei(rule, chart),
+        TAN_LANG_HAI_ZI => evaluate_tan_lang_hai_zi(rule, chart),
+        XING_YU_TAN_LANG => evaluate_xing_yu_tan_lang(rule, chart),
         // 禄马最喜交驰: the Lu/Tian Ma "交驰" relation is school-dependent and not
         // yet modeled as a deterministic chart fact, so the rule does not fire.
         LU_MA_JIAO_CHI => RuleOutcome::Unsupported(UnsupportedReason::LuMaRelationNotModeled),
@@ -159,6 +164,52 @@ fn evaluate_ri_yue_fan_bei(rule: &ClassicalRule, chart: &Chart) -> RuleOutcome {
         }
         None => RuleOutcome::NotApplicable,
     }
+}
+
+/// 贪居亥子，名为犯水桃花. Conservatively: 贪狼 sits in the 亥 or 子 branch.
+fn evaluate_tan_lang_hai_zi(rule: &ClassicalRule, chart: &Chart) -> RuleOutcome {
+    let Some(fact) = star_in_branches(
+        chart,
+        StarName::TanLang,
+        &[EarthlyBranch::Hai, EarthlyBranch::Zi],
+    ) else {
+        return RuleOutcome::NotApplicable;
+    };
+
+    matched(
+        rule,
+        vec![Evidence::new(EvidenceKind::StarInPalace {
+            star: fact.star,
+            branch: fact.branch,
+        })],
+    )
+}
+
+/// 刑遇贪狼，号曰风流彩杖. Conservatively: 贪狼 shares a palace with a 刑曜
+/// ([`StarTag::Punishment`] = 擎羊、天刑).
+fn evaluate_xing_yu_tan_lang(rule: &ClassicalRule, chart: &Chart) -> RuleOutcome {
+    let encounters = star_meets_tag_same_palace(chart, StarName::TanLang, StarTag::Punishment);
+
+    if encounters.is_empty() {
+        return RuleOutcome::NotApplicable;
+    }
+
+    let branch = encounters[0].branch;
+    let mut evidence = Vec::with_capacity(encounters.len() + 1);
+
+    evidence.push(Evidence::new(EvidenceKind::StarInPalace {
+        star: StarName::TanLang,
+        branch,
+    }));
+
+    for encounter in encounters {
+        evidence.push(Evidence::new(EvidenceKind::StarInPalace {
+            star: encounter.matched_star,
+            branch: encounter.branch,
+        }));
+    }
+
+    matched(rule, evidence)
 }
 
 #[cfg(test)]
