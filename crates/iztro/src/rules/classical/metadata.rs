@@ -56,7 +56,7 @@ pub struct ClassicalRuleMetadata {
     pub claim_key: Option<&'static str>,
     /// The scopes this rule may be asserted within.
     ///
-    /// Current executable rules are natal-only ([`NATAL_ONLY_SCOPES`]); this does
+    /// Current executable rules are natal-only (`NATAL_ONLY_SCOPES`); this does
     /// not promote QuanShu rules to every temporal scope automatically.
     pub applicable_scopes: &'static [ClaimScope],
 }

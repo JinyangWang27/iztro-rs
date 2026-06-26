@@ -1,6 +1,6 @@
 //! Renderer-neutral classical rule panel view model.
 //!
-//! [`evaluate_classical`] is the low-level evaluation API: it returns the
+//! [`evaluate_classical`](super::evaluate_classical) is the low-level evaluation API: it returns the
 //! interpreted [`Claim`]s, the matched [`ClassicalSourceHit`]s, and the typed
 //! [`RuleDiagnostic`]s for a chart. This module adds the GUI/renderer-facing
 //! grouping on top of it.
@@ -191,7 +191,7 @@ impl ClassicalRulePanelRequest {
 /// Builds a renderer-neutral classical rule panel for `chart`.
 ///
 /// This is the GUI/renderer-facing grouping API. It runs one
-/// [`evaluate_classical`] pass and, when requested, attaches filtered corpus rule
+/// [`evaluate_classical`](super::evaluate_classical) pass and, when requested, attaches filtered corpus rule
 /// metadata. The claim/source-hit/diagnostic split from the underlying evaluation
 /// is preserved verbatim.
 pub fn classical_rule_panel_view(
