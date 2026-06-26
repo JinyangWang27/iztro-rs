@@ -90,13 +90,16 @@ pub struct ClaimSpec {
 pub struct ClassicalRule {
     /// Stable rule identifier.
     pub id: ClassicalRuleId,
-    /// Stable identifier of the source passage/location this rule cites.
+    /// Stable identifier of the atomic source unit or project-owned pattern
+    /// metadata entry this rule cites.
     pub source_id: String,
-    /// Stable identifier of the clause within that source passage, if known.
+    /// Legacy/compatibility provenance discriminator.
     ///
-    /// `source_id` identifies the passage; `source_clause_id` identifies the
-    /// individual candidate phrase inside it. This is rule metadata only; it does
-    /// not load or depend on the test-only source inventory.
+    /// QuanShu rules now cite atomic source units directly via `source_id`, so
+    /// new QuanShu rules should not set this. It is retained for backward
+    /// compatibility and may still be used by project-owned pattern catalog
+    /// entries. This is rule metadata only; it does not load or depend on the
+    /// test-only source inventory.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub source_clause_id: Option<String>,
     /// The classical work the rule is drawn from.
@@ -118,7 +121,7 @@ pub struct ClassicalRule {
 }
 
 impl ClassicalRule {
-    /// Builds a [`SourceRef`] citing this rule's classical source line.
+    /// Builds a [`SourceRef`] citing this rule's classical source unit.
     pub fn source_ref(&self) -> SourceRef {
         SourceRef {
             work: self.work,
