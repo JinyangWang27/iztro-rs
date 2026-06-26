@@ -204,6 +204,11 @@ source item links zero or more rules via `linked_rule_ids`. QuanShu rules no
 longer carry `source_clause_id` (the field remains on `ClassicalRule` for the
 pattern catalog and backwards compatibility).
 
+The inventory TOML is stored in a compact **grouped** form: a `source_group`
+carries the shared section defaults and each `source_group.item` is one atomic
+unit, with `source_id = source_id_prefix + item.key`. This grouped TOML is the
+single canonical source; the tests expand it into the flat per-item view.
+
 For QuanShu rules, `ClassicalSourceHit` cites the classical source unit. For
 pattern-catalog rules, it cites the project-owned `pattern.*` metadata entry
 instead; those pattern entries are not tracked by the QuanShu source inventory.

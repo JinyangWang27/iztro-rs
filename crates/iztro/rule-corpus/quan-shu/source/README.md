@@ -52,14 +52,35 @@ references. A rule links to a source item through its own `source_id`; the item
 mirrors that link through `linked_rule_ids`. QuanShu rules no longer carry
 `source_clause_id`.
 
+### Canonical encoding: grouped/defaulted TOML
+
+To avoid repeating the shared section metadata on every item, the TOML is
+**grouped**: a `source_group` carries the shared defaults (`source_id_prefix`,
+`work`, `volume`, `section`, `category`, `status`, `doc_path`, `anchor`) and each
+`source_group.item` is one atomic source unit. The full id of an item is
+`source_id = source_id_prefix + item.key`.
+
 ```toml
-[[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.ma_yu_kong_wang"
-source_order = 2
+[[source_group]]
+source_id_prefix = "quan_shu.v01.tai_wei_fu."
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
 section = "太微赋"
+category = "aphorism_rule"
+status = "rule_linked"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "太微赋"
+
+[[source_group.item]]
+key = "ma_yu_kong_wang"
+source_order = 2
 source_text_zh_hans = "马遇空亡，终身奔走"
 linked_rule_ids = ["migration.tian_ma_void.restless_movement"]
 ```
+
+The grouped TOML is the **single canonical source of truth**. Tests deserialize
+it and expand each `source_group.item` (joining group defaults, computing
+`source_id`) into a flat source-item view for validation and coverage.
 
 `source_text_zh_hans` quotes the cited source unit verbatim and uses the
 clause-style form **without** a sentence-final `。`. Interpretation belongs in
@@ -109,15 +130,15 @@ The `category` field is deliberately broad. Common values include:
 ## Text fields
 
 - `source_text_zh_hans` (source item) quotes the cited source unit verbatim, in clause-style form without a sentence-final `。`.
-- `notes_zh_hans` (on the source item) records true source variants, unresolved location work, and source-fidelity caveats (e.g. a unit that is read together with the next line in the original).
+- `notes_zh_hans` (on the source item) records purely **explanatory** notes — unresolved location work, or a source-fidelity remark (e.g. a unit that is read together with the next line in the original). It does **not** authorize the source text to diverge from the linked rule.
 
-The Markdown source text is canonical. A QuanShu rule's `source_text_zh_hans` must quote the same source unit verbatim; interpretation/paraphrase belongs in `normalized_note_zh_hans`, `ClaimSpec`, or i18n claim text, not in the source inventory. `notes_zh_hans` is reserved for documented source-variant divergence, not for papering over interpretation.
+The Markdown source text is canonical. A QuanShu rule's `source_text_zh_hans` must quote the same source unit verbatim, and the source item's text must **equal** it after light punctuation normalization (a `notes_zh_hans` does not bypass this). Interpretation/paraphrase belongs in `normalized_note_zh_hans`, `ClaimSpec`, or i18n claim text, not in the source inventory. A future genuine source variant should be opted in explicitly (e.g. a `source_text_variant_ok` field), not waved through with a note.
 
 ## Relationship to the rule corpus and runtime
 
 - The Markdown volumes under `docs/zh-CN/sources/quan_shu/` are the canonical, human-readable source text.
 - This source inventory TOML is machine-checkable corpus tracking only. It is **not** part of the runtime chart-evaluation path: nothing in `crates/iztro/src/` parses it, `evaluate_classical` does not depend on it, and the Markdown volumes are never parsed at runtime.
-- `crates/iztro/tests/classical_source_inventory.rs` validates the inventory and its links to `crates/iztro/rule-corpus/quan-shu/rules.toml` using private, test-only structs. It asserts that the inventory parses, has unique `source_id`s, has non-empty required fields, that 太微赋 `source_order` is continuous `1..=N`, that 太微赋 `source_id`s are stable mnemonics (not purely numeric), that every `rule_linked` item is linked, that every rule `source_id` exists in the inventory, that every `linked_rule_ids` entry exists in the rule corpus, that linked items and rules agree on `source_id` and `work`, and that a source item's text equals the linked rule's `source_text_zh_hans` (or a `notes_zh_hans` documents a true source-variant divergence). It also locks the 天马空亡 source unit to `马遇空亡，终身奔走`, the 禄马交驰 unit to `禄马最喜交驰`, and the 日月反背 unit to `日月最嫌反背`. Validation applies to QuanShu rules only: every rule in `rules.toml` must carry `work = "zi_wei_dou_shu_quan_shu"`, and pattern-catalog rules (`rule-corpus/patterns/`) are asserted **not** to appear in this inventory.
+- `crates/iztro/tests/classical_source_inventory.rs` validates the inventory and its links to `crates/iztro/rule-corpus/quan-shu/rules.toml` using private, test-only structs. It asserts that the inventory parses, has unique `source_id`s, has non-empty required fields, that 太微赋 `source_order` is continuous `1..=N`, that 太微赋 `source_id`s are stable mnemonics (not purely numeric), that every `rule_linked` item is linked, that every rule `source_id` exists in the inventory, that every `linked_rule_ids` entry exists in the rule corpus, that linked items and rules agree on `source_id` and `work`, and that a source item's text **equals** the linked rule's `source_text_zh_hans` after light punctuation normalization (a `notes_zh_hans` does not bypass this). It also locks the 天马空亡 source unit to `马遇空亡，终身奔走`, the 禄马交驰 unit to `禄马最喜交驰`, and the 日月反背 unit to `日月最嫌反背`. Validation applies to QuanShu rules only: every rule in `rules.toml` must carry `work = "zi_wei_dou_shu_quan_shu"`, and pattern-catalog rules (`rule-corpus/patterns/`) are asserted **not** to appear in this inventory.
 
 ## Known pilot limitations
 
@@ -125,7 +146,6 @@ These are intentionally **allowed** in this pilot slice and are not test failure
 
 - `anchor = "TODO"` for items not yet located in the Markdown volumes;
 - `section = "待校"` for sections still pending source review;
-- a source item's text differing from its linked rule's `source_text_zh_hans` **only** when a `notes_zh_hans` documents a true source-variant divergence; interpretation/paraphrase divergence is not allowed;
 - the inventory covers the complete 太微赋 normalization map for Volume 1; it is not a complete inventory of every section of Volume 1;
 - only `volume-01.toml` exists; Volume 2 and Volume 3 have no source inventory TOML yet.
 
