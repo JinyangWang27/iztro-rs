@@ -25,8 +25,10 @@ pub fn run() -> iced::Result {
         .default_font(fonts::CJK_FONT)
         .window(iced::window::Settings {
             // Default large enough to show the full fixed-size chart canvas
-            // (MIN_CHART_WIDTH x MIN_CHART_HEIGHT) plus toolbar and padding.
-            size: iced::Size::new(1180.0, 900.0),
+            // (MIN_CHART_WIDTH x MIN_CHART_HEIGHT) plus toolbar, padding, and the
+            // right inspector at its expanded width, so the side panel never
+            // forces the chart to scroll at the default size.
+            size: iced::Size::new(1500.0, 900.0),
             // The window may shrink well below the chart's preferred layout so it
             // fits a 13-inch laptop screen; the chart area is wrapped in a
             // both-directions `scrollable`, so it scrolls rather than squeezing

@@ -47,7 +47,13 @@ pub(super) fn chart_screen<'a>(
     // The inspector lives beside the chart canvas, never inside it: the canvas
     // keeps its fixed minimum size and scrolls, while the side panel takes a
     // fixed-width slot to its right (or is absent when hidden).
-    let mut body = row![chart_area].spacing(8).height(Length::Fill);
+    // The row must fill the available width: a default `Shrink` row would
+    // collapse the `Fill` chart canvas to nothing and let the fixed-width panel
+    // overlap where the chart should be.
+    let mut body = row![chart_area]
+        .spacing(8)
+        .width(Length::Fill)
+        .height(Length::Fill);
     if let Some(inspector) = right_inspector(app, i18n) {
         body = body.push(inspector);
     }
