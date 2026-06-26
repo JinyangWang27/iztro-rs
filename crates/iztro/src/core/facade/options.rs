@@ -1,7 +1,7 @@
 //! Clock-time birth input API with an explicit calculation policy.
 //!
 //! The legacy [`by_solar`](crate::core::facade::by_solar::by_solar) and
-//! [`by_lunar`](crate::core::facade::by_lunar::by_lunar) entry points accept a
+//! [`by_lunar`] entry points accept a
 //! 时辰 (time branch / `timeIndex`) directly and remain unchanged compatibility
 //! APIs. This module adds a newer API where the user always supplies the birth
 //! *clock* time together with a [`ChartCalculationConfig`].
