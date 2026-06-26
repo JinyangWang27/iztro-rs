@@ -4,14 +4,17 @@
 //!
 //! [`StaticChartViewSnapshot`]: iztro::core::StaticChartViewSnapshot
 
+pub mod analysis;
 pub mod app;
 pub mod fonts;
 pub mod persistence;
+pub mod settings;
 pub mod static_chart_screen;
 mod system_clock;
 
 use app::{Message, StaticChartApp};
 use persistence::ChartStore;
+use settings::SettingsStore;
 
 const WINDOW_TITLE: &str = "iztro-rs";
 
