@@ -2635,9 +2635,9 @@ mod tests {
 
         // Planning the decadal view leaves only the decadal layer missing; the
         // cached natal layer is reused.
-        let required = analysis_layers_for_selection(
-            StaticTemporalNavigationSelection::Decadal { decadal_index: 0 },
-        );
+        let required = analysis_layers_for_selection(StaticTemporalNavigationSelection::Decadal {
+            decadal_index: 0,
+        });
         assert_eq!(
             missing_analysis_layers(&required, app.analysis_cache()),
             vec![AnalysisLayerKey::Decadal { decadal_index: 0 }]
@@ -2660,7 +2660,10 @@ mod tests {
 
         // Cache holds the full yearly chain.
         for key in app.required_analysis_layers() {
-            assert!(app.analysis_cache().contains(&key), "{key:?} should be cached");
+            assert!(
+                app.analysis_cache().contains(&key),
+                "{key:?} should be cached"
+            );
         }
 
         // A monthly view under the same 流年 leaves only the 流月 layer missing —
@@ -2671,7 +2674,10 @@ mod tests {
             month_index: 0,
         };
         assert_eq!(
-            missing_analysis_layers(&analysis_layers_for_selection(monthly), app.analysis_cache()),
+            missing_analysis_layers(
+                &analysis_layers_for_selection(monthly),
+                app.analysis_cache()
+            ),
             vec![AnalysisLayerKey::Monthly {
                 decadal_index: 0,
                 year_index: 0,
@@ -2741,10 +2747,8 @@ mod tests {
         let dir = tempfile::tempdir().expect("temp dir");
         let chart_store = crate::persistence::ChartStore::new(dir.path().join("charts.json"));
         let settings_store = crate::settings::SettingsStore::new(dir.path().join("settings.json"));
-        let mut app = StaticChartApp::with_optional_stores(
-            Some(chart_store),
-            Some(settings_store.clone()),
-        );
+        let mut app =
+            StaticChartApp::with_optional_stores(Some(chart_store), Some(settings_store.clone()));
 
         app.update(Message::SetLocale(Locale::ZhHans));
         app.update(Message::SetRightPanelMode(RightPanelMode::Expanded));

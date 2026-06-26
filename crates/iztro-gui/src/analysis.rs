@@ -130,7 +130,10 @@ mod tests {
     #[test]
     fn cached_layers_are_skipped_and_order_is_preserved() {
         let mut cache = AnalysisCache::default();
-        cache.insert(AnalysisLayerKey::Natal, empty_result(AnalysisLayerKey::Natal));
+        cache.insert(
+            AnalysisLayerKey::Natal,
+            empty_result(AnalysisLayerKey::Natal),
+        );
         let required = vec![
             AnalysisLayerKey::Natal,
             AnalysisLayerKey::Decadal { decadal_index: 2 },
@@ -145,7 +148,10 @@ mod tests {
     #[test]
     fn clearing_drops_every_cached_layer() {
         let mut cache = AnalysisCache::default();
-        cache.insert(AnalysisLayerKey::Natal, empty_result(AnalysisLayerKey::Natal));
+        cache.insert(
+            AnalysisLayerKey::Natal,
+            empty_result(AnalysisLayerKey::Natal),
+        );
         assert_eq!(cache.len(), 1);
         cache.clear();
         assert!(cache.is_empty());

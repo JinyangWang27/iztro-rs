@@ -77,7 +77,10 @@ fn tab_bar<'a>(app: &'a StaticChartApp, i18n: &I18n) -> Element<'a, Message> {
             .padding([4, 8])
     };
     row![
-        tab("right-panel-tab-quan-shu-rules", RightPanelTab::QuanShuRules),
+        tab(
+            "right-panel-tab-quan-shu-rules",
+            RightPanelTab::QuanShuRules
+        ),
         tab("right-panel-tab-patterns", RightPanelTab::Patterns),
         tab("right-panel-tab-settings", RightPanelTab::Settings),
     ]
@@ -125,7 +128,11 @@ fn rule_hit_line<'a>(
     let source_text = metadata
         .map(|m| m.source_text_zh_hans.to_owned())
         .unwrap_or_else(|| i18n.text("rules-panel-unknown-rule"));
-    let line = format!("{}· {}", i18n.analysis_scope_label(key.scope()), source_text);
+    let line = format!(
+        "{}· {}",
+        i18n.analysis_scope_label(key.scope()),
+        source_text
+    );
 
     let expansion_key = RuleHitExpansionKey {
         layer: key.clone(),
@@ -258,7 +265,10 @@ fn pattern_details<'a>(
             .map(|mutagen| i18n.mutagen(*mutagen))
             .collect::<Vec<_>>()
             .join("、");
-        rows = rows.push(detail_row(&i18n.text("patterns-detail-mutagens"), &mutagens));
+        rows = rows.push(detail_row(
+            &i18n.text("patterns-detail-mutagens"),
+            &mutagens,
+        ));
     }
 
     rows.into()
@@ -297,7 +307,9 @@ fn settings_tab<'a>(app: &'a StaticChartApp, i18n: &I18n) -> Element<'a, Message
                 .padding([4, 10])
         };
         column![
-            text(i18n.text("settings-language")).size(13).style(section_title_style),
+            text(i18n.text("settings-language"))
+                .size(13)
+                .style(section_title_style),
             row![
                 choice("ui-english", iztro_i18n::Locale::EnUs),
                 choice("ui-simplified-chinese", iztro_i18n::Locale::ZhHans),
@@ -321,7 +333,9 @@ fn settings_tab<'a>(app: &'a StaticChartApp, i18n: &I18n) -> Element<'a, Message
                 .padding([4, 10])
         };
         column![
-            text(i18n.text("settings-sidebar-mode")).size(13).style(section_title_style),
+            text(i18n.text("settings-sidebar-mode"))
+                .size(13)
+                .style(section_title_style),
             row![
                 choice("settings-sidebar-hidden", RightPanelMode::Hidden),
                 choice("settings-sidebar-compact", RightPanelMode::Compact),
