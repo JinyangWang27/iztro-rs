@@ -9,8 +9,8 @@
 //!
 //! [`source_text_zh_hans`](ClassicalRuleMetadata::source_text_zh_hans) is the
 //! **verbatim** classical source clause, identical to
-//! [`ClassicalRule::source_text_zh_hans`]. It must never carry an interpretation,
-//! paraphrase, or claim text.
+//! [`ClassicalRule::source_text_zh_hans`](crate::rules::classical::rule::ClassicalRule::source_text_zh_hans).
+//! It must never carry an interpretation, paraphrase, or claim text.
 //!
 //! [`ClassicalRuleHitRef`]: crate::rules::classical::hit_ref::ClassicalRuleHitRef
 

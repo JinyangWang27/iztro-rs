@@ -10,7 +10,7 @@
 //! `rule_id`, the matched [`ClaimScope`], an optional `claim_key`, and structured
 //! [`Evidence`]. A renderer resolves verbatim source text and other display
 //! metadata once per rule id via
-//! [`classical_rule_metadata`](crate::rules::classical::metadata::classical_rule_metadata).
+//! [`classical_rule_metadata`].
 //!
 //! [`ClassicalSourceHit`]: crate::rules::classical::source_hit::ClassicalSourceHit
 

@@ -24,7 +24,8 @@
 //! - [`detect_analysis_layer`] analyzes exactly one layer and returns compact
 //!   [`AnalysisLayerResult`]s.
 //!
-//! Source text is **not** duplicated into hits: [`ClassicalRuleHitRef`] carries a
+//! Source text is **not** duplicated into hits:
+//! [`ClassicalRuleHitRef`](crate::rules::classical::ClassicalRuleHitRef) carries a
 //! `rule_id`, and the GUI resolves verbatim source text once per rule through
 //! [`classical_rule_metadata`](crate::rules::classical::classical_rule_metadata).
 //!
