@@ -280,6 +280,15 @@ impl I18n {
     pub fn claim_text(&self, claim: &Claim) -> String {
         self.text(&keys::claim_text_key(claim.claim_key()))
     }
+
+    /// Localized short claim text resolved from a bare `claim_key` string.
+    ///
+    /// A compact rule hit (e.g. `ClassicalRuleHitRef`) carries only the claim
+    /// key, not a full [`Claim`]; this resolves its localized prose the same way
+    /// [`claim_text`](Self::claim_text) does.
+    pub fn claim_text_by_key(&self, claim_key: &str) -> String {
+        self.text(&keys::claim_text_key(claim_key))
+    }
 }
 
 #[cfg(test)]

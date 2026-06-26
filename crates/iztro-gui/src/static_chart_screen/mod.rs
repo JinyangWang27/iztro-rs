@@ -14,6 +14,7 @@
 //! [`StaticChartViewSnapshot`]: iztro::core::StaticChartViewSnapshot
 
 mod chart;
+mod inspector;
 mod labels;
 mod lines;
 mod palace;

@@ -1,10 +1,11 @@
-use iced::widget::{button, column, container, scrollable, stack, text};
-use iced::{Element, Length};
+use iced::widget::{button, column, container, row, scrollable, stack, text};
+use iced::{Alignment, Element, Length};
 use iztro::core::StaticChartViewSnapshot;
 use iztro_i18n::I18n;
 
 use crate::app::{Message, StaticChartApp};
 
+use super::inspector::right_inspector;
 use super::lines::san_fang_overlay;
 use super::palace::palace_grid;
 
@@ -43,20 +44,34 @@ pub(super) fn chart_screen<'a>(
         .width(Length::Fill)
         .height(Length::Fill);
 
-    column![chart_toolbar(i18n), chart_area]
+    // The inspector lives beside the chart canvas, never inside it: the canvas
+    // keeps its fixed minimum size and scrolls, while the side panel takes a
+    // fixed-width slot to its right (or is absent when hidden).
+    let mut body = row![chart_area].spacing(8).height(Length::Fill);
+    if let Some(inspector) = right_inspector(app, i18n) {
+        body = body.push(inspector);
+    }
+
+    column![chart_toolbar(i18n), body]
         .spacing(8)
         .padding(12)
         .into()
 }
 
-/// Top bar of the chart screen: just a return action. 三方四正 is always shown as
-/// connecting lines, matching the original iztro chart, so there is no toggle.
+/// Top bar of the chart screen: a return action on the left and the right-panel
+/// toggle on the right. 三方四正 is always shown as connecting lines, matching the
+/// original iztro chart, so there is no toggle for it.
 pub(super) fn chart_toolbar<'a>(i18n: &I18n) -> Element<'a, Message> {
-    container(
+    let bar = row![
         button(text(i18n.text("button-back")).size(14))
             .on_press(Message::BackToStartup)
             .style(button::secondary),
-    )
-    .width(Length::Fill)
-    .into()
+        iced::widget::horizontal_space(),
+        button(text(i18n.text("right-panel-toggle")).size(14))
+            .on_press(Message::ToggleRightPanel)
+            .style(button::secondary),
+    ]
+    .align_y(Alignment::Center);
+
+    container(bar).width(Length::Fill).into()
 }

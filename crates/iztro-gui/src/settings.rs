@@ -25,37 +25,30 @@ const STORE_DIR: &str = "iztro-gui";
 const STORE_FILE: &str = "settings.json";
 
 /// Visibility/width mode of the right-side inspector panel.
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+///
+/// Defaults to [`RightPanelMode::Compact`] — the inspector starts visible but
+/// narrow, not hidden, so the analysis surface is discoverable on first run.
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize, Default)]
 pub enum RightPanelMode {
     /// The inspector is removed from the layout entirely.
     Hidden,
     /// A narrow inspector showing compact, collapsed lines.
+    #[default]
     Compact,
     /// A wider inspector with more room for expanded details.
     Expanded,
 }
 
-impl Default for RightPanelMode {
-    fn default() -> Self {
-        Self::Compact
-    }
-}
-
-/// Which inspector tab is active.
-#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
+/// Which inspector tab is active. Defaults to [`RightPanelTab::QuanShuRules`].
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize, Default)]
 pub enum RightPanelTab {
     /// 全书规则 — classical QuanShu rule hits.
+    #[default]
     QuanShuRules,
     /// 格局 — detected patterns.
     Patterns,
     /// 设置 — application settings.
     Settings,
-}
-
-impl Default for RightPanelTab {
-    fn default() -> Self {
-        Self::QuanShuRules
-    }
 }
 
 /// Persisted user preferences for the GUI.
