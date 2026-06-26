@@ -85,7 +85,7 @@ source hit 引用项目自有的 `pattern.*` 元数据条目。
 | id | 原文 | 状态 | 说明 |
 | --- | --- | --- | --- |
 | `migration.tian_ma_void.restless_movement` | 马遇空亡，终身奔走 | `executable` | 天马与已建模空亡星同宫即触发。 |
-| `wealth.lu_ma_remote_wealth` | 禄马交驰，发财远方 | `normalized` | “交驰”关系随流派而异、尚未建模，**不触发**，给出类型化诊断。 |
+| `fortune.lu_ma_jiao_chi.favorable_convergence` | 禄马最喜交驰 | `normalized` | 出处忠实引《太微赋》原句；“交驰”关系随流派而异、尚未建模，**不触发**，给出类型化诊断，无 ClaimSpec。 |
 | `life.ri_yue_fan_bei.hardship_pressure` | 日月反背，劳碌辛苦 | `executable` | 太阳、太阴俱失辉（不/陷）。 |
 
 pattern 规则（`rule-corpus/patterns/rules.toml`，非全书出处）：

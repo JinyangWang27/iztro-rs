@@ -286,10 +286,9 @@ fn source_inventory_clause_links_match_rules() {
 /// 5.5 Clause text matches or contains the linked rule's source text.
 ///
 /// For `executable` rules we normally require containment in either direction.
-/// Two pilot rules carry already-normalized claim phrasing that does not match
-/// its clause verbatim (`wealth.lu_ma_remote_wealth` is `normalized`;
-/// `life.ri_yue_fan_bei.hardship_pressure` is `executable`). Those are accepted
-/// only when the clause or source item documents the divergence via
+/// `life.ri_yue_fan_bei.hardship_pressure` (`executable`) carries already-
+/// normalized claim phrasing that does not match its clause verbatim; it is
+/// accepted only when the clause or source item documents the divergence via
 /// `notes_zh_hans`. See docs/zh-CN/sources/quan_shu/README.md.
 #[test]
 fn clause_text_matches_or_contains_rule_source_text() {
@@ -419,6 +418,53 @@ fn non_quan_shu_rules_are_not_required_in_quan_shu_source_inventory() {
             rule.source_id
         );
     }
+}
+
+/// Regression: 禄马最喜交驰 must quote the actual QuanShu 太微赋 source clause,
+/// not a later interpretation or another tradition's wording. The phrase
+/// "发财远方" does not appear in the current QuanShu source inventory and must
+/// not be stored as `source_text_zh_hans` anywhere in the QuanShu corpus.
+#[test]
+fn lu_ma_jiao_chi_uses_quan_shu_source_wording() {
+    const RULE_ID: &str = "fortune.lu_ma_jiao_chi.favorable_convergence";
+    const CLAUSE_ID: &str = "lu_ma_jiao_chi";
+    const SOURCE_TEXT: &str = "禄马最喜交驰";
+
+    let rules = rules_corpus();
+    let rule = rules
+        .rule
+        .iter()
+        .find(|r| r.id == RULE_ID)
+        .unwrap_or_else(|| panic!("missing rule {RULE_ID}"));
+    assert_eq!(rule.source_clause_id.as_deref(), Some(CLAUSE_ID));
+    assert_eq!(rule.source_text_zh_hans, SOURCE_TEXT);
+
+    // No QuanShu rule may carry the later "发财远方" wording as source text.
+    for rule in &rules.rule {
+        assert!(
+            !rule.source_text_zh_hans.contains("发财远方"),
+            "rule {} stores non-source interpretation '发财远方' as source_text_zh_hans",
+            rule.id
+        );
+    }
+
+    // The clause links the renamed rule with the faithful source wording.
+    let inventory = source_inventory();
+    let clause = inventory
+        .source_item
+        .iter()
+        .flat_map(|item| &item.clause)
+        .find(|c| c.clause_id == CLAUSE_ID)
+        .unwrap_or_else(|| panic!("missing clause {CLAUSE_ID}"));
+    assert_eq!(clause.text_zh_hans, SOURCE_TEXT);
+    assert_eq!(clause.linked_rule_ids, vec![RULE_ID.to_string()]);
+    assert!(
+        !clause
+            .linked_rule_ids
+            .iter()
+            .any(|id| id == "wealth.lu_ma_remote_wealth"),
+        "clause {CLAUSE_ID} still links the removed rule id"
+    );
 }
 
 // ---- Tai Wei Fu normalization-map completeness --------------------------

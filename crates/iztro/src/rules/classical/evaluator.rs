@@ -27,7 +27,7 @@ use crate::rules::classical::void::VoidPolicy;
 const TIAN_MA_VOID: &str = "migration.tian_ma_void.restless_movement";
 const YANG_TUO_CLAMP_LIFE: &str = "life.yang_tuo_clamp_life.constraint_damage";
 const CHANG_QU_CLAMP_LIFE: &str = "life.chang_qu_clamp_life.literary_reputation";
-const LU_MA_REMOTE_WEALTH: &str = "wealth.lu_ma_remote_wealth";
+const LU_MA_JIAO_CHI: &str = "fortune.lu_ma_jiao_chi.favorable_convergence";
 const RI_YUE_FAN_BEI: &str = "life.ri_yue_fan_bei.hardship_pressure";
 
 /// Evaluates `rule` against `chart`, returning a typed outcome.
@@ -47,9 +47,9 @@ pub fn evaluate(rule: &ClassicalRule, chart: &Chart) -> RuleOutcome {
             Some(PatternId::ChangQuJiaMing),
         ),
         RI_YUE_FAN_BEI => evaluate_ri_yue_fan_bei(rule, chart),
-        // 禄马交驰: the Lu/Tian Ma "交驰" relation is school-dependent and not yet
-        // modeled as a deterministic chart fact, so the rule does not fire.
-        LU_MA_REMOTE_WEALTH => RuleOutcome::Unsupported(UnsupportedReason::LuMaRelationNotModeled),
+        // 禄马最喜交驰: the Lu/Tian Ma "交驰" relation is school-dependent and not
+        // yet modeled as a deterministic chart fact, so the rule does not fire.
+        LU_MA_JIAO_CHI => RuleOutcome::Unsupported(UnsupportedReason::LuMaRelationNotModeled),
         _ => RuleOutcome::NotApplicable,
     }
 }

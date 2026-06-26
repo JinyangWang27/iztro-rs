@@ -68,7 +68,6 @@ claim-polarity-mixed-negative = Mixed-negative
 claim-migration-tian-ma-void-restless-movement = Tian Ma is affected by a void condition, indicating restless movement or an unsettled life rhythm.
 claim-life-yang-tuo-clamp-life-constraint-damage = Qing Yang and Tuo Luo clamp the Life palace, indicating pressure, constraint, or damage.
 claim-life-chang-qu-clamp-life-literary-reputation = Wen Chang and Wen Qu clamp the Life palace, indicating literary talent, reputation, or distinction.
-claim-wealth-lu-ma-remote-wealth = Lu and Tian Ma form a wealth-through-movement structure, indicating financial opportunity through distance or mobility.
 claim-life-ri-yue-fan-bei-hardship-pressure = The Sun and Moon are both in weak brightness states, indicating toil, pressure, or reduced clarity.
 
 # -- Evidence templates (illustrative; rendered by a future narrative layer) -

@@ -112,21 +112,28 @@ fn source_hit_ids(source_hits: &[ClassicalSourceHit]) -> Vec<String> {
 const TIAN_MA_VOID: &str = "migration.tian_ma_void.restless_movement";
 const YANG_TUO: &str = "life.yang_tuo_clamp_life.constraint_damage";
 const CHANG_QU: &str = "life.chang_qu_clamp_life.literary_reputation";
-const LU_MA: &str = "wealth.lu_ma_remote_wealth";
+const LU_MA: &str = "fortune.lu_ma_jiao_chi.favorable_convergence";
 const RI_YUE: &str = "life.ri_yue_fan_bei.hardship_pressure";
 
 // ---- corpus deserialization ----------------------------------------------
 
 #[test]
 fn corpus_deserializes_all_pilot_rules() {
-    // The five claim-bearing pilot rules still load through the combined corpus.
-    // The QuanShu corpus now also carries the 太微赋 normalization map (many
-    // normalized/ambiguous source-hit-only rules without claim metadata), so we
-    // assert structural invariants rather than a fixed total.
-    for id in [TIAN_MA_VOID, YANG_TUO, CHANG_QU, LU_MA, RI_YUE] {
+    // The four claim-bearing pilot rules still load through the combined corpus.
+    // 禄马最喜交驰 (LU_MA) is a source-backed normalized rule that is
+    // unsupported and carries no claim. The QuanShu corpus now also carries the
+    // 太微赋 normalization map (many normalized/ambiguous source-hit-only rules
+    // without claim metadata), so we assert structural invariants rather than a
+    // fixed total.
+    for id in [TIAN_MA_VOID, YANG_TUO, CHANG_QU, RI_YUE] {
         let rule = rule_by_id(id).unwrap_or_else(|| panic!("missing rule {id}"));
         assert!(rule.claim.is_some(), "rule {id} should have claim metadata");
     }
+    let lu_ma = rule_by_id(LU_MA).unwrap_or_else(|| panic!("missing rule {LU_MA}"));
+    assert!(
+        lu_ma.claim.is_none(),
+        "禄马最喜交驰 must not carry claim metadata"
+    );
 
     // The combined corpus is exactly the QuanShu rules followed by the pattern
     // rules.
@@ -217,10 +224,12 @@ fn corpus_fields_match_metadata() {
     );
     assert!((claim.base_strength - 0.60).abs() < 1e-6);
 
-    // 禄马交驰 is metadata-only / not executable.
+    // 禄马最喜交驰 is source-backed, normalized, and not executable; it carries
+    // no claim and uses the actual QuanShu clause wording.
     let lu_ma = rule_by_id(LU_MA).expect("rule present");
     assert_eq!(lu_ma.status, RuleStatus::Normalized);
-    assert!(lu_ma.claim.is_some());
+    assert!(lu_ma.claim.is_none());
+    assert_eq!(lu_ma.source_text_zh_hans, "禄马最喜交驰");
 }
 
 // ---- enum serde names ------------------------------------------------------

@@ -29,20 +29,13 @@ base_strength = 0.60
 claim_key = "claim.migration.tian-ma-void.restless-movement"
 
 [[rule]]
-id = "wealth.lu_ma_remote_wealth"
+id = "fortune.lu_ma_jiao_chi.favorable_convergence"
 source_id = "quan_shu.v01.tai_wei_fu.004"
 source_clause_id = "lu_ma_jiao_chi"
 work = "zi_wei_dou_shu_quan_shu"
-source_text_zh_hans = "禄马交驰，发财远方"
-normalized_note_zh_hans = "禄（禄存或化禄）与天马交会驰逐，主远方求财、动中得财之象。禄马“交驰”的具体关系随流派而异，尚未建模为确定的图盘事实，故本规则暂不触发，评估时给出带类型的 Unsupported 诊断。"
+source_text_zh_hans = "禄马最喜交驰"
+normalized_note_zh_hans = "《太微赋》原文为“日月最嫌反背，禄马最喜交驰”。本规则仅记录禄马交驰为有利组合；“发财远方”不见于当前 QuanShu source item，不作为本规则 source_text 或 ClaimSpec。禄马关系及其具体解释范围尚未建模，故暂不可执行。"
 status = "normalized"
-
-[rule.claim]
-domain = "wealth"
-themes = ["remote_development", "wealth_accumulation", "restless_movement"]
-polarity = "positive"
-base_strength = 0.55
-claim_key = "claim.wealth.lu-ma-remote-wealth"
 
 [[rule]]
 id = "life.ri_yue_fan_bei.hardship_pressure"
