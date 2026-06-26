@@ -18,9 +18,12 @@ pub struct ClassicalSourceHit {
     pub rule_id: ClassicalRuleId,
     /// The work or project-owned catalog the source entry belongs to.
     pub work: ClassicalWork,
-    /// Stable identifier for the source passage or pattern metadata entry.
+    /// Stable identifier for the atomic source unit or project-owned pattern
+    /// metadata entry.
     pub source_id: String,
-    /// Stable identifier for the clause within the source passage or pattern entry.
+    /// Optional legacy/pattern provenance discriminator. Absent for QuanShu
+    /// source hits, which cite their source unit directly via `source_id`; it
+    /// may still be present for project-owned pattern catalog entries.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub source_clause_id: Option<String>,
     /// Canonical source text, Simplified Chinese.

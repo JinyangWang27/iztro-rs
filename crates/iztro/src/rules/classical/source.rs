@@ -18,17 +18,17 @@ pub enum ClassicalWork {
     IztroPatternCatalog,
 }
 
-/// An auditable reference to a classical source line.
+/// An auditable reference to a classical source unit.
 ///
 /// `source_text_zh_hans` preserves the canonical classical text;
-/// `normalized_note_zh_hans` is an optional editor's note clarifying how the line
+/// `normalized_note_zh_hans` is an optional editor's note clarifying how the unit
 /// was interpreted into a rule. Both are Chinese-first and never used as logic
 /// keys.
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct SourceRef {
-    /// The work this line is drawn from.
+    /// The work this unit is drawn from.
     pub work: ClassicalWork,
-    /// Stable identifier for the source line (e.g. `quan_shu.ma_yu_kong_wang`).
+    /// Stable identifier for the source unit (e.g. `quan_shu.ma_yu_kong_wang`).
     pub source_id: String,
     /// Canonical classical text, Simplified Chinese.
     pub source_text_zh_hans: String,

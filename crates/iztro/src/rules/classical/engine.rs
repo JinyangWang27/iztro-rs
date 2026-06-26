@@ -168,7 +168,8 @@ fn sort_claims(claims: &mut [Claim]) {
     });
 }
 
-/// Sorts source hits deterministically by `(scope, work, source_id, source_clause_id, rule_id)`.
+/// Sorts source hits deterministically by `(scope, work, source_id, source_clause_id, rule_id)`,
+/// where `source_clause_id` is an optional legacy/pattern provenance discriminator.
 fn sort_source_hits(source_hits: &mut [ClassicalSourceHit]) {
     source_hits.sort_by(|a, b| {
         a.scope
