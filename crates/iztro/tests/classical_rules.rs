@@ -225,7 +225,7 @@ fn corpus_fields_match_metadata() {
     assert!((claim.base_strength - 0.60).abs() < 1e-6);
 
     // 禄马最喜交驰 is source-backed, normalized, and not executable; it carries
-    // no claim and uses the actual QuanShu clause wording.
+    // no claim and uses the actual QuanShu source unit wording.
     let lu_ma = rule_by_id(LU_MA).expect("rule present");
     assert_eq!(lu_ma.status, RuleStatus::Normalized);
     assert!(lu_ma.claim.is_none());

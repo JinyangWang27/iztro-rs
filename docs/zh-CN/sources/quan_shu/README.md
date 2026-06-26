@@ -82,6 +82,6 @@ source item 的边界是**语义**而非排版：默认以 `。` 切分；一个
 
 1. 将 `crates/iztro/rule-corpus/quan-shu/source/` 扩展为完整 source inventory。
 2. 为每条 source item 补齐稳定 `source_id`、`volume`、`anchor`、`status` 和 `source_text_zh_hans`。
-3. 继续校对现有 pilot rules 与原文异文、出处段落、规范化 clause 的关系。
+3. 继续校对现有 pilot rules 与原文异文、出处单元、规范化出处单元的关系。
 4. 增加 corpus lint，确保 rule 引用的 `source_id` 必须存在。
 5. 扩展现有 coverage report（`docs/zh-CN/rules/quan-shu-coverage.md`），细化各原文/规则的状态分类（raw / segmented / normalized / executable / tested / ambiguous / rejected）。

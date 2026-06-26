@@ -155,7 +155,7 @@ pub fn pattern_rules_corpus() -> RulesCorpus {
 }
 
 /// Strips the punctuation we treat as insignificant when comparing Chinese
-/// passage/clause/rule text. Intentionally light: we do not normalize the
+/// source unit / rule text. Intentionally light: we do not normalize the
 /// characters themselves, only drop separators so containment is not defeated by
 /// a trailing comma or full stop.
 pub fn strip_punct(s: &str) -> String {

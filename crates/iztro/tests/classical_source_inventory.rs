@@ -391,11 +391,23 @@ fn quan_shu_corpus_rules_are_all_quan_shu_work() {
     }
 }
 
-/// Non-QuanShu rules (the pattern catalog) are not required to appear in the
-/// QuanShu source inventory: their `source_id`s are project `pattern.*` ids,
-/// not QuanShu inventory ids, and that must not be a validation failure.
+/// The project pattern catalog is kept separate from the QuanShu source
+/// inventory. Pattern rules exist, never carry the QuanShu `work`, and their
+/// `source_id`s are project `pattern.*` ids rather than QuanShu inventory ids —
+/// so they are not required to appear in the inventory. Conversely, the 羊陀夹命 /
+/// 昌曲夹命 rules that were moved out must not re-enter the inventory: neither
+/// their old `quan_shu.pending.*` source ids nor their rule ids may appear.
 #[test]
-fn non_quan_shu_rules_are_not_required_in_quan_shu_source_inventory() {
+fn pattern_catalog_is_separate_from_quan_shu_source_inventory() {
+    const REMOVED_SOURCE_IDS: [&str; 2] = [
+        "quan_shu.pending.yang_tuo_jia_ming",
+        "quan_shu.pending.chang_qu_jia_ming",
+    ];
+    const PATTERN_RULE_IDS: [&str; 2] = [
+        "life.yang_tuo_clamp_life.constraint_damage",
+        "life.chang_qu_clamp_life.literary_reputation",
+    ];
+
     let inventory = source_inventory();
     let patterns = pattern_rules_corpus();
     assert!(
@@ -409,6 +421,7 @@ fn non_quan_shu_rules_are_not_required_in_quan_shu_source_inventory() {
         .map(|item| item.source_id.as_str())
         .collect();
 
+    // Pattern rules are not QuanShu-work and not QuanShu source-inventory ids.
     for rule in &patterns.rule {
         assert_ne!(
             rule.work, QUAN_SHU_WORK,
@@ -421,6 +434,23 @@ fn non_quan_shu_rules_are_not_required_in_quan_shu_source_inventory() {
             rule.id,
             rule.source_id
         );
+    }
+
+    // The moved 夹宫 rules must not re-enter the QuanShu source inventory, by
+    // either their old pending source ids or their pattern rule ids.
+    for item in &inventory.source_item {
+        assert!(
+            !REMOVED_SOURCE_IDS.contains(&item.source_id.as_str()),
+            "removed pattern source_id {} is still in the QuanShu source inventory",
+            item.source_id
+        );
+        for linked in &item.linked_rule_ids {
+            assert!(
+                !PATTERN_RULE_IDS.contains(&linked.as_str()),
+                "source item {} still links pattern rule {linked} in the QuanShu source inventory",
+                item.source_id
+            );
+        }
     }
 }
 
@@ -498,36 +528,6 @@ fn executable_quan_shu_rules_are_wired_in_the_evaluator() {
                 "rule {} is marked executable but is not wired in the evaluator; \
                  add an evaluator branch and list it in WIRED_EXECUTABLE",
                 rule.id
-            );
-        }
-    }
-}
-
-/// 羊陀夹命 / 昌曲夹命 must not re-enter the QuanShu source inventory: neither
-/// their old `quan_shu.pending.*` source ids nor their rule ids may appear.
-#[test]
-fn pattern_rules_are_not_in_quan_shu_source_inventory() {
-    const REMOVED_SOURCE_IDS: [&str; 2] = [
-        "quan_shu.pending.yang_tuo_jia_ming",
-        "quan_shu.pending.chang_qu_jia_ming",
-    ];
-    const PATTERN_RULE_IDS: [&str; 2] = [
-        "life.yang_tuo_clamp_life.constraint_damage",
-        "life.chang_qu_clamp_life.literary_reputation",
-    ];
-
-    let inventory = source_inventory();
-    for item in &inventory.source_item {
-        assert!(
-            !REMOVED_SOURCE_IDS.contains(&item.source_id.as_str()),
-            "removed pattern source_id {} is still in the QuanShu source inventory",
-            item.source_id
-        );
-        for linked in &item.linked_rule_ids {
-            assert!(
-                !PATTERN_RULE_IDS.contains(&linked.as_str()),
-                "source item {} still links pattern rule {linked} in the QuanShu source inventory",
-                item.source_id
             );
         }
     }
