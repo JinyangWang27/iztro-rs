@@ -20,9 +20,9 @@ crates/iztro/rule-corpus/quan-shu/source/
   volume-01.toml
 ```
 
-`volume-01.toml` 采用「原文段落 + 嵌套 clause」结构，登记当前 classical pilot rules 对应的出处，并已分句（segmentation）一批太微赋「例曰」段落（`linked_rule_ids = []`，尚未链接规则）。它不是完整的卷一分句清单；完整 line-by-line inventory、lint 应在后续 PR 中继续扩展。
+`volume-01.toml` 采用「原子 source item」结构：每条受引出处单元（一句断语/规则候选）即一个 source item，登记其对应规则出处。它涵盖太微赋完整规范化映射，但不是卷一全部章节的完整清单；完整 line-by-line inventory、lint 应在后续 PR 中继续扩展。
 
-已链接和未链接的 clause 都有价值：未链接 clause 记录已分句但尚未规范化/实现为规则的原文。分句类 PR 不必同时新增可执行规则。
+后续可加入尚未链接的 `raw` / `segmented` source item（`linked_rule_ids = []`）记录已切分但尚未规范化/实现为规则的原文；当前太微赋每个 `rule_linked` 条目均已链接规则。
 
 source inventory 的覆盖情况由维护在仓库中的覆盖报告统计：
 
@@ -32,15 +32,16 @@ docs/zh-CN/rules/quan-shu-coverage.md
 
 该报告由测试 `crates/iztro/tests/classical_source_coverage.rs` 生成并校验；扩展 source inventory 后须重新生成该报告，否则测试失败。
 
-结构分三层：
+结构分两层：
 
 ```text
-source item = 一段原文/出处位置，由 `source_id` 标识
-clause      = 该段落内的单条候选规则短语，由 `clause_id` 标识（在同一 source item 内唯一）
-rule        = 链接到某条 clause 的可执行/规范化解释，通过 `linked_rule_ids` 关联
+source item = 一条受引的原子出处单元（一句断语/规则候选），由稳定助记 `source_id` 标识
+rule        = 链接到某个 source item 的可执行/规范化/歧义/拒绝解释，通过 `linked_rule_ids` 关联
 ```
 
-`source_id` 标识**原文段落**而非语义规则短语，因此一段含多条断语的原文可以拆成多个 clause 分别链接规则。规则一侧通过 `source_id` + `source_clause_id` 指向具体 clause；clause 一侧通过 `linked_rule_ids` 反向链接。`待校` / `TODO` 仅用于「确信出自全书但尚未在三卷 Markdown 中定位到的段落」。source inventory 仅由测试校验，不进入运行时评估路径，且只校验全书规则（`work = "zi_wei_dou_shu_quan_shu"`）。
+source item 的边界是**语义**而非排版：默认以 `。` 切分；一个 `。` 句内若含并列独立断语则继续切分；同一断语的「条件，应验」逗号不切分。一条 Markdown 物理行可包含多个 source item。`source_id` 标识**受引出处单元**而非物理行/段落，为稳定助记符（如 `ma_yu_kong_wang`）；`source_order` 单独保存出处顺序，新增靠前条目只需复核 `source_order`，无需改写稳定 `source_id`。规则一侧通过 `source_id` 指向 source item；source item 一侧通过 `linked_rule_ids` 反向链接（全书规则不再使用 `source_clause_id`）。`source_text_zh_hans` 须逐字引用出处单元（不带句末 `。`），解读归入规则的 `normalized_note_zh_hans`、`ClaimSpec` 或 i18n claim 文案。`待校` / `TODO` 仅用于「确信出自全书但尚未在三卷 Markdown 中定位到的单元」。source inventory 仅由测试校验，不进入运行时评估路径，且只校验全书规则（`work = "zi_wei_dou_shu_quan_shu"`）。
+
+**规范编码：grouped/defaulted TOML。** 为避免在每条 item 上重复同段共享元数据，TOML 采用分组形式：`source_group` 携带共享默认值（`source_id_prefix`、`work`、`volume`、`section`、`category`、`status`、`doc_path`、`anchor`），每个 `source_group.item` 为一条原子出处单元，完整 id 为 `source_id = source_id_prefix + item.key`。该分组 TOML 是**唯一规范来源**；测试会将其反序列化并展开为扁平 source item 视图用于校验与覆盖统计。
 
 非出自全书的规则（如 `羊陀夹命`、`昌曲夹命` 等由项目直接建模的夹宫/格局结构推导而来的判断）**不是**全书 source inventory 条目，存放于 `crates/iztro/rule-corpus/patterns/`（`work = "iztro_pattern_catalog"`、`pattern.*` source id），不在此登记。
 

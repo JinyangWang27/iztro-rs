@@ -10,15 +10,78 @@
 
 #![allow(dead_code)]
 
-/// Test-only mirror of `rule-corpus/quan-shu/source/volume-01.toml`.
+/// Test-only raw mirror of the **canonical** grouped
+/// `rule-corpus/quan-shu/source/volume-01.toml`. A `source_group` carries shared
+/// metadata / section defaults; each `source_group.item` is one atomic cited
+/// source unit. The flat [`SourceItem`] view used by the tests is produced by
+/// [`RawSourceInventory::expand`], which joins each item with its group defaults.
 #[derive(Debug, serde::Deserialize)]
+pub struct RawSourceInventory {
+    pub source_group: Vec<SourceGroup>,
+}
+
+#[derive(Debug, serde::Deserialize)]
+pub struct SourceGroup {
+    pub source_id_prefix: String,
+    pub work: String,
+    pub volume: u8,
+    pub section: String,
+    pub category: String,
+    pub status: String,
+    pub doc_path: String,
+    pub anchor: String,
+    pub item: Vec<SourceGroupItem>,
+}
+
+#[derive(Debug, serde::Deserialize)]
+pub struct SourceGroupItem {
+    pub key: String,
+    pub source_order: usize,
+    pub source_text_zh_hans: String,
+    #[serde(default)]
+    pub linked_rule_ids: Vec<String>,
+    pub notes_zh_hans: Option<String>,
+}
+
+impl RawSourceInventory {
+    /// Expand the grouped TOML into flat source items: `source_id` is
+    /// `source_id_prefix + item.key`, and the group metadata is copied onto each
+    /// item. Tests operate on this flat view and stay agnostic to the grouping.
+    pub fn expand(self) -> SourceInventory {
+        let mut source_item = Vec::new();
+        for group in self.source_group {
+            for item in group.item {
+                source_item.push(SourceItem {
+                    source_id: format!("{}{}", group.source_id_prefix, item.key),
+                    source_order: item.source_order,
+                    work: group.work.clone(),
+                    volume: group.volume,
+                    section: group.section.clone(),
+                    category: group.category.clone(),
+                    status: group.status.clone(),
+                    doc_path: group.doc_path.clone(),
+                    anchor: group.anchor.clone(),
+                    source_text_zh_hans: item.source_text_zh_hans,
+                    linked_rule_ids: item.linked_rule_ids,
+                    notes_zh_hans: item.notes_zh_hans,
+                });
+            }
+        }
+        SourceInventory { source_item }
+    }
+}
+
+/// Expanded, flat view of the source inventory. Each [`SourceItem`] is one
+/// atomic cited source unit with its group defaults already applied.
+#[derive(Debug)]
 pub struct SourceInventory {
     pub source_item: Vec<SourceItem>,
 }
 
-#[derive(Debug, serde::Deserialize)]
+#[derive(Debug)]
 pub struct SourceItem {
     pub source_id: String,
+    pub source_order: usize,
     pub work: String,
     pub volume: u8,
     pub section: String,
@@ -27,26 +90,17 @@ pub struct SourceItem {
     pub doc_path: String,
     pub anchor: String,
     pub source_text_zh_hans: String,
-    #[serde(default)]
-    pub clause: Vec<SourceClause>,
+    pub linked_rule_ids: Vec<String>,
     pub notes_zh_hans: Option<String>,
 }
 
 impl SourceItem {
     /// Pending items (not yet located in the Markdown volumes) are flagged with
-    /// the placeholder `section`/`anchor`. Passage-vs-clause containment is not
-    /// asserted for them, and they count as pending in the coverage report.
+    /// the placeholder `section`/`anchor`. They count as pending in the coverage
+    /// report.
     pub fn is_pending(&self) -> bool {
         self.anchor == "TODO" || self.section == "待校"
     }
-}
-
-#[derive(Debug, serde::Deserialize)]
-pub struct SourceClause {
-    pub clause_id: String,
-    pub text_zh_hans: String,
-    pub linked_rule_ids: Vec<String>,
-    pub notes_zh_hans: Option<String>,
 }
 
 /// Test-only minimal mirror of `rule-corpus/quan-shu/rules.toml`. The runtime
@@ -80,8 +134,12 @@ const PATTERN_RULES_CORPUS_TOML: &str = include_str!("../../rule-corpus/patterns
 /// QuanShu source rules and must not be required in the inventory.
 pub const QUAN_SHU_WORK: &str = "zi_wei_dou_shu_quan_shu";
 
+/// Deserializes the canonical grouped TOML and expands it into the flat
+/// source-item view the tests operate on.
 pub fn source_inventory() -> SourceInventory {
-    toml::from_str(SOURCE_INVENTORY_TOML).expect("QuanShu source inventory TOML must deserialize")
+    let raw: RawSourceInventory = toml::from_str(SOURCE_INVENTORY_TOML)
+        .expect("QuanShu source inventory TOML must deserialize");
+    raw.expand()
 }
 
 /// The 《紫微斗数全书》 rule corpus (`rule-corpus/quan-shu/rules.toml`).

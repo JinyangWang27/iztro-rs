@@ -17,15 +17,14 @@ use support::classical_source::{RulesCorpus, SourceInventory, rules_corpus, sour
 
 const COVERAGE_REPORT: &str = include_str!("../../../docs/zh-CN/rules/quan-shu-coverage.md");
 
-/// Coverage metrics over the whole source inventory. Counts of source items,
-/// clauses, and the rules clauses link to (classified by the rule's `status`).
+/// Coverage metrics over the whole source inventory. Counts of source items and
+/// the rules they link to (classified by the rule's `status`).
 struct CoverageMetrics {
     source_items: usize,
     located_source_items: usize,
     pending_source_items: usize,
-    clauses: usize,
-    linked_clauses: usize,
-    unlinked_clauses: usize,
+    linked_source_items: usize,
+    unlinked_source_items: usize,
     linked_rules: usize,
     executable_linked_rules: usize,
     normalized_linked_rules: usize,
@@ -43,22 +42,19 @@ impl CoverageMetrics {
             .count();
         let pending_source_items = source_items - located_source_items;
 
-        let clauses: usize = inventory.source_item.iter().map(|i| i.clause.len()).sum();
-        let linked_clauses = inventory
+        let linked_source_items = inventory
             .source_item
             .iter()
-            .flat_map(|i| &i.clause)
-            .filter(|c| !c.linked_rule_ids.is_empty())
+            .filter(|item| !item.linked_rule_ids.is_empty())
             .count();
-        let unlinked_clauses = clauses - linked_clauses;
+        let unlinked_source_items = source_items - linked_source_items;
 
-        // Distinct rule ids referenced by any clause, then classified by the
-        // rule's own `status` in the corpus.
+        // Distinct rule ids referenced by any source item, then classified by
+        // the rule's own `status` in the corpus.
         let linked_rule_ids: BTreeSet<&str> = inventory
             .source_item
             .iter()
-            .flat_map(|i| &i.clause)
-            .flat_map(|c| c.linked_rule_ids.iter())
+            .flat_map(|i| i.linked_rule_ids.iter())
             .map(String::as_str)
             .collect();
 
@@ -81,9 +77,8 @@ impl CoverageMetrics {
             source_items,
             located_source_items,
             pending_source_items,
-            clauses,
-            linked_clauses,
-            unlinked_clauses,
+            linked_source_items,
+            unlinked_source_items,
             linked_rules: linked_rule_ids.len(),
             executable_linked_rules: count_status("executable"),
             normalized_linked_rules: count_status("normalized"),
@@ -96,9 +91,8 @@ impl CoverageMetrics {
 /// Per-section metrics for the `Volume 1 — 太微赋` slice.
 struct SectionMetrics {
     source_items: usize,
-    clauses: usize,
-    linked_clauses: usize,
-    unlinked_clauses: usize,
+    linked_source_items: usize,
+    unlinked_source_items: usize,
     pending_source_items: usize,
 }
 
@@ -109,17 +103,14 @@ impl SectionMetrics {
             .iter()
             .filter(|i| i.volume == volume && i.section == section)
             .collect();
-        let clauses: usize = items.iter().map(|i| i.clause.len()).sum();
-        let linked_clauses = items
+        let linked_source_items = items
             .iter()
-            .flat_map(|i| &i.clause)
-            .filter(|c| !c.linked_rule_ids.is_empty())
+            .filter(|i| !i.linked_rule_ids.is_empty())
             .count();
         Self {
             source_items: items.len(),
-            clauses,
-            linked_clauses,
-            unlinked_clauses: clauses - linked_clauses,
+            linked_source_items,
+            unlinked_source_items: items.len() - linked_source_items,
             pending_source_items: items.iter().filter(|i| i.is_pending()).count(),
         }
     }
@@ -139,6 +130,10 @@ fn generate_report() -> String {
          （`crates/iztro/rule-corpus/patterns/`）。\n\n",
     );
     out.push_str(
+        "source inventory 以原子 source item 记录每条受引出处单元；`source_id` 为稳定助记符，\
+         `source_order` 单独保存出处顺序。规则经 `linked_rule_ids` 链接。\n\n",
+    );
+    out.push_str(
         "本报告由 `crates/iztro/tests/classical_source_coverage.rs` 生成并校验：修改 source \
          inventory 或 rule corpus 后须重新生成本文件，否则测试 \
          `quan_shu_coverage_report_is_current` 失败。\n\n",
@@ -149,9 +144,12 @@ fn generate_report() -> String {
     let _ = writeln!(out, "| Source items | {} |", m.source_items);
     let _ = writeln!(out, "| Located source items | {} |", m.located_source_items);
     let _ = writeln!(out, "| Pending source items | {} |", m.pending_source_items);
-    let _ = writeln!(out, "| Clauses | {} |", m.clauses);
-    let _ = writeln!(out, "| Linked clauses | {} |", m.linked_clauses);
-    let _ = writeln!(out, "| Unlinked clauses | {} |", m.unlinked_clauses);
+    let _ = writeln!(out, "| Linked source items | {} |", m.linked_source_items);
+    let _ = writeln!(
+        out,
+        "| Unlinked source items | {} |",
+        m.unlinked_source_items
+    );
     let _ = writeln!(out, "| Linked rules | {} |", m.linked_rules);
     let _ = writeln!(
         out,
@@ -177,12 +175,15 @@ fn generate_report() -> String {
     out.push_str("\n## Volume 1 — 太微赋\n\n");
     out.push_str("| Metric | Count |\n| --- | ---: |\n");
     let _ = writeln!(out, "| Source items | {} |", tai_wei_fu.source_items);
-    let _ = writeln!(out, "| Clauses | {} |", tai_wei_fu.clauses);
-    let _ = writeln!(out, "| Linked clauses | {} |", tai_wei_fu.linked_clauses);
     let _ = writeln!(
         out,
-        "| Unlinked clauses | {} |",
-        tai_wei_fu.unlinked_clauses
+        "| Linked source items | {} |",
+        tai_wei_fu.linked_source_items
+    );
+    let _ = writeln!(
+        out,
+        "| Unlinked source items | {} |",
+        tai_wei_fu.unlinked_source_items
     );
     let _ = writeln!(
         out,
@@ -190,17 +191,15 @@ fn generate_report() -> String {
         tai_wei_fu.pending_source_items
     );
 
-    out.push_str("\n## Unlinked clauses\n\n");
-    out.push_str("| Source ID | Clause ID | Text |\n| --- | --- | --- |\n");
+    out.push_str("\n## Unlinked source items\n\n");
+    out.push_str("| Source ID | Order | Text |\n| --- | ---: | --- |\n");
     for item in &inventory.source_item {
-        for clause in &item.clause {
-            if clause.linked_rule_ids.is_empty() {
-                let _ = writeln!(
-                    out,
-                    "| {} | {} | {} |",
-                    item.source_id, clause.clause_id, clause.text_zh_hans
-                );
-            }
+        if item.linked_rule_ids.is_empty() {
+            let _ = writeln!(
+                out,
+                "| {} | {} | {} |",
+                item.source_id, item.source_order, item.source_text_zh_hans
+            );
         }
     }
 
@@ -226,19 +225,19 @@ fn quan_shu_coverage_report_is_deterministic() {
     assert_eq!(generate_report(), generate_report());
 }
 
-/// After completing the 太微赋 normalization map every clause is linked, so the
-/// report's unlinked count is zero and the linked-rule status counts add up to
-/// the number of distinct linked rules.
+/// After completing the 太微赋 normalization map every source item is linked, so
+/// the report's unlinked count is zero and the linked-rule status counts add up
+/// to the number of distinct linked rules.
 #[test]
-fn quan_shu_coverage_has_no_unlinked_clauses() {
+fn quan_shu_coverage_has_no_unlinked_source_items() {
     let inventory = source_inventory();
     let rules = rules_corpus();
     let m = CoverageMetrics::compute(&inventory, &rules);
     assert_eq!(
-        m.unlinked_clauses, 0,
+        m.unlinked_source_items, 0,
         "expected a complete normalization map"
     );
-    assert_eq!(m.linked_clauses, m.clauses);
+    assert_eq!(m.linked_source_items, m.source_items);
     assert_eq!(
         m.executable_linked_rules
             + m.normalized_linked_rules
