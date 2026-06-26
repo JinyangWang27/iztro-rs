@@ -11,7 +11,7 @@ use super::palace::palace_grid;
 
 /// Minimum width of a single palace cell that keeps the original-iztro-style
 /// star, 大限/小限, and 流 badge text legible instead of collapsing into dashes.
-pub(super) const MIN_PALACE_CELL_WIDTH: f32 = 275.0;
+pub(super) const MIN_PALACE_CELL_WIDTH: f32 = 258.0;
 /// Minimum height of a single palace cell that keeps its stacked text rows
 /// (stars, limits, decorative gods, footer) readable.
 pub(super) const MIN_PALACE_CELL_HEIGHT: f32 = 190.0;
