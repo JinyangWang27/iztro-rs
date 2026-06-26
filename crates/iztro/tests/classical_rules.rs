@@ -357,11 +357,13 @@ fn tian_ma_void_positive_on_modeled_void_star() {
         .find(|hit| hit.rule_id.as_str() == TIAN_MA_VOID)
         .expect("expected 马遇空亡 source hit");
     assert_eq!(source_hit.work, ClassicalWork::ZiWeiDouShuQuanShu);
-    assert_eq!(source_hit.source_id, "quan_shu.v01.tai_wei_fu.001");
     assert_eq!(
-        source_hit.source_clause_id.as_deref(),
-        Some("ma_yu_kong_wang")
+        source_hit.source_id,
+        "quan_shu.v01.tai_wei_fu.ma_yu_kong_wang"
     );
+    // QuanShu rules now point directly at the atomic source item; they no longer
+    // carry source_clause_id.
+    assert_eq!(source_hit.source_clause_id.as_deref(), None);
     assert_eq!(source_hit.source_text_zh_hans, "马遇空亡，终身奔走");
     assert_eq!(source_hit.status, RuleStatus::Executable);
     assert_eq!(source_hit.scope, ClaimScope::Natal);
@@ -892,9 +894,11 @@ fn claim_evaluation_json_includes_deterministic_source_hits() {
     assert_eq!(source_hits.len(), 3);
     assert_eq!(source_hits[0]["rule_id"], serde_json::json!(TIAN_MA_VOID));
     assert_eq!(
-        source_hits[0]["source_clause_id"],
-        serde_json::json!("ma_yu_kong_wang")
+        source_hits[0]["source_id"],
+        serde_json::json!("quan_shu.v01.tai_wei_fu.ma_yu_kong_wang")
     );
+    // QuanShu rules no longer carry source_clause_id; it serializes as null.
+    assert_eq!(source_hits[0]["source_clause_id"], serde_json::Value::Null);
     assert!(source_hits[0].get("claim_key").is_none());
 }
 

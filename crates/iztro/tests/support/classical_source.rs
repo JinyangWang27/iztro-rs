@@ -19,6 +19,7 @@ pub struct SourceInventory {
 #[derive(Debug, serde::Deserialize)]
 pub struct SourceItem {
     pub source_id: String,
+    pub source_order: usize,
     pub work: String,
     pub volume: u8,
     pub section: String,
@@ -28,25 +29,17 @@ pub struct SourceItem {
     pub anchor: String,
     pub source_text_zh_hans: String,
     #[serde(default)]
-    pub clause: Vec<SourceClause>,
+    pub linked_rule_ids: Vec<String>,
     pub notes_zh_hans: Option<String>,
 }
 
 impl SourceItem {
     /// Pending items (not yet located in the Markdown volumes) are flagged with
-    /// the placeholder `section`/`anchor`. Passage-vs-clause containment is not
-    /// asserted for them, and they count as pending in the coverage report.
+    /// the placeholder `section`/`anchor`. They count as pending in the coverage
+    /// report.
     pub fn is_pending(&self) -> bool {
         self.anchor == "TODO" || self.section == "待校"
     }
-}
-
-#[derive(Debug, serde::Deserialize)]
-pub struct SourceClause {
-    pub clause_id: String,
-    pub text_zh_hans: String,
-    pub linked_rule_ids: Vec<String>,
-    pub notes_zh_hans: Option<String>,
 }
 
 /// Test-only minimal mirror of `rule-corpus/quan-shu/rules.toml`. The runtime

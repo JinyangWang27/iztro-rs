@@ -6,11 +6,11 @@
 //! exist only to keep the inventory internally consistent and correctly linked
 //! to the executable rule corpus (`rule-corpus/quan-shu/rules.toml`).
 //!
-//! Structure: a `source_item` is a source passage/location identified by
-//! `source_id`; each item holds one or more `clause`s (individual candidate rule
-//! phrases identified by `clause_id`); a rule links to a clause by carrying both
-//! `source_id` and `source_clause_id`, and the clause mirrors that link via
-//! `linked_rule_ids`.
+//! Model: a `source_item` is one atomic cited QuanShu source unit (a
+//! rule-candidate aphorism) identified by a stable mnemonic `source_id`; it
+//! links to zero or more rules via `linked_rule_ids`, and each linked rule
+//! mirrors that link via its own `source_id`. `source_order` preserves source
+//! order separately from stable identity.
 //!
 //! The deserialization shapes live in the shared, test-only `support` module
 //! (`tests/support/classical_source.rs`). They are intentionally not exported
@@ -24,70 +24,16 @@ use support::classical_source::{
     QUAN_SHU_WORK, pattern_rules_corpus, rules_corpus, source_inventory, strip_punct,
 };
 
+const TAI_WEI_FU_PREFIX: &str = "quan_shu.v01.tai_wei_fu.";
+
+// ---- A. Inventory parses and source ids are unique -----------------------
+
 #[test]
 fn quan_shu_source_inventory_parses() {
     let inventory = source_inventory();
     assert!(
         !inventory.source_item.is_empty(),
         "source inventory must record at least one source item"
-    );
-}
-
-/// Regression: 太微赋 source items track rule-candidate clauses, not
-/// explanatory/commentary prose from the full source text. The numeric suffix
-/// of `source_id` is source-order based, so suffixes must be continuous from
-/// `001`, appear in increasing order, and start at the first `例曰`
-/// rule-candidate passage.
-#[test]
-fn tai_wei_fu_source_items_follow_rule_candidate_order() {
-    let inventory = source_inventory();
-    let tai_wei_fu: Vec<_> = inventory
-        .source_item
-        .iter()
-        .filter(|item| item.volume == 1 && item.section == "太微赋")
-        .collect();
-    assert!(
-        !tai_wei_fu.is_empty(),
-        "expected 太微赋 source items in the inventory"
-    );
-
-    // Suffixes are continuous 001..=N and appear in increasing numeric order.
-    for (idx, item) in tai_wei_fu.iter().enumerate() {
-        let suffix = item
-            .source_id
-            .strip_prefix("quan_shu.v01.tai_wei_fu.")
-            .unwrap_or_else(|| panic!("unexpected source_id format: {}", item.source_id));
-        let n: usize = suffix
-            .parse()
-            .unwrap_or_else(|_| panic!("source_id suffix is not numeric: {}", item.source_id));
-        assert_eq!(
-            n,
-            idx + 1,
-            "太微赋 source_id suffixes must be continuous and increasing from 001; \
-             item {} at position {} breaks the sequence",
-            item.source_id,
-            idx + 1
-        );
-    }
-
-    // This inventory tracks rule-candidate clauses, not commentary prose.
-    for item in &tai_wei_fu {
-        assert_ne!(
-            item.category, "commentary",
-            "commentary item {} belongs only in the raw full text, not in the source inventory",
-            item.source_id
-        );
-    }
-
-    let first = tai_wei_fu[0];
-    assert_eq!(
-        first.category, "aphorism_rule",
-        "first 太微赋 source item must be the first 例曰 rule-candidate passage"
-    );
-    assert!(
-        first.source_text_zh_hans.starts_with("禄逢冲破"),
-        "first 太微赋 source item must be the first 例曰 rule-candidate passage, got {:?}",
-        first.source_text_zh_hans
     );
 }
 
@@ -103,6 +49,8 @@ fn quan_shu_source_inventory_has_unique_source_ids() {
         );
     }
 }
+
+// ---- B. Required source-item fields are non-empty ------------------------
 
 #[test]
 fn quan_shu_source_inventory_required_fields_are_not_empty() {
@@ -126,51 +74,108 @@ fn quan_shu_source_inventory_required_fields_are_not_empty() {
                 item.source_id
             );
         }
+    }
+}
+
+// ---- C. source_order is continuous and increasing for Vol.1 太微赋 -------
+
+/// `source_order` preserves the source order of the 例曰 aphorisms. For the
+/// Volume 1 太微赋 slice it must start at 1, have no duplicates, and—when sorted
+/// by `source_order`—run 1..=N with no gaps.
+#[test]
+fn tai_wei_fu_source_order_is_continuous() {
+    let inventory = source_inventory();
+    let mut orders: Vec<usize> = inventory
+        .source_item
+        .iter()
+        .filter(|item| item.volume == 1 && item.section == "太微赋")
+        .map(|item| item.source_order)
+        .collect();
+    assert!(
+        !orders.is_empty(),
+        "expected 太微赋 source items in the inventory"
+    );
+
+    let n = orders.len();
+    orders.sort_unstable();
+    orders.dedup();
+    assert_eq!(orders.len(), n, "太微赋 source_order values must be unique");
+    for (idx, order) in orders.iter().enumerate() {
+        assert_eq!(
+            *order,
+            idx + 1,
+            "太微赋 source_order must be continuous 1..=N; missing or misnumbered at position {}",
+            idx + 1
+        );
+    }
+
+    // The first aphorism in source order is the opening 例曰 rule candidate.
+    let first = inventory
+        .source_item
+        .iter()
+        .filter(|item| item.volume == 1 && item.section == "太微赋")
+        .min_by_key(|item| item.source_order)
+        .expect("太微赋 source items present");
+    assert_eq!(
+        first.category, "aphorism_rule",
+        "first 太微赋 source item must be the first 例曰 rule-candidate aphorism"
+    );
+    assert!(
+        first.source_text_zh_hans.starts_with("禄逢冲破"),
+        "first 太微赋 source item must be the first 例曰 rule-candidate aphorism, got {:?}",
+        first.source_text_zh_hans
+    );
+}
+
+// ---- D. Source ids are stable mnemonic ids -------------------------------
+
+/// 太微赋 source ids are stable mnemonics, not fragile numeric-only ids: they
+/// share the `quan_shu.v01.tai_wei_fu.` prefix and their final segment is not
+/// purely numeric (so `.001`-style ids are rejected).
+#[test]
+fn tai_wei_fu_source_ids_are_stable_mnemonics() {
+    let inventory = source_inventory();
+    for item in &inventory.source_item {
+        if item.volume != 1 || item.section != "太微赋" {
+            continue;
+        }
+        let suffix = item
+            .source_id
+            .strip_prefix(TAI_WEI_FU_PREFIX)
+            .unwrap_or_else(|| panic!("unexpected 太微赋 source_id format: {}", item.source_id));
         assert!(
-            !item.clause.is_empty(),
-            "source item {} must record at least one clause",
+            !suffix.is_empty(),
+            "太微赋 source_id {} has an empty mnemonic segment",
+            item.source_id
+        );
+        assert!(
+            suffix.chars().any(|c| !c.is_ascii_digit()),
+            "太微赋 source_id {} must be a stable mnemonic, not a purely numeric id",
             item.source_id
         );
     }
 }
 
-/// 5.1 Clause IDs are unique within a source item.
+// ---- E. Linked ids by status ---------------------------------------------
+
+/// Every `rule_linked` source item must carry at least one linked rule. The
+/// model still permits future `raw` / `segmented` items with empty
+/// `linked_rule_ids`, but `rule_linked` items may not regress to empty.
 #[test]
-fn clause_ids_are_unique_within_a_source_item() {
+fn rule_linked_source_items_have_links() {
     let inventory = source_inventory();
     for item in &inventory.source_item {
-        let mut seen = HashSet::new();
-        for clause in &item.clause {
+        if item.status == "rule_linked" {
             assert!(
-                seen.insert(clause.clause_id.as_str()),
-                "duplicate clause_id {} within source item {}",
-                clause.clause_id,
+                !item.linked_rule_ids.is_empty(),
+                "rule_linked source item {} has no linked_rule_ids",
                 item.source_id
             );
         }
     }
 }
 
-/// 5.2 Clause id and text are non-empty.
-#[test]
-fn clause_required_fields_are_not_empty() {
-    let inventory = source_inventory();
-    for item in &inventory.source_item {
-        for clause in &item.clause {
-            assert!(
-                !clause.clause_id.trim().is_empty(),
-                "source item {} has a clause with empty clause_id",
-                item.source_id
-            );
-            assert!(
-                !clause.text_zh_hans.trim().is_empty(),
-                "source item {} clause {} has empty text_zh_hans",
-                item.source_id,
-                clause.clause_id
-            );
-        }
-    }
-}
+// ---- F. Every QuanShu rule's source_id exists in the inventory -----------
 
 #[test]
 fn classical_rules_reference_known_source_items() {
@@ -192,34 +197,7 @@ fn classical_rules_reference_known_source_items() {
     }
 }
 
-/// 5.3 Every rule `source_clause_id` exists inside its referenced source item.
-#[test]
-fn rule_source_clause_ids_exist_in_their_source_item() {
-    let inventory = source_inventory();
-    let rules = rules_corpus();
-
-    for rule in &rules.rule {
-        let Some(clause_id) = rule.source_clause_id.as_deref() else {
-            continue;
-        };
-        let item = inventory
-            .source_item
-            .iter()
-            .find(|item| item.source_id == rule.source_id)
-            .unwrap_or_else(|| {
-                panic!(
-                    "rule {} references source_id {} not present in the source inventory",
-                    rule.id, rule.source_id
-                )
-            });
-        assert!(
-            item.clause.iter().any(|c| c.clause_id == clause_id),
-            "rule {} references clause {clause_id} not present in source item {}",
-            rule.id,
-            item.source_id
-        );
-    }
-}
+// ---- G. Every linked rule id exists in rules.toml ------------------------
 
 #[test]
 fn source_inventory_linked_rule_ids_exist() {
@@ -228,128 +206,86 @@ fn source_inventory_linked_rule_ids_exist() {
     let rule_ids: HashSet<&str> = rules.rule.iter().map(|r| r.id.as_str()).collect();
 
     for item in &inventory.source_item {
-        for clause in &item.clause {
-            for linked in &clause.linked_rule_ids {
-                assert!(
-                    rule_ids.contains(linked.as_str()),
-                    "source item {} clause {} links to unknown rule id {linked}",
-                    item.source_id,
-                    clause.clause_id
-                );
-            }
-        }
-    }
-}
-
-/// 5.4 Linked clauses and rules agree on source_id, clause_id, and work.
-#[test]
-fn source_inventory_clause_links_match_rules() {
-    let inventory = source_inventory();
-    let rules = rules_corpus();
-
-    for item in &inventory.source_item {
-        for clause in &item.clause {
-            for linked in &clause.linked_rule_ids {
-                let rule = rules
-                    .rule
-                    .iter()
-                    .find(|r| r.id == *linked)
-                    .unwrap_or_else(|| {
-                        panic!(
-                            "source item {} clause {} links to unknown rule id {linked}",
-                            item.source_id, clause.clause_id
-                        )
-                    });
-                assert_eq!(
-                    rule.source_id, item.source_id,
-                    "rule {} source_id {} disagrees with linking source item {}",
-                    rule.id, rule.source_id, item.source_id
-                );
-                assert_eq!(
-                    rule.source_clause_id.as_deref(),
-                    Some(clause.clause_id.as_str()),
-                    "rule {} source_clause_id {:?} disagrees with linking clause {}",
-                    rule.id,
-                    rule.source_clause_id,
-                    clause.clause_id
-                );
-                assert_eq!(
-                    rule.work, item.work,
-                    "rule {} work {} disagrees with linking source item {}",
-                    rule.id, rule.work, item.source_id
-                );
-            }
-        }
-    }
-}
-
-/// 5.5 Clause text matches or contains the linked rule's source text.
-///
-/// For `executable` rules we normally require containment in either direction.
-/// `life.ri_yue_fan_bei.hardship_pressure` (`executable`) carries already-
-/// normalized claim phrasing that does not match its clause verbatim; it is
-/// accepted only when the clause or source item documents the divergence via
-/// `notes_zh_hans`. See docs/zh-CN/sources/quan_shu/README.md.
-#[test]
-fn clause_text_matches_or_contains_rule_source_text() {
-    let inventory = source_inventory();
-    let rules = rules_corpus();
-
-    for item in &inventory.source_item {
-        for clause in &item.clause {
-            let clause_text = strip_punct(&clause.text_zh_hans);
-            for linked in &clause.linked_rule_ids {
-                let rule = rules
-                    .rule
-                    .iter()
-                    .find(|r| r.id == *linked)
-                    .expect("linked rule must exist");
-                let rule_text = strip_punct(&rule.source_text_zh_hans);
-                let contained =
-                    clause_text.contains(&rule_text) || rule_text.contains(&clause_text);
-                let documented = clause.notes_zh_hans.is_some() || item.notes_zh_hans.is_some();
-                assert!(
-                    contained || documented,
-                    "rule {} (status {}) source text {:?} neither matches nor is contained by \
-                     clause {} text {:?}, and no notes_zh_hans explains the divergence",
-                    rule.id,
-                    rule.status,
-                    rule.source_text_zh_hans,
-                    clause.clause_id,
-                    clause.text_zh_hans
-                );
-            }
-        }
-    }
-}
-
-/// 5.6 For located source items, the passage text contains every clause text.
-///
-/// Pending items (`section = "待校"` / `anchor = "TODO"`) are not yet located, so
-/// this is skipped for them.
-#[test]
-fn located_source_text_contains_each_clause() {
-    let inventory = source_inventory();
-    for item in &inventory.source_item {
-        if item.is_pending() {
-            continue;
-        }
-        let passage = strip_punct(&item.source_text_zh_hans);
-        for clause in &item.clause {
-            let clause_text = strip_punct(&clause.text_zh_hans);
+        for linked in &item.linked_rule_ids {
             assert!(
-                passage.contains(&clause_text),
-                "located source item {} text {:?} does not contain clause {} text {:?}",
-                item.source_id,
-                item.source_text_zh_hans,
-                clause.clause_id,
-                clause.text_zh_hans
+                rule_ids.contains(linked.as_str()),
+                "source item {} links to unknown rule id {linked}",
+                item.source_id
             );
         }
     }
 }
 
-/// The 天马空亡 clause must use the imported Volume 1 太微赋 wording
+// ---- H. Linked source item and rule agree on source_id and work ----------
+
+#[test]
+fn source_inventory_links_match_rules() {
+    let inventory = source_inventory();
+    let rules = rules_corpus();
+
+    for item in &inventory.source_item {
+        for linked in &item.linked_rule_ids {
+            let rule = rules
+                .rule
+                .iter()
+                .find(|r| r.id == *linked)
+                .unwrap_or_else(|| {
+                    panic!(
+                        "source item {} links to unknown rule id {linked}",
+                        item.source_id
+                    )
+                });
+            assert_eq!(
+                rule.source_id, item.source_id,
+                "rule {} source_id {} disagrees with linking source item {}",
+                rule.id, rule.source_id, item.source_id
+            );
+            assert_eq!(
+                rule.work, item.work,
+                "rule {} work {} disagrees with linking source item {}",
+                rule.id, rule.work, item.source_id
+            );
+        }
+    }
+}
+
+// ---- I. Source item text matches the linked rule's source text -----------
+
+/// A linked source item must quote the same source unit as its rule. We require
+/// exact equality after light punctuation normalization (`strip_punct`).
+/// `notes_zh_hans` is permitted only as documentation of a true source-variant
+/// divergence; it must not be used to paper over interpretation/paraphrase.
+#[test]
+fn source_item_text_matches_rule_source_text() {
+    let inventory = source_inventory();
+    let rules = rules_corpus();
+
+    for item in &inventory.source_item {
+        let item_text = strip_punct(&item.source_text_zh_hans);
+        for linked in &item.linked_rule_ids {
+            let rule = rules
+                .rule
+                .iter()
+                .find(|r| r.id == *linked)
+                .expect("linked rule must exist");
+            let rule_text = strip_punct(&rule.source_text_zh_hans);
+            let documented = item.notes_zh_hans.is_some();
+            assert!(
+                item_text == rule_text || documented,
+                "source item {} text {:?} does not match linked rule {} source text {:?}, \
+                 and no notes_zh_hans documents the divergence",
+                item.source_id,
+                item.source_text_zh_hans,
+                rule.id,
+                rule.source_text_zh_hans
+            );
+        }
+    }
+}
+
+// ---- J. 天马空亡 cites the imported wording ------------------------------
+
+/// The 天马空亡 source item must use the imported Volume 1 太微赋 wording
 /// "马遇空亡，终身奔走".
 #[test]
 fn tian_ma_void_source_uses_imported_wording() {
@@ -357,17 +293,88 @@ fn tian_ma_void_source_uses_imported_wording() {
     const RULE_ID: &str = "migration.tian_ma_void.restless_movement";
 
     let inventory = source_inventory();
-    let clause = inventory
+    let item = inventory
         .source_item
         .iter()
-        .flat_map(|item| &item.clause)
-        .find(|clause| clause.linked_rule_ids.iter().any(|id| id == RULE_ID))
-        .unwrap_or_else(|| panic!("no clause links to {RULE_ID}"));
+        .find(|item| item.linked_rule_ids.iter().any(|id| id == RULE_ID))
+        .unwrap_or_else(|| panic!("no source item links to {RULE_ID}"));
 
     assert_eq!(
-        clause.text_zh_hans, CANONICAL,
-        "clause linking {RULE_ID} must use imported wording {CANONICAL:?}"
+        item.source_text_zh_hans, CANONICAL,
+        "source item linking {RULE_ID} must use imported wording {CANONICAL:?}"
     );
+}
+
+// ---- K. 禄马交驰 cites the QuanShu source wording ------------------------
+
+/// Regression: 禄马最喜交驰 must quote the actual QuanShu 太微赋 source unit,
+/// not a later interpretation or another tradition's wording. The phrase
+/// "发财远方" does not appear in the current QuanShu source inventory and must
+/// not be stored as `source_text_zh_hans` anywhere in the QuanShu corpus.
+#[test]
+fn lu_ma_jiao_chi_uses_quan_shu_source_wording() {
+    const RULE_ID: &str = "fortune.lu_ma_jiao_chi.favorable_convergence";
+    const SOURCE_TEXT: &str = "禄马最喜交驰";
+
+    let rules = rules_corpus();
+    let rule = rules
+        .rule
+        .iter()
+        .find(|r| r.id == RULE_ID)
+        .unwrap_or_else(|| panic!("missing rule {RULE_ID}"));
+    assert_eq!(rule.source_text_zh_hans, SOURCE_TEXT);
+
+    // No QuanShu rule may carry the later "发财远方" wording as source text.
+    for rule in &rules.rule {
+        assert!(
+            !rule.source_text_zh_hans.contains("发财远方"),
+            "rule {} stores non-source interpretation '发财远方' as source_text_zh_hans",
+            rule.id
+        );
+    }
+
+    // The source item links the rule with the faithful source wording.
+    let inventory = source_inventory();
+    let item = inventory
+        .source_item
+        .iter()
+        .find(|item| item.linked_rule_ids.iter().any(|id| id == RULE_ID))
+        .unwrap_or_else(|| panic!("no source item links to {RULE_ID}"));
+    assert_eq!(item.source_text_zh_hans, SOURCE_TEXT);
+    assert_eq!(item.linked_rule_ids, vec![RULE_ID.to_string()]);
+}
+
+// ---- L. 日月反背 cites the actual source wording -------------------------
+
+/// Regression: `life.ri_yue_fan_bei.hardship_pressure` must cite the actual
+/// 太微赋 source unit 日月最嫌反背, not the interpreted phrasing 日月反背，劳碌辛苦.
+/// The interpretation 劳碌辛苦 may live in `normalized_note_zh_hans` or i18n
+/// claim text, but never as the QuanShu `source_text_zh_hans`.
+#[test]
+fn ri_yue_fan_bei_uses_quan_shu_source_wording() {
+    const RULE_ID: &str = "life.ri_yue_fan_bei.hardship_pressure";
+    const SOURCE_TEXT: &str = "日月最嫌反背";
+    const INTERPRETATION: &str = "劳碌辛苦";
+
+    let rules = rules_corpus();
+    let rule = rules
+        .rule
+        .iter()
+        .find(|r| r.id == RULE_ID)
+        .unwrap_or_else(|| panic!("missing rule {RULE_ID}"));
+    assert_eq!(rule.source_text_zh_hans, SOURCE_TEXT);
+    assert!(
+        !rule.source_text_zh_hans.contains(INTERPRETATION),
+        "rule {RULE_ID} stores interpretation {INTERPRETATION:?} as source_text_zh_hans"
+    );
+
+    let inventory = source_inventory();
+    let item = inventory
+        .source_item
+        .iter()
+        .find(|item| item.linked_rule_ids.iter().any(|id| id == RULE_ID))
+        .unwrap_or_else(|| panic!("no source item links to {RULE_ID}"));
+    assert_eq!(item.source_text_zh_hans, SOURCE_TEXT);
 }
 
 // ---- QuanShu-only provenance --------------------------------------------
@@ -420,85 +427,38 @@ fn non_quan_shu_rules_are_not_required_in_quan_shu_source_inventory() {
     }
 }
 
-/// Regression: 禄马最喜交驰 must quote the actual QuanShu 太微赋 source clause,
-/// not a later interpretation or another tradition's wording. The phrase
-/// "发财远方" does not appear in the current QuanShu source inventory and must
-/// not be stored as `source_text_zh_hans` anywhere in the QuanShu corpus.
-#[test]
-fn lu_ma_jiao_chi_uses_quan_shu_source_wording() {
-    const RULE_ID: &str = "fortune.lu_ma_jiao_chi.favorable_convergence";
-    const CLAUSE_ID: &str = "lu_ma_jiao_chi";
-    const SOURCE_TEXT: &str = "禄马最喜交驰";
-
-    let rules = rules_corpus();
-    let rule = rules
-        .rule
-        .iter()
-        .find(|r| r.id == RULE_ID)
-        .unwrap_or_else(|| panic!("missing rule {RULE_ID}"));
-    assert_eq!(rule.source_clause_id.as_deref(), Some(CLAUSE_ID));
-    assert_eq!(rule.source_text_zh_hans, SOURCE_TEXT);
-
-    // No QuanShu rule may carry the later "发财远方" wording as source text.
-    for rule in &rules.rule {
-        assert!(
-            !rule.source_text_zh_hans.contains("发财远方"),
-            "rule {} stores non-source interpretation '发财远方' as source_text_zh_hans",
-            rule.id
-        );
-    }
-
-    // The clause links the renamed rule with the faithful source wording.
-    let inventory = source_inventory();
-    let clause = inventory
-        .source_item
-        .iter()
-        .flat_map(|item| &item.clause)
-        .find(|c| c.clause_id == CLAUSE_ID)
-        .unwrap_or_else(|| panic!("missing clause {CLAUSE_ID}"));
-    assert_eq!(clause.text_zh_hans, SOURCE_TEXT);
-    assert_eq!(clause.linked_rule_ids, vec![RULE_ID.to_string()]);
-    assert!(
-        !clause
-            .linked_rule_ids
-            .iter()
-            .any(|id| id == "wealth.lu_ma_remote_wealth"),
-        "clause {CLAUSE_ID} still links the removed rule id"
-    );
-}
-
 // ---- Tai Wei Fu normalization-map completeness --------------------------
 
-/// Every 太微赋 rule-candidate clause is linked to at least one runtime rule.
+/// Every 太微赋 rule-candidate source item is linked to at least one runtime
+/// rule.
 ///
-/// "Complete 太微赋" means no useful clause is left unlinked: each clause either
-/// links to a normalized/ambiguous/executable rule, or—when it is not a runtime
-/// rule candidate (e.g. the section's closing remark)—links to a `rejected`
-/// rule that documents the exclusion. This test fails if any 太微赋 clause
-/// regresses to an empty `linked_rule_ids`.
+/// "Complete 太微赋" means no useful source item is left unlinked: each item
+/// either links to a normalized/ambiguous/executable rule, or—when it is not a
+/// runtime rule candidate (e.g. the section's closing remark)—links to a
+/// `rejected` rule that documents the exclusion. This test fails if any 太微赋
+/// source item regresses to an empty `linked_rule_ids`.
 #[test]
-fn tai_wei_fu_clauses_are_all_linked() {
+fn tai_wei_fu_source_items_are_all_linked() {
     let inventory = source_inventory();
     let mut unlinked = Vec::new();
     for item in &inventory.source_item {
         if item.volume != 1 || item.section != "太微赋" {
             continue;
         }
-        for clause in &item.clause {
-            if clause.linked_rule_ids.is_empty() {
-                unlinked.push(format!("{}::{}", item.source_id, clause.clause_id));
-            }
+        if item.linked_rule_ids.is_empty() {
+            unlinked.push(item.source_id.clone());
         }
     }
     assert!(
         unlinked.is_empty(),
-        "太微赋 normalization map is incomplete; unlinked clauses: {unlinked:?}"
+        "太微赋 normalization map is incomplete; unlinked source items: {unlinked:?}"
     );
 }
 
 /// Every non-executable rule (`normalized` / `ambiguous` / `rejected`) carries a
-/// `normalized_note_zh_hans` explaining what the clause means and why it is not
-/// executable yet (or, for `rejected`, why it is not a runtime rule candidate).
+/// `normalized_note_zh_hans` explaining what the source unit means and why it is
+/// not executable yet (or, for `rejected`, why it is not a runtime rule
+/// candidate).
 #[test]
 fn non_executable_rules_have_normalized_notes() {
     let rules = rules_corpus();
@@ -566,14 +526,12 @@ fn pattern_rules_are_not_in_quan_shu_source_inventory() {
             "removed pattern source_id {} is still in the QuanShu source inventory",
             item.source_id
         );
-        for clause in &item.clause {
-            for linked in &clause.linked_rule_ids {
-                assert!(
-                    !PATTERN_RULE_IDS.contains(&linked.as_str()),
-                    "clause {} still links pattern rule {linked} in the QuanShu source inventory",
-                    clause.clause_id
-                );
-            }
+        for linked in &item.linked_rule_ids {
+            assert!(
+                !PATTERN_RULE_IDS.contains(&linked.as_str()),
+                "source item {} still links pattern rule {linked} in the QuanShu source inventory",
+                item.source_id
+            );
         }
     }
 }
