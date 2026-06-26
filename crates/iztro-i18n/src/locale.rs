@@ -3,6 +3,7 @@
 use std::fmt;
 use std::str::FromStr;
 
+use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use unic_langid::LanguageIdentifier;
 
 /// A supported user-interface locale.
@@ -51,6 +52,25 @@ impl Locale {
 impl fmt::Display for Locale {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         f.write_str(self.as_bcp47())
+    }
+}
+
+/// Serializes as the stable BCP-47 tag (`"en-US"` / `"zh-Hans"`) rather than the
+/// Rust variant name, so persisted settings stay legible and decoupled from
+/// internal enum naming.
+impl Serialize for Locale {
+    fn serialize<S: Serializer>(&self, serializer: S) -> Result<S::Ok, S::Error> {
+        serializer.serialize_str(self.as_bcp47())
+    }
+}
+
+/// Deserializes a BCP-47 tag, lossily coercing an unrecognized value to the
+/// default locale via [`Locale::parse_or_default`] so a hand-edited or
+/// forward-versioned settings file never fails to load on the locale field.
+impl<'de> Deserialize<'de> for Locale {
+    fn deserialize<D: Deserializer<'de>>(deserializer: D) -> Result<Self, D::Error> {
+        let tag = String::deserialize(deserializer)?;
+        Ok(Locale::parse_or_default(&tag))
     }
 }
 

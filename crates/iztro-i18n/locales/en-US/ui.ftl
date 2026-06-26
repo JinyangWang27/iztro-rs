@@ -73,3 +73,43 @@ age-label = Age { $n }
 # Test-only: intentionally present in en-US but absent from other locales so the
 # English-fallback behavior can be verified deterministically.
 test-fallback-only = English fallback
+
+# Right inspector panel (QuanShu Rules / Patterns / Settings)
+right-panel-toggle = Sidebar
+right-panel-tab-quan-shu-rules = QuanShu Rules
+right-panel-tab-patterns = Patterns
+right-panel-tab-settings = Settings
+
+rules-panel-empty = No supported QuanShu rules matched the current view.
+rules-panel-unknown-rule = Unknown QuanShu rule
+rules-panel-no-claim = No interpreted claim text is available yet.
+
+patterns-panel-empty = No supported patterns matched the current view.
+patterns-status-fulfilled = Fulfilled
+patterns-status-partial = Partial
+patterns-status-weakened = Weakened
+patterns-status-broken = Broken
+
+settings-panel-title = Settings
+settings-language = Language
+settings-sidebar-mode = Sidebar mode
+settings-sidebar-hidden = Hidden
+settings-sidebar-compact = Compact
+settings-sidebar-expanded = Expanded
+
+rules-scope-natal = Natal
+rules-scope-decadal = Decadal
+rules-scope-age = Minor limit
+rules-scope-yearly = Yearly
+rules-scope-monthly = Monthly
+rules-scope-daily = Daily
+rules-scope-hourly = Hourly
+
+# Pattern expansion detail row labels
+patterns-detail-strength = Strength
+patterns-detail-stars = Stars
+patterns-detail-palaces = Palaces
+patterns-detail-mutagens = Mutagens
+pattern-strength-weak = Weak
+pattern-strength-medium = Medium
+pattern-strength-strong = Strong

@@ -13,3 +13,4 @@ version.workspace = true
 iztro = { path = "../iztro" }
 fluent-bundle = { workspace = true }
 unic-langid = { workspace = true }
+serde = { workspace = true }
