@@ -114,16 +114,16 @@ Returned source hits are sorted deterministically by
 
 Not every 全书 sentence is immediately executable; statuses make that explicit.
 
-The Volume 1 太微赋 source clauses are now **fully linked** into runtime rule
-metadata: every rule-candidate clause links to one or more rules, and the
-section's closing remark links to a `Rejected` rule that documents the
-exclusion (see `docs/zh-CN/rules/quan-shu-coverage.md`). Many of these rules are
-`Normalized` or `Ambiguous` rather than `Executable`, and they carry no
-`[rule.claim]` until a predicate is implemented — **executable coverage is
-intentionally conservative**. Non-executable rules emit neither a claim nor a
+The Volume 1 太微赋 source units are now **fully linked** into runtime rule
+metadata: every atomic rule-candidate aphorism (one `source_item`) links to one
+or more rules, and the section's closing remark links to a `Rejected` rule that
+documents the exclusion (see `docs/zh-CN/rules/quan-shu-coverage.md`). Many of
+these rules are `Normalized` or `Ambiguous` rather than `Executable`, and they
+carry no `[rule.claim]` until a predicate is implemented — **executable coverage
+is intentionally conservative**. Non-executable rules emit neither a claim nor a
 source hit at runtime (the evaluator returns `NotApplicable`); their value is an
-auditable, status-tagged record of each source clause. Each non-executable rule
-must carry a `normalized_note_zh_hans`, enforced by
+auditable, status-tagged record of each cited source unit. Each non-executable
+rule must carry a `normalized_note_zh_hans`, enforced by
 `crates/iztro/tests/classical_source_inventory.rs`.
 
 ## PatternDetection vs Claim
@@ -150,8 +150,7 @@ theme / polarity / source semantics a pattern detection does not.
 
    ```toml
    id = "migration.tian_ma_void.restless_movement"
-   source_id = "quan_shu.v01.tai_wei_fu.001"
-   source_clause_id = "ma_yu_kong_wang"
+   source_id = "quan_shu.v01.tai_wei_fu.ma_yu_kong_wang"
    source_text_zh_hans = "马遇空亡，终身奔走"
    status = "executable"
 
@@ -173,7 +172,7 @@ theme / polarity / source semantics a pattern detection does not.
    whether a void star counted by the policy shares it.
 
 4. **Source hit and claim.** On a match the evaluator emits a
-   `ClassicalSourceHit` carrying the QuanShu work, passage id, clause id,
+   `ClassicalSourceHit` carrying the QuanShu work, atomic source id,
    Chinese source text, rule status, scope, and evidence. Because this rule has
    `[rule.claim]`, it also emits a claim carrying
    `EvidenceKind::StarAffectedByVoid { star: TianMa, void_kind, branch }`, the
@@ -192,21 +191,26 @@ theme / polarity / source semantics a pattern detection does not.
 See [`quan-shu-corpus.md`](../../zh-CN/rules/quan-shu-corpus.md) (Chinese) for the
 corpus authoring format.
 
-## Source inventory (passage + clauses)
+## Source inventory (atomic source items)
 
-A rule's `source_id` identifies a **source passage** in the QuanShu source
-inventory (`crates/iztro/rule-corpus/quan-shu/source/`); `source_clause_id`
-identifies an individual candidate phrase (a *clause*) within that passage. One
-passage can hold several clauses, each linking zero or more rules — this is what
-lets the inventory scale beyond one item per rule.
+A rule's `source_id` identifies an **atomic cited source unit** (one
+rule-candidate aphorism) in the QuanShu source inventory
+(`crates/iztro/rule-corpus/quan-shu/source/`). A single physical Markdown line
+may contain several such units — boundaries are semantic, not typographical — so
+each `source_item` is one aphorism, not a physical line/passage with nested
+clauses. `source_id` is a stable mnemonic (e.g. `…tai_wei_fu.ma_yu_kong_wang`),
+and `source_order` preserves source order separately from stable identity. A
+source item links zero or more rules via `linked_rule_ids`. QuanShu rules no
+longer carry `source_clause_id` (the field remains on `ClassicalRule` for the
+pattern catalog and backwards compatibility).
 
-For QuanShu rules, `ClassicalSourceHit` cites the classical passage/clause. For
+For QuanShu rules, `ClassicalSourceHit` cites the classical source unit. For
 pattern-catalog rules, it cites the project-owned `pattern.*` metadata entry
 instead; those pattern entries are not tracked by the QuanShu source inventory.
 
 The source inventory is **corpus-governance data, not runtime data**: nothing in
 `src/` parses it, `evaluate_classical` never depends on it, and the Markdown
-volumes are never parsed at runtime. Its consistency (passage/clause structure,
-clause ↔ rule links, text containment) is enforced only by
-`crates/iztro/tests/classical_source_inventory.rs`. Pending passages may use
+volumes are never parsed at runtime. Its consistency (unique stable ids,
+continuous `source_order`, item ↔ rule links, verbatim source text) is enforced
+only by `crates/iztro/tests/classical_source_inventory.rs`. Pending units may use
 `section = "待校"` and `anchor = "TODO"` until located.

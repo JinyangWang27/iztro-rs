@@ -18,48 +18,61 @@ source Markdown
   -> structured Claim[]
 ```
 
-## Structure: passage + clauses
+## Structure: atomic source items
 
-A source passage often contains several candidate rule phrases, e.g.
+A single physical Markdown line often holds several independent aphorisms, e.g.
 
 ```text
 禄逢冲破，吉处藏凶。马遇空亡，终身奔走。
 ```
 
-The inventory therefore models three levels:
+These are **two** source items, not one passage with two clauses. The inventory
+models two levels:
 
 ```text
-source item = a source passage / location, identified by `source_id`
-clause      = an individual candidate rule phrase inside that passage,
-              identified by `clause_id` (unique within the source item)
-rule        = an executable/normalized interpretation linked from a clause
-              via `linked_rule_ids`
+source item = one atomic cited QuanShu source unit / rule-candidate aphorism,
+              identified by a stable mnemonic `source_id`
+rule        = an executable / normalized / ambiguous / rejected interpretation
+              linked from a source item via `linked_rule_ids`
 ```
 
-`source_id` identifies the **passage**, not the semantic rule phrase (so it
-scales when one passage yields multiple rules). A rule links to a clause by
-carrying both `source_id` and `source_clause_id`; the clause mirrors that link
-through its `linked_rule_ids`.
+Source-item boundaries are **semantic, not typographical**:
+
+- `。` is the default top-level breaker;
+- a single `。` sentence holding clearly parallel independent aphorisms is split
+  further (e.g. `紫微天府全依辅弼之功，七杀破军专依羊铃之虐`);
+- the condition/result commas of one aphorism are **not** split (e.g.
+  `魁钺同行，位居台辅` stays one source item).
+
+`source_id` identifies the **cited source unit**, not a physical line/passage,
+and is a stable mnemonic (e.g. `ma_yu_kong_wang`). `source_order` preserves
+source order separately from stable identity, so inserting an earlier aphorism
+only requires reviewing `source_order`, never rewriting stable `source_id`
+references. A rule links to a source item through its own `source_id`; the item
+mirrors that link through `linked_rule_ids`. QuanShu rules no longer carry
+`source_clause_id`.
 
 ```toml
 [[source_item]]
-source_id = "quan_shu.v01.tai_wei_fu.001"
+source_id = "quan_shu.v01.tai_wei_fu.ma_yu_kong_wang"
+source_order = 2
 section = "太微赋"
-source_text_zh_hans = "禄逢冲破，吉处藏凶。马遇空亡，终身奔走。"
-
-[[source_item.clause]]
-clause_id = "ma_yu_kong_wang"
-text_zh_hans = "马遇空亡，终身奔走"
+source_text_zh_hans = "马遇空亡，终身奔走"
 linked_rule_ids = ["migration.tian_ma_void.restless_movement"]
 ```
 
+`source_text_zh_hans` quotes the cited source unit verbatim and uses the
+clause-style form **without** a sentence-final `。`. Interpretation belongs in
+the linked rule's `normalized_note_zh_hans`, `ClaimSpec`, or i18n claim text —
+never here.
+
 ## Files
 
-- `volume-01.toml`: source inventory for Volume 1. It links the QuanShu pilot rules to reviewed 太微赋 passages and segments a first batch of additional 太微赋「例曰」passages into clauses that are **not yet linked to rules** (`linked_rule_ids = []`).
+- `volume-01.toml`: source inventory for Volume 1. Every 太微赋「例曰」aphorism is its own atomic source item linked to a runtime rule (`status = "rule_linked"`).
 
 > This inventory tracks **only** genuine 《紫微斗数全书》 passages. Rules derived from chart structures the project models directly rather than from a cited QuanShu passage — e.g. 羊陀夹命 and 昌曲夹命 (夹宫 shapes) — are **not** QuanShu source entries; they live in `crates/iztro/rule-corpus/patterns/` with `work = "iztro_pattern_catalog"` and `pattern.*` source ids, and are not tracked here. `pending` is reserved for items believed to be from QuanShu but not yet located in the Markdown volumes.
 
-This is not a complete line-by-line inventory of Volume 1. It is a deliberately small slice that establishes the inventory format, links existing rule `source_id`/`source_clause_id`s to reviewed source passages where possible, and exercises the coverage report. Both linked and unlinked clauses are useful: an unlinked clause records reviewed source text that has been segmented but not yet normalized or implemented as a rule.
+This is not a complete line-by-line inventory of Volume 1. It is a deliberately small slice that establishes the inventory format and links each reviewed 太微赋 source unit to a rule via `source_id`. Future expansion may add `raw` / `segmented` source items that are not yet linked (`linked_rule_ids = []`); for the current 太微赋 normalization map every `rule_linked` item carries at least one link.
 
 ## Coverage report
 
@@ -69,14 +82,14 @@ A committed-but-generated coverage report lives at:
 docs/zh-CN/rules/quan-shu-coverage.md
 ```
 
-It summarizes the inventory (source items, clauses, linked/unlinked clauses, and linked rules by status) and is maintained by tests: `crates/iztro/tests/classical_source_coverage.rs` recomputes the metrics and asserts the committed file is current. Expanding this inventory must regenerate the report, or the test fails. A segmentation PR does not need to add executable rules; it can add unlinked clauses (`linked_rule_ids = []`) and update the report.
+It summarizes the inventory (source items, located/pending and linked/unlinked source items, and linked rules by status) and is maintained by tests: `crates/iztro/tests/classical_source_coverage.rs` recomputes the metrics and asserts the committed file is current. Expanding this inventory must regenerate the report, or the test fails. A segmentation PR does not need to add executable rules; it can add unlinked `raw` / `segmented` source items (`linked_rule_ids = []`) and update the report.
 
 ## Status values
 
 The `status` field tracks source-processing maturity, not executable rule maturity:
 
-- `raw`: source passage recorded only;
-- `segmented`: passage split into candidate clauses;
+- `raw`: source unit recorded only;
+- `segmented`: source line split into atomic source items;
 - `normalized`: candidate rule intent identified;
 - `rule_linked`: linked to one or more rule ids;
 - `ambiguous`: retained but requires source/school review;
@@ -95,17 +108,16 @@ The `category` field is deliberately broad. Common values include:
 
 ## Text fields
 
-- `source_text_zh_hans` (source item) preserves the whole source passage as found in the imported Markdown whenever possible.
-- `text_zh_hans` (clause) records one candidate rule phrase carved out of that passage.
-- `notes_zh_hans` (on the source item or on a clause) records source variants, unresolved location work, and normalization caveats.
+- `source_text_zh_hans` (source item) quotes the cited source unit verbatim, in clause-style form without a sentence-final `。`.
+- `notes_zh_hans` (on the source item) records true source variants, unresolved location work, and source-fidelity caveats (e.g. a unit that is read together with the next line in the original).
 
-The Markdown source text is treated as canonical for this source-import PR. If an existing pilot rule uses a different normalized wording than its clause, the inventory records that difference in the clause/source-item `notes_zh_hans` instead of rewriting the imported volumes.
+The Markdown source text is canonical. A QuanShu rule's `source_text_zh_hans` must quote the same source unit verbatim; interpretation/paraphrase belongs in `normalized_note_zh_hans`, `ClaimSpec`, or i18n claim text, not in the source inventory. `notes_zh_hans` is reserved for documented source-variant divergence, not for papering over interpretation.
 
 ## Relationship to the rule corpus and runtime
 
 - The Markdown volumes under `docs/zh-CN/sources/quan_shu/` are the canonical, human-readable source text.
 - This source inventory TOML is machine-checkable corpus tracking only. It is **not** part of the runtime chart-evaluation path: nothing in `crates/iztro/src/` parses it, `evaluate_classical` does not depend on it, and the Markdown volumes are never parsed at runtime.
-- `crates/iztro/tests/classical_source_inventory.rs` validates the inventory and its links to `crates/iztro/rule-corpus/quan-shu/rules.toml` using private, test-only structs. It asserts that the inventory parses, has unique `source_id`s, has non-empty required fields, that `clause_id`s are unique within a source item and clause fields are non-empty, that every rule `source_id`/`source_clause_id` exists in the inventory, that every `linked_rule_ids` entry exists in the rule corpus, that linked clauses and rules agree on `source_id`, `source_clause_id` and `work`, that clause text matches/contains the linked rule's source text (or a `notes_zh_hans` documents the divergence), and that a located passage's text contains each of its clause texts. It also locks the 天马空亡 clause wording to `马遇空亡，终身奔走`. Validation applies to QuanShu rules only: every rule in `rules.toml` must carry `work = "zi_wei_dou_shu_quan_shu"`, and pattern-catalog rules (`rule-corpus/patterns/`) are asserted **not** to appear in this inventory.
+- `crates/iztro/tests/classical_source_inventory.rs` validates the inventory and its links to `crates/iztro/rule-corpus/quan-shu/rules.toml` using private, test-only structs. It asserts that the inventory parses, has unique `source_id`s, has non-empty required fields, that 太微赋 `source_order` is continuous `1..=N`, that 太微赋 `source_id`s are stable mnemonics (not purely numeric), that every `rule_linked` item is linked, that every rule `source_id` exists in the inventory, that every `linked_rule_ids` entry exists in the rule corpus, that linked items and rules agree on `source_id` and `work`, and that a source item's text equals the linked rule's `source_text_zh_hans` (or a `notes_zh_hans` documents a true source-variant divergence). It also locks the 天马空亡 source unit to `马遇空亡，终身奔走`, the 禄马交驰 unit to `禄马最喜交驰`, and the 日月反背 unit to `日月最嫌反背`. Validation applies to QuanShu rules only: every rule in `rules.toml` must carry `work = "zi_wei_dou_shu_quan_shu"`, and pattern-catalog rules (`rule-corpus/patterns/`) are asserted **not** to appear in this inventory.
 
 ## Known pilot limitations
 
@@ -113,12 +125,12 @@ These are intentionally **allowed** in this pilot slice and are not test failure
 
 - `anchor = "TODO"` for items not yet located in the Markdown volumes;
 - `section = "待校"` for sections still pending source review;
-- a clause text differing from its linked rule's `source_text_zh_hans` (the imported Markdown wording is preserved as canonical, while a normalized rule clause is documented via `notes_zh_hans`);
-- the inventory covers the three QuanShu pilot rules plus a first batch of segmented-but-unlinked 太微赋 clauses; it is not a complete inventory of Volume 1;
+- a source item's text differing from its linked rule's `source_text_zh_hans` **only** when a `notes_zh_hans` documents a true source-variant divergence; interpretation/paraphrase divergence is not allowed;
+- the inventory covers the complete 太微赋 normalization map for Volume 1; it is not a complete inventory of every section of Volume 1;
 - only `volume-01.toml` exists; Volume 2 and Volume 3 have no source inventory TOML yet.
 
 Tightening these (resolving TODO anchors, 待校 sections, and reconciling variants) is deferred to follow-up source-review PRs.
 
 ## Notes
 
-The inventory is still a partial slice: it records the three QuanShu pilot rules and a first batch of segmented 太微赋 clauses, with a maintained coverage report (`docs/zh-CN/rules/quan-shu-coverage.md`). A complete line-by-line inventory and corpus linting should be added in follow-up PRs; normalizing and implementing the segmented clauses is handled separately from segmentation.
+The inventory is still a partial slice of the whole work: it records the complete 太微赋 normalization map as atomic source items, with a maintained coverage report (`docs/zh-CN/rules/quan-shu-coverage.md`). A complete line-by-line inventory of the remaining sections and corpus linting should be added in follow-up PRs; normalizing and implementing each linked source unit as an executable rule is handled separately from inventory segmentation.

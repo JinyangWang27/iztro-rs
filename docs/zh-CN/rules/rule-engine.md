@@ -101,13 +101,14 @@
 
 并非每句全书原文都能立即可执行；状态使之明确。
 
-卷一「太微赋」的出处 clause 现已**完整链接**到运行时规则元数据：每个 rule-candidate
-clause 都链接到一条或多条规则，段落收束语则链接到一条 `Rejected` 规则以记录其被排除
-（见 `docs/zh-CN/rules/quan-shu-coverage.md`）。其中多数规则为 `Normalized` 或
-`Ambiguous` 而非 `Executable`，且在实现谓词前不带 `[rule.claim]`——**可执行覆盖刻意
-保守**。非可执行规则在运行期既不产出判断也不产出出处命中（评估器返回 `NotApplicable`），
-其价值在于为每一句出处保留可审计、带状态标注的记录。每条非可执行规则都必须填写
-`normalized_note_zh_hans`，由 `crates/iztro/tests/classical_source_inventory.rs` 强制校验。
+卷一「太微赋」的出处单元现已**完整链接**到运行时规则元数据：每条原子 rule-candidate
+断语（一个 `source_item`）都链接到一条或多条规则，段落收束语则链接到一条 `Rejected`
+规则以记录其被排除（见 `docs/zh-CN/rules/quan-shu-coverage.md`）。其中多数规则为
+`Normalized` 或 `Ambiguous` 而非 `Executable`，且在实现谓词前不带 `[rule.claim]`——
+**可执行覆盖刻意保守**。非可执行规则在运行期既不产出判断也不产出出处命中（评估器返回
+`NotApplicable`），其价值在于为每一条受引出处单元保留可审计、带状态标注的记录。每条
+非可执行规则都必须填写 `normalized_note_zh_hans`，由
+`crates/iztro/tests/classical_source_inventory.rs` 强制校验。
 
 ## PatternDetection 与 Claim 的区别
 
@@ -128,8 +129,7 @@ clause 都链接到一条或多条规则，段落收束语则链接到一条 `Re
 
    ```toml
    id = "migration.tian_ma_void.restless_movement"
-   source_id = "quan_shu.v01.tai_wei_fu.001"
-   source_clause_id = "ma_yu_kong_wang"
+   source_id = "quan_shu.v01.tai_wei_fu.ma_yu_kong_wang"
    source_text_zh_hans = "马遇空亡，终身奔走"
    status = "executable"
 
@@ -149,8 +149,8 @@ clause 都链接到一条或多条规则，段落收束语则链接到一条 `Re
 3. **谓词。** `tian_ma_affected_by_void` 找到天马所在宫，检查是否有该策略所计的
    空亡星与之同宫。
 
-4. **出处命中与判断。** 命中时，评估器先产出 `ClassicalSourceHit`，记录典籍、段落
-   id、clause id、中文原文、规则状态、作用范围与证据。由于该规则带有 `[rule.claim]`，
+4. **出处命中与判断。** 命中时，评估器先产出 `ClassicalSourceHit`，记录典籍、原子出处
+   id、中文原文、规则状态、作用范围与证据。由于该规则带有 `[rule.claim]`，
    还会产出携带
    `EvidenceKind::StarAffectedByVoid { star: TianMa, void_kind, branch }` 的判断，
    连同语料的领域/主题/吉凶/强度、`SourceRef`（中文原文）与 `claim_key`。
@@ -163,19 +163,22 @@ clause 都链接到一条或多条规则，段落收束语则链接到一条 `Re
 
 语料编写格式详见 [`quan-shu-corpus.md`](./quan-shu-corpus.md)。
 
-## Source inventory（段落 + clause）
+## Source inventory（原子 source item）
 
 规则的 `source_id` 指向 QuanShu source inventory
-（`crates/iztro/rule-corpus/quan-shu/source/`）中的一段**原文段落**；
-`source_clause_id` 指向该段落内的单条候选短语（clause）。一段原文可含多条 clause，
-每条 clause 可链接零个或多个规则——正是这一点让 inventory 能从「一条规则一项」扩展开。
+（`crates/iztro/rule-corpus/quan-shu/source/`）中的一条**原子受引出处单元**（一句
+rule-candidate 断语）。一条 Markdown 物理行可含多个出处单元——边界是语义而非排版——
+因此每个 `source_item` 即一句断语，而非含嵌套 clause 的物理行/段落。`source_id` 为稳定
+助记符（如 `…tai_wei_fu.ma_yu_kong_wang`），`source_order` 单独保存出处顺序。source
+item 通过 `linked_rule_ids` 链接零个或多个规则。全书规则不再使用 `source_clause_id`
+（该字段仍保留在 `ClassicalRule` 上，供 pattern 目录与向后兼容使用）。
 
-对于全书规则，`ClassicalSourceHit` 引用典籍段落与 clause。对于 pattern 目录规则，
+对于全书规则，`ClassicalSourceHit` 引用典籍出处单元。对于 pattern 目录规则，
 它引用项目自有的 `pattern.*` 元数据条目；这些 pattern 条目不进入 QuanShu source
 inventory。
 
 source inventory 是**语料治理数据，而非运行时数据**：`src/` 不解析它，
 `evaluate_classical` 不依赖它，三卷 Markdown 也不在运行时解析。其一致性
-（段落/clause 结构、clause↔规则链接、文本包含关系）仅由
-`crates/iztro/tests/classical_source_inventory.rs` 校验。未定位的段落可暂用
+（稳定 id 唯一、`source_order` 连续、source item↔规则链接、逐字出处文本）仅由
+`crates/iztro/tests/classical_source_inventory.rs` 校验。未定位的单元可暂用
 `section = "待校"` 与 `anchor = "TODO"`。

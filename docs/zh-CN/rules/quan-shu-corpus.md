@@ -24,8 +24,8 @@ crates/iztro/rule-corpus/quan-shu/rules.toml
 | 字段 | 类型 | 说明 |
 | --- | --- | --- |
 | `id` | 字符串 | 稳定的规则标识，如 `migration.tian_ma_void.restless_movement`。 |
-| `source_id` | 字符串 | 稳定的**出处段落**标识，如 `quan_shu.v01.tai_wei_fu.001`。指向 source inventory 中的一段原文，而非语义规则短语。 |
-| `source_clause_id` | 字符串（可选） | 该段落内的 clause 标识，如 `ma_yu_kong_wang`。与 `source_id` 一起把规则链接到具体候选短语。属于规则元数据，不加载 source inventory，也不进入运行时评估。 |
+| `source_id` | 字符串 | 稳定的**原子出处单元**助记标识，如 `quan_shu.v01.tai_wei_fu.ma_yu_kong_wang`。指向 source inventory 中的一条受引出处单元（一句断语），而非物理行/段落。 |
+| `source_clause_id` | 字符串（可选） | 历史字段：旧模型中段落内的 clause 标识。全书规则已不再使用（`source_id` 已直接指向原子出处单元）；保留为可选仅供 pattern 目录与向后兼容。 |
 | `work` | 枚举 | 典籍，目前为 `zi_wei_dou_shu_quan_shu`。 |
 | `source_text_zh_hans` | 字符串 | **中文原文**（术语的权威来源）。 |
 | `normalized_note_zh_hans` | 字符串（可选） | 规范化注记，说明该句如何被解读为规则。 |
@@ -44,9 +44,9 @@ crates/iztro/rule-corpus/quan-shu/rules.toml
 | `claim_key` | 字符串 | 渲染本地化短文所用的 i18n 键（点分形式）。 |
 
 命中的可执行规则一定会先产出 `ClassicalSourceHit`，记录 `work`、`source_id`、
-`source_clause_id`、中文原文、状态、scope 与证据。`Claim` 是解释性语义输出，必须有
-`[rule.claim]` 才会产出。全书规则的 source hit 引用典籍 clause；pattern 目录规则的
-source hit 引用项目自有的 `pattern.*` 元数据条目。
+中文原文、状态、scope 与证据（`source_clause_id` 对全书规则为空）。`Claim` 是解释性
+语义输出，必须有 `[rule.claim]` 才会产出。全书规则的 source hit 引用典籍出处单元；
+pattern 目录规则的 source hit 引用项目自有的 `pattern.*` 元数据条目。
 
 ## 关于枚举大小写
 
@@ -86,7 +86,7 @@ source hit 引用项目自有的 `pattern.*` 元数据条目。
 | --- | --- | --- | --- |
 | `migration.tian_ma_void.restless_movement` | 马遇空亡，终身奔走 | `executable` | 天马与已建模空亡星同宫即触发。 |
 | `fortune.lu_ma_jiao_chi.favorable_convergence` | 禄马最喜交驰 | `normalized` | 出处忠实引《太微赋》原句；“交驰”关系随流派而异、尚未建模，**不触发**，给出类型化诊断，无 ClaimSpec。 |
-| `life.ri_yue_fan_bei.hardship_pressure` | 日月反背，劳碌辛苦 | `executable` | 太阳、太阴俱失辉（不/陷）。 |
+| `life.ri_yue_fan_bei.hardship_pressure` | 日月最嫌反背 | `executable` | 太阳、太阴俱失辉（不/陷）；解读「劳碌辛苦」见 `normalized_note`/claim 文案。 |
 
 pattern 规则（`rule-corpus/patterns/rules.toml`，非全书出处）：
 
@@ -97,22 +97,22 @@ pattern 规则（`rule-corpus/patterns/rules.toml`，非全书出处）：
 
 ## 出处与覆盖
 
-每条规则通过 `source_id` + `source_clause_id` 链接到 source inventory
-（`crates/iztro/rule-corpus/quan-shu/source/`）中的某条 clause。source inventory 是仅供
+每条规则通过 `source_id` 直接链接到 source inventory
+（`crates/iztro/rule-corpus/quan-shu/source/`）中的一条原子出处单元。source inventory 是仅供
 测试校验的语料管理数据，不进入运行时评估。其覆盖情况维护在仓库中的覆盖报告：
 
 ```
 docs/zh-CN/rules/quan-shu-coverage.md
 ```
 
-该报告由 `crates/iztro/tests/classical_source_coverage.rs` 生成并校验。分句（segmentation）
-PR 可以只新增未链接 clause（`linked_rule_ids = []`，表示已分句但尚未规范化/实现为规则），
-不必同时新增可执行规则；此类改动须同步重新生成覆盖报告。
+该报告由 `crates/iztro/tests/classical_source_coverage.rs` 生成并校验。分段（segmentation）
+PR 可以只新增未链接的 `raw`/`segmented` source item（`linked_rule_ids = []`，表示已切分但尚未
+规范化/实现为规则），不必同时新增可执行规则；此类改动须同步重新生成覆盖报告。
 
 ## 太微赋规范化补全
 
-卷一「太微赋」的全部 rule-candidate clause 现已链接到运行时规则元数据，覆盖报告中
-**unlinked clauses 为 0**。链接后的规则按 `status` 分布如下（见覆盖报告）：
+卷一「太微赋」的全部 rule-candidate 出处单元现已链接到运行时规则元数据，覆盖报告中
+**unlinked source items 为 0**。链接后的规则按 `status` 分布如下（见覆盖报告）：
 
 | status | 数量 | 说明 |
 | --- | ---: | --- |
