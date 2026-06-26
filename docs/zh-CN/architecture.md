@@ -143,6 +143,10 @@ Rule Engine Layer 把特征映射成结构化判断。
 
 这样规则匹配可以测试，也方便多个规则先聚合，再生成报告。
 
+### 分层分析协调
+
+`analysis` 模块是一个轻量协调层，组合 Feature Extraction Layer 的 `core::pattern` 格局检测与 Rule Engine Layer 的 `rules::classical` 评估，提供**可缓存的逐层**检测。它位于 `core` 之外，正是因为 `core` 不得依赖 `rules`，而分层 API 两者都需要。它不新增任何解读：`detect_analysis_layer` 针对一个 `AnalysisLayerKey` 返回紧凑的 `ClassicalRuleHitRef`（经 `classical_rule_metadata` 解析回逐字原文）以及结构化的 `PatternDetection`，把分组、缓存与渲染留给消费方。API 及“最深层”跨层归属策略见 [`rules/rule-engine.md`](rules/rule-engine.md)。
+
 ## 8. Narrative Layer
 
 Narrative Layer 把结构化判断渲染成人类可读报告。

@@ -1,7 +1,7 @@
 //! Overlapping interpretive/domain tags for stars.
 //!
 //! These tags layer on top of the coarse, mutually exclusive grouping in
-//! [`StarKind`]/[`super::StarCategory`] (`Major` / `Minor` / `Adjective`). Unlike
+//! [`StarKind`](super::StarKind)/[`super::StarCategory`] (`Major` / `Minor` / `Adjective`). Unlike
 //! that grouping, tags are *not* mutually exclusive: a star may carry several
 //! tags at once (for example 地空 is both 空劫 and 空曜). Tags express shared
 //! interpretive families used by classical rules without copying chart facts.

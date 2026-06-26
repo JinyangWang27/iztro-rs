@@ -7,6 +7,7 @@
 
 use crate::core::Chart;
 use crate::rules::classical::claim::{Claim, ClaimDomain, ClaimScope};
+use crate::rules::classical::context::ClassicalRuleContext;
 use crate::rules::classical::corpus::classical_rules;
 use crate::rules::classical::evaluator;
 use crate::rules::classical::outcome::{ClaimEvaluation, RuleDiagnostic, RuleOutcome};
@@ -116,6 +117,22 @@ impl ClaimEvaluationRequest {
 /// [`DiagnosticMode::MatchingRequest`] or [`DiagnosticMode::None`] for narrower
 /// UI/export surfaces.
 pub fn evaluate_classical(chart: &Chart, request: &ClaimEvaluationRequest) -> ClaimEvaluation {
+    evaluate_classical_in_context(&ClassicalRuleContext::natal(chart), request)
+}
+
+/// Context-oriented evaluation entry point.
+///
+/// This is the layer-ready evaluation API: it accepts a [`ClassicalRuleContext`]
+/// carrying the chart, optional horoscope, and active scopes. Current executable
+/// rules evaluate against the context's natal chart facts only, so for now this
+/// produces the same result as [`evaluate_classical`]. Future temporal rules will
+/// inspect `ctx.horoscope` and `ctx.active_scopes` to emit non-natal hits without
+/// changing this signature.
+pub fn evaluate_classical_in_context(
+    ctx: &ClassicalRuleContext<'_>,
+    request: &ClaimEvaluationRequest,
+) -> ClaimEvaluation {
+    let chart = ctx.chart;
     let mut claims = Vec::new();
     let mut source_hits = Vec::new();
     let mut diagnostics = Vec::new();

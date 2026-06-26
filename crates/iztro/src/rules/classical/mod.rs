@@ -30,10 +30,13 @@
 //!   fully generic condition DSL is intentionally deferred.
 
 pub mod claim;
+pub mod context;
 pub mod corpus;
 pub mod engine;
 pub mod evaluator;
 pub mod evidence;
+pub mod hit_ref;
+pub mod metadata;
 pub mod outcome;
 pub mod predicates;
 pub mod rule;
@@ -44,11 +47,15 @@ pub mod view;
 pub mod void;
 
 pub use claim::{Claim, ClaimDomain, ClaimId, ClaimScope, ClaimStrength};
+pub use context::ClassicalRuleContext;
 pub use corpus::{classical_rules, pattern_rules, quan_shu_rules, rule_by_id};
 pub use engine::{
     ClaimEvaluationRequest, DiagnosticMode, evaluate_classical, evaluate_classical_claims,
+    evaluate_classical_in_context,
 };
 pub use evidence::{Evidence, EvidenceKind};
+pub use hit_ref::ClassicalRuleHitRef;
+pub use metadata::{ClassicalRuleMetadata, classical_rule_metadata};
 pub use outcome::{ClaimEvaluation, RuleDiagnostic, RuleOutcome, UnsupportedReason};
 pub use rule::{ClaimSpec, ClassicalRule, ClassicalRuleId, RuleSchool, RuleStatus};
 pub use source::{ClassicalWork, SourceRef};
@@ -56,6 +63,6 @@ pub use source_hit::ClassicalSourceHit;
 pub use theme::{ClaimPolarity, ClaimTheme};
 pub use view::{
     ClassicalCorpusRuleView, ClassicalRulePanelRequest, ClassicalRulePanelSummary,
-    ClassicalRulePanelView, classical_rule_panel_view,
+    ClassicalRulePanelView, classical_rule_panel_view, classical_rule_panel_view_in_context,
 };
 pub use void::{VoidKind, VoidPolicy};

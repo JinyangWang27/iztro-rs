@@ -105,6 +105,77 @@
 与别处一致，`iztro` 在此不输出本地化长文本：面板只携带 `claim_key`、类型化字段
 和中文原文出处；本地化渲染仍由 `iztro-i18n` 负责。
 
+## 面向上下文的评估
+
+除了仅本命的 `evaluate_classical(chart, &request)`，引擎还提供面向上下文的入口：
+
+```rust
+evaluate_classical_in_context(&ClassicalRuleContext, &request) -> ClaimEvaluation
+```
+
+`ClassicalRuleContext` 对应 `core::pattern::PatternContext`：携带本命 `chart`、
+可选的 `&HoroscopeChart` 以及规则可检视的 `active_scopes`；构造函数为
+`ClassicalRuleContext::natal(chart)` 与
+`ClassicalRuleContext::horoscope(chart, active_scopes)`。
+`evaluate_classical(chart, &request)` 只是对上下文 API 的仅本命薄封装，
+`classical_rule_panel_view` 亦封装 `classical_rule_panel_view_in_context`，
+因此既有调用点保持不变。
+
+当前可执行规则仍只匹配本命事实，所以横盘上下文目前与本命上下文结果相同。
+该上下文的存在是为了让未来的运限规则可在不改变 API 的前提下检视上层叠加。
+
+## 分层分析（`analysis`）
+
+`analysis` 模块是一个轻量协调层，组合格局与全书规则两个引擎，提供**可缓存的
+逐层**检测。它位于 `core` 之外（`core` 不得依赖 `rules`），用于支撑未来 GUI 的
+两个侧栏标签——全书规则与格局——而无需急切计算所有叠加层，也不产出庞大的分组
+文本负载。
+
+关键类型：
+
+- `AnalysisLayerKey`——标识一个可缓存层（`Natal`、`Decadal`、`Age`、`Yearly`、
+  `Monthly`、`Daily`、`Hourly`），携带定位该层所需的时间索引。`scope()`、
+  `claim_scope()`、`pattern_scope()` 将其映射到既有的 `Scope` / `ClaimScope` /
+  `PatternScope`。
+- `analysis_layers_for_selection(selection)`——把
+  `StaticTemporalNavigationSelection` 展开为它所呈现的祖先层链。选中某一年时会
+  **同时**包含 `Age`（小限）与 `Yearly`（流年），二者是不同的作用范围。
+- `detect_analysis_layer(&ctx, key, &request) -> AnalysisLayerResult`——在
+  `TemporalAnalysisContext { natal, horoscope }` 上分析恰好一层。它只把底层
+  全书/格局请求的**作用范围**改写为 `key`（其余过滤条件——尤其是 `works`——
+  均沿用调用方的请求），返回紧凑的 `rule_hits: Vec<ClassicalRuleHitRef>`
+  与 `pattern_hits: Vec<PatternDetection>`。`TemporalAnalysisContext` 必须与
+  `key` 对应：`key` 用于缓存标识与作用范围归属，当前**不会**针对横盘已选叠加做
+  校验，因此保持上下文与 `key` 一致是调用方的责任。
+- `AnalysisLayerRequest::user_facing()` 把全书规则流限制为
+  `ClassicalWork::ZiWeiDouShuQuanShu`。由于 GUI 将全书规则与格局放在**分开**的
+  标签页，分析的规则命中流不得包含项目格局目录规则
+  （`ClassicalWork::IztroPatternCatalog`）——它们应通过格局流呈现。未来的全书规则
+  标签页应消费这些经全书过滤的规则命中；`classical_rule_metadata` 保持与 work
+  无关，可解析任意规则 id（含格局目录条目）的元数据。
+- `ClassicalRuleHitRef`——紧凑命中（`rule_id`、`scope`、`claim_key`、`evidence`），
+  刻意**不含** `source_text_zh_hans`；渲染层通过
+  `classical_rule_metadata(rule_id) -> Option<&'static ClassicalRuleMetadata>`
+  按规则一次性解析原文。`ClassicalRuleMetadata::source_text_zh_hans` 是逐字原文，
+  绝不放入解读或判断文本。当前可执行规则的 `applicable_scopes = &[ClaimScope::Natal]`；
+  全书 / 太微赋规则不会被自动推广到所有运限范围。
+
+**层归属与缓存。** 某层的检测可以**检视**上层叠加，但返回的命中始终归属被请求的
+层。`detect_analysis_layer` 不计算祖先层；调用方分别请求缺失的祖先层，并按
+`AnalysisLayerKey` 缓存各层结果。未来的跨层规则（如 流年化忌冲照本命命宫，本次
+未实现）须将命中归到**最深**的触发层：
+
+| 交互 | 归属层 |
+| --- | --- |
+| 本命 + 流年 | 流年（Yearly） |
+| 大限 + 流年 | 流年（Yearly） |
+| 流年 + 流月 | 流月（Monthly） |
+| 流月 + 流日 | 流日（Daily） |
+
+这让缓存天然有效：同一年内切换月/日/时不会使已缓存的流年结果失效，同一月内
+切换日/时也不会使已缓存的流月结果失效。GUI 按 `AnalysisLayerKey::scope()` 对
+缓存结果分组并隐藏空分组；`iztro` 中不含任何渲染逻辑。
+
 ## 规则状态
 
 `RuleStatus` 记录规则的编码成熟度：

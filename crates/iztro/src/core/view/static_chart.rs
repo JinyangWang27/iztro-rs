@@ -72,9 +72,9 @@ pub struct StaticChartViewSnapshot {
     pub palaces: Vec<StaticPalaceView>,
     /// Renderer-neutral bottom temporal navigation panel.
     pub temporal_panel: StaticTemporalPanelView,
-    /// Scope-selector state in fixed [`SELECTOR_ORDER`].
+    /// Scope-selector state in fixed `SELECTOR_ORDER`.
     pub selectors: Vec<StaticChartSelectorView>,
-    /// The scopes currently visible, in fixed [`SELECTOR_ORDER`].
+    /// The scopes currently visible, in fixed `SELECTOR_ORDER`.
     pub active_scopes: Vec<Scope>,
     /// Reserved highlight annotations. Always empty until feature/rule layers
     /// populate it; this PR performs no 成格 detection.
@@ -85,7 +85,7 @@ pub struct StaticChartViewSnapshot {
 ///
 /// This carries the typed lunar date parts so a renderer/i18n layer can format
 /// them in any locale. The conventional Chinese string form is still available
-/// via [`chinese_date::lunar_date_label`](crate::core::labels::chinese_date::lunar_date_label).
+/// via [`chinese_date::lunar_date_label`].
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct LunarDateView {
     /// Lunar year.

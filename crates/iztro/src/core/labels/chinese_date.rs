@@ -115,7 +115,7 @@ pub fn birth_time_label(time_index: u8) -> String {
 /// `双子座` for 27 May.
 ///
 /// The sign boundaries live in the language-neutral
-/// [`western_zodiac`](crate::core::model::zodiac::western_zodiac); this is the
+/// [`western_zodiac`]; this is the
 /// Chinese display table for that enum.
 pub fn constellation_zh(solar_month: u8, solar_day: u8) -> &'static str {
     match western_zodiac(solar_month, solar_day) {

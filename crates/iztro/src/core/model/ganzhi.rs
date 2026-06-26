@@ -2,7 +2,7 @@
 //! their valid sexagenary-cycle pairing (干支), and the four pillars (四柱).
 //!
 //! These are `iztro-rs`'s own public/domain value objects. The runtime calendar
-//! engine adapter ([`crate::core::calendar`]) converts its calendar facts into
+//! engine adapter (`crate::core::calendar`) converts its calendar facts into
 //! these types at the adapter boundary, so no third-party calendar type ever
 //! leaks into the public or domain API.
 //!

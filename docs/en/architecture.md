@@ -158,6 +158,10 @@ Rules should not directly emit final narrative text. A rule should emit:
 
 This makes rule matching testable and allows multiple rules to be aggregated before generating a report.
 
+### Layer-level analysis coordination
+
+The `analysis` module is a thin coordinator that composes the Feature Extraction Layer's `core::pattern` detection and the Rule Engine Layer's `rules::classical` evaluation for **cacheable, per-layer** detection. It lives outside `core` precisely because `core` must not depend on `rules`, while a layer-level API needs both. It adds no new interpretation: `detect_analysis_layer` returns compact `ClassicalRuleHitRef`s (resolved back to verbatim source text by `classical_rule_metadata`) plus structured `PatternDetection`s for one `AnalysisLayerKey`, leaving grouping, caching, and rendering to the consumer. See [`rules/rule-engine.md`](rules/rule-engine.md) for the API and the deepest-layer cross-layer assignment policy.
+
 ## 8. Narrative Layer
 
 The Narrative Layer turns structured claims into human-readable reports.

@@ -7,12 +7,15 @@
 //!   overlay builders, and the public iztro-compatible facade entry points;
 //! - [`features`] — feature extraction contracts derived from chart facts;
 //! - [`rules`] — structured rule and claim contracts;
+//! - [`analysis`] — lightweight, layer-level coordination over the pattern and
+//!   classical rule engines for cacheable per-layer detection;
 //! - [`reading`] — deterministic report structures and rendering contracts;
 //! - [`render`] — deterministic renderers for chart snapshot read models.
 //!
 //! The flat re-exports below preserve the stable user-facing API regardless of
 //! where a type or function lives internally.
 
+pub mod analysis;
 pub mod core;
 pub mod features;
 pub mod reading;
@@ -101,5 +104,13 @@ pub use core::{
 // Classical rule engine (Chinese-first 《紫微斗数全书》 pilot). The full typed
 // schema lives under [`rules::classical`]; these are the headline entry points.
 pub use rules::classical::{
-    ClaimEvaluation, ClaimEvaluationRequest, evaluate_classical, evaluate_classical_claims,
+    ClaimEvaluation, ClaimEvaluationRequest, ClassicalRuleContext, ClassicalRuleHitRef,
+    ClassicalRuleMetadata, classical_rule_metadata, evaluate_classical, evaluate_classical_claims,
+    evaluate_classical_in_context,
+};
+// Lightweight layer-level analysis coordination. These compose the pattern and
+// classical engines for cacheable per-layer detection; see [`analysis`].
+pub use analysis::{
+    AnalysisLayerKey, AnalysisLayerRequest, AnalysisLayerResult, TemporalAnalysisContext,
+    analysis_layers_for_selection, detect_analysis_layer,
 };

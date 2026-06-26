@@ -8,7 +8,8 @@
 //! returns a prepared [`StaticChartViewSnapshot`]. All overlay derivation
 //! (decadal frame, flow stars, mutagens, temporal palace layout, lunar→solar
 //! resolution) stays inside core — the renderer never constructs a
-//! [`HoroscopeChart`] or [`TemporalLayer`] itself.
+//! [`HoroscopeChart`](crate::core::HoroscopeChart) or
+//! [`TemporalLayer`](crate::core::TemporalLayer) itself.
 //!
 //! Natal facts are identical across every selection: only the attached temporal
 //! overlays and the bottom-panel enable/selected flags differ.
@@ -64,7 +65,7 @@ pub fn static_temporal_chart_view(
 /// Behavior, selection validation, and overlay derivation are identical to
 /// [`static_temporal_chart_view`]; only the chart-building step is hoisted out.
 /// The natal `Chart` is taken by value because the partial-overlay path
-/// ([`build_partial_horoscope_chart`]) consumes it.
+/// (`build_partial_horoscope_chart`) consumes it.
 pub fn static_temporal_chart_view_from_chart(
     natal: Chart,
     selection: StaticTemporalNavigationSelection,
