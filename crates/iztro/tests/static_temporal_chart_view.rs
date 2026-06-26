@@ -9,7 +9,7 @@
 use iztro::core::{
     BirthTime, ChartAlgorithmKind, ChartError, Gender, MethodProfile, Scope, SolarChartRequest,
     SolarDay, SolarMonth, StaticTemporalNavigationSelection, by_solar, static_temporal_chart_view,
-    temporal_selection_for_local_moment,
+    static_temporal_chart_view_from_chart, temporal_selection_for_local_moment,
 };
 
 fn sample_request() -> SolarChartRequest {
@@ -911,4 +911,39 @@ fn snapshot_without_small_limit_fields_still_deserializes() {
             .iter()
             .all(|p| !p.limit.is_active_small_limit && p.limit.small_limit_ages.is_empty())
     );
+}
+
+// ---- from_chart helper equivalence ----------------------------------------
+
+/// Building the snapshot from a pre-built natal `Chart` must be byte-for-byte
+/// identical to the request-driven entry point, so a GUI can build the chart
+/// once and derive both the snapshot and the rule panel from it.
+#[test]
+fn from_chart_matches_request_path_for_natal_selection() {
+    let selection = StaticTemporalNavigationSelection::Natal;
+    let via_request = static_temporal_chart_view(spec_request(), selection).unwrap();
+    let via_chart =
+        static_temporal_chart_view_from_chart(by_solar(spec_request()).unwrap(), selection)
+            .unwrap();
+    assert_eq!(via_request, via_chart);
+}
+
+#[test]
+fn from_chart_matches_request_path_for_pre_decadal_selection() {
+    let selection = StaticTemporalNavigationSelection::PreDecadal;
+    let via_request = static_temporal_chart_view(spec_request(), selection).unwrap();
+    let via_chart =
+        static_temporal_chart_view_from_chart(by_solar(spec_request()).unwrap(), selection)
+            .unwrap();
+    assert_eq!(via_request, via_chart);
+}
+
+#[test]
+fn from_chart_matches_request_path_for_decadal_selection() {
+    let selection = StaticTemporalNavigationSelection::Decadal { decadal_index: 0 };
+    let via_request = static_temporal_chart_view(sample_request(), selection).unwrap();
+    let via_chart =
+        static_temporal_chart_view_from_chart(by_solar(sample_request()).unwrap(), selection)
+            .unwrap();
+    assert_eq!(via_request, via_chart);
 }

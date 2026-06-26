@@ -98,6 +98,30 @@ Returned claims are sorted deterministically by
 Returned source hits are sorted deterministically by
 `(scope, work, source_id, source_clause_id, rule_id)`.
 
+## Renderer-neutral rule panel
+
+`evaluate_classical` remains the low-level evaluation API. For GUI/renderer
+consumers, `classical_rule_panel_view(chart, &ClassicalRulePanelRequest)` is the
+renderer-facing grouping API. It runs one `evaluate_classical` pass and bundles
+the result with optional corpus rule metadata into a single
+`ClassicalRulePanelView`.
+
+The panel **preserves** the existing split rather than collapsing it: `claims`,
+`source_hits`, `diagnostics`, and `corpus_rules` stay as separate vectors. Claims
+and source hits are never merged into one card model, so a rule that matches but
+has no claim metadata still appears through `source_hits`, and corpus metadata is
+for display/filtering only, not evaluation output.
+
+`ClassicalRulePanelRequest::user_facing()` hides unsupported diagnostics
+(`DiagnosticMode::None`); `developer()` surfaces them (`DiagnosticMode::AllUnsupported`).
+Corpus rules can be filtered by status (`with_corpus_statuses`) and omitted
+entirely (`without_corpus`); they are sorted deterministically by
+`(work, source_id, source_clause_id, rule_id)`.
+
+As elsewhere, `iztro` emits no localized prose here. The panel carries
+`claim_key`, typed enums, and Chinese source text; localized rendering stays in
+`iztro-i18n`.
+
 ## Rule statuses
 
 `RuleStatus` records a rule's encoding maturity:
