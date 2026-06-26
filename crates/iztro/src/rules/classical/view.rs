@@ -29,7 +29,7 @@ use crate::core::Chart;
 use crate::rules::classical::corpus::classical_rules;
 use crate::rules::classical::engine::{ClaimEvaluationRequest, DiagnosticMode, evaluate_classical};
 use crate::rules::classical::{
-    Claim, ClaimDomain, ClaimPolarity, ClaimTheme, ClassicalRule, ClassicalRuleId,
+    Claim, ClaimDomain, ClaimPolarity, ClaimScope, ClaimTheme, ClassicalRule, ClassicalRuleId,
     ClassicalSourceHit, ClassicalWork, RuleDiagnostic, RuleSchool, RuleStatus,
 };
 
@@ -225,13 +225,18 @@ pub fn classical_rule_panel_view(
 /// is an allow-list) but operates on rule *metadata*. Status, work, and rule-id
 /// filters always apply. Domain/theme/polarity filters apply to a rule's
 /// `[rule.claim]` metadata when present; rules without claim metadata are kept
-/// only when those three filters are all empty.
+/// only when those three filters are all empty. The scope filter is applied the
+/// same conservative way as [`evaluate_classical`]'s rule-metadata path: current
+/// corpus rules are natal metadata, so a non-empty `scopes` filter that does not
+/// include [`ClaimScope::Natal`] drops every corpus entry, keeping `corpus_rules`
+/// consistent with the engine-filtered `claims`/`source_hits`.
 fn build_corpus_rules(
     evaluation: &ClaimEvaluationRequest,
     corpus_statuses: &[RuleStatus],
 ) -> Vec<ClassicalCorpusRuleView> {
     let mut corpus_rules: Vec<ClassicalCorpusRuleView> = classical_rules()
         .iter()
+        .filter(|_| corpus_matches_scope_filters(evaluation))
         .filter(|rule| corpus_statuses.is_empty() || corpus_statuses.contains(&rule.status))
         .filter(|rule| evaluation.works.is_empty() || evaluation.works.contains(&rule.work))
         .filter(|rule| evaluation.rule_ids.is_empty() || evaluation.rule_ids.contains(&rule.id))
@@ -272,4 +277,13 @@ fn corpus_matches_claim_filters(evaluation: &ClaimEvaluationRequest, rule: &Clas
                 && evaluation.polarities.is_empty()
         }
     }
+}
+
+/// Whether the corpus passes the scope filter.
+///
+/// Current corpus rules are natal metadata, mirroring `evaluate_classical`'s
+/// rule-metadata scope check: an empty `scopes` filter imposes no constraint, and
+/// a non-empty one passes only when it includes [`ClaimScope::Natal`].
+fn corpus_matches_scope_filters(evaluation: &ClaimEvaluationRequest) -> bool {
+    evaluation.scopes.is_empty() || evaluation.scopes.contains(&ClaimScope::Natal)
 }

@@ -94,25 +94,24 @@ fn default_panel_includes_corpus_rules() {
         );
     }
 
-    // Every corpus entry carries canonical source text and a status.
+    // Every corpus entry carries canonical source text.
     for rule in &panel.corpus_rules {
         assert!(
             !rule.source_text_zh_hans.is_empty(),
             "corpus rule {} must carry source text",
             rule.rule_id
         );
-        // status is a closed enum; assert it deserialized into a known variant.
-        assert!(matches!(
-            rule.status,
-            RuleStatus::Raw
-                | RuleStatus::Segmented
-                | RuleStatus::Normalized
-                | RuleStatus::Executable
-                | RuleStatus::Tested
-                | RuleStatus::Ambiguous
-                | RuleStatus::Rejected
-        ));
     }
+
+    // A known executable rule carries its status, source text, and claim shape.
+    let tan_lang = panel
+        .corpus_rules
+        .iter()
+        .find(|r| r.rule_id.as_str() == TAN_LANG_HAI_ZI)
+        .expect("Tan Lang rule should be in corpus");
+    assert_eq!(tan_lang.status, RuleStatus::Executable);
+    assert_eq!(tan_lang.source_text_zh_hans, "贪居亥子，名为犯水桃花");
+    assert!(tan_lang.has_claim);
 }
 
 #[test]
@@ -276,4 +275,30 @@ fn corpus_domain_filter_drops_claimless_rules() {
         assert_eq!(rule.domain, Some(ClaimDomain::Relationship));
         assert!(rule.has_claim);
     }
+}
+
+#[test]
+fn corpus_scope_filter_excludes_non_natal_rules() {
+    use iztro::rules::classical::ClaimScope;
+
+    // Current corpus rules are natal-only; a Decadal-only request must show
+    // neither engine output nor natal corpus metadata.
+    let chart = relationship_chart_hai();
+    let request = ClassicalRulePanelRequest {
+        evaluation: ClaimEvaluationRequest {
+            scopes: vec![ClaimScope::Decadal],
+            ..Default::default()
+        },
+        include_corpus: true,
+        corpus_statuses: Vec::new(),
+    };
+
+    let panel = classical_rule_panel_view(&chart, &request);
+
+    assert!(panel.claims.is_empty());
+    assert!(panel.source_hits.is_empty());
+    assert!(panel.corpus_rules.is_empty());
+    assert_eq!(panel.summary.claim_count, 0);
+    assert_eq!(panel.summary.source_hit_count, 0);
+    assert_eq!(panel.summary.corpus_rule_count, 0);
 }
