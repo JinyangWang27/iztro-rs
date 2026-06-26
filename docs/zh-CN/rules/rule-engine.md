@@ -85,6 +85,26 @@
 返回的判断按 `(scope, domain, rule_id, claim_key)` 确定性排序。
 返回的出处命中按 `(scope, work, source_id, source_clause_id, rule_id)` 确定性排序。
 
+## 面向渲染层的规则面板
+
+`evaluate_classical` 是底层评估 API。面向 GUI/渲染层的封装是
+`classical_rule_panel_view(chart, &ClassicalRulePanelRequest)`，它运行一次
+`evaluate_classical`，并把结果与可选的语料规则元数据组装成单个
+`ClassicalRulePanelView` 读模型。
+
+该面板**仍然保持**既有的拆分，而不是把它们合并：`claims`、`source_hits`、
+`diagnostics`、`corpus_rules` 各为独立向量。解释性判断与命中出处不会被合并成
+单一卡片模型，因此命中但无 claim 元数据的规则仍通过 `source_hits` 出现；
+`corpus_rules` 只是用于展示/筛选的元数据，并非评估输出。
+
+`ClassicalRulePanelRequest::user_facing()` 隐藏未支持诊断
+（`DiagnosticMode::None`）；`developer()` 则展示（`DiagnosticMode::AllUnsupported`）。
+语料规则可按状态筛选（`with_corpus_statuses`）或整体省略（`without_corpus`），
+并按 `(work, source_id, source_clause_id, rule_id)` 确定性排序。
+
+与别处一致，`iztro` 在此不输出本地化长文本：面板只携带 `claim_key`、类型化字段
+和中文原文出处；本地化渲染仍由 `iztro-i18n` 负责。
+
 ## 规则状态
 
 `RuleStatus` 记录规则的编码成熟度：
