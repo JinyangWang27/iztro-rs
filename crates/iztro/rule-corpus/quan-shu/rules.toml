@@ -51,7 +51,7 @@ base_strength = 0.55
 claim_key = "claim.life.ri-yue-fan-bei.hardship-pressure"
 
 # --- 太微赋规范化补全（normalization map）---
-# 以下规则把 volume-01.toml 中其余太微赋 clause 全部链接到运行时规则元数据。
+# 以下规则把 volume-01.toml 中其余太微赋原子出处单元全部链接到运行时规则元数据。
 # 多数为 normalized/ambiguous（尚未建模为可执行谓词），可执行覆盖刻意保守。
 # 这些规则均无 [rule.claim]：未实现前不臆测领域/主题/吉凶。
 
