@@ -40,6 +40,7 @@ pub mod rule;
 pub mod source;
 pub mod source_hit;
 pub mod theme;
+pub mod view;
 pub mod void;
 
 pub use claim::{Claim, ClaimDomain, ClaimId, ClaimScope, ClaimStrength};
@@ -53,4 +54,8 @@ pub use rule::{ClaimSpec, ClassicalRule, ClassicalRuleId, RuleSchool, RuleStatus
 pub use source::{ClassicalWork, SourceRef};
 pub use source_hit::ClassicalSourceHit;
 pub use theme::{ClaimPolarity, ClaimTheme};
+pub use view::{
+    ClassicalCorpusRuleView, ClassicalRulePanelRequest, ClassicalRulePanelSummary,
+    ClassicalRulePanelView, classical_rule_panel_view,
+};
 pub use void::{VoidKind, VoidPolicy};
