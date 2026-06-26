@@ -38,4 +38,10 @@ tmp/
 #.idea/
 
 .codegraph/
-.claude/
+
+# Claude Code: track shared hook + settings, ignore local-only files
+.claude/*
+!.claude/settings.json
+!.claude/hooks/
+.claude/hooks/*
+!.claude/hooks/session-start.sh

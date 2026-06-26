@@ -85,7 +85,7 @@ source hit 引用项目自有的 `pattern.*` 元数据条目。
 | id | 原文 | 状态 | 说明 |
 | --- | --- | --- | --- |
 | `migration.tian_ma_void.restless_movement` | 马遇空亡，终身奔走 | `executable` | 天马与已建模空亡星同宫即触发。 |
-| `wealth.lu_ma_remote_wealth` | 禄马交驰，发财远方 | `normalized` | “交驰”关系随流派而异、尚未建模，**不触发**，给出类型化诊断。 |
+| `fortune.lu_ma_jiao_chi.favorable_convergence` | 禄马最喜交驰 | `normalized` | 出处忠实引《太微赋》原句；“交驰”关系随流派而异、尚未建模，**不触发**，给出类型化诊断，无 ClaimSpec。 |
 | `life.ri_yue_fan_bei.hardship_pressure` | 日月反背，劳碌辛苦 | `executable` | 太阳、太阴俱失辉（不/陷）。 |
 
 pattern 规则（`rule-corpus/patterns/rules.toml`，非全书出处）：
@@ -108,6 +108,25 @@ docs/zh-CN/rules/quan-shu-coverage.md
 该报告由 `crates/iztro/tests/classical_source_coverage.rs` 生成并校验。分句（segmentation）
 PR 可以只新增未链接 clause（`linked_rule_ids = []`，表示已分句但尚未规范化/实现为规则），
 不必同时新增可执行规则；此类改动须同步重新生成覆盖报告。
+
+## 太微赋规范化补全
+
+卷一「太微赋」的全部 rule-candidate clause 现已链接到运行时规则元数据，覆盖报告中
+**unlinked clauses 为 0**。链接后的规则按 `status` 分布如下（见覆盖报告）：
+
+| status | 数量 | 说明 |
+| --- | ---: | --- |
+| `executable` | 2 | 马遇空亡、日月反背（已接线谓词）。 |
+| `normalized` | 44 | 句意结构清晰，但所依赖事实（如十二长生、夹宫目标宫、星曜化气、流年杂曜等）尚未建模，暂不可执行。 |
+| `ambiguous` | 17 | 术语或流派口径不明（如「冲破」「贵乡」「旺宫」、博士十二神、流年杂曜等）。 |
+| `rejected` | 1 | 收束语「学至此诚玄微矣」，非断语、非规则候选。 |
+
+规范化补全得到的规则**多数为 `normalized`/`ambiguous` 而非 `executable`**——可执行覆盖
+刻意保守。这些规则**均不携带 `[rule.claim]`**：在实现可执行谓词之前，不臆测领域、主题
+或吉凶。它们在运行期由评估器返回 `NotApplicable`，既不产出 `Claim` 也不产出
+`ClassicalSourceHit`，因此不改变现有运行时行为；其价值在于把每一句出处显式记录为带状态、
+带规范化注记的规则元数据。每条非 `executable` 规则都必须填写 `normalized_note_zh_hans`，
+由 `crates/iztro/tests/classical_source_inventory.rs` 强制校验。
 
 ## 新增规则的步骤
 

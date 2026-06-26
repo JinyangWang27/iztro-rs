@@ -114,6 +114,18 @@ Returned source hits are sorted deterministically by
 
 Not every 全书 sentence is immediately executable; statuses make that explicit.
 
+The Volume 1 太微赋 source clauses are now **fully linked** into runtime rule
+metadata: every rule-candidate clause links to one or more rules, and the
+section's closing remark links to a `Rejected` rule that documents the
+exclusion (see `docs/zh-CN/rules/quan-shu-coverage.md`). Many of these rules are
+`Normalized` or `Ambiguous` rather than `Executable`, and they carry no
+`[rule.claim]` until a predicate is implemented — **executable coverage is
+intentionally conservative**. Non-executable rules emit neither a claim nor a
+source hit at runtime (the evaluator returns `NotApplicable`); their value is an
+auditable, status-tagged record of each source clause. Each non-executable rule
+must carry a `normalized_note_zh_hans`, enforced by
+`crates/iztro/tests/classical_source_inventory.rs`.
+
 ## PatternDetection vs Claim
 
 `iztro` already has `core::pattern` **pattern detection** (格局). The two are

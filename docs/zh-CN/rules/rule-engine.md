@@ -101,6 +101,14 @@
 
 并非每句全书原文都能立即可执行；状态使之明确。
 
+卷一「太微赋」的出处 clause 现已**完整链接**到运行时规则元数据：每个 rule-candidate
+clause 都链接到一条或多条规则，段落收束语则链接到一条 `Rejected` 规则以记录其被排除
+（见 `docs/zh-CN/rules/quan-shu-coverage.md`）。其中多数规则为 `Normalized` 或
+`Ambiguous` 而非 `Executable`，且在实现谓词前不带 `[rule.claim]`——**可执行覆盖刻意
+保守**。非可执行规则在运行期既不产出判断也不产出出处命中（评估器返回 `NotApplicable`），
+其价值在于为每一句出处保留可审计、带状态标注的记录。每条非可执行规则都必须填写
+`normalized_note_zh_hans`，由 `crates/iztro/tests/classical_source_inventory.rs` 强制校验。
+
 ## PatternDetection 与 Claim 的区别
 
 `iztro` 已有 `core::pattern` 的**格局识别**。二者不同：

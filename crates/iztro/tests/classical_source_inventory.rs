@@ -286,10 +286,9 @@ fn source_inventory_clause_links_match_rules() {
 /// 5.5 Clause text matches or contains the linked rule's source text.
 ///
 /// For `executable` rules we normally require containment in either direction.
-/// Two pilot rules carry already-normalized claim phrasing that does not match
-/// its clause verbatim (`wealth.lu_ma_remote_wealth` is `normalized`;
-/// `life.ri_yue_fan_bei.hardship_pressure` is `executable`). Those are accepted
-/// only when the clause or source item documents the divergence via
+/// `life.ri_yue_fan_bei.hardship_pressure` (`executable`) carries already-
+/// normalized claim phrasing that does not match its clause verbatim; it is
+/// accepted only when the clause or source item documents the divergence via
 /// `notes_zh_hans`. See docs/zh-CN/sources/quan_shu/README.md.
 #[test]
 fn clause_text_matches_or_contains_rule_source_text() {
@@ -418,6 +417,132 @@ fn non_quan_shu_rules_are_not_required_in_quan_shu_source_inventory() {
             rule.id,
             rule.source_id
         );
+    }
+}
+
+/// Regression: 禄马最喜交驰 must quote the actual QuanShu 太微赋 source clause,
+/// not a later interpretation or another tradition's wording. The phrase
+/// "发财远方" does not appear in the current QuanShu source inventory and must
+/// not be stored as `source_text_zh_hans` anywhere in the QuanShu corpus.
+#[test]
+fn lu_ma_jiao_chi_uses_quan_shu_source_wording() {
+    const RULE_ID: &str = "fortune.lu_ma_jiao_chi.favorable_convergence";
+    const CLAUSE_ID: &str = "lu_ma_jiao_chi";
+    const SOURCE_TEXT: &str = "禄马最喜交驰";
+
+    let rules = rules_corpus();
+    let rule = rules
+        .rule
+        .iter()
+        .find(|r| r.id == RULE_ID)
+        .unwrap_or_else(|| panic!("missing rule {RULE_ID}"));
+    assert_eq!(rule.source_clause_id.as_deref(), Some(CLAUSE_ID));
+    assert_eq!(rule.source_text_zh_hans, SOURCE_TEXT);
+
+    // No QuanShu rule may carry the later "发财远方" wording as source text.
+    for rule in &rules.rule {
+        assert!(
+            !rule.source_text_zh_hans.contains("发财远方"),
+            "rule {} stores non-source interpretation '发财远方' as source_text_zh_hans",
+            rule.id
+        );
+    }
+
+    // The clause links the renamed rule with the faithful source wording.
+    let inventory = source_inventory();
+    let clause = inventory
+        .source_item
+        .iter()
+        .flat_map(|item| &item.clause)
+        .find(|c| c.clause_id == CLAUSE_ID)
+        .unwrap_or_else(|| panic!("missing clause {CLAUSE_ID}"));
+    assert_eq!(clause.text_zh_hans, SOURCE_TEXT);
+    assert_eq!(clause.linked_rule_ids, vec![RULE_ID.to_string()]);
+    assert!(
+        !clause
+            .linked_rule_ids
+            .iter()
+            .any(|id| id == "wealth.lu_ma_remote_wealth"),
+        "clause {CLAUSE_ID} still links the removed rule id"
+    );
+}
+
+// ---- Tai Wei Fu normalization-map completeness --------------------------
+
+/// Every 太微赋 rule-candidate clause is linked to at least one runtime rule.
+///
+/// "Complete 太微赋" means no useful clause is left unlinked: each clause either
+/// links to a normalized/ambiguous/executable rule, or—when it is not a runtime
+/// rule candidate (e.g. the section's closing remark)—links to a `rejected`
+/// rule that documents the exclusion. This test fails if any 太微赋 clause
+/// regresses to an empty `linked_rule_ids`.
+#[test]
+fn tai_wei_fu_clauses_are_all_linked() {
+    let inventory = source_inventory();
+    let mut unlinked = Vec::new();
+    for item in &inventory.source_item {
+        if item.volume != 1 || item.section != "太微赋" {
+            continue;
+        }
+        for clause in &item.clause {
+            if clause.linked_rule_ids.is_empty() {
+                unlinked.push(format!("{}::{}", item.source_id, clause.clause_id));
+            }
+        }
+    }
+    assert!(
+        unlinked.is_empty(),
+        "太微赋 normalization map is incomplete; unlinked clauses: {unlinked:?}"
+    );
+}
+
+/// Every non-executable rule (`normalized` / `ambiguous` / `rejected`) carries a
+/// `normalized_note_zh_hans` explaining what the clause means and why it is not
+/// executable yet (or, for `rejected`, why it is not a runtime rule candidate).
+#[test]
+fn non_executable_rules_have_normalized_notes() {
+    let rules = rules_corpus();
+    for rule in &rules.rule {
+        if !matches!(
+            rule.status.as_str(),
+            "normalized" | "ambiguous" | "rejected"
+        ) {
+            continue;
+        }
+        let note = rule.normalized_note_zh_hans.as_deref().unwrap_or("");
+        assert!(
+            !note.trim().is_empty(),
+            "rule {} (status {}) must have a non-empty normalized_note_zh_hans",
+            rule.id,
+            rule.status
+        );
+    }
+}
+
+/// Every `executable` QuanShu rule must be one the evaluator actually wires a
+/// predicate for. The evaluator lives in `src/` and cannot be called from this
+/// corpus-governance test, so we pin the wired set explicitly: marking a rule
+/// `executable` in the corpus without adding (and listing) its evaluator branch
+/// fails here, keeping the `executable` status honest.
+#[test]
+fn executable_quan_shu_rules_are_wired_in_the_evaluator() {
+    // Rule ids with a hand-coded predicate branch in
+    // `src/rules/classical/evaluator.rs`. Pattern-catalog executables
+    // (羊陀夹命 / 昌曲夹命) are validated separately and are not QuanShu rules.
+    const WIRED_EXECUTABLE: [&str; 2] = [
+        "migration.tian_ma_void.restless_movement",
+        "life.ri_yue_fan_bei.hardship_pressure",
+    ];
+    let rules = rules_corpus();
+    for rule in &rules.rule {
+        if rule.status == "executable" {
+            assert!(
+                WIRED_EXECUTABLE.contains(&rule.id.as_str()),
+                "rule {} is marked executable but is not wired in the evaluator; \
+                 add an evaluator branch and list it in WIRED_EXECUTABLE",
+                rule.id
+            );
+        }
     }
 }
 

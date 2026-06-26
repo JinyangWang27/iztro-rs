@@ -67,7 +67,6 @@ claim-polarity-mixed-negative = 偏凶
 claim-migration-tian-ma-void-restless-movement = 天马受空亡影响，主奔波迁动之象。
 claim-life-yang-tuo-clamp-life-constraint-damage = 羊陀夹命，主牵制、压力与损伤之象。
 claim-life-chang-qu-clamp-life-literary-reputation = 昌曲夹命，主文才、声名与贵显之象。
-claim-wealth-lu-ma-remote-wealth = 禄马交驰，主远方求财、动中得财之象。
 claim-life-ri-yue-fan-bei-hardship-pressure = 日月反背，主劳碌辛苦、光明不足之象。
 
 # -- 证据模板（示意，供后续叙事层渲染） -----------------------------------
