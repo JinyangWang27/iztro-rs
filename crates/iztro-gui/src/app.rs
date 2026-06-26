@@ -5,8 +5,12 @@
 //! through the public `static_temporal_chart_view` facade, caches the resulting
 //! [`StaticChartViewSnapshot`] values by `(input, selection)`, and exposes
 //! deterministic, testable accessors. No astrology placement, rule evaluation,
-//! temporal-overlay, 三方四正, mutagen, or 成格 derivation lives here — those
-//! facts are read from prepared snapshots only.
+//! pattern detection, temporal-overlay, 三方四正, mutagen, or 成格 derivation is
+//! computed here — chart facts are read from prepared snapshots, and the right
+//! inspector's rule/pattern data is **requested** from the core analysis API
+//! (`iztro::analysis::detect_analysis_layer`) per layer and cached. This module
+//! decides *which* layers to request and holds the results; the derivation
+//! itself stays in core.
 
 use std::collections::{BTreeSet, HashMap};
 

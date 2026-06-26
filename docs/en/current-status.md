@@ -112,7 +112,7 @@ solar input -> by_solar -> ChartStackSnapshot -> render module plain text output
 
 `StaticChartViewSnapshot` is the GUI-facing static-chart read model. It supports a 文墨天机-style 12-palace chart, selected natal/temporal overlays, prepared palace relationships for 三方四正 highlighting, mutagen display facts, and reserved highlight annotations. The local `iztro-gui` crate is an Iced desktop prototype that consumes this read model, persists saved chart inputs locally, regenerates charts deterministically through core facades, and drives temporal selection through `static_temporal_chart_view` rather than mutating the natal chart.
 
-The GUI is currently a chart-fact viewer. It does not perform star placement, temporal derivation, mutagen calculation, 三方四正 branch arithmetic, 成格 detection, BaZi interpretation, rule matching, or narrative generation in UI code.
+The GUI renderer derives nothing: it performs no star placement, temporal derivation, mutagen calculation, 三方四正 branch arithmetic, 成格 detection, BaZi interpretation, rule evaluation, pattern detection, or narrative generation in UI code. It only displays prepared values. Rule and pattern data shown in the right inspector is not computed in the GUI either — app state *requests* structured, per-layer analysis through the core analysis API (`detect_analysis_layer`) and caches the results; the derivation itself lives in core (see the right inspector section below).
 
 ### Right analysis inspector
 

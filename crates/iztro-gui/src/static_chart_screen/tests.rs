@@ -68,8 +68,13 @@ fn palace_grid_layout_constants_exist_and_derive_the_chart_size() {
 
     // Per-cell minimums keep palace text legible, and the whole 4x4 canvas
     // minimum is derived from them (four columns wide, four rows tall).
+    //
+    // The width floor is pinned at 275.0: the right inspector must never shrink
+    // palace cells to make room for itself — the fixed canvas keeps its size and
+    // scrolls horizontally instead. This guards against a future layout tweak
+    // quietly trading palace legibility for panel width.
     const {
-        assert!(MIN_PALACE_CELL_WIDTH > 0.0);
+        assert!(MIN_PALACE_CELL_WIDTH >= 275.0);
         assert!(MIN_PALACE_CELL_HEIGHT > 0.0);
         assert!(MIN_CHART_WIDTH == MIN_PALACE_CELL_WIDTH * 4.0);
         assert!(MIN_CHART_HEIGHT == MIN_PALACE_CELL_HEIGHT * 4.0);

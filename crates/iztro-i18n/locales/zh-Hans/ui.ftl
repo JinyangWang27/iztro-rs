@@ -103,7 +103,7 @@ rules-scope-hourly = 流时
 
 # 格局展开详情行标签
 patterns-detail-strength = 强度
-patterns-detail-stars = 星耀
+patterns-detail-stars = 星曜
 patterns-detail-palaces = 宫位
 patterns-detail-mutagens = 四化
 pattern-strength-weak = 弱
