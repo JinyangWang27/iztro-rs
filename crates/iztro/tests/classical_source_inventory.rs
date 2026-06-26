@@ -251,10 +251,12 @@ fn source_inventory_links_match_rules() {
 
 // ---- I. Source item text matches the linked rule's source text -----------
 
-/// A linked source item must quote the same source unit as its rule. We require
-/// exact equality after light punctuation normalization (`strip_punct`).
-/// `notes_zh_hans` is permitted only as documentation of a true source-variant
-/// divergence; it must not be used to paper over interpretation/paraphrase.
+/// A linked source item must quote the same source unit as its rule: their text
+/// must be **equal** after light punctuation normalization (`strip_punct`). A
+/// generic `notes_zh_hans` does NOT bypass this — interpretation/paraphrase must
+/// never diverge from the cited source. If a genuine source variant arises
+/// later, add an explicit opt-in field (e.g. `source_text_variant_ok = true`)
+/// rather than relaxing this equality.
 #[test]
 fn source_item_text_matches_rule_source_text() {
     let inventory = source_inventory();
@@ -269,15 +271,10 @@ fn source_item_text_matches_rule_source_text() {
                 .find(|r| r.id == *linked)
                 .expect("linked rule must exist");
             let rule_text = strip_punct(&rule.source_text_zh_hans);
-            let documented = item.notes_zh_hans.is_some();
-            assert!(
-                item_text == rule_text || documented,
-                "source item {} text {:?} does not match linked rule {} source text {:?}, \
-                 and no notes_zh_hans documents the divergence",
-                item.source_id,
-                item.source_text_zh_hans,
-                rule.id,
-                rule.source_text_zh_hans
+            assert_eq!(
+                item_text, rule_text,
+                "source item {} text {:?} does not match linked rule {} source text {:?}",
+                item.source_id, item.source_text_zh_hans, rule.id, rule.source_text_zh_hans
             );
         }
     }
