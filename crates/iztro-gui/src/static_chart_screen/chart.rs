@@ -1,5 +1,5 @@
 use iced::widget::{button, column, container, row, scrollable, stack, text};
-use iced::{Alignment, Element, Length};
+use iced::{Alignment, Element, Length, Padding};
 use iztro::core::StaticChartViewSnapshot;
 use iztro_i18n::I18n;
 
@@ -19,6 +19,10 @@ pub(super) const MIN_PALACE_CELL_HEIGHT: f32 = 190.0;
 pub(super) const MIN_CHART_WIDTH: f32 = MIN_PALACE_CELL_WIDTH * 4.0;
 /// Minimum height of the whole 4x4 chart canvas: four palace rows tall.
 pub(super) const MIN_CHART_HEIGHT: f32 = MIN_PALACE_CELL_HEIGHT * 4.0;
+/// Gutter reserved on the chart canvas's right and bottom edges so the
+/// scrollable's floating scrollbars sit over padding rather than over the
+/// rightmost palace column / bottom row.
+const SCROLLBAR_GUTTER: f32 = 16.0;
 
 /// The generated static chart screen: a slim toolbar above the palace grid, with
 /// a transparent 三方四正 line overlay stacked over the grid.
@@ -36,7 +40,16 @@ pub(super) fn chart_screen<'a>(
         .width(Length::Fixed(MIN_CHART_WIDTH))
         .height(Length::Fixed(MIN_CHART_HEIGHT));
 
-    let chart_area = scrollable(grid)
+    // Inset the fixed canvas by a gutter on the right and bottom so the
+    // scrollable's floating scrollbars overlay padding, not palace content.
+    let padded = container(grid).padding(Padding {
+        top: 0.0,
+        right: SCROLLBAR_GUTTER,
+        bottom: SCROLLBAR_GUTTER,
+        left: 0.0,
+    });
+
+    let chart_area = scrollable(padded)
         .direction(scrollable::Direction::Both {
             vertical: scrollable::Scrollbar::new(),
             horizontal: scrollable::Scrollbar::new(),

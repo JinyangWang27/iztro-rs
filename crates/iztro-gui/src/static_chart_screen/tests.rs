@@ -54,7 +54,9 @@ fn chart_screen_pins_a_minimum_size_and_scrolls_when_smaller() {
     assert!(source.contains("Length::Fixed(MIN_CHART_WIDTH)"));
     assert!(source.contains("Length::Fixed(MIN_CHART_HEIGHT)"));
     // A scrollable wrapper lets a smaller window scroll instead of shrinking.
-    assert!(source.contains("scrollable(grid)"));
+    // The fixed grid is wrapped in a gutter-padded container so the floating
+    // scrollbars sit over padding rather than over the rightmost palaces.
+    assert!(source.contains("scrollable(padded)"));
     assert!(source.contains("scrollable::Direction::Both"));
 }
 
