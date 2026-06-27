@@ -65,39 +65,6 @@ pub fn star_affected_by_void(
         })
 }
 
-/// A modeled 空亡-family star found in a specific palace.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct VoidInPalace {
-    /// The void star.
-    pub star: StarName,
-    /// The branch containing it.
-    pub branch: EarthlyBranch,
-    /// The modeled void kind.
-    pub void_kind: VoidKind,
-}
-
-/// Returns every modeled 空亡-family star counted by `policy` in `branch`.
-pub fn voids_in_palace(
-    chart: &Chart,
-    branch: EarthlyBranch,
-    policy: VoidPolicy,
-) -> Vec<VoidInPalace> {
-    let mut voids: Vec<_> = stars_in_palace(chart, branch)
-        .into_iter()
-        .filter_map(|placement| {
-            VoidKind::from_star(placement.name())
-                .filter(|kind| policy.includes(*kind))
-                .map(|void_kind| VoidInPalace {
-                    star: placement.name(),
-                    branch,
-                    void_kind,
-                })
-        })
-        .collect();
-    voids.sort_by_key(|fact| (fact.void_kind, fact.star));
-    voids
-}
-
 /// Two stars clamping (夹) the Life palace, one on each adjacent branch.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct LifeClamp {
@@ -220,38 +187,4 @@ pub fn star_meets_tag_same_palace(
     encounters.sort_by_key(|encounter| (encounter.tag, encounter.strength, encounter.matched_star));
 
     encounters
-}
-
-/// A star carrying a given [`StarTag`] in a specific palace.
-#[derive(Clone, Copy, Debug, Eq, PartialEq)]
-pub struct TaggedStarInPalace {
-    /// The matched star.
-    pub star: StarName,
-    /// The palace branch.
-    pub branch: EarthlyBranch,
-    /// The tag matched.
-    pub tag: StarTag,
-    /// The strength of `star`'s membership in `tag`.
-    pub strength: StarTagStrength,
-}
-
-/// Returns every star in `branch` that carries `tag`, deterministically sorted.
-pub fn stars_with_tag_in_palace(
-    chart: &Chart,
-    branch: EarthlyBranch,
-    tag: StarTag,
-) -> Vec<TaggedStarInPalace> {
-    let mut matches: Vec<_> = stars_in_palace(chart, branch)
-        .into_iter()
-        .filter_map(|placement| {
-            star_tag_strength(placement.name(), tag).map(|strength| TaggedStarInPalace {
-                star: placement.name(),
-                branch,
-                tag,
-                strength,
-            })
-        })
-        .collect();
-    matches.sort_by_key(|matched| (matched.tag, matched.strength, matched.star));
-    matches
 }

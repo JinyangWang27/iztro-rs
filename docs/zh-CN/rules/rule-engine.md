@@ -258,15 +258,12 @@ evaluate_classical_in_context(&ClassicalRuleContext, &request) -> ClaimEvaluatio
 
 `StarTag` 是核心星曜模型中挂在 `StarName` 上的**可重叠**分类，叠加在互斥的粗分类
 `StarCategory`（`Major` / `Minor` / `Adjective`）之上。一颗星可同时携带多个标签，如
-地空既属空劫（`KongJie`）又属空曜（`VoidSymbol`）。当前基于标签接线的可执行全书规则包括：
+地空既属空劫（`KongJie`）又属空曜（`VoidSymbol`）。基于该层现已新增两条可执行全书规则：
 
 - **贪居亥子，名为犯水桃花**（`relationship.tan_ju_hai_zi.water_romance`）：保守取贪狼
   居亥或子二支。
 - **刑遇贪狼，号曰风流彩杖**（`relationship.xing_yu_tan_lang.romance_with_penalty`）：
   保守取贪狼与刑曜（`StarTag::Punishment` = 擎羊、天刑）同宫。
-- **福德遇空劫，奔走无力**（`fortune.fu_de_yu_kong_jie.restless_spirit`）：保守取
-  福德宫见地空或地劫（`StarTag::KongJie`）；该规则仅产出出处命中与证据，不新增
-  claim 元数据。
 
 `StarTag::VoidSymbol`（空曜）为**广义解读型分类**，与 `VoidKind` 刻意区分：后者仍是
 马遇空亡所用的**狭义、未改动**的空亡星族（旬空 / 空亡 / 截路 / 截空）。

@@ -12,13 +12,13 @@
 
 use crate::core::pattern::model::PatternId;
 use crate::core::pattern::relation::PalaceRelation;
-use crate::core::{Chart, EarthlyBranch, PalaceName, StarName, StarTag};
+use crate::core::{Chart, EarthlyBranch, StarName, StarTag};
 use crate::rules::classical::claim::{Claim, ClaimId, ClaimScope, ClaimStrength};
 use crate::rules::classical::evidence::{Evidence, EvidenceKind};
 use crate::rules::classical::outcome::{RuleOutcome, UnsupportedReason};
 use crate::rules::classical::predicates::{
     star_affected_by_void, star_in_branches, star_meets_tag_same_palace, stars_clamp_life,
-    stars_with_tag_in_palace, sun_and_moon_dim, tian_ma_affected_by_void, voids_in_palace,
+    sun_and_moon_dim, tian_ma_affected_by_void,
 };
 use crate::rules::classical::rule::{ClaimSpec, ClassicalRule};
 use crate::rules::classical::source_hit::ClassicalSourceHit;
@@ -32,11 +32,7 @@ const LU_MA_JIAO_CHI: &str = "fortune.lu_ma_jiao_chi.favorable_convergence";
 const RI_YUE_FAN_BEI: &str = "life.ri_yue_fan_bei.hardship_pressure";
 const TAN_LANG_HAI_ZI: &str = "relationship.tan_ju_hai_zi.water_romance";
 const XING_YU_TAN_LANG: &str = "relationship.xing_yu_tan_lang.romance_with_penalty";
-const TANG_JU_KONG_WANG: &str = "fortune.tang_ju_kong_wang.gain_loss_critical";
 const SHAN_FU_JU_KONG: &str = "fortune.shan_fu_ju_kong.monastic_life";
-const SHA_LUO_KONG_WANG: &str = "risk.sha_luo_kong_wang.malefic_force_voided";
-const SHEN_ZUO_KONG_WANG: &str = "life.shen_zuo_kong_wang.body_void_pivot";
-const FU_DE_KONG_JIE: &str = "fortune.fu_de_yu_kong_jie.restless_spirit";
 
 /// Evaluates `rule` against `chart`, returning a typed outcome.
 ///
@@ -57,11 +53,7 @@ pub fn evaluate(rule: &ClassicalRule, chart: &Chart) -> RuleOutcome {
         RI_YUE_FAN_BEI => evaluate_ri_yue_fan_bei(rule, chart),
         TAN_LANG_HAI_ZI => evaluate_tan_lang_hai_zi(rule, chart),
         XING_YU_TAN_LANG => evaluate_xing_yu_tan_lang(rule, chart),
-        TANG_JU_KONG_WANG => evaluate_life_palace_void(rule, chart),
         SHAN_FU_JU_KONG => evaluate_shan_fu_ju_kong(rule, chart),
-        SHA_LUO_KONG_WANG => evaluate_star_void(rule, chart, StarName::QiSha),
-        SHEN_ZUO_KONG_WANG => evaluate_body_palace_void(rule, chart),
-        FU_DE_KONG_JIE => evaluate_spirit_palace_kong_jie(rule, chart),
         // 禄马最喜交驰: the Lu/Tian Ma "交驰" relation is school-dependent and not
         // yet modeled as a deterministic chart fact, so the rule does not fire.
         LU_MA_JIAO_CHI => RuleOutcome::Unsupported(UnsupportedReason::LuMaRelationNotModeled),
@@ -222,32 +214,6 @@ fn evaluate_xing_yu_tan_lang(rule: &ClassicalRule, chart: &Chart) -> RuleOutcome
     matched(rule, evidence)
 }
 
-/// 倘居空亡，得失最为要紧. Conservatively: the Life palace itself contains a
-/// modeled 空亡-family star.
-fn evaluate_life_palace_void(rule: &ClassicalRule, chart: &Chart) -> RuleOutcome {
-    let Some(life_branch) = chart.life_palace().map(|palace| palace.branch()) else {
-        return RuleOutcome::NotApplicable;
-    };
-
-    let voids = voids_in_palace(chart, life_branch, VoidPolicy::DEFAULT);
-    if voids.is_empty() {
-        return RuleOutcome::NotApplicable;
-    }
-
-    matched(
-        rule,
-        voids
-            .into_iter()
-            .map(|fact| {
-                Evidence::new(EvidenceKind::StarInPalace {
-                    star: fact.star,
-                    branch: fact.branch,
-                })
-            })
-            .collect(),
-    )
-}
-
 /// 善福居空位，天竺生涯. Conservatively: 善=天机 and 福=天同, and both are
 /// affected by modeled 空亡-family stars.
 fn evaluate_shan_fu_ju_kong(rule: &ClassicalRule, chart: &Chart) -> RuleOutcome {
@@ -273,73 +239,6 @@ fn evaluate_shan_fu_ju_kong(rule: &ClassicalRule, chart: &Chart) -> RuleOutcome 
                 branch: tian_tong.branch,
             }),
         ],
-    )
-}
-
-fn evaluate_star_void(rule: &ClassicalRule, chart: &Chart, star: StarName) -> RuleOutcome {
-    let Some(fact) = star_affected_by_void(chart, star, VoidPolicy::DEFAULT) else {
-        return RuleOutcome::NotApplicable;
-    };
-
-    matched(
-        rule,
-        vec![Evidence::new(EvidenceKind::StarAffectedByVoid {
-            star: fact.star,
-            void_kind: fact.void_kind,
-            branch: fact.branch,
-        })],
-    )
-}
-
-/// 身坐空亡论荣枯，专求其要. Conservatively: the modeled Body palace branch
-/// contains a modeled 空亡-family star.
-fn evaluate_body_palace_void(rule: &ClassicalRule, chart: &Chart) -> RuleOutcome {
-    let Some(body_branch) = chart.body_palace().map(|palace| palace.branch()) else {
-        return RuleOutcome::NotApplicable;
-    };
-
-    let voids = voids_in_palace(chart, body_branch, VoidPolicy::DEFAULT);
-    if voids.is_empty() {
-        return RuleOutcome::NotApplicable;
-    }
-
-    matched(
-        rule,
-        voids
-            .into_iter()
-            .map(|fact| {
-                Evidence::new(EvidenceKind::StarInPalace {
-                    star: fact.star,
-                    branch: fact.branch,
-                })
-            })
-            .collect(),
-    )
-}
-
-/// 福德遇空劫，奔走无力. Conservatively: 福德宫 contains 地空 or 地劫
-/// ([`StarTag::KongJie`]).
-fn evaluate_spirit_palace_kong_jie(rule: &ClassicalRule, chart: &Chart) -> RuleOutcome {
-    let Some(spirit_branch) = chart.branch_of_palace(PalaceName::Spirit) else {
-        return RuleOutcome::NotApplicable;
-    };
-
-    let matches = stars_with_tag_in_palace(chart, spirit_branch, StarTag::KongJie);
-    if matches.is_empty() {
-        return RuleOutcome::NotApplicable;
-    }
-
-    matched(
-        rule,
-        matches
-            .into_iter()
-            .map(|fact| {
-                Evidence::new(EvidenceKind::StarInPalace {
-                    star: fact.star,
-                    branch: fact.branch,
-                })
-            })
-            .collect(),
     )
 }
 

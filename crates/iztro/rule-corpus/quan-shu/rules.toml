@@ -100,8 +100,8 @@ id = "fortune.tang_ju_kong_wang.gain_loss_critical"
 source_id = "quan_shu.v01.tai_wei_fu.tang_ju_kong_wang"
 work = "zi_wei_dou_shu_quan_shu"
 source_text_zh_hans = "倘居空亡，得失最为要紧"
-normalized_note_zh_hans = "本实现保守取命宫本身居已建模空亡族星（旬空、空亡、截路、截空）为触发条件，仅产出出处命中与结构化证据；本句未给出确定吉凶，故暂不产出 Claim。"
-status = "executable"
+normalized_note_zh_hans = "句意结构：居空亡之地，得失利害最须权衡。『居』所指对象与得失判断口径尚未建模为确定图盘事实，本句也未给出确定吉凶，故暂不可执行。"
+status = "normalized"
 
 [[rule]]
 id = "fortune.ruo_feng_bai_di.support_turnaround"
@@ -556,27 +556,3 @@ work = "zi_wei_dou_shu_quan_shu"
 source_text_zh_hans = "学至此诚玄微矣"
 normalized_note_zh_hans = "『学至此诚玄微矣』为太微赋例曰之收束语（赞叹治学），非断语、非规则候选，故标记为 rejected，排除于运行时规则之外。"
 status = "rejected"
-
-[[rule]]
-id = "risk.sha_luo_kong_wang.malefic_force_voided"
-source_id = "quan_shu.v01.xing_xing_fu.sha_luo_kong_wang"
-work = "zi_wei_dou_shu_quan_shu"
-source_text_zh_hans = "杀落空亡竟无威力"
-normalized_note_zh_hans = "本实现取『杀』为七杀，并要求七杀与已建模空亡族星同宫；仅产出出处命中与结构化证据，不新增 Claim。"
-status = "executable"
-
-[[rule]]
-id = "life.shen_zuo_kong_wang.body_void_pivot"
-source_id = "quan_shu.v01.dou_shu_zhun_sheng.shen_zuo_kong_wang"
-work = "zi_wei_dou_shu_quan_shu"
-source_text_zh_hans = "身坐空亡论荣枯，专求其要"
-normalized_note_zh_hans = "本实现取身宫所在宫位见已建模空亡族星为触发条件；仅产出出处命中与结构化证据，不新增 Claim。"
-status = "executable"
-
-[[rule]]
-id = "fortune.fu_de_yu_kong_jie.restless_spirit"
-source_id = "quan_shu.v01.dou_shu_zhun_sheng.fu_de_yu_kong_jie"
-work = "zi_wei_dou_shu_quan_shu"
-source_text_zh_hans = "福德遇空劫，奔走无力"
-normalized_note_zh_hans = "本实现取福德宫见 StarTag::KongJie（地空、地劫）为触发条件；仅产出出处命中与结构化证据，不新增 Claim。"
-status = "executable"

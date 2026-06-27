@@ -305,17 +305,14 @@ corpus authoring format.
 `StarTag` is a reusable, **overlapping** taxonomy on `StarName` in the core star
 model, layered above the mutually exclusive coarse grouping `StarCategory`
 (`Major` / `Minor` / `Adjective`). A star may carry several tags; for example 地空
-is both 空劫 (`KongJie`) and 空曜 (`VoidSymbol`). Current tag-backed executable
-QuanShu rules include:
+is both 空劫 (`KongJie`) and 空曜 (`VoidSymbol`). Two Tan Lang QuanShu rules are now
+executable on this layer:
 
 - **贪居亥子，名为犯水桃花** (`relationship.tan_ju_hai_zi.water_romance`):
   conservatively 贪狼 placed in the 亥 or 子 branch.
 - **刑遇贪狼，号曰风流彩杖** (`relationship.xing_yu_tan_lang.romance_with_penalty`):
   conservatively 贪狼 sharing a palace with a 刑曜 (`StarTag::Punishment` = 擎羊、
   天刑).
-- **福德遇空劫，奔走无力** (`fortune.fu_de_yu_kong_jie.restless_spirit`):
-  conservatively 福德宫 containing 地空 or 地劫 (`StarTag::KongJie`); this is a
-  source-hit-only rule with evidence and no claim metadata.
 
 `StarTag::VoidSymbol` (空曜) is **broad interpretive taxonomy** and is deliberately
 kept distinct from `VoidKind`, which remains the **narrow, unchanged** 空亡-family
