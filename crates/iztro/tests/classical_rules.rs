@@ -12,7 +12,7 @@ use iztro::rules::classical::{
 };
 use iztro::{
     BirthContext, Brightness, CalendarDate, Chart, EarthlyBranch, Gender, HeavenlyStem, Mutagen,
-    PALACE_NAMES, Palace, Scope, StarKind, StarName, StarPlacement, StemBranch,
+    PALACE_NAMES, Palace, PalaceName, Scope, StarKind, StarName, StarPlacement, StemBranch,
 };
 
 // ---- synthetic chart builders --------------------------------------------
@@ -63,6 +63,10 @@ fn build_chart_bright(life_branch: EarthlyBranch, placements: &[BrightSpec]) -> 
 }
 
 fn assemble(palaces: Vec<Palace>) -> Chart {
+    assemble_with_body(palaces, None)
+}
+
+fn assemble_with_body(palaces: Vec<Palace>, body_palace_branch: Option<EarthlyBranch>) -> Chart {
     Chart::try_new(
         BirthContext::new(
             CalendarDate::solar(1990, 5, 17),
@@ -72,10 +76,36 @@ fn assemble(palaces: Vec<Palace>) -> Chart {
         StemBranch::try_new(HeavenlyStem::Geng, EarthlyBranch::Wu).expect("valid stem-branch"),
         iztro::MethodProfile::placeholder("classical_test"),
         palaces,
-        None,
+        body_palace_branch,
         None,
     )
     .expect("synthetic chart should build")
+}
+
+fn build_chart_with_body(
+    life_branch: EarthlyBranch,
+    body_branch: EarthlyBranch,
+    placements: &[Spec],
+) -> Chart {
+    let palaces: Vec<Palace> = (0..12)
+        .map(|index| {
+            let name = PALACE_NAMES[index];
+            let branch = life_branch.offset(index as isize);
+            let stars: Vec<StarPlacement> = placements
+                .iter()
+                .filter(|(spec_branch, ..)| *spec_branch == branch)
+                .map(|(_, star, kind, mutagen)| {
+                    StarPlacement::new(*star, *kind, Brightness::Unknown, *mutagen, Scope::Natal)
+                })
+                .collect();
+            Palace::new(name, branch, HeavenlyStem::Jia, stars)
+        })
+        .collect();
+    assemble_with_body(palaces, Some(body_branch))
+}
+
+fn major(branch: EarthlyBranch, star: StarName) -> Spec {
+    (branch, star, StarKind::Major, None)
 }
 
 fn tough(branch: EarthlyBranch, star: StarName) -> Spec {
@@ -116,6 +146,11 @@ const LU_MA: &str = "fortune.lu_ma_jiao_chi.favorable_convergence";
 const RI_YUE: &str = "life.ri_yue_fan_bei.hardship_pressure";
 const TAN_LANG_HAI_ZI: &str = "relationship.tan_ju_hai_zi.water_romance";
 const XING_YU_TAN_LANG: &str = "relationship.xing_yu_tan_lang.romance_with_penalty";
+const TANG_JU_KONG_WANG: &str = "fortune.tang_ju_kong_wang.gain_loss_critical";
+const SHAN_FU_JU_KONG: &str = "fortune.shan_fu_ju_kong.monastic_life";
+const SHA_LUO_KONG_WANG: &str = "risk.sha_luo_kong_wang.malefic_force_voided";
+const SHEN_ZUO_KONG_WANG: &str = "life.shen_zuo_kong_wang.body_void_pivot";
+const FU_DE_KONG_JIE: &str = "fortune.fu_de_yu_kong_jie.restless_spirit";
 
 // ---- corpus deserialization ----------------------------------------------
 
@@ -135,6 +170,17 @@ fn corpus_deserializes_all_pilot_rules() {
     for id in [TAN_LANG_HAI_ZI, XING_YU_TAN_LANG] {
         let rule = rule_by_id(id).unwrap_or_else(|| panic!("missing rule {id}"));
         assert!(rule.claim.is_some(), "rule {id} should have claim metadata");
+        assert_eq!(rule.status, RuleStatus::Executable);
+    }
+    for id in [
+        TANG_JU_KONG_WANG,
+        SHAN_FU_JU_KONG,
+        SHA_LUO_KONG_WANG,
+        SHEN_ZUO_KONG_WANG,
+        FU_DE_KONG_JIE,
+    ] {
+        let rule = rule_by_id(id).unwrap_or_else(|| panic!("missing rule {id}"));
+        assert!(rule.claim.is_none(), "rule {id} should be source-hit-only");
         assert_eq!(rule.status, RuleStatus::Executable);
     }
     let lu_ma = rule_by_id(LU_MA).unwrap_or_else(|| panic!("missing rule {LU_MA}"));
@@ -179,7 +225,16 @@ fn tai_wei_fu_normalized_rules_are_inert_at_runtime() {
         .filter(|r| {
             !matches!(
                 r.id.as_str(),
-                TIAN_MA_VOID | LU_MA | RI_YUE | TAN_LANG_HAI_ZI | XING_YU_TAN_LANG
+                TIAN_MA_VOID
+                    | LU_MA
+                    | RI_YUE
+                    | TAN_LANG_HAI_ZI
+                    | XING_YU_TAN_LANG
+                    | TANG_JU_KONG_WANG
+                    | SHAN_FU_JU_KONG
+                    | SHA_LUO_KONG_WANG
+                    | SHEN_ZUO_KONG_WANG
+                    | FU_DE_KONG_JIE
             )
         })
         .collect();
@@ -408,6 +463,260 @@ fn tian_ma_void_does_not_fire_on_tian_kong() {
     );
     let claims = evaluate_classical_claims(&chart, &ClaimEvaluationRequest::default());
     assert!(!has_rule(&claims, TIAN_MA_VOID));
+}
+
+// ---- void-related QuanShu source-hit-only executables ----------------------
+
+fn assert_source_hit_only_rule(
+    chart: &Chart,
+    rule_id: &str,
+    source_text_zh_hans: &str,
+    evidence: impl Fn(&[Evidence]) -> bool,
+) {
+    let evaluation = evaluate_classical(chart, &ClaimEvaluationRequest::default());
+    assert!(
+        !evaluation
+            .claims
+            .iter()
+            .any(|claim| claim.rule_id.as_str() == rule_id),
+        "{rule_id} should not emit a claim"
+    );
+    let source_hit = evaluation
+        .source_hits
+        .iter()
+        .find(|hit| hit.rule_id.as_str() == rule_id)
+        .unwrap_or_else(|| panic!("expected source hit for {rule_id}"));
+    assert_eq!(source_hit.work, ClassicalWork::ZiWeiDouShuQuanShu);
+    assert_eq!(source_hit.source_text_zh_hans, source_text_zh_hans);
+    assert_eq!(source_hit.status, RuleStatus::Executable);
+    assert!(
+        evidence(&source_hit.evidence),
+        "missing expected evidence for {rule_id}"
+    );
+}
+
+#[test]
+fn tang_ju_kong_wang_positive_when_life_palace_contains_modeled_void() {
+    let chart = build_chart(
+        EarthlyBranch::Zi,
+        &[adj(EarthlyBranch::Zi, StarName::XunKong)],
+    );
+
+    assert_source_hit_only_rule(
+        &chart,
+        TANG_JU_KONG_WANG,
+        "倘居空亡，得失最为要紧",
+        |evidence| {
+            evidence.iter().any(|e| {
+                matches!(
+                    e.kind(),
+                    EvidenceKind::StarInPalace {
+                        star: StarName::XunKong,
+                        branch: EarthlyBranch::Zi,
+                    }
+                )
+            })
+        },
+    );
+}
+
+#[test]
+fn tang_ju_kong_wang_negative_when_void_is_not_in_life_palace() {
+    let chart = build_chart(
+        EarthlyBranch::Zi,
+        &[adj(EarthlyBranch::Chou, StarName::XunKong)],
+    );
+    let evaluation = evaluate_classical(&chart, &ClaimEvaluationRequest::default());
+    assert!(
+        evaluation
+            .source_hits
+            .iter()
+            .all(|hit| hit.rule_id.as_str() != TANG_JU_KONG_WANG)
+    );
+}
+
+#[test]
+fn shan_fu_ju_kong_positive_when_tian_ji_and_tian_tong_meet_void() {
+    let chart = build_chart(
+        EarthlyBranch::Zi,
+        &[
+            major(EarthlyBranch::Yin, StarName::TianJi),
+            adj(EarthlyBranch::Yin, StarName::XunKong),
+            major(EarthlyBranch::Mao, StarName::TianTong),
+            adj(EarthlyBranch::Mao, StarName::KongWang),
+        ],
+    );
+
+    assert_source_hit_only_rule(
+        &chart,
+        SHAN_FU_JU_KONG,
+        "善福居空位，天竺生涯",
+        |evidence| {
+            evidence.iter().any(|e| {
+                matches!(
+                    e.kind(),
+                    EvidenceKind::StarAffectedByVoid {
+                        star: StarName::TianJi,
+                        void_kind: VoidKind::XunKong,
+                        branch: EarthlyBranch::Yin,
+                    }
+                )
+            }) && evidence.iter().any(|e| {
+                matches!(
+                    e.kind(),
+                    EvidenceKind::StarAffectedByVoid {
+                        star: StarName::TianTong,
+                        void_kind: VoidKind::KongWang,
+                        branch: EarthlyBranch::Mao,
+                    }
+                )
+            })
+        },
+    );
+}
+
+#[test]
+fn shan_fu_ju_kong_negative_when_only_one_star_meets_void() {
+    let chart = build_chart(
+        EarthlyBranch::Zi,
+        &[
+            major(EarthlyBranch::Yin, StarName::TianJi),
+            adj(EarthlyBranch::Yin, StarName::XunKong),
+            major(EarthlyBranch::Mao, StarName::TianTong),
+        ],
+    );
+    let evaluation = evaluate_classical(&chart, &ClaimEvaluationRequest::default());
+    assert!(
+        evaluation
+            .source_hits
+            .iter()
+            .all(|hit| hit.rule_id.as_str() != SHAN_FU_JU_KONG)
+    );
+}
+
+#[test]
+fn sha_luo_kong_wang_positive_when_qi_sha_meets_modeled_void() {
+    let chart = build_chart(
+        EarthlyBranch::Zi,
+        &[
+            major(EarthlyBranch::Wu, StarName::QiSha),
+            adj(EarthlyBranch::Wu, StarName::KongWang),
+        ],
+    );
+
+    assert_source_hit_only_rule(
+        &chart,
+        SHA_LUO_KONG_WANG,
+        "杀落空亡竟无威力",
+        |evidence| {
+            evidence.iter().any(|e| {
+                matches!(
+                    e.kind(),
+                    EvidenceKind::StarAffectedByVoid {
+                        star: StarName::QiSha,
+                        void_kind: VoidKind::KongWang,
+                        branch: EarthlyBranch::Wu,
+                    }
+                )
+            })
+        },
+    );
+}
+
+#[test]
+fn sha_luo_kong_wang_negative_on_tian_kong() {
+    let chart = build_chart(
+        EarthlyBranch::Zi,
+        &[
+            major(EarthlyBranch::Wu, StarName::QiSha),
+            adj(EarthlyBranch::Wu, StarName::TianKong),
+        ],
+    );
+    let evaluation = evaluate_classical(&chart, &ClaimEvaluationRequest::default());
+    assert!(
+        evaluation
+            .source_hits
+            .iter()
+            .all(|hit| hit.rule_id.as_str() != SHA_LUO_KONG_WANG)
+    );
+}
+
+#[test]
+fn shen_zuo_kong_wang_positive_when_body_palace_contains_modeled_void() {
+    let chart = build_chart_with_body(
+        EarthlyBranch::Zi,
+        EarthlyBranch::Wu,
+        &[adj(EarthlyBranch::Wu, StarName::JieLu)],
+    );
+
+    assert_source_hit_only_rule(
+        &chart,
+        SHEN_ZUO_KONG_WANG,
+        "身坐空亡论荣枯，专求其要",
+        |evidence| {
+            evidence.iter().any(|e| {
+                matches!(
+                    e.kind(),
+                    EvidenceKind::StarInPalace {
+                        star: StarName::JieLu,
+                        branch: EarthlyBranch::Wu,
+                    }
+                )
+            })
+        },
+    );
+}
+
+#[test]
+fn shen_zuo_kong_wang_negative_when_body_palace_lacks_void() {
+    let chart = build_chart_with_body(
+        EarthlyBranch::Zi,
+        EarthlyBranch::Wu,
+        &[adj(EarthlyBranch::Chou, StarName::JieLu)],
+    );
+    let evaluation = evaluate_classical(&chart, &ClaimEvaluationRequest::default());
+    assert!(
+        evaluation
+            .source_hits
+            .iter()
+            .all(|hit| hit.rule_id.as_str() != SHEN_ZUO_KONG_WANG)
+    );
+}
+
+#[test]
+fn fu_de_yu_kong_jie_positive_when_spirit_palace_contains_kong_jie() {
+    let spirit_branch = EarthlyBranch::Zi.offset(PalaceName::Spirit.index() as isize);
+    let chart = build_chart(EarthlyBranch::Zi, &[tough(spirit_branch, StarName::DiKong)]);
+
+    assert_source_hit_only_rule(
+        &chart,
+        FU_DE_KONG_JIE,
+        "福德遇空劫，奔走无力",
+        |evidence| {
+            evidence.iter().any(|e| {
+                matches!(
+                    e.kind(),
+                    EvidenceKind::StarInPalace {
+                        star: StarName::DiKong,
+                        branch,
+                    } if *branch == spirit_branch
+                )
+            })
+        },
+    );
+}
+
+#[test]
+fn fu_de_yu_kong_jie_negative_when_only_tian_kong_in_spirit_palace() {
+    let spirit_branch = EarthlyBranch::Zi.offset(PalaceName::Spirit.index() as isize);
+    let chart = build_chart(EarthlyBranch::Zi, &[adj(spirit_branch, StarName::TianKong)]);
+    let evaluation = evaluate_classical(&chart, &ClaimEvaluationRequest::default());
+    assert!(
+        evaluation
+            .source_hits
+            .iter()
+            .all(|hit| hit.rule_id.as_str() != FU_DE_KONG_JIE)
+    );
 }
 
 // ---- 羊陀夹命 --------------------------------------------------------------

@@ -27,17 +27,75 @@ pub struct TianMaVoid {
 /// Conservative: only modeled 空亡-family stars qualify (see [`VoidKind`]); 天空,
 /// 地空, and 地劫 are never treated as 空亡.
 pub fn tian_ma_affected_by_void(chart: &Chart, policy: VoidPolicy) -> Option<TianMaVoid> {
-    let branch = find_star_branch(chart, StarName::TianMa)?;
+    star_affected_by_void(chart, StarName::TianMa, policy).map(|fact| TianMaVoid {
+        tian_ma_branch: fact.branch,
+        void_kind: fact.void_kind,
+    })
+}
+
+/// A specific star sharing a palace with a modeled 空亡-family star.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct StarVoidFact {
+    /// The affected star.
+    pub star: StarName,
+    /// The branch both stars occupy.
+    pub branch: EarthlyBranch,
+    /// The kind of void affecting `star`.
+    pub void_kind: VoidKind,
+}
+
+/// Returns the modeled 空亡 fact affecting `star`, if any void star counted by
+/// `policy` shares that star's palace.
+pub fn star_affected_by_void(
+    chart: &Chart,
+    star: StarName,
+    policy: VoidPolicy,
+) -> Option<StarVoidFact> {
+    let branch = find_star_branch(chart, star)?;
     stars_in_palace(chart, branch)
         .into_iter()
         .find_map(|placement| {
             VoidKind::from_star(placement.name())
                 .filter(|kind| policy.includes(*kind))
-                .map(|void_kind| TianMaVoid {
-                    tian_ma_branch: branch,
+                .map(|void_kind| StarVoidFact {
+                    star,
+                    branch,
                     void_kind,
                 })
         })
+}
+
+/// A modeled 空亡-family star found in a specific palace.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct VoidInPalace {
+    /// The void star.
+    pub star: StarName,
+    /// The branch containing it.
+    pub branch: EarthlyBranch,
+    /// The modeled void kind.
+    pub void_kind: VoidKind,
+}
+
+/// Returns every modeled 空亡-family star counted by `policy` in `branch`.
+pub fn voids_in_palace(
+    chart: &Chart,
+    branch: EarthlyBranch,
+    policy: VoidPolicy,
+) -> Vec<VoidInPalace> {
+    let mut voids: Vec<_> = stars_in_palace(chart, branch)
+        .into_iter()
+        .filter_map(|placement| {
+            VoidKind::from_star(placement.name())
+                .filter(|kind| policy.includes(*kind))
+                .map(|void_kind| VoidInPalace {
+                    star: placement.name(),
+                    branch,
+                    void_kind,
+                })
+        })
+        .collect();
+    voids.sort_by_key(|fact| (fact.void_kind, fact.star));
+    voids
 }
 
 /// Two stars clamping (夹) the Life palace, one on each adjacent branch.
@@ -162,4 +220,38 @@ pub fn star_meets_tag_same_palace(
     encounters.sort_by_key(|encounter| (encounter.tag, encounter.strength, encounter.matched_star));
 
     encounters
+}
+
+/// A star carrying a given [`StarTag`] in a specific palace.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct TaggedStarInPalace {
+    /// The matched star.
+    pub star: StarName,
+    /// The palace branch.
+    pub branch: EarthlyBranch,
+    /// The tag matched.
+    pub tag: StarTag,
+    /// The strength of `star`'s membership in `tag`.
+    pub strength: StarTagStrength,
+}
+
+/// Returns every star in `branch` that carries `tag`, deterministically sorted.
+pub fn stars_with_tag_in_palace(
+    chart: &Chart,
+    branch: EarthlyBranch,
+    tag: StarTag,
+) -> Vec<TaggedStarInPalace> {
+    let mut matches: Vec<_> = stars_in_palace(chart, branch)
+        .into_iter()
+        .filter_map(|placement| {
+            star_tag_strength(placement.name(), tag).map(|strength| TaggedStarInPalace {
+                star: placement.name(),
+                branch,
+                tag,
+                strength,
+            })
+        })
+        .collect();
+    matches.sort_by_key(|matched| (matched.tag, matched.strength, matched.star));
+    matches
 }

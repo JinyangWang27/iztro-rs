@@ -516,11 +516,16 @@ fn executable_quan_shu_rules_are_wired_in_the_evaluator() {
     // Rule ids with a hand-coded predicate branch in
     // `src/rules/classical/evaluator.rs`. Pattern-catalog executables
     // (羊陀夹命 / 昌曲夹命) are validated separately and are not QuanShu rules.
-    const WIRED_EXECUTABLE: [&str; 4] = [
+    const WIRED_EXECUTABLE: [&str; 9] = [
         "migration.tian_ma_void.restless_movement",
         "life.ri_yue_fan_bei.hardship_pressure",
         "relationship.tan_ju_hai_zi.water_romance",
         "relationship.xing_yu_tan_lang.romance_with_penalty",
+        "fortune.tang_ju_kong_wang.gain_loss_critical",
+        "fortune.shan_fu_ju_kong.monastic_life",
+        "risk.sha_luo_kong_wang.malefic_force_voided",
+        "life.shen_zuo_kong_wang.body_void_pivot",
+        "fortune.fu_de_yu_kong_jie.restless_spirit",
     ];
     let rules = rules_corpus();
     for rule in &rules.rule {
