@@ -17,8 +17,8 @@ use crate::rules::classical::claim::{Claim, ClaimId, ClaimScope, ClaimStrength};
 use crate::rules::classical::evidence::{Evidence, EvidenceKind};
 use crate::rules::classical::outcome::{RuleOutcome, UnsupportedReason};
 use crate::rules::classical::predicates::{
-    star_in_branches, star_meets_tag_same_palace, stars_clamp_life, sun_and_moon_dim,
-    tian_ma_affected_by_void,
+    star_affected_by_void, star_in_branches, star_meets_tag_same_palace, stars_clamp_life,
+    sun_and_moon_dim, tian_ma_affected_by_void,
 };
 use crate::rules::classical::rule::{ClaimSpec, ClassicalRule};
 use crate::rules::classical::source_hit::ClassicalSourceHit;
@@ -32,6 +32,7 @@ const LU_MA_JIAO_CHI: &str = "fortune.lu_ma_jiao_chi.favorable_convergence";
 const RI_YUE_FAN_BEI: &str = "life.ri_yue_fan_bei.hardship_pressure";
 const TAN_LANG_HAI_ZI: &str = "relationship.tan_ju_hai_zi.water_romance";
 const XING_YU_TAN_LANG: &str = "relationship.xing_yu_tan_lang.romance_with_penalty";
+const SHAN_FU_JU_KONG: &str = "fortune.shan_fu_ju_kong.monastic_life";
 
 /// Evaluates `rule` against `chart`, returning a typed outcome.
 ///
@@ -52,6 +53,7 @@ pub fn evaluate(rule: &ClassicalRule, chart: &Chart) -> RuleOutcome {
         RI_YUE_FAN_BEI => evaluate_ri_yue_fan_bei(rule, chart),
         TAN_LANG_HAI_ZI => evaluate_tan_lang_hai_zi(rule, chart),
         XING_YU_TAN_LANG => evaluate_xing_yu_tan_lang(rule, chart),
+        SHAN_FU_JU_KONG => evaluate_shan_fu_ju_kong(rule, chart),
         // 禄马最喜交驰: the Lu/Tian Ma "交驰" relation is school-dependent and not
         // yet modeled as a deterministic chart fact, so the rule does not fire.
         LU_MA_JIAO_CHI => RuleOutcome::Unsupported(UnsupportedReason::LuMaRelationNotModeled),
@@ -210,6 +212,34 @@ fn evaluate_xing_yu_tan_lang(rule: &ClassicalRule, chart: &Chart) -> RuleOutcome
     }
 
     matched(rule, evidence)
+}
+
+/// 善福居空位，天竺生涯. Conservatively: 善=天机 and 福=天同, and both are
+/// affected by modeled 空亡-family stars.
+fn evaluate_shan_fu_ju_kong(rule: &ClassicalRule, chart: &Chart) -> RuleOutcome {
+    let Some(tian_ji) = star_affected_by_void(chart, StarName::TianJi, VoidPolicy::DEFAULT) else {
+        return RuleOutcome::NotApplicable;
+    };
+    let Some(tian_tong) = star_affected_by_void(chart, StarName::TianTong, VoidPolicy::DEFAULT)
+    else {
+        return RuleOutcome::NotApplicable;
+    };
+
+    matched(
+        rule,
+        vec![
+            Evidence::new(EvidenceKind::StarAffectedByVoid {
+                star: tian_ji.star,
+                void_kind: tian_ji.void_kind,
+                branch: tian_ji.branch,
+            }),
+            Evidence::new(EvidenceKind::StarAffectedByVoid {
+                star: tian_tong.star,
+                void_kind: tian_tong.void_kind,
+                branch: tian_tong.branch,
+            }),
+        ],
+    )
 }
 
 #[cfg(test)]

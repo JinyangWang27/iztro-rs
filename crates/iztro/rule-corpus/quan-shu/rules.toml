@@ -100,7 +100,7 @@ id = "fortune.tang_ju_kong_wang.gain_loss_critical"
 source_id = "quan_shu.v01.tai_wei_fu.tang_ju_kong_wang"
 work = "zi_wei_dou_shu_quan_shu"
 source_text_zh_hans = "倘居空亡，得失最为要紧"
-normalized_note_zh_hans = "句意结构：命或星居空亡之地，得失利害最须权衡。空亡已由 VoidPolicy 建模，但本句仅为『须重点权衡得失』之提示，未给出确定吉凶，故暂不可执行。"
+normalized_note_zh_hans = "句意结构：居空亡之地，得失利害最须权衡。『居』所指对象与得失判断口径尚未建模为确定图盘事实，本句也未给出确定吉凶，故暂不可执行。"
 status = "normalized"
 
 [[rule]]
@@ -458,8 +458,8 @@ id = "fortune.shan_fu_ju_kong.monastic_life"
 source_id = "quan_shu.v01.tai_wei_fu.shan_fu_ju_kong"
 work = "zi_wei_dou_shu_quan_shu"
 source_text_zh_hans = "善福居空位，天竺生涯"
-normalized_note_zh_hans = "句意结构：善（天机）、福（天同）居空亡之位，主出家入道（天竺生涯）。星曜化气对应与空亡聚合尚未为本规则建模，故暂不可执行。"
-status = "normalized"
+normalized_note_zh_hans = "本实现取善为天机、福为天同，并要求二星各自受已建模空亡族星影响；仅产出出处命中与结构化证据，不新增 Claim。"
+status = "executable"
 
 [[rule]]
 id = "life.fu_bi_dan_shou.illegitimate_or_adopted"

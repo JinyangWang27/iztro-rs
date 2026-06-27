@@ -27,14 +27,39 @@ pub struct TianMaVoid {
 /// Conservative: only modeled 空亡-family stars qualify (see [`VoidKind`]); 天空,
 /// 地空, and 地劫 are never treated as 空亡.
 pub fn tian_ma_affected_by_void(chart: &Chart, policy: VoidPolicy) -> Option<TianMaVoid> {
-    let branch = find_star_branch(chart, StarName::TianMa)?;
+    star_affected_by_void(chart, StarName::TianMa, policy).map(|fact| TianMaVoid {
+        tian_ma_branch: fact.branch,
+        void_kind: fact.void_kind,
+    })
+}
+
+/// A specific star sharing a palace with a modeled 空亡-family star.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub struct StarVoidFact {
+    /// The affected star.
+    pub star: StarName,
+    /// The branch both stars occupy.
+    pub branch: EarthlyBranch,
+    /// The kind of void affecting `star`.
+    pub void_kind: VoidKind,
+}
+
+/// Returns the modeled 空亡 fact affecting `star`, if any void star counted by
+/// `policy` shares that star's palace.
+pub fn star_affected_by_void(
+    chart: &Chart,
+    star: StarName,
+    policy: VoidPolicy,
+) -> Option<StarVoidFact> {
+    let branch = find_star_branch(chart, star)?;
     stars_in_palace(chart, branch)
         .into_iter()
         .find_map(|placement| {
             VoidKind::from_star(placement.name())
                 .filter(|kind| policy.includes(*kind))
-                .map(|void_kind| TianMaVoid {
-                    tian_ma_branch: branch,
+                .map(|void_kind| StarVoidFact {
+                    star,
+                    branch,
                     void_kind,
                 })
         })

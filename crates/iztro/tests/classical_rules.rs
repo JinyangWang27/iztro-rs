@@ -78,6 +78,10 @@ fn assemble(palaces: Vec<Palace>) -> Chart {
     .expect("synthetic chart should build")
 }
 
+fn major(branch: EarthlyBranch, star: StarName) -> Spec {
+    (branch, star, StarKind::Major, None)
+}
+
 fn tough(branch: EarthlyBranch, star: StarName) -> Spec {
     (branch, star, StarKind::Tough, None)
 }
@@ -116,6 +120,7 @@ const LU_MA: &str = "fortune.lu_ma_jiao_chi.favorable_convergence";
 const RI_YUE: &str = "life.ri_yue_fan_bei.hardship_pressure";
 const TAN_LANG_HAI_ZI: &str = "relationship.tan_ju_hai_zi.water_romance";
 const XING_YU_TAN_LANG: &str = "relationship.xing_yu_tan_lang.romance_with_penalty";
+const SHAN_FU_JU_KONG: &str = "fortune.shan_fu_ju_kong.monastic_life";
 
 // ---- corpus deserialization ----------------------------------------------
 
@@ -137,6 +142,13 @@ fn corpus_deserializes_all_pilot_rules() {
         assert!(rule.claim.is_some(), "rule {id} should have claim metadata");
         assert_eq!(rule.status, RuleStatus::Executable);
     }
+    let shan_fu =
+        rule_by_id(SHAN_FU_JU_KONG).unwrap_or_else(|| panic!("missing rule {SHAN_FU_JU_KONG}"));
+    assert!(
+        shan_fu.claim.is_none(),
+        "rule {SHAN_FU_JU_KONG} should be source-hit-only"
+    );
+    assert_eq!(shan_fu.status, RuleStatus::Executable);
     let lu_ma = rule_by_id(LU_MA).unwrap_or_else(|| panic!("missing rule {LU_MA}"));
     assert!(
         lu_ma.claim.is_none(),
@@ -179,7 +191,12 @@ fn tai_wei_fu_normalized_rules_are_inert_at_runtime() {
         .filter(|r| {
             !matches!(
                 r.id.as_str(),
-                TIAN_MA_VOID | LU_MA | RI_YUE | TAN_LANG_HAI_ZI | XING_YU_TAN_LANG
+                TIAN_MA_VOID
+                    | LU_MA
+                    | RI_YUE
+                    | TAN_LANG_HAI_ZI
+                    | XING_YU_TAN_LANG
+                    | SHAN_FU_JU_KONG
             )
         })
         .collect();
@@ -408,6 +425,95 @@ fn tian_ma_void_does_not_fire_on_tian_kong() {
     );
     let claims = evaluate_classical_claims(&chart, &ClaimEvaluationRequest::default());
     assert!(!has_rule(&claims, TIAN_MA_VOID));
+}
+
+// ---- void-related QuanShu source-hit-only executables ----------------------
+
+fn assert_source_hit_only_rule(
+    chart: &Chart,
+    rule_id: &str,
+    source_text_zh_hans: &str,
+    evidence: impl Fn(&[Evidence]) -> bool,
+) {
+    let evaluation = evaluate_classical(chart, &ClaimEvaluationRequest::default());
+    assert!(
+        !evaluation
+            .claims
+            .iter()
+            .any(|claim| claim.rule_id.as_str() == rule_id),
+        "{rule_id} should not emit a claim"
+    );
+    let source_hit = evaluation
+        .source_hits
+        .iter()
+        .find(|hit| hit.rule_id.as_str() == rule_id)
+        .unwrap_or_else(|| panic!("expected source hit for {rule_id}"));
+    assert_eq!(source_hit.work, ClassicalWork::ZiWeiDouShuQuanShu);
+    assert_eq!(source_hit.source_text_zh_hans, source_text_zh_hans);
+    assert_eq!(source_hit.status, RuleStatus::Executable);
+    assert!(
+        evidence(&source_hit.evidence),
+        "missing expected evidence for {rule_id}"
+    );
+}
+
+#[test]
+fn shan_fu_ju_kong_positive_when_tian_ji_and_tian_tong_meet_void() {
+    let chart = build_chart(
+        EarthlyBranch::Zi,
+        &[
+            major(EarthlyBranch::Yin, StarName::TianJi),
+            adj(EarthlyBranch::Yin, StarName::XunKong),
+            major(EarthlyBranch::Mao, StarName::TianTong),
+            adj(EarthlyBranch::Mao, StarName::KongWang),
+        ],
+    );
+
+    assert_source_hit_only_rule(
+        &chart,
+        SHAN_FU_JU_KONG,
+        "善福居空位，天竺生涯",
+        |evidence| {
+            evidence.iter().any(|e| {
+                matches!(
+                    e.kind(),
+                    EvidenceKind::StarAffectedByVoid {
+                        star: StarName::TianJi,
+                        void_kind: VoidKind::XunKong,
+                        branch: EarthlyBranch::Yin,
+                    }
+                )
+            }) && evidence.iter().any(|e| {
+                matches!(
+                    e.kind(),
+                    EvidenceKind::StarAffectedByVoid {
+                        star: StarName::TianTong,
+                        void_kind: VoidKind::KongWang,
+                        branch: EarthlyBranch::Mao,
+                    }
+                )
+            })
+        },
+    );
+}
+
+#[test]
+fn shan_fu_ju_kong_negative_when_only_one_star_meets_void() {
+    let chart = build_chart(
+        EarthlyBranch::Zi,
+        &[
+            major(EarthlyBranch::Yin, StarName::TianJi),
+            adj(EarthlyBranch::Yin, StarName::XunKong),
+            major(EarthlyBranch::Mao, StarName::TianTong),
+        ],
+    );
+    let evaluation = evaluate_classical(&chart, &ClaimEvaluationRequest::default());
+    assert!(
+        evaluation
+            .source_hits
+            .iter()
+            .all(|hit| hit.rule_id.as_str() != SHAN_FU_JU_KONG)
+    );
 }
 
 // ---- 羊陀夹命 --------------------------------------------------------------
