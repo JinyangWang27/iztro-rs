@@ -10,14 +10,14 @@ source inventory 以原子 source item 记录每条受引出处单元；`source_
 
 | Metric | Count |
 | --- | ---: |
-| Source items | 64 |
-| Located source items | 64 |
+| Source items | 67 |
+| Located source items | 67 |
 | Pending source items | 0 |
-| Linked source items | 64 |
+| Linked source items | 67 |
 | Unlinked source items | 0 |
-| Linked rules | 64 |
-| Executable linked rules | 4 |
-| Normalized linked rules | 42 |
+| Linked rules | 67 |
+| Executable linked rules | 9 |
+| Normalized linked rules | 40 |
 | Ambiguous linked rules | 17 |
 | Rejected linked rules | 1 |
 
