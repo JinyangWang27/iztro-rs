@@ -108,6 +108,46 @@ impl AnalysisLayerKey {
     }
 }
 
+/// The inclusive natal-outward [`Scope`] chain an analysis layer may inspect.
+///
+/// A layer detector may read its own scope and every **ancestor** scope, but
+/// never a **descendant**. The chain is therefore truncated at the layer's own
+/// scope:
+///
+/// | Layer     | Active scopes                                            |
+/// |-----------|----------------------------------------------------------|
+/// | Natal     | `[Natal]`                                                |
+/// | Decadal   | `[Natal, Decadal]`                                       |
+/// | Age       | `[Natal, Decadal, Age]`                                  |
+/// | Yearly    | `[Natal, Decadal, Age, Yearly]`                          |
+/// | Monthly   | `[Natal, Decadal, Age, Yearly, Monthly]`                 |
+/// | Daily     | `[Natal, Decadal, Age, Yearly, Monthly, Daily]`          |
+/// | Hourly    | `[Natal, Decadal, Age, Yearly, Monthly, Daily, Hourly]`  |
+///
+/// This is what keeps cached layer results semantically stable: detecting a 流年
+/// layer inside a selected 流月 view sees only up to 流年, so changing 流月 / 流日 /
+/// 流时 never changes a previously cached 流年 result.
+pub fn analysis_scopes_for_layer_key(key: &AnalysisLayerKey) -> Vec<Scope> {
+    const ORDER: [Scope; 7] = [
+        Scope::Natal,
+        Scope::Decadal,
+        Scope::Age,
+        Scope::Yearly,
+        Scope::Monthly,
+        Scope::Daily,
+        Scope::Hourly,
+    ];
+    let target = key.scope();
+    let mut scopes = Vec::new();
+    for scope in ORDER {
+        scopes.push(scope);
+        if scope == target {
+            break;
+        }
+    }
+    scopes
+}
+
 /// Expands a temporal navigation selection into the analysis layers it requires.
 ///
 /// The returned vector is the full ancestor chain the selection makes visible,

@@ -8,7 +8,7 @@
 //! returns a prepared [`StaticChartViewSnapshot`]. All overlay derivation
 //! (decadal frame, flow stars, mutagens, temporal palace layout, lunar→solar
 //! resolution) stays inside core — the renderer never constructs a
-//! [`HoroscopeChart`](crate::core::HoroscopeChart) or
+//! [`HoroscopeChart`] or
 //! [`TemporalLayer`](crate::core::TemporalLayer) itself.
 //!
 //! Natal facts are identical across every selection: only the attached temporal
@@ -22,7 +22,7 @@ use crate::core::facade::by_solar::{SolarChartRequest, by_solar};
 use crate::core::labels::chinese_date;
 use crate::core::model::calendar::{BirthTime, SolarDay, SolarMonth};
 use crate::core::model::chart::{
-    Chart, HoroscopeTargetContext, build_age_period, build_decadal_frame,
+    Chart, HoroscopeChart, HoroscopeTargetContext, build_age_period, build_decadal_frame,
 };
 use crate::core::model::star::mutagen::Scope;
 use crate::core::placement::overlay::partial_horoscope::{
@@ -92,6 +92,51 @@ pub fn static_temporal_chart_view_from_chart(
             let target = horoscope.target_context().cloned();
             decorate_temporal(&mut snapshot, horoscope.natal(), selection, target.as_ref())?;
             Ok(snapshot)
+        }
+    }
+}
+
+/// An owned chart context for one temporal navigation selection.
+///
+/// Natal / pre-decadal selections carry no temporal overlay, so they hold the
+/// natal [`Chart`] directly; every deeper selection holds the
+/// [`HoroscopeChart`](crate::core::HoroscopeChart) whose overlay stack reaches
+/// the selected scope. Both expose the natal facts (a [`HoroscopeChart`] borrows
+/// its own natal), so an analysis caller can build a read context over either.
+///
+/// This keeps overlay construction inside core: callers receive a built context,
+/// never the overlay-building primitives.
+pub(crate) enum SelectedTemporalChart {
+    /// Natal / pre-decadal: natal facts with no temporal overlay.
+    Natal(Chart),
+    /// Decadal or deeper: the partial overlay stack up to the selected scope.
+    Horoscope(Box<HoroscopeChart>),
+}
+
+/// Builds the owned chart context for one temporal navigation selection.
+///
+/// This is the overlay-building half of [`static_temporal_chart_view_from_chart`]
+/// without the snapshot/panel decoration: it resolves the selection indices to
+/// concrete lunar/solar coordinates and assembles the partial horoscope stack up
+/// to the selected scope, returning a [`SelectedTemporalChart`] the caller can
+/// analyze. Natal / pre-decadal selections need no overlay and return the natal
+/// chart unchanged.
+///
+/// The natal `Chart` is taken by value because the partial-overlay path
+/// ([`build_partial_horoscope_chart`]) consumes it.
+pub(crate) fn build_selected_temporal_chart(
+    natal: Chart,
+    selection: StaticTemporalNavigationSelection,
+) -> Result<SelectedTemporalChart, ChartError> {
+    validate_selection_indices(selection)?;
+
+    match selection {
+        StaticTemporalNavigationSelection::Natal
+        | StaticTemporalNavigationSelection::PreDecadal => Ok(SelectedTemporalChart::Natal(natal)),
+        _ => {
+            let (spec, _visible_scopes) = resolve_partial(&natal, selection)?;
+            let horoscope = build_partial_horoscope_chart(natal, spec)?;
+            Ok(SelectedTemporalChart::Horoscope(Box::new(horoscope)))
         }
     }
 }

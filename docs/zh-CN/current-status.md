@@ -61,9 +61,9 @@
 
 `iztro-gui` 在固定尺寸、可滚动的命盘画布**旁边**渲染一个可折叠的右侧检视面板（绝不嵌入画布内部，因此宫格不会被压缩），包含三个标签页：全书规则、格局、设置。该面板纯属渲染层：只读取已缓存的结构化分析结果，自身不做规则评估、格局检测或运限叠加推导。
 
-分析保持轻量、按层进行。GUI 调用核心 `analysis_layers_for_selection(selection)`，把当前运限视图展开为它所暴露的 `AnalysisLayerKey`，仅向内存中的 `AnalysisCache` 请求缺失的层（`detect_analysis_layer`），再把缓存结果分组到全书规则与格局两个标签页（空分组隐藏）。由于每个结果以 `AnalysisLayerKey` 为键，更深的叠加变化不会重算祖先层（本命 / 大限 / …）：在同一流年下切换流月 / 流日 / 流时会复用已缓存的流年层。生成新的出生输入会清空缓存；分析结果从不持久化。规则命中保持精简——GUI 通过 `classical_rule_metadata` 按 rule id 解析原文一次，绝不把 `source_text_zh_hans` 复制进 GUI 状态；面向用户的规则流经 `AnalysisLayerRequest::user_facing` 仅含全书规则。
+分析保持轻量、按层进行。GUI 调用核心 `analysis_layers_for_selection(selection)`，把当前运限视图展开为它所暴露的 `AnalysisLayerKey`，仅向内存中的 `AnalysisCache` 请求缺失的层，再把缓存结果分组到全书规则与格局两个标签页（空分组隐藏）。由于每个结果以 `AnalysisLayerKey` 为键，更深的叠加变化不会重算祖先层（本命 / 大限 / …）：在同一流年下切换流月 / 流日 / 流时会复用已缓存的流年层。生成新的出生输入会清空缓存；分析结果从不持久化。规则命中保持精简——GUI 通过 `classical_rule_metadata` 按 rule id 解析原文一次，绝不把 `source_text_zh_hans` 复制进 GUI 状态；面向用户的规则流经 `AnalysisLayerRequest::user_facing` 仅含全书规则。
 
-本期检视面板的分析上下文为本命-only（`TemporalAnalysisContext::natal`）：静态运限流程暴露的是已准备的 `StaticChartViewSnapshot` 而非 `HoroscopeChart`，因此暂不在 UI 内复制核心的私有叠加构造逻辑，而是推迟引入 horoscope 上下文。当前可执行的全书规则只匹配本命事实，故此举不损失任何信息。
+检视面板通过核心的整批分析门面（`detect_static_temporal_analysis_layers_from_chart`）请求所选视图的分析：GUI 传入本命命盘、当前运限选择与缺失的层键，核心在内部构建一次运限/horoscope 上下文，并返回精简的逐层结果；GUI 负责缓存与渲染。GUI 自身绝不构造 `HoroscopeChart` 或运限叠加。每个被请求的层都使用截断到该层的活动 scope 链（`analysis_scopes_for_layer_key`）进行检测，因此一个层可以检视其祖先与自身，但绝不检视后代——切换流月 / 流日 / 流时不会改变此前已缓存的流年结果。
 
 GUI 设置（界面语言、右侧面板模式、当前标签页）与已保存命盘**分开**持久化：命盘存于 `charts.json`（`ChartStore`），偏好存于 `settings.json`（独立的 `SettingsStore`），遵循同样的可注入路径、无当前目录回退、容错读取策略。
 

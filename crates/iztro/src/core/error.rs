@@ -249,6 +249,18 @@ pub enum ChartError {
         /// Inclusive maximum valid value.
         max: u8,
     },
+    /// A requested analysis layer is not visible under the selected temporal view.
+    ///
+    /// Returned by the selected-view batch analysis facade
+    /// (`detect_static_temporal_analysis_layers_from_chart`) when a requested
+    /// analysis layer key does not exactly match any layer the current temporal
+    /// selection makes visible — a wrong scope, a sibling index, or a mismatched
+    /// ancestor index.
+    #[error("analysis layer scope {scope:?} is not visible for the selected temporal view")]
+    AnalysisLayerNotVisibleForSelection {
+        /// Scope of the requested-but-not-visible analysis layer.
+        scope: Scope,
+    },
     /// A nominal age has no covering period in the derived decadal frame.
     #[error("nominal age {nominal_age} is outside the derived decadal frame")]
     NominalAgeOutsideDecadalFrame {

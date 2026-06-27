@@ -11,8 +11,8 @@ use iztro::{
     ClaimEvaluationRequest, ClassicalRuleContext, EarthlyBranch, Gender, HeavenlyStem,
     MethodProfile, Mutagen, PALACE_NAMES, Palace, PatternScope, Scope, StarKind, StarName,
     StarPlacement, StaticTemporalNavigationSelection, StemBranch, TemporalAnalysisContext,
-    analysis_layers_for_selection, detect_analysis_layer, evaluate_classical,
-    evaluate_classical_in_context,
+    analysis_layers_for_selection, analysis_scopes_for_layer_key, detect_analysis_layer,
+    evaluate_classical, evaluate_classical_in_context,
 };
 
 // ---- synthetic chart builders --------------------------------------------
@@ -356,6 +356,69 @@ fn layer_key_maps_to_correct_scopes() {
         assert_eq!(key.scope(), scope);
         assert_eq!(key.claim_scope(), claim_scope);
         assert_eq!(key.pattern_scope(), pattern_scope);
+    }
+}
+
+// ---- analysis_scopes_for_layer_key ---------------------------------------
+
+#[test]
+fn analysis_scopes_truncate_to_each_layer() {
+    use Scope::*;
+    let cases = [
+        (AnalysisLayerKey::Natal, vec![Natal]),
+        (
+            AnalysisLayerKey::Decadal { decadal_index: 0 },
+            vec![Natal, Decadal],
+        ),
+        (
+            AnalysisLayerKey::Age {
+                decadal_index: 0,
+                year_index: 0,
+            },
+            vec![Natal, Decadal, Age],
+        ),
+        (
+            AnalysisLayerKey::Yearly {
+                decadal_index: 0,
+                year_index: 0,
+            },
+            vec![Natal, Decadal, Age, Yearly],
+        ),
+        (
+            AnalysisLayerKey::Monthly {
+                decadal_index: 0,
+                year_index: 0,
+                month_index: 0,
+            },
+            vec![Natal, Decadal, Age, Yearly, Monthly],
+        ),
+        (
+            AnalysisLayerKey::Daily {
+                decadal_index: 0,
+                year_index: 0,
+                month_index: 0,
+                day_index: 0,
+            },
+            vec![Natal, Decadal, Age, Yearly, Monthly, Daily],
+        ),
+        (
+            AnalysisLayerKey::Hourly {
+                decadal_index: 0,
+                year_index: 0,
+                month_index: 0,
+                day_index: 0,
+                hour_index: 0,
+            },
+            vec![Natal, Decadal, Age, Yearly, Monthly, Daily, Hourly],
+        ),
+    ];
+
+    for (key, expected) in cases {
+        assert_eq!(
+            analysis_scopes_for_layer_key(&key),
+            expected,
+            "active scopes for {key:?} must be its ancestors and itself, never a descendant"
+        );
     }
 }
 
