@@ -87,7 +87,13 @@ pub(super) fn grid_cell<'a>(
             } else {
                 PalaceHighlight::None
             };
-            palace_cell(palace, highlight, i18n)
+            // Analysis highlight is a subtle, additive emphasis layered on top of
+            // the structural highlight already in place. It can never replace the
+            // selected/related tones.
+            let analysis_emphasis = app
+                .active_chart_highlight()
+                .is_some_and(|view| view.highlights_palace(palace.branch));
+            palace_cell(palace, highlight, analysis_emphasis, i18n)
         }
         None => container(text("")).width(Length::FillPortion(1)).into(),
     }
@@ -107,6 +113,7 @@ pub(super) enum PalaceHighlight {
 pub(super) fn palace_cell<'a>(
     palace: &'a StaticPalaceView,
     highlight: PalaceHighlight,
+    analysis_emphasis: bool,
     i18n: &I18n,
 ) -> Element<'a, Message> {
     // Zone every prepared natal typed star by its coarse `kind.category()`:
@@ -192,7 +199,7 @@ pub(super) fn palace_cell<'a>(
         .width(Length::FillPortion(1))
         .height(Length::Fill)
         .padding(6)
-        .style(palace_cell_style(highlight));
+        .style(palace_cell_style(highlight, analysis_emphasis));
 
     // Hovering a palace drives the 三方四正 highlight; the exit carries the
     // branch so a stale exit cannot clear a newer hover.
