@@ -8,7 +8,8 @@
 //! pattern detection, temporal-overlay, 三方四正, mutagen, or 成格 derivation is
 //! computed here — chart facts are read from prepared snapshots, and the right
 //! inspector's rule/pattern data is **requested** from the core analysis API
-//! (`iztro::analysis::detect_analysis_layer`) per layer and cached. This module
+//! (`iztro::analysis::detect_static_temporal_analysis_layers_from_chart`) per
+//! layer and cached. This module
 //! decides *which* layers to request and holds the results; the derivation
 //! itself stays in core.
 
@@ -17,7 +18,9 @@ use std::collections::{BTreeSet, HashMap};
 use serde::{Deserialize, Serialize};
 
 use crate::analysis::{
-    AnalysisCache, PatternHitExpansionKey, RuleHitExpansionKey, missing_analysis_layers,
+    ActiveAnalysisSelection, AnalysisCache, ChartHighlightView, PatternHitExpansionKey,
+    RuleHitExpansionKey, highlight_for_pattern_detection, highlight_for_rule_hit,
+    missing_analysis_layers,
 };
 use crate::persistence::ChartStore;
 use crate::settings::{AppSettings, RightPanelMode, RightPanelTab, SettingsStore};
@@ -586,6 +589,10 @@ pub struct StaticChartApp {
     expanded_rule_hits: BTreeSet<RuleHitExpansionKey>,
     /// Which 格局 lines are expanded in the inspector.
     expanded_pattern_hits: BTreeSet<PatternHitExpansionKey>,
+    /// The currently selected inspector hit driving chart highlighting, if any.
+    /// Renderer-local only: never persisted, cleared when the chart input changes
+    /// or temporal navigation invalidates its layer.
+    active_analysis_selection: Option<ActiveAnalysisSelection>,
 }
 
 impl StaticChartApp {
@@ -613,6 +620,7 @@ impl StaticChartApp {
             natal_chart: None,
             expanded_rule_hits: BTreeSet::new(),
             expanded_pattern_hits: BTreeSet::new(),
+            active_analysis_selection: None,
         }
     }
 
@@ -735,6 +743,36 @@ impl StaticChartApp {
     /// Whether the given 格局 line is currently expanded.
     pub fn is_pattern_hit_expanded(&self, key: &PatternHitExpansionKey) -> bool {
         self.expanded_pattern_hits.contains(key)
+    }
+
+    /// The currently selected inspector hit driving chart highlighting, if any.
+    pub fn active_analysis_selection(&self) -> Option<&ActiveAnalysisSelection> {
+        self.active_analysis_selection.as_ref()
+    }
+
+    /// Projects the current active analysis selection into a [`ChartHighlightView`]
+    /// by reading the cached structured analysis result for its layer.
+    ///
+    /// Returns `None` when there is no active selection or the cached layer no
+    /// longer contains the referenced hit (e.g. a temporal change just dropped
+    /// the layer from the visible set). An empty highlight is still returned as
+    /// `Some` so the caller can distinguish "no selection" from "selected but
+    /// nothing safely projectable".
+    pub fn active_chart_highlight(&self) -> Option<ChartHighlightView> {
+        let selection = self.active_analysis_selection.as_ref()?;
+        let result = self.analysis_cache.get(selection.layer())?;
+        match selection {
+            ActiveAnalysisSelection::Rule(key) => result
+                .rule_hits
+                .iter()
+                .find(|hit| hit.rule_id == key.rule_id)
+                .map(highlight_for_rule_hit),
+            ActiveAnalysisSelection::Pattern(key) => result
+                .pattern_hits
+                .iter()
+                .find(|hit| hit.id == key.pattern_id)
+                .map(highlight_for_pattern_detection),
+        }
     }
 
     /// Returns the chart cache (read-only).
@@ -938,6 +976,11 @@ impl StaticChartApp {
                     self.expanded_pattern_hits.clear();
                     self.natal_chart = build_request(&input).and_then(by_solar).ok();
                 }
+                // generate() always resets selected_temporal_selection to
+                // PreDecadal, so any active selection on a deeper layer would
+                // become stale. Clear it unconditionally on every successful
+                // generate regardless of whether the input changed.
+                self.active_analysis_selection = None;
                 self.input = Some(input);
                 self.hovered_palace = None;
                 self.selected_temporal_selection = StaticTemporalNavigationSelection::PreDecadal;
@@ -988,8 +1031,29 @@ impl StaticChartApp {
                 // Request only the layers the new selection adds; cached ancestor
                 // layers (本命/大限/…) are reused untouched.
                 self.refresh_analysis();
+                // A highlight pinned to a layer the new selection no longer makes
+                // visible is stale and would point at an invisible hit; clear it.
+                self.clear_stale_active_selection();
             }
             Err(error) => self.error = Some(form_error_from_chart_error(error)),
+        }
+    }
+
+    /// Drops [`active_analysis_selection`] when its layer is no longer in the
+    /// visible set for the current temporal selection.
+    ///
+    /// Layers that remain visible (e.g. `Yearly` while drilling deeper into the
+    /// same year) keep their highlight; layers dropped by the navigation step
+    /// (e.g. switching to a different `Yearly`) are released.
+    ///
+    /// [`active_analysis_selection`]: Self::active_analysis_selection
+    fn clear_stale_active_selection(&mut self) {
+        let Some(selection) = self.active_analysis_selection.as_ref() else {
+            return;
+        };
+        let visible = analysis_layers_for_selection(self.selected_temporal_selection);
+        if !visible.iter().any(|layer| layer == selection.layer()) {
+            self.active_analysis_selection = None;
         }
     }
 
@@ -1310,6 +1374,7 @@ impl StaticChartApp {
                 self.selected = None;
                 self.hovered_palace = None;
                 self.selected_temporal_selection = StaticTemporalNavigationSelection::PreDecadal;
+                self.clear_stale_active_selection();
             }
             Message::SetLocale(locale) => {
                 let previous = self.settings.locale;
@@ -1345,13 +1410,26 @@ impl StaticChartApp {
                 }
             }
             Message::ToggleRuleHit(key) => {
-                if !self.expanded_rule_hits.remove(&key) {
-                    self.expanded_rule_hits.insert(key);
+                let was_expanded = self.expanded_rule_hits.remove(&key);
+                if !was_expanded {
+                    self.expanded_rule_hits.insert(key.clone());
+                    self.active_analysis_selection = Some(ActiveAnalysisSelection::Rule(key));
+                } else if self.active_analysis_selection == Some(ActiveAnalysisSelection::Rule(key))
+                {
+                    // Collapsing the active row releases the highlight; another
+                    // expanded row is still expanded but no longer the source.
+                    self.active_analysis_selection = None;
                 }
             }
             Message::TogglePatternHit(key) => {
-                if !self.expanded_pattern_hits.remove(&key) {
-                    self.expanded_pattern_hits.insert(key);
+                let was_expanded = self.expanded_pattern_hits.remove(&key);
+                if !was_expanded {
+                    self.expanded_pattern_hits.insert(key.clone());
+                    self.active_analysis_selection = Some(ActiveAnalysisSelection::Pattern(key));
+                } else if self.active_analysis_selection
+                    == Some(ActiveAnalysisSelection::Pattern(key))
+                {
+                    self.active_analysis_selection = None;
                 }
             }
         }
@@ -2787,5 +2865,171 @@ mod tests {
         let app = StaticChartApp::new();
         assert_eq!(app.settings(), &AppSettings::default());
         assert_eq!(app.right_panel_tab(), RightPanelTab::QuanShuRules);
+    }
+
+    fn rule_key(layer: AnalysisLayerKey, id: &str) -> RuleHitExpansionKey {
+        RuleHitExpansionKey {
+            layer,
+            rule_id: iztro::rules::classical::ClassicalRuleId::new(id),
+        }
+    }
+
+    fn pattern_key(
+        layer: AnalysisLayerKey,
+        pattern_id: iztro::core::PatternId,
+    ) -> PatternHitExpansionKey {
+        PatternHitExpansionKey { layer, pattern_id }
+    }
+
+    #[test]
+    fn clicking_a_rule_hit_sets_the_active_analysis_selection() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        let key = rule_key(AnalysisLayerKey::Natal, "test.rule");
+        app.update(Message::ToggleRuleHit(key.clone()));
+        assert_eq!(
+            app.active_analysis_selection(),
+            Some(&ActiveAnalysisSelection::Rule(key.clone()))
+        );
+        // The row is also expanded so the structured detail is visible alongside
+        // the highlight.
+        assert!(app.is_rule_hit_expanded(&key));
+    }
+
+    #[test]
+    fn clicking_a_pattern_hit_sets_the_active_analysis_selection() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        let key = pattern_key(
+            AnalysisLayerKey::Natal,
+            iztro::core::PatternId::ZiFuChaoYuan,
+        );
+        app.update(Message::TogglePatternHit(key.clone()));
+        assert_eq!(
+            app.active_analysis_selection(),
+            Some(&ActiveAnalysisSelection::Pattern(key.clone()))
+        );
+        assert!(app.is_pattern_hit_expanded(&key));
+    }
+
+    #[test]
+    fn collapsing_the_active_rule_hit_releases_the_selection() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        let key = rule_key(AnalysisLayerKey::Natal, "test.rule");
+        app.update(Message::ToggleRuleHit(key.clone()));
+        app.update(Message::ToggleRuleHit(key.clone()));
+        assert!(app.active_analysis_selection().is_none());
+        assert!(!app.is_rule_hit_expanded(&key));
+    }
+
+    #[test]
+    fn generating_a_new_chart_clears_the_active_analysis_selection() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        let key = rule_key(AnalysisLayerKey::Natal, "test.rule");
+        app.update(Message::ToggleRuleHit(key));
+        assert!(app.active_analysis_selection().is_some());
+
+        // A different birth input must clear the analysis cache *and* the
+        // highlight that points at a now-invisible hit.
+        app.update(Message::YearChanged("2000".to_string()));
+        app.update(Message::NameChanged("第二张命盘".to_string()));
+        app.generate();
+        assert!(app.active_analysis_selection().is_none());
+    }
+
+    #[test]
+    fn temporal_navigation_keeps_active_selection_when_layer_stays_visible() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        app.update(Message::SelectTemporalCell(TemporalCell::Decadal(0)));
+        let key = rule_key(AnalysisLayerKey::Decadal { decadal_index: 0 }, "test.rule");
+        app.update(Message::ToggleRuleHit(key.clone()));
+        // Drilling deeper into the same 大限 keeps the 大限 layer visible, so the
+        // 大限-anchored highlight survives.
+        app.update(Message::SelectTemporalCell(TemporalCell::YearlyAge(0)));
+        assert_eq!(
+            app.active_analysis_selection(),
+            Some(&ActiveAnalysisSelection::Rule(key))
+        );
+    }
+
+    #[test]
+    fn temporal_navigation_clears_active_selection_when_layer_drops_off() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        app.update(Message::SelectTemporalCell(TemporalCell::Decadal(0)));
+        let key = rule_key(AnalysisLayerKey::Decadal { decadal_index: 0 }, "test.rule");
+        app.update(Message::ToggleRuleHit(key));
+        // Switching to a different 大限 drops the previously selected 大限 layer
+        // from the visible set; the highlight pinned to it is released.
+        app.update(Message::SelectTemporalCell(TemporalCell::Decadal(1)));
+        assert!(app.active_analysis_selection().is_none());
+    }
+
+    #[test]
+    fn active_chart_highlight_reads_the_cached_layer_result_for_a_pattern() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        // Drive a real pattern detection by selecting whatever pattern hit shows
+        // up on the seeded sample chart's natal layer, if any. If the sample
+        // chart happens to produce no pattern hits, the assertion is vacuous;
+        // the structural projection is still covered by analysis.rs unit tests.
+        if let Some(detection) = app
+            .analysis_cache()
+            .get(&AnalysisLayerKey::Natal)
+            .and_then(|result| result.pattern_hits.first())
+            .cloned()
+        {
+            let key = pattern_key(AnalysisLayerKey::Natal, detection.id);
+            app.update(Message::TogglePatternHit(key));
+            let view = app.active_chart_highlight().expect("active highlight");
+            // The view is whatever the cached detection's involved_* fields
+            // project to; an entirely empty detection is allowed but rare.
+            for branch in &detection.involved_palaces {
+                assert!(view.highlights_palace(*branch));
+            }
+            for star in &detection.involved_stars {
+                assert!(view.star_names.contains(star));
+            }
+            for mutagen in &detection.involved_mutagens {
+                assert!(view.mutagens.contains(mutagen));
+            }
+        }
+    }
+
+    #[test]
+    fn active_chart_highlight_is_none_when_nothing_is_selected() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        assert!(app.active_chart_highlight().is_none());
+    }
+
+    #[test]
+    fn regenerating_same_input_clears_the_active_analysis_selection() {
+        // generate() always resets selected_temporal_selection to PreDecadal,
+        // so any active selection anchored to a deeper layer (e.g. Decadal)
+        // would point at a layer that is no longer visible. generate() must
+        // clear active_analysis_selection unconditionally, not just when the
+        // birth input changes.
+        let mut app = StaticChartApp::new();
+        app.generate();
+        app.update(Message::SelectTemporalCell(TemporalCell::Decadal(0)));
+        let key = rule_key(AnalysisLayerKey::Decadal { decadal_index: 0 }, "test.rule");
+        app.update(Message::ToggleRuleHit(key));
+        assert!(app.active_analysis_selection().is_some());
+
+        // Regenerate with the same input: selected_temporal_selection resets to
+        // PreDecadal and the Decadal-anchored active selection must be released.
+        app.generate();
+        assert_eq!(
+            app.selected_temporal_selection(),
+            StaticTemporalNavigationSelection::PreDecadal
+        );
+        assert!(
+            app.active_analysis_selection().is_none(),
+            "active selection must be cleared on every successful generate()"
+        );
     }
 }

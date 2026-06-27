@@ -83,31 +83,42 @@ const MUTAGEN_JI: Color = rgb8(0x00, 0x00, 0x00);
 
 pub(super) fn palace_cell_style(
     highlight: PalaceHighlight,
+    analysis_emphasis: bool,
 ) -> impl Fn(&Theme, button::Status) -> button::Style {
     move |theme, _status| {
         let palette = theme.extended_palette();
-        let (background, text_color, border_color, width) = match highlight {
-            PalaceHighlight::Selected => (
-                palette.primary.weak.color,
-                palette.primary.weak.text,
-                palette.primary.strong.color,
-                2.0,
-            ),
-            // 三方四正 related palaces get a subtle filled background, weaker
-            // than the active palace above (a soft fill rather than only a
-            // border), matching the iztro highlight feel.
-            PalaceHighlight::Related => (
-                palette.background.weak.color,
-                palette.background.weak.text,
-                palette.primary.base.color,
-                1.5,
-            ),
-            PalaceHighlight::None => (
-                palette.background.base.color,
-                palette.background.base.text,
-                palette.background.strong.color,
-                1.0,
-            ),
+        let (background, text_color, border_color, width): (Color, Color, Color, f32) =
+            match highlight {
+                PalaceHighlight::Selected => (
+                    palette.primary.weak.color,
+                    palette.primary.weak.text,
+                    palette.primary.strong.color,
+                    2.0,
+                ),
+                // 三方四正 related palaces get a subtle filled background, weaker
+                // than the active palace above (a soft fill rather than only a
+                // border), matching the iztro highlight feel.
+                PalaceHighlight::Related => (
+                    palette.background.weak.color,
+                    palette.background.weak.text,
+                    palette.primary.base.color,
+                    1.5,
+                ),
+                PalaceHighlight::None => (
+                    palette.background.base.color,
+                    palette.background.base.text,
+                    palette.background.strong.color,
+                    1.0,
+                ),
+            };
+        // Analysis emphasis is additive: it only nudges the border tone on top
+        // of the structural highlight, so the selected/related visual identity
+        // is preserved. An inactive palace gains a soft success-toned border to
+        // mark it as an analysis target without overriding background or text.
+        let (border_color, width) = if analysis_emphasis {
+            (palette.success.strong.color, width.max(1.5))
+        } else {
+            (border_color, width)
         };
         button::Style {
             background: Some(background.into()),
