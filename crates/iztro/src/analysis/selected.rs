@@ -5,7 +5,7 @@
 //! holds a natal [`Chart`], the current
 //! [`StaticTemporalNavigationSelection`], and the list of
 //! [`AnalysisLayerKey`]s it is still missing (see
-//! [`analysis_layers_for_selection`](crate::analysis::analysis_layers_for_selection));
+//! [`analysis_layers_for_selection`]);
 //! it passes those in and receives one [`AnalysisLayerResult`] per requested key.
 //!
 //! Core owns the temporal context: it builds the selected horoscope overlay stack

@@ -8,7 +8,7 @@
 //! returns a prepared [`StaticChartViewSnapshot`]. All overlay derivation
 //! (decadal frame, flow stars, mutagens, temporal palace layout, lunar→solar
 //! resolution) stays inside core — the renderer never constructs a
-//! [`HoroscopeChart`](crate::core::HoroscopeChart) or
+//! [`HoroscopeChart`] or
 //! [`TemporalLayer`](crate::core::TemporalLayer) itself.
 //!
 //! Natal facts are identical across every selection: only the attached temporal
