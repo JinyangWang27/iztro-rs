@@ -3,10 +3,11 @@
 //! Analysis in core is **layer-level**: an app expands the current temporal
 //! selection into the [`AnalysisLayerKey`]s it makes visible
 //! ([`analysis_layers_for_selection`]), requests only the layers it is missing
-//! ([`detect_analysis_layer`]), and caches each result by its key. Ancestor
-//! layers (本命 / 大限 / …) are therefore never recomputed when a deeper temporal
-//! overlay changes: moving from one 流月 to another under the same 流年 reuses the
-//! cached 本命/大限/小限/流年 results and requests only the new 流月 layer.
+//! ([`detect_static_temporal_analysis_layers_from_chart`]), and caches each
+//! result by its key. Ancestor layers (本命 / 大限 / …) are therefore never
+//! recomputed when a deeper temporal overlay changes: moving from one 流月 to
+//! another under the same 流年 reuses the cached 本命/大限/小限/流年 results and
+//! requests only the new 流月 layer.
 //!
 //! This module owns the renderer-agnostic cache and the pure planning helper so
 //! both can be unit-tested without touching Iced. Analysis results are **never**
@@ -14,7 +15,7 @@
 //! generated.
 //!
 //! [`analysis_layers_for_selection`]: iztro::analysis::analysis_layers_for_selection
-//! [`detect_analysis_layer`]: iztro::analysis::detect_analysis_layer
+//! [`detect_static_temporal_analysis_layers_from_chart`]: iztro::analysis::detect_static_temporal_analysis_layers_from_chart
 
 use std::collections::BTreeMap;
 
@@ -201,9 +202,10 @@ pub(crate) fn highlight_for_pattern_detection(detection: &PatternDetection) -> C
 /// branch, star, or mutagen target.
 ///
 /// The projection is intentionally conservative: variants whose targets cannot
-/// be mapped safely (e.g. [`EvidenceKind::PalaceRelation`] without an explicit
-/// star/mutagen, or unsupported-condition placeholders) contribute nothing
-/// rather than fabricating semantics.
+/// be mapped safely (e.g. unsupported-condition placeholders) contribute
+/// nothing rather than fabricating semantics.
+/// [`EvidenceKind::PalaceRelation`] contributes the `from` and `to` palace
+/// branches without fabricating a star or mutagen for the connecting line.
 pub(crate) fn highlight_for_rule_hit(hit: &ClassicalRuleHitRef) -> ChartHighlightView {
     let mut view = ChartHighlightView::default();
     for evidence in &hit.evidence {

@@ -8,7 +8,8 @@
 //! pattern detection, temporal-overlay, 三方四正, mutagen, or 成格 derivation is
 //! computed here — chart facts are read from prepared snapshots, and the right
 //! inspector's rule/pattern data is **requested** from the core analysis API
-//! (`iztro::analysis::detect_analysis_layer`) per layer and cached. This module
+//! (`iztro::analysis::detect_static_temporal_analysis_layers_from_chart`) per
+//! layer and cached. This module
 //! decides *which* layers to request and holds the results; the derivation
 //! itself stays in core.
 
@@ -973,9 +974,13 @@ impl StaticChartApp {
                     self.analysis_cache.clear();
                     self.expanded_rule_hits.clear();
                     self.expanded_pattern_hits.clear();
-                    self.active_analysis_selection = None;
                     self.natal_chart = build_request(&input).and_then(by_solar).ok();
                 }
+                // generate() always resets selected_temporal_selection to
+                // PreDecadal, so any active selection on a deeper layer would
+                // become stale. Clear it unconditionally on every successful
+                // generate regardless of whether the input changed.
+                self.active_analysis_selection = None;
                 self.input = Some(input);
                 self.hovered_palace = None;
                 self.selected_temporal_selection = StaticTemporalNavigationSelection::PreDecadal;
@@ -2999,5 +3004,32 @@ mod tests {
         let mut app = StaticChartApp::new();
         app.generate();
         assert!(app.active_chart_highlight().is_none());
+    }
+
+    #[test]
+    fn regenerating_same_input_clears_the_active_analysis_selection() {
+        // generate() always resets selected_temporal_selection to PreDecadal,
+        // so any active selection anchored to a deeper layer (e.g. Decadal)
+        // would point at a layer that is no longer visible. generate() must
+        // clear active_analysis_selection unconditionally, not just when the
+        // birth input changes.
+        let mut app = StaticChartApp::new();
+        app.generate();
+        app.update(Message::SelectTemporalCell(TemporalCell::Decadal(0)));
+        let key = rule_key(AnalysisLayerKey::Decadal { decadal_index: 0 }, "test.rule");
+        app.update(Message::ToggleRuleHit(key));
+        assert!(app.active_analysis_selection().is_some());
+
+        // Regenerate with the same input: selected_temporal_selection resets to
+        // PreDecadal and the Decadal-anchored active selection must be released.
+        app.generate();
+        assert_eq!(
+            app.selected_temporal_selection(),
+            StaticTemporalNavigationSelection::PreDecadal
+        );
+        assert!(
+            app.active_analysis_selection().is_none(),
+            "active selection must be cleared on every successful generate()"
+        );
     }
 }
