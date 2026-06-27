@@ -206,9 +206,31 @@ fn user_facing_analysis_request_is_quan_shu_only() {
 /// `detect_analysis_layer` with the `user_facing()` request must not return
 /// that rule's hit. Pattern-catalog rules surface through the pattern (格局)
 /// stream, not the classical rule stream.
+///
+/// A precondition asserts the fixture chart actually fires a catalog rule before
+/// checking exclusion, so the test cannot pass vacuously if the fixture stops
+/// matching.
 #[test]
 fn user_facing_rule_hits_exclude_pattern_catalog() {
     let chart = chang_qu_jia_ming_chart();
+
+    // Precondition: verify the fixture fires at least one IztroPatternCatalog rule.
+    let catalog_request = ClaimEvaluationRequest {
+        works: vec![ClassicalWork::IztroPatternCatalog],
+        diagnostic_mode: DiagnosticMode::None,
+        ..Default::default()
+    };
+    let catalog_eval = evaluate_classical(&chart, &catalog_request);
+    assert!(
+        catalog_eval
+            .source_hits
+            .iter()
+            .any(|h| h.work == ClassicalWork::IztroPatternCatalog),
+        "precondition: chang_qu_jia_ming_chart() must fire at least one \
+         IztroPatternCatalog rule; update the fixture if the corpus changes"
+    );
+
+    // Invariant: user_facing() must not surface any of those catalog hits.
     let ctx = TemporalAnalysisContext::natal(&chart);
     let request = AnalysisLayerRequest::user_facing();
     let result = detect_analysis_layer(&ctx, AnalysisLayerKey::Natal, &request);
@@ -307,6 +329,16 @@ fn classical_rule_hit_ref_does_not_duplicate_source_text() {
     assert_eq!(hit_ref.rule_id, source_hit.rule_id);
     assert_eq!(hit_ref.scope, source_hit.scope);
     assert!(!hit_ref.evidence.is_empty(), "hit ref must carry evidence");
+
+    // claim_key: ClassicalSourceHit has no claim_key field; the compact ref
+    // resolves it from static rule metadata. Assert they agree.
+    let expected_claim_key = classical_rule_metadata(source_hit.rule_id.clone())
+        .and_then(|m| m.claim_key.map(str::to_string));
+    assert_eq!(
+        hit_ref.claim_key, expected_claim_key,
+        "hit ref claim_key must match the metadata-resolved key for {}",
+        hit_ref.rule_id
+    );
 
     // Source text must be fetched separately — not embedded in the compact ref.
     // `ClassicalRuleHitRef` has no `source_text_zh_hans` field (compile-time

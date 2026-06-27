@@ -15,10 +15,10 @@ source inventory (TOML, test-only)
   -> RuleDiagnostic for unsupported rules
 ```
 
-The source inventory (`rule-corpus/quan-shu/source/volume-01.toml`) is
+The source inventory (`crates/iztro/rule-corpus/quan-shu/source/volume-01.toml`) is
 corpus-management data validated by tests only. Nothing in `src/` parses it.
-The runtime rule corpus (`rule-corpus/quan-shu/rules.toml`,
-`rule-corpus/patterns/rules.toml`) is embedded at compile time and parsed once
+The runtime rule corpus (`crates/iztro/rule-corpus/quan-shu/rules.toml`,
+`crates/iztro/rule-corpus/patterns/rules.toml`) is embedded at compile time and parsed once
 per process via `OnceLock`.
 
 ## Source text purity
@@ -73,16 +73,18 @@ test `user_facing_analysis_request_is_quan_shu_only` pins this.
 
 ## Checklist for adding one executable QuanShu rule
 
-- [ ] Confirm the source inventory entry exists in `volume-01.toml` with
+- [ ] Confirm the source inventory entry exists in
+  `crates/iztro/rule-corpus/quan-shu/source/volume-01.toml` with
   `status = "rule_linked"` and the rule id in `linked_rule_ids`.
 - [ ] Quote source text verbatim in `source_text_zh_hans` (no interpretation).
-- [ ] Add the rule entry to `rule-corpus/quan-shu/rules.toml` with
+- [ ] Add the rule entry to `crates/iztro/rule-corpus/quan-shu/rules.toml` with
   `status = "executable"`.
-- [ ] Add a predicate branch in `src/rules/classical/evaluator.rs`.
+- [ ] Add a predicate branch in `crates/iztro/src/rules/classical/evaluator.rs`.
 - [ ] List the rule id in `WIRED_EXECUTABLE` in
   `crates/iztro/tests/classical_source_inventory.rs`.
 - [ ] Add at least one structured `Evidence` item in the evaluator.
-- [ ] Add unit and/or integration tests (see `tests/classical_rules.rs`).
+- [ ] Add unit and/or integration tests (see
+  `crates/iztro/tests/classical_rules.rs`).
 - [ ] Add a `ClaimSpec` only when the interpretation is clear and agreed upon.
 - [ ] Confirm `cargo test --workspace` passes, including the guardrail tests.
 - [ ] Confirm user-facing analysis remains QuanShu-only (no change to
@@ -91,8 +93,8 @@ test `user_facing_analysis_request_is_quan_shu_only` pins this.
 ## Checklist for unsupported rules
 
 - [ ] Keep the source inventory entry.
-- [ ] Add or keep the rule entry in `rules.toml` with a non-executable status
-  (`normalized`, `ambiguous`, or `raw`).
+- [ ] Add or keep the rule entry in `crates/iztro/rule-corpus/quan-shu/rules.toml`
+  with a non-executable status (`normalized`, `ambiguous`, or `raw`).
 - [ ] Do not add a predicate that guesses at unmolded facts. Return
   `RuleOutcome::Unsupported(UnsupportedReason::...)` if the rule id is wired
   but the condition is not yet modeled.
