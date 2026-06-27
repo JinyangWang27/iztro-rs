@@ -52,8 +52,8 @@ use crate::analysis::layer::{AnalysisLayerKey, analysis_layers_for_selection};
 ///   layer's result.
 /// - Only the requested keys are returned; ancestor layers are **not** requested
 ///   automatically. The app drives ancestor caching through
-///   [`missing_analysis_layers`](crate::analysis::analysis_layers_for_selection)
-///   planning.
+///   [`analysis_layers_for_selection`] planning (expand the selection, then
+///   request only the layers still missing from its cache).
 ///
 /// The natal `Chart` is taken by value because the overlay-building path consumes
 /// it; an app caching a natal chart passes `natal.clone()`.
