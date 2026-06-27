@@ -64,8 +64,10 @@
 
 pub mod detect;
 pub mod layer;
+pub mod selected;
 
 pub use detect::{
     AnalysisLayerRequest, AnalysisLayerResult, TemporalAnalysisContext, detect_analysis_layer,
 };
-pub use layer::{AnalysisLayerKey, analysis_layers_for_selection};
+pub use layer::{AnalysisLayerKey, analysis_layers_for_selection, analysis_scopes_for_layer_key};
+pub use selected::detect_static_temporal_analysis_layers_from_chart;

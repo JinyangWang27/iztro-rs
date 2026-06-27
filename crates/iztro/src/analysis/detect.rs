@@ -5,13 +5,13 @@ use serde::Serialize;
 use crate::core::pattern::{
     PatternContext, PatternDetection, PatternDetectionRequest, detect_patterns,
 };
-use crate::core::{Chart, HoroscopeChart, Scope};
+use crate::core::{Chart, HoroscopeChart};
 use crate::rules::classical::{
     ClaimEvaluationRequest, ClassicalRuleContext, ClassicalRuleHitRef, ClassicalWork,
     DiagnosticMode, evaluate_classical_in_context,
 };
 
-use crate::analysis::layer::AnalysisLayerKey;
+use crate::analysis::layer::{AnalysisLayerKey, analysis_scopes_for_layer_key};
 
 /// A read-only context for analyzing one or more layers of a chart.
 ///
@@ -163,31 +163,6 @@ pub fn detect_analysis_layer(
     }
 }
 
-/// The inclusive natal-outward scope chain visible when analyzing `key`.
-///
-/// Used as the context's `active_scopes` so future rules can inspect ancestor
-/// overlays. It follows the canonical scope ordering up to the layer's scope.
-fn active_scopes_for(key: &AnalysisLayerKey) -> Vec<Scope> {
-    const ORDER: [Scope; 7] = [
-        Scope::Natal,
-        Scope::Decadal,
-        Scope::Age,
-        Scope::Yearly,
-        Scope::Monthly,
-        Scope::Daily,
-        Scope::Hourly,
-    ];
-    let target = key.scope();
-    let mut scopes = Vec::new();
-    for scope in ORDER {
-        scopes.push(scope);
-        if scope == target {
-            break;
-        }
-    }
-    scopes
-}
-
 /// Evaluates classical rules narrowed to `key`'s scope and compacts the hits.
 ///
 /// Only the scope filter is overridden to the requested layer; every other filter
@@ -205,7 +180,9 @@ fn detect_rule_hits(
     classical.scopes = vec![key.claim_scope()];
 
     let rule_ctx = match ctx.horoscope {
-        Some(horoscope) => ClassicalRuleContext::horoscope(horoscope, active_scopes_for(key)),
+        Some(horoscope) => {
+            ClassicalRuleContext::horoscope(horoscope, analysis_scopes_for_layer_key(key))
+        }
         None => ClassicalRuleContext::natal(ctx.natal),
     };
 
@@ -226,7 +203,7 @@ fn detect_pattern_hits(
     patterns.scopes = vec![key.scope()];
 
     let pattern_ctx = match ctx.horoscope {
-        Some(horoscope) => PatternContext::horoscope(horoscope, active_scopes_for(key)),
+        Some(horoscope) => PatternContext::horoscope(horoscope, analysis_scopes_for_layer_key(key)),
         None => PatternContext::natal(ctx.natal),
     };
 

@@ -112,5 +112,6 @@ pub use rules::classical::{
 // classical engines for cacheable per-layer detection; see [`analysis`].
 pub use analysis::{
     AnalysisLayerKey, AnalysisLayerRequest, AnalysisLayerResult, TemporalAnalysisContext,
-    analysis_layers_for_selection, detect_analysis_layer,
+    analysis_layers_for_selection, analysis_scopes_for_layer_key, detect_analysis_layer,
+    detect_static_temporal_analysis_layers_from_chart,
 };

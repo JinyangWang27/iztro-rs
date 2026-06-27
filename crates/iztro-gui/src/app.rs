@@ -22,8 +22,8 @@ use crate::analysis::{
 use crate::persistence::ChartStore;
 use crate::settings::{AppSettings, RightPanelMode, RightPanelTab, SettingsStore};
 use iztro::analysis::{
-    AnalysisLayerKey, AnalysisLayerRequest, TemporalAnalysisContext, analysis_layers_for_selection,
-    detect_analysis_layer,
+    AnalysisLayerKey, AnalysisLayerRequest, analysis_layers_for_selection,
+    detect_static_temporal_analysis_layers_from_chart,
 };
 use iztro::core::{
     BirthTime, Chart, ChartAlgorithmKind, ChartError, EarthlyBranch, Gender, MethodProfile,
@@ -409,6 +409,7 @@ fn form_error_from_chart_error(error: ChartError) -> FormError {
         | ChartError::UnresolvableLunarDate { .. } => FormError::InvalidCalendarDate,
         ChartError::InvalidTemporalSelectionIndex { .. }
         | ChartError::InvalidDecadalPeriodIndex { .. }
+        | ChartError::AnalysisLayerNotVisibleForSelection { .. }
         | ChartError::NominalAgeOutsideDecadalFrame { .. } => FormError::InvalidTemporalSelection,
         _ => FormError::ChartGenerationFailed,
     }
@@ -995,17 +996,13 @@ impl StaticChartApp {
     /// Fills the analysis cache for the layers the current temporal selection
     /// makes visible, requesting detection only for the layers still missing.
     ///
-    /// # Current limitation
-    ///
-    /// The analysis context is **natal-only** for this first GUI inspector: it is
-    /// built from the natal [`Chart`] via [`TemporalAnalysisContext::natal`], not
-    /// from a projected [`HoroscopeChart`]. The static temporal flow exposes a
-    /// prepared [`StaticChartViewSnapshot`] (not a `HoroscopeChart`), so threading
-    /// a horoscope context through public APIs is deferred rather than duplicating
-    /// core's private overlay-building here. In practice this loses nothing today:
-    /// current executable classical rules match natal facts only, so non-natal
-    /// `rule_hits` are empty regardless, and pattern detection is still scoped per
-    /// layer. When a public horoscope facade is available, swap the context here.
+    /// Detection goes through the core selected-view batch facade
+    /// ([`detect_static_temporal_analysis_layers_from_chart`]): the GUI passes the
+    /// natal [`Chart`], the current selection, and the missing layer keys, and core
+    /// builds the temporal context and returns one compact result per requested
+    /// layer. The GUI stays a cache/render layer and never constructs horoscope
+    /// overlays itself. On failure the user-facing [`FormError`] is set the same
+    /// way temporal selection failures are reported.
     fn refresh_analysis(&mut self) {
         let Some(natal) = self.natal_chart.as_ref() else {
             return;
@@ -1015,11 +1012,19 @@ impl StaticChartApp {
         if missing.is_empty() {
             return;
         }
-        let ctx = TemporalAnalysisContext::natal(natal);
         let request = AnalysisLayerRequest::user_facing();
-        for key in missing {
-            let result = detect_analysis_layer(&ctx, key.clone(), &request);
-            self.analysis_cache.insert(key, result);
+        match detect_static_temporal_analysis_layers_from_chart(
+            natal.clone(),
+            self.selected_temporal_selection,
+            &missing,
+            &request,
+        ) {
+            Ok(results) => {
+                for result in results {
+                    self.analysis_cache.insert(result.key.clone(), result);
+                }
+            }
+            Err(error) => self.error = Some(form_error_from_chart_error(error)),
         }
     }
 
