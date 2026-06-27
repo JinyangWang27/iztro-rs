@@ -2624,6 +2624,18 @@ mod tests {
             app_src.contains("static_temporal_chart_view"),
             "charts must be built through the static_temporal_chart_view facade"
         );
+
+        // Analysis must go through the selected-view batch facade, not the
+        // natal-only workaround removed in this PR.
+        let app_production = production_source(&app_src);
+        assert!(
+            !app_production.contains("TemporalAnalysisContext::natal"),
+            "refresh_analysis must not build a natal-only analysis context"
+        );
+        assert!(
+            app_production.contains("detect_static_temporal_analysis_layers_from_chart"),
+            "analysis must request layers through the selected-view batch facade"
+        );
     }
 
     #[test]
