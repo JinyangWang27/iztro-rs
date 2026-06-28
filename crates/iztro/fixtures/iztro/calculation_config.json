@@ -5,7 +5,7 @@
     "target_version": "2.5.8",
     "generated_at": "2026-06-24T00:00:00Z",
     "supported_fields_only": true,
-    "notes": "Supported-field-only calculation configuration fixture for iztro-rs. Cases cover yearDivide normal/exact for converted birth-year and palace facts, fixLeap false/true for leap-month chart facts, and ageDivide normal/birthday for horoscope nominal-age resolution. It is not a full upstream semantic clone fixture. One case, year_divide_exact_2000_02_04, intentionally diverges from iztro@2.5.8: iztro-rs resolves YearBoundary::LiChun at datetime (exact-instant) granularity, so a birth before the exact 立春 instant on the 立春 day keeps the previous Ganzhi year (己卯) instead of upstream's date-level 庚辰. Its supported fields record the corrected iztro-rs result; see divergence_from_upstream on that case.",
+    "notes": "Supported-field-only calculation configuration fixture for iztro-rs. Cases cover yearDivide normal/exact for converted birth-year and palace facts, fixLeap false/true for leap-month chart facts, and ageDivide normal/birthday for horoscope nominal-age resolution. It is not a full upstream semantic clone fixture.",
     "generation_command": "npm ci --prefix tools/iztro-reference && npm run dump:calculation-config --prefix tools/iztro-reference -- --write"
   },
   "cases": [
@@ -172,120 +172,113 @@
         "lunar_month": 12,
         "lunar_day": 29,
         "is_leap_month": false,
-        "birth_year_stem": "ji",
-        "raw_birth_year_stem": "己",
-        "birth_year_branch": "mao",
-        "raw_birth_year_branch": "卯"
+        "birth_year_stem": "geng",
+        "raw_birth_year_stem": "庚",
+        "birth_year_branch": "chen",
+        "raw_birth_year_branch": "辰"
       },
       "supported_fields": {
         "life_palace_branch": "you",
         "body_palace_branch": "si",
-        "five_element_bureau": "metal4",
+        "five_element_bureau": "water2",
         "palaces": [
           {
             "branch": "yin",
             "raw_branch": "寅",
             "name": "friends",
             "raw_name": "仆役",
-            "stem": "bing",
-            "raw_stem": "丙"
+            "stem": "wu",
+            "raw_stem": "戊"
           },
           {
             "branch": "mao",
             "raw_branch": "卯",
             "name": "migration",
             "raw_name": "迁移",
-            "stem": "ding",
-            "raw_stem": "丁"
+            "stem": "ji",
+            "raw_stem": "己"
           },
           {
             "branch": "chen",
             "raw_branch": "辰",
             "name": "health",
             "raw_name": "疾厄",
-            "stem": "wu",
-            "raw_stem": "戊"
+            "stem": "geng",
+            "raw_stem": "庚"
           },
           {
             "branch": "si",
             "raw_branch": "巳",
             "name": "wealth",
             "raw_name": "财帛",
-            "stem": "ji",
-            "raw_stem": "己"
+            "stem": "xin",
+            "raw_stem": "辛"
           },
           {
             "branch": "wu",
             "raw_branch": "午",
             "name": "children",
             "raw_name": "子女",
-            "stem": "geng",
-            "raw_stem": "庚"
+            "stem": "ren",
+            "raw_stem": "壬"
           },
           {
             "branch": "wei",
             "raw_branch": "未",
             "name": "spouse",
             "raw_name": "夫妻",
-            "stem": "xin",
-            "raw_stem": "辛"
+            "stem": "gui",
+            "raw_stem": "癸"
           },
           {
             "branch": "shen",
             "raw_branch": "申",
             "name": "siblings",
             "raw_name": "兄弟",
-            "stem": "ren",
-            "raw_stem": "壬"
+            "stem": "jia",
+            "raw_stem": "甲"
           },
           {
             "branch": "you",
             "raw_branch": "酉",
             "name": "life",
             "raw_name": "命宫",
-            "stem": "gui",
-            "raw_stem": "癸"
+            "stem": "yi",
+            "raw_stem": "乙"
           },
           {
             "branch": "xu",
             "raw_branch": "戌",
             "name": "parents",
             "raw_name": "父母",
-            "stem": "jia",
-            "raw_stem": "甲"
+            "stem": "bing",
+            "raw_stem": "丙"
           },
           {
             "branch": "hai",
             "raw_branch": "亥",
             "name": "spirit",
             "raw_name": "福德",
-            "stem": "yi",
-            "raw_stem": "乙"
+            "stem": "ding",
+            "raw_stem": "丁"
           },
           {
             "branch": "zi",
             "raw_branch": "子",
             "name": "property",
             "raw_name": "田宅",
-            "stem": "bing",
-            "raw_stem": "丙"
+            "stem": "wu",
+            "raw_stem": "戊"
           },
           {
             "branch": "chou",
             "raw_branch": "丑",
             "name": "career",
             "raw_name": "官禄",
-            "stem": "ding",
-            "raw_stem": "丁"
+            "stem": "ji",
+            "raw_stem": "己"
           }
         ]
-      },
-      "divergence_from_upstream": {
-        "reason": "YearBoundary::LiChun is datetime-level in iztro-rs. The birth is 2000-02-04 ~07:30 (iztro_time_index 4), before the exact 立春 instant (~20:40), so the cyclic year stays the previous Ganzhi year.",
-        "upstream_iztro_2_5_8_birth_year": "geng_chen",
-        "upstream_semantics": "date-level LiChun",
-        "iztro_rs_birth_year": "ji_mao",
-        "iztro_rs_semantics": "datetime-level (exact-instant) LiChun"
       }
     },
     {
