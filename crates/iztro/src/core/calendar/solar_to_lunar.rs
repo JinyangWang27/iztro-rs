@@ -1,27 +1,46 @@
-//! Gregorian-to-Chinese-lunisolar conversion backed by the internal calendar
-//! adapter.
+//! Gregorian-to-Chinese-lunisolar conversion backed by `lunar-lite`.
 //!
-//! This module maps the adapter's calendar facts onto the crate's own typed
-//! lunar facts and owned GanZhi value objects, exposing only in-range month/day
-//! domain types to callers. The four pillars are assembled by [`super::policy`]:
-//! the day and hour pillars come from the internal calendar adapter, while the
-//! year and month pillars follow the lunar-new-year / 五虎遁 conventions for
-//! `iztro@2.5.8` parity. The year pillar (the retained birth-year fact) follows
-//! the configured [`YearBoundary`].
+//! This module maps `lunar-lite` date values onto the crate's own typed lunar
+//! facts, exposing only in-range month/day domain types to callers. The four
+//! pillars are derived through `lunar-lite`'s four-pillar API with the normal
+//! month boundary (五虎遁); the year pillar (the retained birth-year fact)
+//! follows the configured [`YearBoundary`].
+//!
+//! The result is verified against pinned upstream `iztro@2.5.8`: `lunar-lite`
+//! returns the lunar-new-year-bounded year, month, leap-month flag, and day, and
+//! `iztro` derives the chart year pillar with its default `yearDivide: 'normal'`
+//! (lunar-new-year boundary), so the four-pillar yearly result agrees with the
+//! converted lunar-year stem-branch even across the 立春/正月初一 window.
+//! [`YearBoundary::LiChun`] selects `lunar-lite`'s 立春 boundary, which is
+//! compared at **date** granularity.
+
+use lunar_lite::{
+    EarthlyBranch, FourPillars, HeavenlyStem, LunarError, MonthDivide, SolarDate, StemBranchOptions,
+    YearDivide, four_pillars_from_solar_date_with_options, lunar_month_days,
+    solar_to_lunar as convert_solar_to_lunar,
+};
 
 use crate::core::calculation::YearBoundary;
 use crate::core::error::ChartError;
-use crate::core::model::calendar::{SolarDate, SolarDay, SolarMonth};
-use lunar_lite::{EarthlyBranch, FourPillars, HeavenlyStem};
+use crate::core::model::calendar::{SolarDay, SolarMonth};
 use crate::core::placement::natal::life_body::{LunarDay, LunarMonth};
 
-use super::policy::resolve_four_pillars;
-use super::tyme::{LunarDateInfo, ResolvedSolarDateTime, TymeCalendar};
+/// Maps the 年分界 calculation policy to the `lunar-lite` year-pillar boundary.
+///
+/// [`YearBoundary::ChineseNewYearEve`] uses the lunar-new-year boundary
+/// ([`YearDivide::Normal`]), preserving the default behaviour; [`YearBoundary::LiChun`]
+/// uses the 立春 boundary ([`YearDivide::Exact`]) at date granularity.
+const fn year_divide(boundary: YearBoundary) -> YearDivide {
+    match boundary {
+        YearBoundary::ChineseNewYearEve => YearDivide::Normal,
+        YearBoundary::LiChun => YearDivide::Exact,
+    }
+}
 
 /// Typed lunar facts produced from a Gregorian/solar date.
 ///
 /// Calendar-backend date/error types stay internal; the birth-year stem/branch
-/// and four pillars use the crate's own GanZhi value objects.
+/// and four pillars use `lunar-lite`'s canonical GanZhi value objects.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub(crate) struct LunarConversion {
     lunar_year: i32,
@@ -70,14 +89,23 @@ impl LunarConversion {
     }
 }
 
-/// Synthesizes the wall-clock time for an `iztro` `timeIndex` (`0..=12`).
+/// Lunar-new-year-bounded lunar facts for a Gregorian/solar date, without
+/// deriving four pillars.
 ///
-/// Matches the previous engine: `hour = max(time_index * 2 - 1, 0)`, `minute =
-/// 30`. The late 子时 (`time_index == 12`, 23:30) rolls the day pillar to the
-/// next day in the calendar engine.
-const fn synthesized_hour(time_index: u8) -> u8 {
-    let raw = time_index as i32 * 2 - 1;
-    if raw < 0 { 0 } else { raw as u8 }
+/// Shared by the full-horoscope stack builder, which needs the target lunar year
+/// to derive the flowing year and nominal age.
+#[derive(Clone, Copy, Debug, Eq, PartialEq)]
+pub(crate) struct LunarDateInfo {
+    /// Lunar-new-year-bounded lunar year.
+    pub year: i32,
+    /// Lunar month number (`1..=12`, leap-insensitive).
+    pub month: u8,
+    /// Lunar day of the month.
+    pub day: u8,
+    /// Whether the lunar month is a leap month.
+    pub is_leap_month: bool,
+    /// Number of days in the lunar month (`29` or `30`).
+    pub month_day_count: u8,
 }
 
 /// Converts a Gregorian/solar date to typed Chinese-lunisolar facts.
@@ -102,59 +130,15 @@ pub(crate) fn solar_to_lunar(
 /// The lunar year/month/day and leap-month flag always use the lunar-new-year
 /// boundary (they describe the lunisolar calendar position, not the cyclic
 /// year). Only the birth-year stem/branch and the four-pillar year pillar follow
-/// `year_boundary`: [`YearBoundary::LiChun`] re-resolves them against the exact
-/// 立春 instant, while [`YearBoundary::ChineseNewYearEve`] reproduces the
-/// lunar-new-year-bounded result.
+/// `year_boundary`: [`YearBoundary::LiChun`] re-resolves them across the 立春
+/// boundary (compared at date granularity), while
+/// [`YearBoundary::ChineseNewYearEve`] reproduces the lunar-new-year-bounded
+/// result.
 pub(crate) fn solar_to_lunar_with_year_boundary(
     year: i32,
     month: SolarMonth,
     day: SolarDay,
     time_index: u8,
-    year_boundary: YearBoundary,
-) -> Result<LunarConversion, ChartError> {
-    let resolved_time = ResolvedSolarDateTime {
-        year,
-        month: month.value(),
-        day: day.value(),
-        hour: synthesized_hour(time_index),
-        minute: 30,
-        second: 0,
-    };
-    solar_to_lunar_with_resolved_time(year, month, day, resolved_time, year_boundary)
-}
-
-/// Converts a Gregorian/solar date to typed Chinese-lunisolar facts using an
-/// exact resolved local clock time for four-pillar and LiChun-boundary
-/// resolution.
-///
-/// This is the clock-time API path. Unlike [`solar_to_lunar_with_year_boundary`],
-/// it does not synthesize the representative midpoint of a `timeIndex`; the
-/// resolved hour/minute/second are preserved when comparing against exact 立春.
-pub(crate) fn solar_to_lunar_with_resolved_datetime(
-    year: i32,
-    month: SolarMonth,
-    day: SolarDay,
-    hour: u8,
-    minute: u8,
-    second: u8,
-    year_boundary: YearBoundary,
-) -> Result<LunarConversion, ChartError> {
-    let resolved_time = ResolvedSolarDateTime {
-        year,
-        month: month.value(),
-        day: day.value(),
-        hour,
-        minute,
-        second,
-    };
-    solar_to_lunar_with_resolved_time(year, month, day, resolved_time, year_boundary)
-}
-
-fn solar_to_lunar_with_resolved_time(
-    year: i32,
-    month: SolarMonth,
-    day: SolarDay,
-    resolved_time: ResolvedSolarDateTime,
     year_boundary: YearBoundary,
 ) -> Result<LunarConversion, ChartError> {
     let conversion_failed = || ChartError::CalendarConversionFailed {
@@ -163,19 +147,35 @@ fn solar_to_lunar_with_resolved_time(
         day: day.value(),
     };
 
-    let calendar = TymeCalendar;
-    let date = SolarDate::new(year, month.value(), day.value())?;
-    let lunar = calendar.lunar_from_solar(date)?;
-    let four_pillars = resolve_four_pillars(&calendar, resolved_time, lunar, year_boundary)?;
+    let solar = SolarDate {
+        year,
+        month: month.value(),
+        day: day.value(),
+    };
+
+    let lunar = convert_solar_to_lunar(solar)
+        .map_err(|err| map_solar_conversion_error(err, year, month.value(), day.value()))?;
+    let pillars = four_pillars_from_solar_date_with_options(
+        solar,
+        time_index,
+        StemBranchOptions {
+            year: year_divide(year_boundary),
+            month: MonthDivide::Normal,
+        },
+    )
+    .map_err(|err| map_solar_conversion_error(err, year, month.value(), day.value()))?;
+
+    let lunar_month = LunarMonth::new(lunar.month).map_err(|_| conversion_failed())?;
+    let lunar_day = LunarDay::new(lunar.day).map_err(|_| conversion_failed())?;
 
     Ok(LunarConversion {
         lunar_year: lunar.year,
-        lunar_month: LunarMonth::new(lunar.month).map_err(|_| conversion_failed())?,
-        lunar_day: LunarDay::new(lunar.day).map_err(|_| conversion_failed())?,
+        lunar_month,
+        lunar_day,
         is_leap_month: lunar.is_leap_month,
-        birth_year_stem: four_pillars.yearly.stem(),
-        birth_year_branch: four_pillars.yearly.branch(),
-        four_pillars,
+        birth_year_stem: pillars.yearly.stem(),
+        birth_year_branch: pillars.yearly.branch(),
+        four_pillars: pillars,
     })
 }
 
@@ -188,31 +188,56 @@ pub(crate) fn lunar_facts(
     month: SolarMonth,
     day: SolarDay,
 ) -> Result<LunarDateInfo, ChartError> {
-    let date = SolarDate::new(year, month.value(), day.value())?;
-    TymeCalendar.lunar_from_solar(date)
+    let solar = SolarDate {
+        year,
+        month: month.value(),
+        day: day.value(),
+    };
+    let lunar = convert_solar_to_lunar(solar)
+        .map_err(|err| map_solar_conversion_error(err, year, month.value(), day.value()))?;
+    let month_day_count = lunar_month_days(lunar.year, lunar.month, lunar.is_leap_month)
+        .map_err(|err| map_solar_conversion_error(err, year, month.value(), day.value()))?;
+
+    Ok(LunarDateInfo {
+        year: lunar.year,
+        month: lunar.month,
+        day: lunar.day,
+        is_leap_month: lunar.is_leap_month,
+        month_day_count,
+    })
 }
 
-/// Resolves the effective cyclic birth-year stem-branch for a solar date and
-/// 时辰 under a 年分界 policy.
+/// Resolves the effective cyclic birth-year stem-branch for a solar date under a
+/// 年分界 policy.
 ///
-/// This is the focused year-boundary resolver used by tests: it returns the year
-/// pillar that differs between [`YearBoundary::ChineseNewYearEve`] and
-/// [`YearBoundary::LiChun`]. Under `LiChun` the resolution is datetime-level, so
-/// the `time_index` selects the synthesized wall-clock time compared against the
-/// exact 立春 instant.
+/// This is the focused year-boundary resolver used by tests: it derives only the
+/// year pillar (with the normal month boundary) and returns it. It is the fact
+/// that differs between [`YearBoundary::ChineseNewYearEve`] and
+/// [`YearBoundary::LiChun`] for a date in the 立春/正月初一 window.
 #[cfg(test)]
 pub(crate) fn resolve_effective_birth_year(
     year: i32,
     month: SolarMonth,
     day: SolarDay,
-    time_index: u8,
     policy: YearBoundary,
 ) -> Result<lunar_lite::StemBranch, ChartError> {
-    Ok(
-        solar_to_lunar_with_year_boundary(year, month, day, time_index, policy)?
-            .four_pillars()
-            .yearly,
-    )
+    Ok(solar_to_lunar_with_year_boundary(year, month, day, 0, policy)?
+        .four_pillars()
+        .yearly)
+}
+
+fn map_solar_conversion_error(err: LunarError, year: i32, month: u8, day: u8) -> ChartError {
+    match err {
+        LunarError::InvalidSolarDate { .. } => ChartError::InvalidSolarDate { year, month, day },
+        LunarError::YearOutOfRange { .. } | LunarError::SolarTermOutOfRange { .. } => {
+            ChartError::UnsupportedCalendarDate { year, month, day }
+        }
+        LunarError::InvalidLunarDate { .. }
+        | LunarError::InvalidTime { .. }
+        | LunarError::InvalidTimeIndex { .. } => {
+            ChartError::CalendarConversionFailed { year, month, day }
+        }
+    }
 }
 
 #[cfg(test)]

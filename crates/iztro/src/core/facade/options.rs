@@ -19,7 +19,7 @@ use crate::core::calculation::{
     SolarTimePolicyDiagnostic, YearBoundary, YearBoundaryDiagnosticSnapshot,
     resolve_birth_datetime,
 };
-use crate::core::calendar::{LunarConversion, solar_to_lunar_with_resolved_datetime};
+use crate::core::calendar::{LunarConversion, solar_to_lunar_with_year_boundary};
 use crate::core::error::ChartError;
 use crate::core::facade::by_lunar::{LunarChartRequest, by_lunar};
 use crate::core::facade::by_solar::{SolarChartRequest, by_solar_with_conversion};
@@ -332,13 +332,15 @@ fn solar_conversion_for_resolved(
     year_boundary: YearBoundary,
 ) -> Result<LunarConversion, ChartError> {
     let resolved_date = resolved.resolved_date();
-    solar_to_lunar_with_resolved_datetime(
+    // The apparent-solar-time policy resolves the wall-clock time to a 时辰
+    // index (`resolved_time_index`), which the calendar consumes. Under
+    // `lunar-lite` the 立春 boundary is compared at date granularity, so the
+    // resolved clock minutes do not affect the year pillar.
+    solar_to_lunar_with_year_boundary(
         resolved_date.year(),
         resolved_date.month(),
         resolved_date.day(),
-        resolved.resolved_hour(),
-        resolved.resolved_minute(),
-        0,
+        resolved.resolved_time_index(),
         year_boundary,
     )
 }
