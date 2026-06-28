@@ -8,7 +8,7 @@
 //! Both resolve to a [`StarName`]; callers map that to a Chinese label through
 //! [`crate::core::labels::zh_cn::star_name_zh`].
 
-use crate::core::model::ganzhi::EarthlyBranch;
+use lunar_lite::EarthlyBranch;
 use crate::core::model::star::StarName;
 
 /// Returns the soul master (命主) star for a Life Palace branch (命宫地支).

@@ -17,7 +17,7 @@ use crate::core::model::chart::{
     Chart, PALACE_COUNT, TemporalPalaceLayout,
     temporal_layout::{build_life_branch_palace_layout, yin_first_branch_index},
 };
-use crate::core::model::ganzhi::{EarthlyBranch, StemBranch};
+use lunar_lite::{EarthlyBranch, StemBranch};
 use crate::core::model::star::mutagen::Scope;
 use serde::{Deserialize, Serialize};
 
@@ -92,7 +92,7 @@ pub fn build_age_period(natal: &Chart, nominal_age: u8) -> Result<AgePeriod, Cha
         .ok_or(ChartError::RequiredLifeBodyPalaceMissing)?;
     let stem_branch =
         StemBranch::try_new(palace.stem(), palace_branch).map_err(|err| match err {
-            crate::core::model::ganzhi::StemBranchError::InvalidStemBranchPair { stem, branch } => {
+            lunar_lite::StemBranchError::InvalidStemBranchPair { stem, branch } => {
                 ChartError::InvalidStemBranchPair { stem, branch }
             }
         })?;

@@ -2,7 +2,7 @@
 
 use crate::core::error::ChartError;
 use crate::core::model::chart::{Chart, Palace, StarPlacement};
-use crate::core::model::ganzhi::EarthlyBranch;
+use lunar_lite::EarthlyBranch;
 use crate::core::model::profile::ChartAlgorithmKind;
 use crate::core::model::star::mutagen::Scope;
 use crate::core::model::star::{Brightness, StarName};

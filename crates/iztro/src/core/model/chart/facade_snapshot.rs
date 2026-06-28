@@ -29,7 +29,7 @@
 //!   [`HoroscopeRuntime`] methods rather than precomputed DTO fields;
 //! * full BaZi output, bindings, renderers, rules, and narrative.
 
-use crate::core::model::ganzhi::{EarthlyBranch, FourPillars, HeavenlyStem, StemBranch};
+use lunar_lite::{EarthlyBranch, FourPillars, HeavenlyStem, StemBranch};
 use crate::core::{
     error::ChartError,
     labels::zh_cn,
@@ -272,7 +272,7 @@ impl NatalFacadeSnapshot {
 
 /// Factual natal four-pillar (四柱) DTO for the facade astrolabe.
 ///
-/// Reuses [`crate::core::model::ganzhi::FourPillars`] as the underlying fact: each pillar is a
+/// Reuses [`lunar_lite::FourPillars`] as the underlying fact: each pillar is a
 /// machine-readable [`StemBranch`] with an additive conventional Chinese label.
 /// This is a factual export only — it carries no 十神, 藏干, 五行 scoring, 喜用神,
 /// 成格, readings, or any other BaZi interpretation, all of which remain deferred.

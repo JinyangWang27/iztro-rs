@@ -3,7 +3,7 @@
 //! These snapshots copy existing chart facts for debugging and invariant
 //! inspection. They are not compatibility exports or interpretation models.
 
-use crate::core::model::ganzhi::{EarthlyBranch, HeavenlyStem};
+use lunar_lite::{EarthlyBranch, HeavenlyStem};
 use crate::core::model::{
     bureau::FiveElementBureau,
     chart::{Chart, PalaceName},

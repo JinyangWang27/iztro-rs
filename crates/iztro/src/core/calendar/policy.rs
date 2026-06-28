@@ -23,7 +23,7 @@
 
 use crate::core::calculation::YearBoundary;
 use crate::core::error::ChartError;
-use crate::core::model::ganzhi::{EarthlyBranch, FourPillars, HeavenlyStem, StemBranch};
+use lunar_lite::{EarthlyBranch, FourPillars, HeavenlyStem, StemBranch};
 
 use super::tyme::{LunarDateInfo, ResolvedSolarDateTime, TymeCalendar};
 

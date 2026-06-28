@@ -1,5 +1,5 @@
 use crate::core::error::ChartError;
-use crate::core::model::ganzhi::EarthlyBranch;
+use lunar_lite::EarthlyBranch;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 use std::fmt;
 

@@ -14,7 +14,7 @@
 //! layer's [`MutagenActivation`]s lives with the overlay placement algorithms in
 //! `crate::core::placement::overlay::mutagen`.
 
-use crate::core::model::ganzhi::{EarthlyBranch, StemBranch};
+use lunar_lite::{EarthlyBranch, StemBranch};
 use crate::core::{
     error::ChartError,
     model::{

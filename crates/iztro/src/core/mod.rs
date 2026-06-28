@@ -65,7 +65,7 @@ pub use model::chart::{
     VISUAL_BRANCH_ORDER, YearlyPeriod, build_age_period, build_daily_period, build_decadal_frame,
     build_hourly_period, build_monthly_period, build_yearly_period, palace_grid_position,
 };
-pub use model::ganzhi::{
+pub use lunar_lite::{
     EARTHLY_BRANCHES, EarthlyBranch, FourPillars, HEAVENLY_STEMS, HeavenlyStem, StemBranch,
     StemBranchError,
 };

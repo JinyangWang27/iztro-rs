@@ -1,5 +1,7 @@
-use iztro::core::model::ganzhi::{lunar_year_branch, lunar_year_stem, lunar_year_stem_branch};
-use iztro::core::{EarthlyBranch, HeavenlyStem, StemBranch};
+use lunar_lite::{
+    EarthlyBranch, HeavenlyStem, StemBranch, lunar_year_branch, lunar_year_stem,
+    lunar_year_stem_branch,
+};
 
 #[test]
 fn stem_branch_rejects_mismatched_parity() {

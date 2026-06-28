@@ -4,7 +4,7 @@
 //! ganzhi/algorithm/gender arguments — no chart state.
 
 use crate::core::model::calendar::Gender;
-use crate::core::model::ganzhi::{EarthlyBranch, HeavenlyStem};
+use lunar_lite::{EarthlyBranch, HeavenlyStem};
 use crate::core::model::profile::ChartAlgorithmKind;
 
 pub(super) fn hua_gai_branch(year_branch: EarthlyBranch) -> EarthlyBranch {

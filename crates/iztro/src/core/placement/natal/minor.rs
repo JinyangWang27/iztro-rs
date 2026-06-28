@@ -8,7 +8,7 @@
 use crate::core::error::ChartError;
 use crate::core::model::calendar::BirthTime;
 use crate::core::model::chart::{Chart, Palace, StarPlacement};
-use crate::core::model::ganzhi::{EarthlyBranch, HeavenlyStem};
+use lunar_lite::{EarthlyBranch, HeavenlyStem};
 use crate::core::model::star::mutagen::{Scope, birth_year_star_mutagen};
 use crate::core::model::star::{Brightness, StarMetadata, StarName};
 use crate::core::placement::location::{kui_yue_branches, lu_yang_tuo_ma_branches};

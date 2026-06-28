@@ -1,4 +1,4 @@
-use iztro::core::model::ganzhi::{EarthlyBranch, HeavenlyStem, StemBranch};
+use iztro::core::{EarthlyBranch, HeavenlyStem, StemBranch};
 use iztro::core::model::nayin::{NaYinElement, nayin_element};
 
 fn pair(stem: HeavenlyStem, branch: EarthlyBranch) -> StemBranch {

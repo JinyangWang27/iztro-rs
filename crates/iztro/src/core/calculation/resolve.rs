@@ -16,7 +16,7 @@
 use crate::core::error::ChartError;
 use crate::core::facade::static_temporal_chart_view::time_index_for_hour;
 use crate::core::model::calendar::{BirthTime, SolarDate};
-use crate::core::model::ganzhi::EarthlyBranch;
+use lunar_lite::EarthlyBranch;
 
 use super::config::{
     ChartCalculationConfig, ClockBirthTime, EquationOfTimePolicy, SolarTimePolicy,

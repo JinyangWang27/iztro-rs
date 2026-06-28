@@ -8,7 +8,7 @@
 //! explicitly.
 
 use crate::core::model::calendar::BirthContext;
-use crate::core::model::ganzhi::{EarthlyBranch, HeavenlyStem};
+use lunar_lite::{EarthlyBranch, HeavenlyStem};
 use crate::core::model::profile::MethodProfile;
 use crate::core::placement::natal::life_body::{LunarDay, LunarMonth};
 

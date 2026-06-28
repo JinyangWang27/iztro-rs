@@ -1,4 +1,4 @@
-use crate::core::model::ganzhi::{EarthlyBranch, FourPillars, HeavenlyStem, StemBranch};
+use lunar_lite::{EarthlyBranch, FourPillars, HeavenlyStem, StemBranch};
 use crate::core::{
     error::ChartError,
     model::{
@@ -771,7 +771,7 @@ impl<'de> Deserialize<'de> for DecorativeStarPlacement {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::core::model::ganzhi::{EARTHLY_BRANCHES, HEAVENLY_STEMS};
+    use lunar_lite::{EARTHLY_BRANCHES, HEAVENLY_STEMS};
     use crate::core::model::{
         calendar::{CalendarDate, Gender},
         chart::PALACE_NAMES,

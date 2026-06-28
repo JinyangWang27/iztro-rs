@@ -14,7 +14,7 @@ use crate::core::model::chart::{
     Chart, PALACE_COUNT, TemporalPalaceLayout,
     temporal_layout::{build_life_branch_palace_layout, daily_palace_index},
 };
-use crate::core::model::ganzhi::{EarthlyBranch, StemBranch};
+use lunar_lite::{EarthlyBranch, StemBranch};
 use crate::core::model::star::mutagen::Scope;
 use serde::{Deserialize, Serialize};
 

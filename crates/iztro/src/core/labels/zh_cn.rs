@@ -8,7 +8,7 @@
 //! These labels are an additive presentation concern. They never replace the
 //! canonical machine-readable enum/value identity used internally or in JSON.
 
-use crate::core::model::ganzhi::{EarthlyBranch, HeavenlyStem, StemBranch};
+use lunar_lite::{EarthlyBranch, HeavenlyStem, StemBranch};
 use crate::core::model::{
     bureau::FiveElementBureau,
     chart::{DecorativeStarFamily, PalaceName},

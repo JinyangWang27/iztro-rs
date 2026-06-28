@@ -186,7 +186,7 @@ fn cyclic_year_matches_lunar_year_ganzhi() {
         .expect("conversion should succeed");
 
         let expected =
-            crate::core::model::ganzhi::StemBranch::from_lunar_year(conversion.lunar_year());
+            lunar_lite::StemBranch::from_lunar_year(conversion.lunar_year());
         assert_eq!(
             conversion.birth_year_stem(),
             expected.stem(),

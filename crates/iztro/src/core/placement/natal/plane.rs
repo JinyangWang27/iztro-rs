@@ -48,7 +48,7 @@ mod tests {
     use crate::core::error::ChartError;
     use crate::core::model::calendar::{BirthContext, CalendarDate, Gender};
     use crate::core::model::chart::{Chart, PalaceName};
-    use crate::core::model::ganzhi::{EarthlyBranch, HeavenlyStem};
+    use lunar_lite::{EarthlyBranch, HeavenlyStem};
     use crate::core::model::profile::{ChartAlgorithmKind, ChartPlane, MethodProfile};
     use crate::core::placement::natal::input::NatalChartInput;
     use crate::core::placement::natal::life_body::LunarMonth;

@@ -9,7 +9,7 @@
 
 use crate::core::error::ChartError;
 use crate::core::model::chart::{Chart, DecorativeStarFamily, DecorativeStarPlacement, Palace};
-use crate::core::model::ganzhi::{EarthlyBranch, HeavenlyStem};
+use lunar_lite::{EarthlyBranch, HeavenlyStem};
 use crate::core::model::profile::ChartAlgorithmKind;
 use crate::core::model::star::StarName;
 use crate::core::model::star::mutagen::Scope;

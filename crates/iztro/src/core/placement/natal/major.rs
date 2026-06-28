@@ -8,7 +8,7 @@
 use crate::core::error::ChartError;
 use crate::core::model::bureau::FiveElementBureau;
 use crate::core::model::chart::{Chart, Palace, StarPlacement};
-use crate::core::model::ganzhi::{EarthlyBranch, HeavenlyStem};
+use lunar_lite::{EarthlyBranch, HeavenlyStem};
 use crate::core::model::star::mutagen::Scope;
 use crate::core::model::star::{Brightness, StarKind, StarMetadata, StarName};
 use crate::core::placement::natal::life_body::LunarDay;

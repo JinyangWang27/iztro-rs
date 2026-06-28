@@ -9,7 +9,7 @@ use crate::core::error::ChartError;
 use crate::core::model::bureau::five_element_bureau_from_life_palace;
 use crate::core::model::calendar::BirthContext;
 use crate::core::model::chart::{Chart, PALACE_COUNT, PALACE_NAMES, Palace, PalaceName};
-use crate::core::model::ganzhi::{EARTHLY_BRANCHES, EarthlyBranch, HEAVENLY_STEMS, StemBranch};
+use lunar_lite::{EARTHLY_BRANCHES, EarthlyBranch, HEAVENLY_STEMS, StemBranch};
 use crate::core::model::profile::MethodProfile;
 use crate::core::placement::natal::input::NatalChartInput;
 use crate::core::placement::natal::life_body::{
@@ -95,7 +95,7 @@ pub fn build_minimal_natal_chart_with_anchor(
         input.birth_context().clone(),
         StemBranch::try_new(input.birth_year_stem(), input.birth_year_branch()).map_err(|err| {
             match err {
-                crate::core::model::ganzhi::StemBranchError::InvalidStemBranchPair {
+                lunar_lite::StemBranchError::InvalidStemBranchPair {
                     stem,
                     branch,
                 } => ChartError::InvalidStemBranchPair { stem, branch },
@@ -132,7 +132,7 @@ pub fn build_minimal_natal_chart_with_anchor(
         life_branch,
     )
     .map_err(|err| match err {
-        crate::core::model::ganzhi::StemBranchError::InvalidStemBranchPair { stem, branch } => {
+        lunar_lite::StemBranchError::InvalidStemBranchPair { stem, branch } => {
             ChartError::InvalidStemBranchPair { stem, branch }
         }
     })?;
@@ -161,7 +161,7 @@ fn palace_name_relative_to_life_branch(
 mod tests {
     use super::*;
     use crate::core::model::calendar::{CalendarDate, Gender};
-    use crate::core::model::ganzhi::HeavenlyStem;
+    use lunar_lite::HeavenlyStem;
     use crate::core::placement::natal::life_body::LunarMonth;
 
     fn fixture_input() -> NatalChartInput {

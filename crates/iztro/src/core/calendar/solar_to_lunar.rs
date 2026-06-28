@@ -12,7 +12,7 @@
 use crate::core::calculation::YearBoundary;
 use crate::core::error::ChartError;
 use crate::core::model::calendar::{SolarDate, SolarDay, SolarMonth};
-use crate::core::model::ganzhi::{EarthlyBranch, FourPillars, HeavenlyStem};
+use lunar_lite::{EarthlyBranch, FourPillars, HeavenlyStem};
 use crate::core::placement::natal::life_body::{LunarDay, LunarMonth};
 
 use super::policy::resolve_four_pillars;
@@ -207,7 +207,7 @@ pub(crate) fn resolve_effective_birth_year(
     day: SolarDay,
     time_index: u8,
     policy: YearBoundary,
-) -> Result<crate::core::model::ganzhi::StemBranch, ChartError> {
+) -> Result<lunar_lite::StemBranch, ChartError> {
     Ok(
         solar_to_lunar_with_year_boundary(year, month, day, time_index, policy)?
             .four_pillars()

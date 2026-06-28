@@ -15,7 +15,7 @@ use crate::core::model::chart::{
     Chart, DecadalFrame, DecadalPeriod, PALACE_COUNT, PalaceName, TemporalPalaceLayout,
     TemporalPalaceName,
 };
-use crate::core::model::ganzhi::{EarthlyBranch, StemBranch};
+use lunar_lite::{EarthlyBranch, StemBranch};
 use crate::core::model::star::mutagen::Scope;
 
 pub(super) fn build_life_branch_palace_layout(

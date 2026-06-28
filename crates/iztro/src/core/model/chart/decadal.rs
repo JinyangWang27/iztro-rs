@@ -7,7 +7,7 @@
 use crate::core::error::ChartError;
 use crate::core::model::calendar::Gender;
 use crate::core::model::chart::{Chart, PalaceName};
-use crate::core::model::ganzhi::{EarthlyBranch, HeavenlyStem, StemBranch};
+use lunar_lite::{EarthlyBranch, HeavenlyStem, StemBranch};
 use serde::{Deserialize, Serialize};
 
 /// Direction used to walk decadal periods around the natal palace ring.
@@ -51,7 +51,7 @@ impl DecadalPeriod {
     ) -> Result<Self, ChartError> {
         let stem_branch =
             StemBranch::try_new(palace_stem, palace_branch).map_err(|err| match err {
-                crate::core::model::ganzhi::StemBranchError::InvalidStemBranchPair {
+                lunar_lite::StemBranchError::InvalidStemBranchPair {
                     stem,
                     branch,
                 } => ChartError::InvalidStemBranchPair { stem, branch },

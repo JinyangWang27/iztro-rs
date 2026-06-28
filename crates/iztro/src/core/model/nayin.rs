@@ -7,7 +7,7 @@
 //! Low-level stem/branch enums and sexagenary-cycle validation are provided by
 //! `lunar-lite`; this module only owns the Zi Wei-specific NaYin lookup.
 
-use crate::core::model::ganzhi::StemBranch;
+use lunar_lite::StemBranch;
 use serde::{Deserialize, Serialize};
 
 /// One of the five NaYin (纳音) elements.
@@ -69,7 +69,7 @@ const NAYIN_ELEMENTS: [NaYinElement; 30] = [
 
 /// Returns the NaYin element for a stem-branch pair.
 ///
-/// `crate::core::model::ganzhi::StemBranch` is valid by construction, so every pair maps to a
+/// `lunar_lite::StemBranch` is valid by construction, so every pair maps to a
 /// NaYin element. Adjacent cycle positions share one element, so the lookup
 /// halves the pair's sexagenary-cycle index.
 pub fn nayin_element(pair: StemBranch) -> NaYinElement {

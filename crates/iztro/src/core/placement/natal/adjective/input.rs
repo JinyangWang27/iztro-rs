@@ -1,7 +1,7 @@
 //! Inputs for the supported natal adjective-star placement.
 
 use crate::core::model::calendar::BirthTime;
-use crate::core::model::ganzhi::{EarthlyBranch, HeavenlyStem};
+use lunar_lite::{EarthlyBranch, HeavenlyStem};
 use crate::core::placement::natal::life_body::{LunarDay, LunarMonth};
 
 /// Inputs required to place the supported natal adjective-star set.

@@ -23,7 +23,7 @@ use tyme4rs::tyme::solar::{SolarDay, SolarTerm, SolarTime};
 
 use crate::core::error::ChartError;
 use crate::core::model::calendar::SolarDate;
-use crate::core::model::ganzhi::StemBranch;
+use lunar_lite::StemBranch;
 
 /// A fully resolved local solar date and wall-clock time handed to the calendar
 /// engine. Apparent-solar-time correction is applied by `iztro-rs` policy
@@ -222,7 +222,7 @@ fn stem_branch_from_cycle(cycle: SixtyCycle) -> StemBranch {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::core::model::ganzhi::{EarthlyBranch, HeavenlyStem};
+    use lunar_lite::{EarthlyBranch, HeavenlyStem};
 
     fn solar(year: i32, month: u8, day: u8) -> SolarDate {
         SolarDate::new(year, month, day).expect("valid solar date")
