@@ -2,7 +2,15 @@
 
 ## Status
 
-Accepted.
+Superseded by [ADR 0007](0007-calendar-engine-back-to-lunar-lite.md).
+
+`iztro-rs` has migrated the calendar engine back to `lunar-lite`. The
+decision below — adopting `tyme4rs` and duplicating the GanZhi value
+objects in `core/model/ganzhi` — no longer reflects the codebase. In
+particular, the datetime-level (exact-instant) `立春` boundary and its
+intentional `year_divide_exact_2000_02_04` divergence have been reverted to
+`lunar-lite`'s date-level boundary, which matches `iztro@2.5.8`. This record
+is kept for history; see ADR 0007 for the current decision.
 
 ## Context
 

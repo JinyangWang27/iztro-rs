@@ -13,7 +13,7 @@
 当前已支持：
 
 - 强类型 request facade：`by_lunar` 与 `by_solar`；
-- `tyme4rs`-backed 阳历转农历，以及 `by_solar` 的四柱事实推导，置于内部 `core/calendar` 适配器之后；
+- `lunar-lite`-backed 阳历转农历，以及 `by_solar` 的四柱事实推导，置于内部 `core/calendar` 适配器之后；
 - 闰月与 `fix_leap` 行为的 supported slice；
 - `BirthTime` / 上游 `timeIndex` `0..=12`，包括早子时与晚子时；
 - `Chart::birth_year()` 出生年干支事实；

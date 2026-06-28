@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- Migrate the calendar engine back to `lunar-lite` (1.1.0) and remove the
+  `tyme4rs` dependency. The duplicated `core/model/ganzhi` GanZhi model is
+  removed; `lunar-lite`'s `HeavenlyStem`/`EarthlyBranch`/`StemBranch`/
+  `FourPillars` are used directly. `YearBoundary::LiChun` returns to
+  `lunar-lite`'s date-level 立春 boundary, restoring `iztro@2.5.8` parity for
+  the `year_divide_exact_2000_02_04` case (no more datetime-level divergence).
+
 ## [0.9.0](https://github.com/JinyangWang27/iztro-rs/compare/v0.8.0...v0.9.0) - 2026-06-24
 
 ### Added

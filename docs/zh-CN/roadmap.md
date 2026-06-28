@@ -41,7 +41,7 @@
 - [x] 定义大限与 horoscope overlay models。
 - [x] 确保已实现模型强类型且可序列化。
 - [x] 将上游 `iztro@2.5.8` runtime 星曜名称清单与已表示 chart facts 分开维护。
-- [x] 在 `iztro-rs` 中自有底层天干、地支、干支循环与四柱值对象（`core/model/ganzhi`）。
+- [x] 直接使用 `lunar-lite` 提供的底层天干、地支、干支循环与四柱值对象。
 - [x] 在 `iztro-rs` 中自有 `FourPillars` 值对象以保留事实性本命四柱。
 - [x] 将紫微斗数特有的纳音与五行局逻辑隔离在 `core`。
 - [x] 在 `Chart` 上保留出生年 `StemBranch` 事实。
@@ -66,10 +66,10 @@
 - [x] 为已支持 natal algorithm/plane 组合添加 invariant coverage。
 - [x] 安放装饰性 runtime 星曜家族为无类型 `DecorativeStarPlacement`。
 - [x] 安放 scoped flow stars 为带地支标签的 `ScopedStarPlacement`。
-- [x] 通过内部 `tyme4rs` 历法适配器（`core/calendar`）添加阳历转农历与闰月行为。
+- [x] 通过内部 `lunar-lite` 历法适配器（`core/calendar`）添加阳历转农历与闰月行为。
 - [x] 添加 solar time、year boundary、leap-month boundary 和 nominal-age boundary calculation policies。
 - [x] 添加上游 `timeIndex` `0..=12` 早晚子时变体。
-- [x] 通过内部 `tyme4rs` 历法适配器推导出生年干支并保留在 `Chart` 上。
+- [x] 通过内部 `lunar-lite` 历法适配器推导出生年干支并保留在 `Chart` 上。
 - [x] 在 `by_solar` charts 上保留完整事实性本命四柱；`by_lunar` 仍保持显式输入且不支持完整四柱推导。
 - [x] 添加 typed decadal-frame derivation。
 - [x] 在选定大限 layer 上添加 decadal temporal palace-name layout。
@@ -88,7 +88,7 @@
 - [ ] 添加 full facade serialization parity。
 - [ ] 添加 factual `by_solar` natal four pillars 之外的 full BaZi interpretation/output。
 
-当前支持切片：`by_lunar` 接受显式农历输入与显式出生年干支，生成确定性本命 chart facts，并在上游可比较 surface 上用 `iztro@2.5.8` fixtures 校验。`by_solar` 添加 `tyme4rs`-backed 阳历转农历（置于内部 `core/calendar` 适配器之后），通过可配置年分界（时刻级 `YearBoundary::LiChun`）推导出生年干支与事实性四柱（`iztro-rs` 自有的 `FourPillars`），并委托 `by_lunar` 安星。`ChartCalculationConfig` 是独立于 `ChartAlgorithmKind` 与 `ChartPlane` 的 calculation-policy 维度，覆盖 solar time、year boundary、leap-month boundary 和 runtime nominal-age boundary。中州地盘/人盘是 Rust-only extension，因为上游 `iztro@2.5.8` 不暴露这些 chart planes。
+当前支持切片：`by_lunar` 接受显式农历输入与显式出生年干支，生成确定性本命 chart facts，并在上游可比较 surface 上用 `iztro@2.5.8` fixtures 校验。`by_solar` 添加 `lunar-lite`-backed 阳历转农历（置于内部 `core/calendar` 适配器之后），通过可配置年分界（日期级 `YearBoundary::LiChun`）推导出生年干支与事实性四柱（`FourPillars`），并委托 `by_lunar` 安星。`ChartCalculationConfig` 是独立于 `ChartAlgorithmKind` 与 `ChartPlane` 的 calculation-policy 维度，覆盖 solar time、year boundary、leap-month boundary 和 runtime nominal-age boundary。中州地盘/人盘是 Rust-only extension，因为上游 `iztro@2.5.8` 不暴露这些 chart planes。
 
 计算诊断通过 generation reports 与 preview/resolution snapshots 暴露。它们检查解析后的输入事实与 runtime 虚岁事实，不让 `Chart` 存储 calculation config，也不改变 chart 序列化。
 
