@@ -17,8 +17,8 @@ use crate::core::model::chart::{
     Chart, PALACE_COUNT, TemporalPalaceLayout,
     temporal_layout::{build_life_branch_palace_layout, yin_first_branch_index},
 };
-use lunar_lite::{EarthlyBranch, StemBranch};
 use crate::core::model::star::mutagen::Scope;
+use lunar_lite::{EarthlyBranch, StemBranch};
 use serde::{Deserialize, Serialize};
 
 /// One 小限 period aligned to a natal palace branch.

@@ -14,7 +14,6 @@
 //! layer's [`MutagenActivation`]s lives with the overlay placement algorithms in
 //! `crate::core::placement::overlay::mutagen`.
 
-use lunar_lite::{EarthlyBranch, StemBranch};
 use crate::core::{
     error::ChartError,
     model::{
@@ -26,6 +25,7 @@ use crate::core::{
         star::mutagen::{Mutagen, Scope},
     },
 };
+use lunar_lite::{EarthlyBranch, StemBranch};
 use serde::{Deserialize, Deserializer, Serialize};
 
 /// Target context retained by a full horoscope stack.

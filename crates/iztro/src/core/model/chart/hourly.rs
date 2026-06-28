@@ -14,8 +14,8 @@ use crate::core::model::chart::{
     Chart, PALACE_COUNT, TemporalPalaceLayout,
     temporal_layout::{build_life_branch_palace_layout, daily_palace_index},
 };
-use lunar_lite::{EarthlyBranch, StemBranch};
 use crate::core::model::star::mutagen::Scope;
+use lunar_lite::{EarthlyBranch, StemBranch};
 use serde::{Deserialize, Serialize};
 
 /// One 流时 period with independent hour pillar and temporal Life palace facts.

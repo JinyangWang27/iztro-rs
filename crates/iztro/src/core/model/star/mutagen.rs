@@ -1,5 +1,5 @@
-use lunar_lite::HeavenlyStem;
 use crate::core::model::star::{StarCategory, StarName, star_metadata};
+use lunar_lite::HeavenlyStem;
 use serde::{Deserialize, Serialize};
 
 /// Four transformations, also known as mutagens.

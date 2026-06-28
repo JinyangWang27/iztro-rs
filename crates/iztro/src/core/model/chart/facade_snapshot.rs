@@ -29,7 +29,6 @@
 //!   [`HoroscopeRuntime`] methods rather than precomputed DTO fields;
 //! * full BaZi output, bindings, renderers, rules, and narrative.
 
-use lunar_lite::{EarthlyBranch, FourPillars, HeavenlyStem, StemBranch};
 use crate::core::{
     error::ChartError,
     labels::zh_cn,
@@ -48,6 +47,7 @@ use crate::core::{
         },
     },
 };
+use lunar_lite::{EarthlyBranch, FourPillars, HeavenlyStem, StemBranch};
 use serde::{Deserialize, Serialize};
 
 /// Scopes the facade projects the Life palace through, mirroring the upstream

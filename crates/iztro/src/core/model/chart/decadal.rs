@@ -51,10 +51,9 @@ impl DecadalPeriod {
     ) -> Result<Self, ChartError> {
         let stem_branch =
             StemBranch::try_new(palace_stem, palace_branch).map_err(|err| match err {
-                lunar_lite::StemBranchError::InvalidStemBranchPair {
-                    stem,
-                    branch,
-                } => ChartError::InvalidStemBranchPair { stem, branch },
+                lunar_lite::StemBranchError::InvalidStemBranchPair { stem, branch } => {
+                    ChartError::InvalidStemBranchPair { stem, branch }
+                }
             })?;
 
         Ok(Self {

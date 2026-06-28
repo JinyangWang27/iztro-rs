@@ -15,8 +15,8 @@
 //! compared at **date** granularity.
 
 use lunar_lite::{
-    EarthlyBranch, FourPillars, HeavenlyStem, LunarError, MonthDivide, SolarDate, StemBranchOptions,
-    YearDivide, four_pillars_from_solar_date_with_options, lunar_month_days,
+    EarthlyBranch, FourPillars, HeavenlyStem, LunarError, MonthDivide, SolarDate,
+    StemBranchOptions, YearDivide, four_pillars_from_solar_date_with_options, lunar_month_days,
     solar_to_lunar as convert_solar_to_lunar,
 };
 
@@ -221,9 +221,11 @@ pub(crate) fn resolve_effective_birth_year(
     day: SolarDay,
     policy: YearBoundary,
 ) -> Result<lunar_lite::StemBranch, ChartError> {
-    Ok(solar_to_lunar_with_year_boundary(year, month, day, 0, policy)?
-        .four_pillars()
-        .yearly)
+    Ok(
+        solar_to_lunar_with_year_boundary(year, month, day, 0, policy)?
+            .four_pillars()
+            .yearly,
+    )
 }
 
 fn map_solar_conversion_error(err: LunarError, year: i32, month: u8, day: u8) -> ChartError {

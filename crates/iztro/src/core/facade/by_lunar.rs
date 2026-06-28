@@ -4,7 +4,6 @@ use crate::core::calendar::resolve_lunar_date;
 use crate::core::error::{ChartError, validate_chart_algorithm_plane};
 use crate::core::model::calendar::{BirthContext, BirthTime, CalendarDate, Gender};
 use crate::core::model::chart::Chart;
-use lunar_lite::{EarthlyBranch, HeavenlyStem, StemBranch};
 use crate::core::model::profile::{ChartPlane, ChartProfile, MethodProfile};
 use crate::core::placement::natal::input::{NatalChartInput, NatalChartWithSupportedStarsInput};
 use crate::core::placement::natal::life_body::{LunarDay, LunarMonth};
@@ -12,6 +11,7 @@ use crate::core::placement::natal::minimal::build_minimal_natal_chart;
 use crate::core::placement::natal::plane::resolve_natal_chart_anchor;
 use crate::core::placement::natal::strategy::DeterministicNatalStarPlacementStrategy;
 use crate::core::placement::natal::supported::build_natal_chart_with_supported_stars_using_anchor_and_strategy;
+use lunar_lite::{EarthlyBranch, HeavenlyStem, StemBranch};
 
 /// Typed lunar-date request for the iztro-compatible natal chart facade.
 ///

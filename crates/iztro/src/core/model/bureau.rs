@@ -11,8 +11,8 @@
 //! Fire  -> Fire6  (火六局)
 //! ```
 
-use lunar_lite::StemBranch;
 use crate::core::model::nayin::{NaYinElement, nayin_element};
+use lunar_lite::StemBranch;
 use serde::{Deserialize, Serialize};
 
 /// The five-element bureau (五行局) of a chart.
