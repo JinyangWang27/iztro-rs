@@ -1,17 +1,15 @@
 //! 机月同梁 — Tian Ji (天机), Tai Yin (太阴), Tian Tong (天同), Tian Liang (天梁)
 //! gathered through the 三方四正 of the Life palace.
 //!
-//! [`PatternStatus::Fulfilled`] when all four stars appear in the Life 三方四正.
-//! When some are missing, nothing is emitted unless `request.include_partial`,
-//! in which case a [`PatternStatus::Partial`] (近格 / 条件不足) detection is emitted
-//! with the missing stars recorded in `missing_conditions` — but only when at
-//! least two of the four required stars are present, so a near-empty chart never
-//! produces a partial detection.
+//! The base formation requires all four stars in the Life 三方四正. When the
+//! formation is complete, a [`PatternStatus::Fulfilled`] detection is emitted; an
+//! incomplete formation is not a near-pattern and produces no detection. No
+//! weakening/breaker policy is modeled yet, so only `Fulfilled` is ever emitted.
 
 use crate::core::pattern::context::{PatternContext, PatternDetectionRequest};
 use crate::core::pattern::model::{
-    PatternAnchor, PatternCondition, PatternDetection, PatternEvidence, PatternFamily, PatternId,
-    PatternPolarity, PatternScope, PatternStatus, PatternStrength,
+    PatternAnchor, PatternDetection, PatternEvidence, PatternFamily, PatternId, PatternPolarity,
+    PatternScope, PatternStatus, PatternStrength,
 };
 use crate::core::pattern::query::stars_in_san_fang_si_zheng;
 use crate::core::{EarthlyBranch, StarName};
@@ -27,7 +25,7 @@ const REQUIRED: [StarName; 4] = [
 /// Detects 机月同梁 and appends any detection to `out`.
 pub fn detect(
     ctx: &PatternContext<'_>,
-    request: &PatternDetectionRequest,
+    _request: &PatternDetectionRequest,
     out: &mut Vec<PatternDetection>,
 ) {
     let chart = ctx.chart;
@@ -38,26 +36,16 @@ pub fn detect(
 
     let found = stars_in_san_fang_si_zheng(chart, anchor, &REQUIRED);
 
-    let involved_stars: Vec<StarName> = REQUIRED
+    // The base formation requires all four stars within the Life 三方四正. An
+    // incomplete formation is not a near-pattern, so emit nothing.
+    let all_present = REQUIRED
         .iter()
-        .copied()
-        .filter(|star| found.iter().any(|(found_star, _)| found_star == star))
-        .collect();
-    let missing: Vec<StarName> = REQUIRED
-        .iter()
-        .copied()
-        .filter(|star| !involved_stars.contains(star))
-        .collect();
+        .all(|star| found.iter().any(|(found_star, _)| found_star == star));
+    if !all_present {
+        return;
+    }
 
-    let all_present = missing.is_empty();
-    if !all_present && !request.include_partial {
-        return;
-    }
-    // A meaningful 近格 requires at least two of the four stars; fewer than two
-    // is too weak to assert even a partial pattern.
-    if !all_present && involved_stars.len() < 2 {
-        return;
-    }
+    let involved_stars: Vec<StarName> = REQUIRED.to_vec();
 
     let mut branches: Vec<EarthlyBranch> = found.iter().map(|(_, branch)| *branch).collect();
     branches.sort_by_key(|branch| branch.index());
@@ -71,23 +59,12 @@ pub fn detect(
         })
         .collect();
 
-    let missing_conditions: Vec<PatternCondition> = missing
-        .iter()
-        .map(|star| PatternCondition::RequiresStar { star: *star })
-        .collect();
-
-    let status = if all_present {
-        PatternStatus::Fulfilled
-    } else {
-        PatternStatus::Partial
-    };
-
     out.push(PatternDetection {
         id: PatternId::JiYueTongLiang,
         name_zh: NAME_ZH,
         family: PatternFamily::MajorStarCombination,
-        polarity: PatternPolarity::Mixed,
-        status,
+        polarity: PatternPolarity::Auspicious,
+        status: PatternStatus::Fulfilled,
         strength: PatternStrength::Medium,
         scope: PatternScope::Natal,
         anchor: PatternAnchor::Palace(anchor),
@@ -95,7 +72,7 @@ pub fn detect(
         involved_stars,
         involved_mutagens: Vec::new(),
         evidence,
-        missing_conditions,
+        missing_conditions: Vec::new(),
         weakening_factors: Vec::new(),
         breaking_factors: Vec::new(),
     });

@@ -306,8 +306,9 @@ fn ji_yue_tong_liang_positive() {
 }
 
 #[test]
-fn ji_yue_tong_liang_negative_without_partial() {
-    // Only two of four present; default request excludes partials.
+fn ji_yue_tong_liang_incomplete_formation_emits_nothing() {
+    // Only two of four required stars present: the base formation is incomplete,
+    // so no detection is emitted. An incomplete formation is not a near-pattern.
     let chart = build_chart(
         EarthlyBranch::Zi,
         &[
@@ -320,33 +321,6 @@ fn ji_yue_tong_liang_negative_without_partial() {
         &PatternDetectionRequest::default(),
     );
     assert!(detections.iter().all(|d| d.id != PatternId::JiYueTongLiang));
-}
-
-#[test]
-fn ji_yue_tong_liang_partial_when_requested() {
-    let chart = build_chart(
-        EarthlyBranch::Zi,
-        &[
-            major(EarthlyBranch::Zi, StarName::TianJi),
-            major(EarthlyBranch::Wu, StarName::TaiYin),
-        ],
-    );
-    let request = PatternDetectionRequest {
-        include_partial: true,
-        ..PatternDetectionRequest::default()
-    };
-    let detections = iztro::detect_patterns(&PatternContext::natal(&chart), &request);
-    let detection = detections
-        .iter()
-        .find(|d| d.id == PatternId::JiYueTongLiang)
-        .expect("expected partial 机月同梁");
-    assert_eq!(detection.status, PatternStatus::Partial);
-    assert_eq!(
-        star_set(&detection.involved_stars),
-        star_set(&[StarName::TianJi, StarName::TaiYin])
-    );
-    // The two absent stars are recorded as missing conditions.
-    assert_eq!(detection.missing_conditions.len(), 2);
 }
 
 // ---- 羊陀夹忌 -------------------------------------------------------------
@@ -575,32 +549,6 @@ fn family_filter_includes_only_requested_families() {
     );
     assert!(major.iter().all(|d| d.id != PatternId::YangTuoJiaJi));
     assert!(major.iter().any(|d| d.id == PatternId::ZiFuChaoYuan));
-}
-
-// ---- 机月同梁 partial guard ---------------------------------------------
-
-#[test]
-fn ji_yue_tong_liang_partial_requires_two_stars() {
-    let request = PatternDetectionRequest {
-        include_partial: true,
-        ..PatternDetectionRequest::default()
-    };
-
-    // Zero required stars present: no detection even with partials enabled.
-    let none = build_chart(
-        EarthlyBranch::Zi,
-        &[major(EarthlyBranch::Zi, StarName::ZiWei)],
-    );
-    let detections = iztro::detect_patterns(&PatternContext::natal(&none), &request);
-    assert!(detections.iter().all(|d| d.id != PatternId::JiYueTongLiang));
-
-    // Only one required star present: still no partial detection.
-    let one = build_chart(
-        EarthlyBranch::Zi,
-        &[major(EarthlyBranch::Zi, StarName::TianJi)],
-    );
-    let detections = iztro::detect_patterns(&PatternContext::natal(&one), &request);
-    assert!(detections.iter().all(|d| d.id != PatternId::JiYueTongLiang));
 }
 
 // ---- 左右夹命 -------------------------------------------------------------

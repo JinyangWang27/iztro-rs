@@ -13,7 +13,8 @@
 use crate::core::pattern::context::{PatternContext, PatternDetectionRequest};
 use crate::core::pattern::detector::detect_patterns;
 use crate::core::pattern::model::{
-    PatternEvidence as CorePatternEvidence, PatternId, PatternScope,
+    PatternDetection, PatternEvidence as CorePatternEvidence, PatternId, PatternScope,
+    PatternStatus,
 };
 use crate::core::pattern::relation::PalaceRelation;
 use crate::core::{Chart, EarthlyBranch, Scope, StarName, StarTag};
@@ -88,15 +89,18 @@ fn evaluate_pattern_detection(
     chart: &Chart,
     pattern: PatternId,
 ) -> RuleOutcome {
+    // Classical runtime rules emit source hits / claims only for clean, fulfilled
+    // pattern formations. `core::pattern` may surface Weakened/Broken detections
+    // for GUI/pattern-panel use, but those are excluded here unless a future rule
+    // explicitly opts into weakened/broken semantics.
     let request = PatternDetectionRequest {
         scopes: vec![Scope::Natal],
-        ..PatternDetectionRequest::default()
+        include_weakened: false,
+        include_broken: false,
+        families: Vec::new(),
     };
     let detections = detect_patterns(&PatternContext::natal(chart), &request);
-    let Some(detection) = detections
-        .iter()
-        .find(|detection| detection.id == pattern && detection.scope == PatternScope::Natal)
-    else {
+    let Some(detection) = select_fulfilled_natal(&detections, pattern) else {
         return RuleOutcome::NotApplicable;
     };
 
@@ -105,6 +109,23 @@ fn evaluate_pattern_detection(
         evidence.extend(pattern_evidence_to_classical(item));
     }
     matched(rule, evidence)
+}
+
+/// Selects the natal detection of `pattern` only when its base formation is
+/// clean ([`PatternStatus::Fulfilled`]).
+///
+/// `core::pattern` may surface `Weakened`/`Broken` detections for GUI use, but
+/// the classical runtime bridge consumes only fulfilled formations unless a
+/// future rule explicitly opts into weakened/broken semantics.
+fn select_fulfilled_natal<'a>(
+    detections: &'a [PatternDetection],
+    pattern: PatternId,
+) -> Option<&'a PatternDetection> {
+    detections.iter().find(|detection| {
+        detection.id == pattern
+            && detection.scope == PatternScope::Natal
+            && detection.status == PatternStatus::Fulfilled
+    })
 }
 
 fn pattern_evidence_to_classical(evidence: &CorePatternEvidence) -> Vec<Evidence> {
@@ -347,8 +368,48 @@ mod tests {
     use super::*;
 
     use crate::core::EarthlyBranch;
+    use crate::core::pattern::model::{
+        PatternAnchor, PatternFamily, PatternPolarity, PatternStrength,
+    };
     use crate::rules::classical::rule::{ClassicalRuleId, RuleStatus};
     use crate::rules::classical::source::ClassicalWork;
+
+    fn detection(id: PatternId, status: PatternStatus) -> PatternDetection {
+        PatternDetection {
+            id,
+            name_zh: "测试格局",
+            family: PatternFamily::MajorStarCombination,
+            polarity: PatternPolarity::Auspicious,
+            status,
+            strength: PatternStrength::Medium,
+            scope: PatternScope::Natal,
+            anchor: PatternAnchor::Chart,
+            involved_palaces: Vec::new(),
+            involved_stars: Vec::new(),
+            involved_mutagens: Vec::new(),
+            evidence: Vec::new(),
+            missing_conditions: Vec::new(),
+            weakening_factors: Vec::new(),
+            breaking_factors: Vec::new(),
+        }
+    }
+
+    #[test]
+    fn bridge_selects_only_fulfilled_natal_detections() {
+        let pattern = PatternId::JinCanGuangHui;
+
+        // Fulfilled natal detection is selected.
+        let fulfilled = vec![detection(pattern, PatternStatus::Fulfilled)];
+        assert!(select_fulfilled_natal(&fulfilled, pattern).is_some());
+
+        // Weakened / broken base formations are not consumed by the classical
+        // bridge, even though `core::pattern` may surface them for GUI use.
+        let weakened = vec![detection(pattern, PatternStatus::Weakened)];
+        assert!(select_fulfilled_natal(&weakened, pattern).is_none());
+
+        let broken = vec![detection(pattern, PatternStatus::Broken)];
+        assert!(select_fulfilled_natal(&broken, pattern).is_none());
+    }
 
     #[test]
     fn matched_rule_without_claim_spec_emits_source_hit_only() {

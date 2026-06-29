@@ -79,7 +79,8 @@ impl AnalysisLayerRequest {
     /// Classical unsupported-rule diagnostics are suppressed (end users should not
     /// see them). Pattern visibility follows the existing
     /// [`PatternDetectionRequest`] defaults: fulfilled, weakened, and broken
-    /// patterns are included; partial patterns are not.
+    /// patterns are included. Incomplete formations are never detected, so there
+    /// is no partial/near-pattern visibility to control.
     ///
     /// The classical rule stream is restricted to
     /// [`ClassicalWork::ZiWeiDouShuQuanShu`]: the future GUI shows 全书规则 and

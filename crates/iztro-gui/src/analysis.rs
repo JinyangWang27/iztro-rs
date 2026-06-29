@@ -346,7 +346,7 @@ mod tests {
             name_zh: "紫府朝垣",
             family: iztro::core::PatternFamily::MajorStarCombination,
             polarity: iztro::core::PatternPolarity::Auspicious,
-            status: iztro::core::PatternStatus::Partial,
+            status: iztro::core::PatternStatus::Fulfilled,
             strength: iztro::core::PatternStrength::Weak,
             scope: iztro::core::PatternScope::Natal,
             anchor: iztro::core::PatternAnchor::Chart,

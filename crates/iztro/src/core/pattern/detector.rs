@@ -54,7 +54,6 @@ fn filter_and_sort(
 fn keep(detection: &PatternDetection, request: &PatternDetectionRequest) -> bool {
     let status_ok = match detection.status {
         PatternStatus::Fulfilled => true,
-        PatternStatus::Partial => request.include_partial,
         PatternStatus::Weakened => request.include_weakened,
         PatternStatus::Broken => request.include_broken,
     };
@@ -142,7 +141,6 @@ mod tests {
     fn request_with(scopes: Vec<Scope>) -> PatternDetectionRequest {
         PatternDetectionRequest {
             scopes,
-            include_partial: false,
             include_weakened: true,
             include_broken: true,
             families: Vec::<PatternFamily>::new(),

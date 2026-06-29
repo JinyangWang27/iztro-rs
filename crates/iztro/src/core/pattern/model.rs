@@ -86,22 +86,27 @@ pub enum PatternPolarity {
     Mixed,
 }
 
-/// Fulfilment status of a detected pattern.
+/// Fulfilment/integrity status of a detected pattern.
 ///
-/// - [`PatternStatus::Fulfilled`] = 成格 (all required conditions met);
-/// - [`PatternStatus::Partial`] = 近格 / 条件不足 (close, but conditions incomplete);
-/// - [`PatternStatus::Weakened`] = 成而减力 (fulfilled but weakened);
-/// - [`PatternStatus::Broken`] = 破格 (fulfilled shape but broken by adverse factors).
+/// A [`PatternDetection`] is emitted only when the base pattern formation
+/// exists. Missing or incomplete base conditions produce no detection — there is
+/// no `Partial` / 近格 status. Once a base formation exists, this status records
+/// whether modeled weakening or breaker conditions damage it.
+///
+/// - [`PatternStatus::Fulfilled`] = 成格 (base structure exists, no modeled
+///   weakening/breaker applies);
+/// - [`PatternStatus::Weakened`] = 成而减力 (base structure exists but modeled
+///   weakening factors apply);
+/// - [`PatternStatus::Broken`] = 破格 (base structure exists but modeled breaker
+///   conditions invalidate it).
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum PatternStatus {
-    /// 成格.
+    /// 成格: base structure exists and no modeled weakening/breaker applies.
     Fulfilled,
-    /// 近格 / 条件不足.
-    Partial,
-    /// 成而减力.
+    /// 成而减力: base structure exists but modeled weakening factors apply.
     Weakened,
-    /// 破格.
+    /// 破格: base structure exists but modeled breaker conditions invalidate it.
     Broken,
 }
 
