@@ -87,7 +87,8 @@ pub use model::zodiac::{WesternZodiac, western_zodiac};
 pub use pattern::{
     PalaceRelation, PatternAnchor, PatternCondition, PatternContext, PatternDetection,
     PatternDetectionRequest, PatternEvidence, PatternFamily, PatternId, PatternPolarity,
-    PatternScope, PatternStatus, PatternStrength, detect_patterns,
+    PatternScope, PatternSourceGroup, PatternSourceMetadata, PatternStatus, PatternStrength,
+    detect_patterns, pattern_source_metadata,
 };
 
 pub use placement::natal::adjective::{

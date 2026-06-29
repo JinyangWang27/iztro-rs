@@ -96,7 +96,6 @@ pub fn detect(
                     relation: PalaceRelation::ClampedBy,
                 },
             ],
-            missing_conditions: Vec::new(),
             weakening_factors: Vec::new(),
             breaking_factors: Vec::new(),
         });

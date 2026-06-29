@@ -82,7 +82,6 @@ rules-panel-no-claim = 暂未生成解释文本
 
 patterns-panel-empty = 当前视图未命中已支持的格局。
 patterns-status-fulfilled = 成格
-patterns-status-partial = 近格
 patterns-status-weakened = 减力
 patterns-status-broken = 破格
 

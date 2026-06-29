@@ -16,6 +16,7 @@ use std::fmt::Write as _;
 use support::classical_source::{RulesCorpus, SourceInventory, rules_corpus, source_inventory};
 
 const COVERAGE_REPORT: &str = include_str!("../../../docs/zh-CN/rules/quan-shu-coverage.md");
+const PATTERN_RULE_SECTIONS: [&str; 4] = ["定富局", "定贵局", "定贫贱局", "定杂局"];
 
 /// Coverage metrics over the whole source inventory. Counts of source items and
 /// the rules they link to (classified by the rule's `status`).
@@ -191,6 +192,31 @@ fn generate_report() -> String {
         tai_wei_fu.pending_source_items
     );
 
+    for section in PATTERN_RULE_SECTIONS {
+        let metrics = SectionMetrics::compute(&inventory, 1, section);
+        out.push_str("\n## Volume 1 — ");
+        out.push_str(section);
+        out.push_str("\n\n");
+        out.push_str("Category: `pattern_rule`\n\n");
+        out.push_str("| Metric | Count |\n| --- | ---: |\n");
+        let _ = writeln!(out, "| Source items | {} |", metrics.source_items);
+        let _ = writeln!(
+            out,
+            "| Linked classical rule source items | {} |",
+            metrics.linked_source_items
+        );
+        let _ = writeln!(
+            out,
+            "| Segmented pattern-only source items | {} |",
+            metrics.unlinked_source_items
+        );
+        let _ = writeln!(
+            out,
+            "| Pending source items | {} |",
+            metrics.pending_source_items
+        );
+    }
+
     out.push_str("\n## Unlinked source items\n\n");
     out.push_str("| Source ID | Order | Text |\n| --- | ---: | --- |\n");
     for item in &inventory.source_item {
@@ -225,19 +251,34 @@ fn quan_shu_coverage_report_is_deterministic() {
     assert_eq!(generate_report(), generate_report());
 }
 
-/// After completing the 太微赋 normalization map every source item is linked, so
-/// the report's unlinked count is zero and the linked-rule status counts add up
-/// to the number of distinct linked rules.
+/// After completing the 太微赋 normalization map every aphorism source item is
+/// linked. Source-backed pattern catalogues may be segmented without classical
+/// claim-rule links; those unlinked items must be explicit `pattern_rule`
+/// inventory entries, not missed 太微赋 normalization work.
 #[test]
-fn quan_shu_coverage_has_no_unlinked_source_items() {
+fn quan_shu_coverage_unlinked_items_are_segmented_pattern_sources() {
     let inventory = source_inventory();
     let rules = rules_corpus();
     let m = CoverageMetrics::compute(&inventory, &rules);
-    assert_eq!(
-        m.unlinked_source_items, 0,
-        "expected a complete normalization map"
-    );
-    assert_eq!(m.linked_source_items, m.source_items);
+    let unlinked: Vec<_> = inventory
+        .source_item
+        .iter()
+        .filter(|item| item.linked_rule_ids.is_empty())
+        .collect();
+
+    assert_eq!(m.unlinked_source_items, unlinked.len());
+    for item in unlinked {
+        assert_eq!(
+            item.category, "pattern_rule",
+            "unlinked item {} must be a segmented pattern source, not a missed classical rule",
+            item.source_id
+        );
+        assert_eq!(
+            item.status, "segmented",
+            "unlinked item {} must be segmented until a non-claim pattern metadata path links it",
+            item.source_id
+        );
+    }
     assert_eq!(
         m.executable_linked_rules
             + m.normalized_linked_rules

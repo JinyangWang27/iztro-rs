@@ -97,11 +97,10 @@ impl I18n {
         })
     }
 
-    /// Localized pattern fulfilment-status label (成格 / 近格 / 减力 / 破格).
+    /// Localized pattern fulfilment-status label (成格 / 减力 / 破格).
     pub fn pattern_status_label(&self, status: PatternStatus) -> String {
         self.text(match status {
             PatternStatus::Fulfilled => "patterns-status-fulfilled",
-            PatternStatus::Partial => "patterns-status-partial",
             PatternStatus::Weakened => "patterns-status-weakened",
             PatternStatus::Broken => "patterns-status-broken",
         })

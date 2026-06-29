@@ -35,6 +35,24 @@ pub enum PatternId {
     RiYueBingMing,
     /// 日月反背.
     RiYueFanBei,
+    /// 金灿光辉.
+    JinCanGuangHui,
+    /// 日出扶桑.
+    RiChuFuSang,
+    /// 月落亥宫.
+    YueLuoHaiGong,
+    /// 月生沧海.
+    YueShengCangHai,
+    /// 马头带剑.
+    MaTouDaiJian,
+    /// 贪火相逢.
+    TanHuoXiangFeng,
+    /// 武曲守垣.
+    WuQuShouYuan,
+    /// 财与囚仇.
+    CaiYuQiuChou,
+    /// 马落空亡.
+    MaLuoKongWang,
 }
 
 /// Coarse family a pattern belongs to.
@@ -68,22 +86,27 @@ pub enum PatternPolarity {
     Mixed,
 }
 
-/// Fulfilment status of a detected pattern.
+/// Fulfilment/integrity status of a detected pattern.
 ///
-/// - [`PatternStatus::Fulfilled`] = 成格 (all required conditions met);
-/// - [`PatternStatus::Partial`] = 近格 / 条件不足 (close, but conditions incomplete);
-/// - [`PatternStatus::Weakened`] = 成而减力 (fulfilled but weakened);
-/// - [`PatternStatus::Broken`] = 破格 (fulfilled shape but broken by adverse factors).
+/// A [`PatternDetection`] is emitted only when the base pattern formation
+/// exists. Missing or incomplete base conditions produce no detection — there is
+/// no `Partial` / 近格 status. Once a base formation exists, this status records
+/// whether modeled weakening or breaker conditions damage it.
+///
+/// - [`PatternStatus::Fulfilled`] = 成格 (base structure exists, no modeled
+///   weakening/breaker applies);
+/// - [`PatternStatus::Weakened`] = 成而减力 (base structure exists but modeled
+///   weakening factors apply);
+/// - [`PatternStatus::Broken`] = 破格 (base structure exists but modeled breaker
+///   conditions invalidate it).
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum PatternStatus {
-    /// 成格.
+    /// 成格: base structure exists and no modeled weakening/breaker applies.
     Fulfilled,
-    /// 近格 / 条件不足.
-    Partial,
-    /// 成而减力.
+    /// 成而减力: base structure exists but modeled weakening factors apply.
     Weakened,
-    /// 破格.
+    /// 破格: base structure exists but modeled breaker conditions invalidate it.
     Broken,
 }
 
@@ -201,38 +224,14 @@ pub enum PatternEvidence {
     },
 }
 
-/// A required, missing, weakening, or breaking condition for a pattern.
+/// A weakening or breaking condition damaging an existing base formation.
+///
+/// There is no "missing required condition" variant: an incomplete base
+/// formation is not detected at all (no [`PatternDetection`] is emitted), so a
+/// condition here always describes damage to a formation that *does* exist.
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum PatternCondition {
-    /// Requires a star to be present anywhere.
-    RequiresStar {
-        /// The required star.
-        star: StarName,
-    },
-    /// Requires a star in a specific palace branch.
-    RequiresStarInPalace {
-        /// The required star.
-        star: StarName,
-        /// The branch it must occupy.
-        branch: EarthlyBranch,
-    },
-    /// Requires a star in a palace standing in a relation to the anchor.
-    RequiresStarInRelation {
-        /// The required star.
-        star: StarName,
-        /// The anchor palace branch.
-        anchor: EarthlyBranch,
-        /// The required relation.
-        relation: PalaceRelation,
-    },
-    /// Requires a mutagen on a star.
-    RequiresMutagen {
-        /// The star.
-        star: StarName,
-        /// The required mutagen.
-        mutagen: Mutagen,
-    },
     /// The pattern is weakened by a star in a branch.
     WeakenedByStar {
         /// The weakening star.
@@ -282,8 +281,6 @@ pub struct PatternDetection {
     pub involved_mutagens: Vec<Mutagen>,
     /// Evidence explaining why the rule matched.
     pub evidence: Vec<PatternEvidence>,
-    /// Conditions that were required but missing.
-    pub missing_conditions: Vec<PatternCondition>,
     /// Factors weakening the pattern.
     pub weakening_factors: Vec<PatternCondition>,
     /// Factors breaking the pattern.

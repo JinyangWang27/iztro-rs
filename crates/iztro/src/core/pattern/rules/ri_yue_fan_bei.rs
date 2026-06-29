@@ -66,7 +66,6 @@ pub fn detect(
                 branch: moon_branch,
             },
         ],
-        missing_conditions: Vec::new(),
         weakening_factors: Vec::new(),
         breaking_factors: Vec::new(),
     });

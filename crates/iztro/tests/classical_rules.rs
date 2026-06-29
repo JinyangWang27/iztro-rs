@@ -23,6 +23,14 @@ type Spec = (EarthlyBranch, StarName, StarKind, Option<Mutagen>);
 /// Builds a 12-palace natal chart with the Life palace at `life_branch`, every
 /// placement carrying `Brightness::Unknown`.
 fn build_chart(life_branch: EarthlyBranch, placements: &[Spec]) -> Chart {
+    build_chart_with_body(life_branch, None, placements)
+}
+
+fn build_chart_with_body(
+    life_branch: EarthlyBranch,
+    body_branch: Option<EarthlyBranch>,
+    placements: &[Spec],
+) -> Chart {
     let palaces: Vec<Palace> = (0..12)
         .map(|index| {
             let name = PALACE_NAMES[index];
@@ -37,7 +45,7 @@ fn build_chart(life_branch: EarthlyBranch, placements: &[Spec]) -> Chart {
             Palace::new(name, branch, HeavenlyStem::Jia, stars)
         })
         .collect();
-    assemble(palaces)
+    assemble(palaces, body_branch)
 }
 
 /// One brightness-carrying placement: (branch, star, kind, brightness).
@@ -45,6 +53,14 @@ type BrightSpec = (EarthlyBranch, StarName, StarKind, Brightness);
 
 /// Builds a chart where each placement carries an explicit brightness.
 fn build_chart_bright(life_branch: EarthlyBranch, placements: &[BrightSpec]) -> Chart {
+    build_chart_bright_with_body(life_branch, None, placements)
+}
+
+fn build_chart_bright_with_body(
+    life_branch: EarthlyBranch,
+    body_branch: Option<EarthlyBranch>,
+    placements: &[BrightSpec],
+) -> Chart {
     let palaces: Vec<Palace> = (0..12)
         .map(|index| {
             let name = PALACE_NAMES[index];
@@ -59,10 +75,10 @@ fn build_chart_bright(life_branch: EarthlyBranch, placements: &[BrightSpec]) -> 
             Palace::new(name, branch, HeavenlyStem::Jia, stars)
         })
         .collect();
-    assemble(palaces)
+    assemble(palaces, body_branch)
 }
 
-fn assemble(palaces: Vec<Palace>) -> Chart {
+fn assemble(palaces: Vec<Palace>, body_branch: Option<EarthlyBranch>) -> Chart {
     Chart::try_new(
         BirthContext::new(
             CalendarDate::solar(1990, 5, 17),
@@ -72,7 +88,7 @@ fn assemble(palaces: Vec<Palace>) -> Chart {
         StemBranch::try_new(HeavenlyStem::Geng, EarthlyBranch::Wu).expect("valid stem-branch"),
         iztro::MethodProfile::placeholder("classical_test"),
         palaces,
-        None,
+        body_branch,
         None,
     )
     .expect("synthetic chart should build")
@@ -171,6 +187,10 @@ fn corpus_deserializes_all_pilot_rules() {
     assert!(!quan_shu_ids.contains(&YANG_TUO));
     assert!(!quan_shu_ids.contains(&CHANG_QU));
 
+    // The pattern runtime corpus is project-owned only: every rule uses the
+    // pattern catalog work and a project `pattern.*` source id. QuanShu pattern
+    // catalogue entries are source provenance for canonical `PatternId`s and do
+    // not appear here as separate runtime rules.
     let pattern_ids: Vec<&str> = pattern_rules().iter().map(|r| r.id.as_str()).collect();
     assert_eq!(pattern_ids, vec![YANG_TUO, CHANG_QU]);
     for rule in pattern_rules() {
@@ -260,6 +280,29 @@ fn corpus_fields_match_metadata() {
     assert_eq!(lu_ma.status, RuleStatus::Normalized);
     assert!(lu_ma.claim.is_none());
     assert_eq!(lu_ma.source_text_zh_hans, "禄马最喜交驰");
+}
+
+#[test]
+fn quan_shu_pattern_catalogue_entries_have_no_classical_runtime_rule() {
+    // QuanShu Volume 1 pattern catalogue entries are source provenance for
+    // canonical `PatternId`s, not classical runtime rules. None of their former
+    // rule ids may exist in the combined corpus.
+    for id in [
+        "wealth.jin_can_guang_hui.sun_bright_life_wu",
+        "status.ri_chu_fu_sang.sun_rising_mao",
+        "status.yue_luo_hai_gong.moon_hai_life",
+        "wealth.yue_sheng_cang_hai.moon_zi_property",
+        "status.ma_tou_dai_jian.horse_blade",
+        "status.tan_huo_xiang_feng.tan_lang_fire_star",
+        "status.wu_qu_shou_yuan.wu_qu_life_mao",
+        "hardship.cai_yu_qiu_chou.wu_lian_life_body",
+        "migration.ma_luo_kong_wang.horse_void",
+    ] {
+        assert!(
+            rule_by_id(id).is_none(),
+            "{id} must not exist as a classical runtime rule"
+        );
+    }
 }
 
 // ---- enum serde names ------------------------------------------------------
@@ -680,6 +723,102 @@ fn ri_yue_fan_bei_negative_when_one_bright() {
     assert!(!has_rule(&claims, RI_YUE));
 }
 
+// ---- QuanShu pattern catalogue entries are runtime inert -----------------
+
+#[test]
+fn quan_shu_pattern_catalogue_entries_emit_no_classical_runtime_output() {
+    // These charts form QuanShu pattern catalogue shapes. `core::pattern` detects
+    // them as canonical `PatternId`s (see tests/patterns.rs), but the classical
+    // runtime must not emit any source hit or claim for the former QuanShu rule
+    // ids: those are source provenance, not classical runtime rules.
+    const FORMER_RULE_IDS: [&str; 9] = [
+        "wealth.jin_can_guang_hui.sun_bright_life_wu",
+        "status.ri_chu_fu_sang.sun_rising_mao",
+        "status.yue_luo_hai_gong.moon_hai_life",
+        "wealth.yue_sheng_cang_hai.moon_zi_property",
+        "status.ma_tou_dai_jian.horse_blade",
+        "status.tan_huo_xiang_feng.tan_lang_fire_star",
+        "status.wu_qu_shou_yuan.wu_qu_life_mao",
+        "hardship.cai_yu_qiu_chou.wu_lian_life_body",
+        "migration.ma_luo_kong_wang.horse_void",
+    ];
+
+    let charts = [
+        // 金灿光辉: 太阳 alone in Life@Wu.
+        build_chart(
+            EarthlyBranch::Wu,
+            &[major(EarthlyBranch::Wu, StarName::TaiYang)],
+        ),
+        // 日出扶桑: 太阳 in Life@Mao.
+        build_chart(
+            EarthlyBranch::Mao,
+            &[major(EarthlyBranch::Mao, StarName::TaiYang)],
+        ),
+        // 财与囚仇: 武曲 + 廉贞 in Life.
+        build_chart(
+            EarthlyBranch::Chou,
+            &[
+                major(EarthlyBranch::Chou, StarName::WuQu),
+                major(EarthlyBranch::Chou, StarName::LianZhen),
+            ],
+        ),
+        // 马落空亡: 天马 sharing a palace with a void star.
+        build_chart(
+            EarthlyBranch::Zi,
+            &[
+                tian_ma(EarthlyBranch::Hai),
+                adj(EarthlyBranch::Hai, StarName::XunKong),
+            ],
+        ),
+    ];
+
+    for chart in &charts {
+        let evaluation = evaluate_classical(chart, &ClaimEvaluationRequest::default());
+        for id in FORMER_RULE_IDS {
+            assert!(
+                evaluation
+                    .source_hits
+                    .iter()
+                    .all(|hit| hit.rule_id.as_str() != id),
+                "{id} must not emit a classical source hit"
+            );
+            assert!(
+                !has_rule(&evaluation.claims, id),
+                "{id} must not emit a classical claim"
+            );
+        }
+    }
+
+    // The pre-existing 马遇空亡 claim is unaffected by removing 马落空亡: the
+    // 天马/空亡 chart still fires the 太微赋 rule it always did.
+    let ma_void_chart = &charts[3];
+    let evaluation = evaluate_classical(ma_void_chart, &ClaimEvaluationRequest::default());
+    assert!(
+        has_rule(&evaluation.claims, TIAN_MA_VOID),
+        "existing 马遇空亡 claim should still fire"
+    );
+}
+
+#[test]
+fn unimplemented_pattern_source_inventory_entries_are_runtime_inert() {
+    let chart = build_chart(
+        EarthlyBranch::Zi,
+        &[
+            major(EarthlyBranch::Zi, StarName::TianXiang),
+            major(EarthlyBranch::Hai, StarName::WuQu),
+            major(EarthlyBranch::Chou, StarName::TianLiang),
+        ],
+    );
+    let evaluation = evaluate_classical(&chart, &ClaimEvaluationRequest::default());
+    assert!(evaluation.source_hits.iter().all(|hit| {
+        hit.source_id != "quan_shu.v01.ding_fu_ju.cai_yin_jia_yin"
+            && hit.source_id != "quan_shu.v01.ding_za_ju.feng_yun_ji_hui"
+    }));
+    assert!(evaluation.diagnostics.iter().all(|diagnostic| {
+        diagnostic.rule_id.as_str() != "wealth.cai_yin_jia_yin.runtime_placeholder"
+    }));
+}
+
 // ---- 贪居亥子 (executable; 贪狼居亥或子) ----------------------------------
 
 fn assert_tan_ju_hai_zi(chart: &Chart, branch: EarthlyBranch) {
@@ -1049,7 +1188,10 @@ fn evaluate_classical_claims_remains_claims_only() {
         evaluate_classical_claims(&chart, &request),
         evaluation.claims
     );
-    assert_eq!(evaluation.source_hits.len(), evaluation.claims.len());
+    assert_eq!(evaluation.claims.len(), 3);
+    // CHANG_QU, YANG_TUO (pattern) and TIAN_MA_VOID (QuanShu) each emit one source
+    // hit. The former 马落空亡 QuanShu pattern rule is gone, so it adds nothing.
+    assert_eq!(evaluation.source_hits.len(), 3);
 }
 
 // ---- void policy -----------------------------------------------------------
@@ -1161,8 +1303,6 @@ fn claim_evaluation_json_includes_deterministic_source_hits() {
         source_hits[0]["source_id"],
         serde_json::json!("quan_shu.v01.tai_wei_fu.ma_yu_kong_wang")
     );
-    // QuanShu rules no longer carry source_clause_id; it serializes as null.
-    assert_eq!(source_hits[0]["source_clause_id"], serde_json::Value::Null);
     assert!(source_hits[0].get("claim_key").is_none());
 }
 

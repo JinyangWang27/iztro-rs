@@ -1,11 +1,17 @@
-# Project pattern/格局/夹宫 rule corpus.
+# Project-owned pattern-derived classical rule corpus.
 #
-# These rules are **not** sourced from a cited 《紫微斗数全书》 passage. They are
-# structured claims derived from chart structures the project models directly
-# (e.g. 夹宫 shapes detected by `core::pattern`), so they carry
-# `work = "iztro_pattern_catalog"` and project-owned `source_id`s
-# (`pattern.*`), not QuanShu source ids. They are therefore not tracked by the
-# QuanShu source inventory under `rule-corpus/quan-shu/source/`.
+# This file contains **project-owned** pattern-derived classical rule metadata
+# only:
+#
+# - `work = "iztro_pattern_catalog"`;
+# - project-owned `source_id = "pattern.*"`.
+#
+# A 格局/pattern has exactly one canonical runtime identity: `PatternId`, detected
+# by `core::pattern`. QuanShu Volume 1 pattern catalogue entries are ancient
+# source provenance for those canonical patterns; they are tracked separately as
+# source inventory (`rule-corpus/quan-shu/source/volume-01.toml`) and can be
+# attached to a canonical `PatternId` via `core::pattern::metadata`. They do NOT
+# create separate classical runtime rules here.
 #
 # This file is loaded at runtime alongside `rule-corpus/quan-shu/rules.toml`
 # (see `crates/iztro/src/rules/classical/corpus.rs`); both feed the same

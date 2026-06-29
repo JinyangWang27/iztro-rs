@@ -46,10 +46,6 @@ impl<'a> PatternContext<'a> {
 pub struct PatternDetectionRequest {
     /// Scopes to detect within.
     pub scopes: Vec<Scope>,
-    /// Whether to include [`PatternStatus::Partial`] detections.
-    ///
-    /// [`PatternStatus::Partial`]: crate::core::pattern::PatternStatus::Partial
-    pub include_partial: bool,
     /// Whether to include [`PatternStatus::Weakened`] detections.
     ///
     /// [`PatternStatus::Weakened`]: crate::core::pattern::PatternStatus::Weakened
@@ -66,7 +62,6 @@ impl Default for PatternDetectionRequest {
     fn default() -> Self {
         Self {
             scopes: vec![Scope::Natal],
-            include_partial: false,
             include_weakened: true,
             include_broken: true,
             families: Vec::new(),

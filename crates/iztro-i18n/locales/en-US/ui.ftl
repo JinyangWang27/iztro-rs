@@ -86,7 +86,6 @@ rules-panel-no-claim = No interpreted claim text is available yet.
 
 patterns-panel-empty = No supported patterns matched the current view.
 patterns-status-fulfilled = Fulfilled
-patterns-status-partial = Partial
 patterns-status-weakened = Weakened
 patterns-status-broken = Broken
 

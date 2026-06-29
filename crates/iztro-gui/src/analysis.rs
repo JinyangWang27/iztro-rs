@@ -327,7 +327,6 @@ mod tests {
             involved_stars: vec![StarName::ZiWei, StarName::TianFu],
             involved_mutagens: vec![Mutagen::Lu],
             evidence: Vec::new(),
-            missing_conditions: Vec::new(),
             weakening_factors: Vec::new(),
             breaking_factors: Vec::new(),
         };
@@ -346,7 +345,7 @@ mod tests {
             name_zh: "紫府朝垣",
             family: iztro::core::PatternFamily::MajorStarCombination,
             polarity: iztro::core::PatternPolarity::Auspicious,
-            status: iztro::core::PatternStatus::Partial,
+            status: iztro::core::PatternStatus::Fulfilled,
             strength: iztro::core::PatternStrength::Weak,
             scope: iztro::core::PatternScope::Natal,
             anchor: iztro::core::PatternAnchor::Chart,
@@ -354,7 +353,6 @@ mod tests {
             involved_stars: Vec::new(),
             involved_mutagens: Vec::new(),
             evidence: Vec::new(),
-            missing_conditions: Vec::new(),
             weakening_factors: Vec::new(),
             breaking_factors: Vec::new(),
         };
