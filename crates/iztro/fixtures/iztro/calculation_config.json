@@ -167,7 +167,13 @@
           "age_divide": "normal"
         }
       },
-      "_divergence_note": "Intentional divergence from upstream iztro@2.5.8. Upstream is date-level, so the 立春 day (2000-02-04) belongs to the new Ganzhi year 庚辰. iztro-rs resolves YearBoundary::LiChun at datetime granularity via lunar_lite::li_chun_datetime: 立春 2000 is 2000-02-04 20:40:24, and this birth (08:00, clock_hour=8 / time_index=4) is before that instant, so it keeps the previous Ganzhi year 己卯. Palace heavenly stems and the five-element bureau follow the 己卯 year stem.",
+      "divergence_from_upstream": {
+        "reason": "YearBoundary::LiChun is datetime-level in iztro-rs. The birth is 2000-02-04 08:00, before the exact LiChun instant 2000-02-04 20:40:24, so the cyclic year stays the previous Ganzhi year.",
+        "upstream_iztro_2_5_8_birth_year": "geng_chen",
+        "upstream_semantics": "date-level LiChun",
+        "iztro_rs_birth_year": "ji_mao",
+        "iztro_rs_semantics": "datetime-level LiChun via lunar_lite::li_chun_datetime"
+      },
       "converted_lunar": {
         "lunar_year": 1999,
         "lunar_month": 12,
