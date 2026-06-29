@@ -13,10 +13,17 @@ The Markdown files are the human-readable source layer. The TOML files are the m
 ```text
 source Markdown
   -> source inventory TOML
-  -> QuanShu rule metadata TOML OR pattern-derived runtime rule metadata TOML
-  -> Rust predicates / pattern detector / evaluator
-  -> structured Claim[] OR PatternDetection[]
+  -> QuanShu rule metadata TOML   -> Rust predicates / evaluator -> Claim[]
+     (aphorism rules)
+  -> pattern source provenance    -> core::pattern detector      -> PatternDetection[]
+     (core::pattern::metadata, attached to a canonical PatternId)
 ```
+
+A 格局/pattern has a single canonical runtime identity (`PatternId`). QuanShu
+pattern catalogue entries are source provenance attached to that `PatternId` via
+`core::pattern::metadata`; they do **not** create a parallel pattern-derived
+classical runtime rule, and `evaluate_classical` does not consume pattern
+detections.
 
 ## Structure: atomic source items
 
@@ -89,7 +96,7 @@ never here.
 
 ## Files
 
-- `volume-01.toml`: source inventory for Volume 1. Every 太微赋「例曰」aphorism is its own atomic source item linked to a runtime rule (`status = "rule_linked"`). The end-of-volume pattern catalogues `定富局`, `定贵局`, `定贫贱局`, and `定杂局` are segmented as `pattern_rule` source groups. The inventory itself remains source-governance data; a conservative executable subset is wired separately through `core::pattern` and `rule-corpus/patterns/rules.toml`.
+- `volume-01.toml`: source inventory for Volume 1. Every 太微赋「例曰」aphorism is its own atomic source item linked to a runtime rule (`status = "rule_linked"`). The end-of-volume pattern catalogues `定富局`, `定贵局`, `定贫贱局`, and `定杂局` are segmented as `pattern_rule` source groups. The inventory itself remains source-governance data; a conservative subset is detected by `core::pattern` as canonical `PatternId`s, and the QuanShu citation is attached as provenance through `core::pattern::metadata` (no separate classical runtime rule).
 
 > This inventory tracks **only** genuine 《紫微斗数全书》 passages. Rules derived from chart structures the project models directly rather than from a cited QuanShu passage — e.g. 羊陀夹命 and 昌曲夹命 (夹宫 shapes) — are **not** QuanShu source entries; they live in `crates/iztro/rule-corpus/patterns/` with `work = "iztro_pattern_catalog"` and `pattern.*` source ids, and are not tracked here. `pending` is reserved for items believed to be from QuanShu but not yet located in the Markdown volumes.
 
@@ -138,8 +145,8 @@ The Markdown source text is canonical. A QuanShu rule's `source_text_zh_hans` mu
 
 - The Markdown volumes under `docs/zh-CN/sources/quan_shu/` are the canonical, human-readable source text.
 - This source inventory TOML is machine-checkable corpus tracking only. It is **not** part of the runtime chart-evaluation path: nothing in `crates/iztro/src/` parses it, `evaluate_classical` does not depend on it, and the Markdown volumes are never parsed at runtime.
-- Source-backed pattern detections carry small static metadata in `core::pattern::metadata` only after a pattern has an executable detector. A separate runtime rule entry in `crates/iztro/rule-corpus/patterns/rules.toml` is required before `evaluate_classical` can emit a source hit or claim for that pattern.
-- `crates/iztro/tests/classical_source_inventory.rs` validates the inventory and its links to `crates/iztro/rule-corpus/quan-shu/rules.toml` and QuanShu-sourced entries in `crates/iztro/rule-corpus/patterns/rules.toml` using private, test-only structs. It asserts that the inventory parses, has unique `source_id`s, has non-empty required fields, that 太微赋 and the four source-backed pattern sections have continuous section-local `source_order`, that source ids are stable mnemonics (not purely numeric), that every `rule_linked` item is linked, that every QuanShu rule `source_id` exists in the inventory, that every `linked_rule_ids` entry exists in the QuanShu rule corpus, that linked items and rules agree on `source_id` and `work`, and that a source item's text **equals** the linked rule's `source_text_zh_hans` after light punctuation normalization (a `notes_zh_hans` does not bypass this). It also locks the 天马空亡 source unit to `马遇空亡，终身奔走`, the 禄马交驰 unit to `禄马最喜交驰`, and the 日月反背 unit to `日月最嫌反背`. QuanShu-sourced pattern runtime rules must cite existing `pattern_rule` inventory items and must match their source text exactly; project-owned pattern rules keep `work = "iztro_pattern_catalog"` and `pattern.*` source ids.
+- Source-backed pattern detections carry small static provenance in `core::pattern::metadata` only after a pattern has an executable detector. This is provenance attached to a canonical `PatternId`; it is **not** a classical runtime rule. `evaluate_classical` never emits a source hit or claim for a QuanShu pattern catalogue entry — those are detected only as `PatternDetection`s by `core::pattern`.
+- `crates/iztro/tests/classical_source_inventory.rs` validates the inventory and its links to `crates/iztro/rule-corpus/quan-shu/rules.toml` and QuanShu-sourced entries in `crates/iztro/rule-corpus/patterns/rules.toml` using private, test-only structs. It asserts that the inventory parses, has unique `source_id`s, has non-empty required fields, that 太微赋 and the four source-backed pattern sections have continuous section-local `source_order`, that source ids are stable mnemonics (not purely numeric), that every `rule_linked` item is linked, that every QuanShu rule `source_id` exists in the inventory, that every `linked_rule_ids` entry exists in the QuanShu rule corpus, that linked items and rules agree on `source_id` and `work`, and that a source item's text **equals** the linked rule's `source_text_zh_hans` after light punctuation normalization (a `notes_zh_hans` does not bypass this). It also locks the 天马空亡 source unit to `马遇空亡，终身奔走`, the 禄马交驰 unit to `禄马最喜交驰`, and the 日月反背 unit to `日月最嫌反背`. There are no QuanShu-sourced pattern *runtime rules*: implemented patterns expose their QuanShu citation through `core::pattern::metadata`, whose source text must match the cited `pattern_rule` inventory item exactly, while the `pattern_rule` items stay `segmented`/unlinked. Project-owned pattern rules keep `work = "iztro_pattern_catalog"` and `pattern.*` source ids.
 
 ## Known pilot limitations
 

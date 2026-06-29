@@ -50,8 +50,7 @@ whose wording is structurally impossible or otherwise unmodelable stay source
 inventory only; they are never emitted as `Broken`.
 
 `PatternDetectionRequest` exposes `include_weakened` / `include_broken` so a
-GUI/pattern panel can choose to show damaged-but-formed patterns. The classical
-runtime bridge normally consumes only `Fulfilled` detections (see below).
+GUI/pattern panel can choose to show damaged-but-formed patterns.
 
 ## Rule catalog
 
@@ -88,26 +87,27 @@ These sections are source-backed pattern material. Their source entries live in
 `category = "pattern_rule"` and `status = "segmented"`. Runtime code does not
 parse that inventory.
 
-Executable entries are wired in two layers:
+**A 格局/pattern has exactly one canonical runtime identity: its `PatternId`,
+detected by `core::pattern`.** QuanShu Volume 1 pattern catalogue entries are the
+*ancient source provenance* for those canonical patterns — they do not create a
+second runtime identity:
 
 - `core::pattern` performs the structural detection and emits
-  `PatternDetection` facts.
-- `crates/iztro/rule-corpus/patterns/rules.toml` maps the conservative
-  executable subset into classical runtime rules, alongside project-owned
-  pattern rules. QuanShu-sourced pattern rules use
-  `work = "zi_wei_dou_shu_quan_shu"` and `source_id = "quan_shu.v01.*"`.
+  `PatternDetection` facts. This is the only place a pattern is recognized.
+- `core::pattern::metadata::pattern_source_metadata(pattern_id)` attaches the
+  QuanShu source citation (work, `source_id`, verbatim source text, catalogue
+  group) to an implemented `PatternId`, so a GUI or docs layer can display the
+  provenance. This is provenance only.
+- `rules::classical` does **not** create a parallel source-hit/claim rule for
+  each QuanShu pattern catalogue entry, and `evaluate_classical` does not consume
+  pattern detections. `rule-corpus/patterns/rules.toml` holds project-owned
+  pattern-derived classical rules only (`work = "iztro_pattern_catalog"`,
+  `source_id = "pattern.*"`).
 
-Most executable QuanShu-backed pattern runtime rules emit a
-`ClassicalSourceHit` and a claim. `马落空亡` is intentionally source-hit-only
-because its user-facing meaning overlaps the existing 太微赋 rule
-`migration.tian_ma_void.restless_movement`. Unimplemented, referenced, or
-temporal catalogue entries stay recorded as source inventory only.
-
-The classical runtime bridge requests pattern detection with
-`include_weakened: false` and `include_broken: false`, and consumes only
-`Fulfilled` natal detections. `Weakened`/`Broken` formations exist for the
-pattern panel but do not produce classical source hits or claims unless a future
-rule explicitly opts into weakened/broken semantics.
+Modern textbooks (e.g. Zhongzhou-style) may inform normalized interpretation and
+stricter condition design, but they do not create separate pattern identities
+either. Unimplemented, referenced, or temporal catalogue entries stay recorded as
+source inventory only.
 
 ### Clamp (夹) rules
 
@@ -130,7 +130,9 @@ neutral brightness.
 
 This layer is intentionally narrow and conservative. New patterns are added one
 at a time with positive/negative rule tests and source-grounded conditions.
-`PatternDetection`s are structured facts only; any classical source hit or claim
-is produced by the classical rule runtime through explicit pattern-derived rule
-metadata. Narrative readings, scoring beyond the coarse `PatternStrength`, and
+`PatternDetection`s are structured facts only, with the pattern's single
+canonical identity (`PatternId`). The classical rule runtime
+(`rules::classical`) emits claims for project-owned pattern-derived rules only;
+it does not mirror QuanShu pattern catalogue entries as duplicate source-hit/claim
+rules. Narrative readings, scoring beyond the coarse `PatternStrength`, and
 LLM-assisted interpretation remain out of scope here and belong to later layers.
