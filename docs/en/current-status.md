@@ -17,7 +17,7 @@ The supported natal chart fact surface currently includes:
 - leap-month and `fix_leap` handling for the supported slice, now exposed through `LeapMonthBoundary`;
 - `BirthTime` / upstream `timeIndex` `0..=12`, including early Zi and late Zi;
 - retained `Chart::birth_year()` stem-branch fact;
-- retained optional `Chart::four_pillars()` natal fact for `by_solar` charts, using the `iztro-rs`-owned `FourPillars` value object, also exposed through facade snapshots as `NatalFacadeSnapshot::four_pillars()`;
+- retained optional `Chart::four_pillars()` natal fact for `by_solar` charts, using the `lunar-lite` `FourPillars` value object re-exported by `iztro-rs`, also exposed through facade snapshots as `NatalFacadeSnapshot::four_pillars()`;
 - explicit `ChartProfile` metadata (`MethodProfile` + `ChartPlane`) retained on generated `Chart` values;
 - typed palace lookup helpers by palace name and branch, plus required lookup variants for invariant-sensitive code;
 - `Chart::diagnostic_snapshot()` for compact structural diagnostics and invariant debugging;

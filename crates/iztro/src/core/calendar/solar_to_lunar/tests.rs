@@ -1,5 +1,8 @@
+use super::super::facts::ResolvedSolarClock;
+use super::synthesized_clock_for_time_index;
 use super::*;
 use crate::core::calculation::YearBoundary;
+use lunar_lite::{EarthlyBranch, HeavenlyStem};
 
 // Golden conversions captured from pinned upstream `iztro@2.5.8`:
 //   node --input-type=module -e "import { astro } from 'iztro';
@@ -327,10 +330,38 @@ fn year_boundary_policies_agree_on_ordinary_date() {
 fn synthesized_clock_matches_lunar_lite_midpoint() {
     // The legacy time-index path synthesizes the 时辰 midpoint exactly as
     // `lunar-lite` does: hour = max(time_index * 2 - 1, 0), minute = 30.
-    assert_eq!(synthesized_clock(0), (0, 30, 0)); // EarlyZi -> 00:30
-    assert_eq!(synthesized_clock(1), (1, 30, 0)); // Chou    -> 01:30
-    assert_eq!(synthesized_clock(4), (7, 30, 0)); // Chen    -> 07:30
-    assert_eq!(synthesized_clock(12), (23, 30, 0)); // LateZi -> 23:30
+    assert_eq!(
+        synthesized_clock_for_time_index(0),
+        ResolvedSolarClock {
+            hour: 0,
+            minute: 30,
+            second: 0,
+        },
+    ); // EarlyZi -> 00:30
+    assert_eq!(
+        synthesized_clock_for_time_index(1),
+        ResolvedSolarClock {
+            hour: 1,
+            minute: 30,
+            second: 0,
+        },
+    ); // Chou    -> 01:30
+    assert_eq!(
+        synthesized_clock_for_time_index(4),
+        ResolvedSolarClock {
+            hour: 7,
+            minute: 30,
+            second: 0,
+        },
+    ); // Chen    -> 07:30
+    assert_eq!(
+        synthesized_clock_for_time_index(12),
+        ResolvedSolarClock {
+            hour: 23,
+            minute: 30,
+            second: 0,
+        },
+    ); // LateZi -> 23:30
 }
 
 #[test]

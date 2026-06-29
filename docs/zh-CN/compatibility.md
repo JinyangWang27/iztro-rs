@@ -47,7 +47,7 @@ npm ci --prefix tools/iztro-reference
 - `YearBoundary`、`LeapMonthBoundary` 与 `NominalAgeBoundary` 的 fixture-backed calculation configuration cases；
 - 通过 `BirthTime` 建模上游 `timeIndex` `0..=12` 早晚子时；
 - 出生年 `StemBranch`、十二宫、命宫、身宫、宫干、五行局；
-- `by_solar` 星盘上的可选事实性 `FourPillars`（`iztro-rs` 自有值对象）；
+- `by_solar` 星盘上的可选事实性 `FourPillars`（由 `iztro-rs` re-export 的 `lunar-lite` 值对象）；
 - `ChartProfile` 元数据，用于在生成的 chart 上保留 method profile 与 chart plane；
 - typed palace lookup helpers 与 compact chart diagnostics，用于 invariant/debug surfaces；
 - 已表示的有类型本命星曜、亮度与出生年四化；

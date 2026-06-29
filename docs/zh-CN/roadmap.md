@@ -42,7 +42,7 @@
 - [x] 确保已实现模型强类型且可序列化。
 - [x] 将上游 `iztro@2.5.8` runtime 星曜名称清单与已表示 chart facts 分开维护。
 - [x] 直接使用 `lunar-lite` 提供的底层天干、地支、干支循环与四柱值对象。
-- [x] 在 `iztro-rs` 中自有 `FourPillars` 值对象以保留事实性本命四柱。
+- [x] 通过由 `iztro-rs` re-export 的 `lunar-lite` `FourPillars` 值对象保留事实性本命四柱。
 - [x] 将紫微斗数特有的纳音与五行局逻辑隔离在 `core`。
 - [x] 在 `Chart` 上保留出生年 `StemBranch` 事实。
 - [x] 添加 `ChartProfile` metadata，让生成的 chart 携带 method profile 与 chart-plane facts。

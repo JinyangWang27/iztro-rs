@@ -8,19 +8,20 @@
 //! This module owns that policy and the normal 五虎遁 month-pillar derivation
 //! from the effective year stem.
 
-use lunar_lite::{EarthlyBranch, HeavenlyStem, LunarError, StemBranch, li_chun_datetime};
+use lunar_lite::{EarthlyBranch, HeavenlyStem, LunarError, StemBranch};
 
+use super::facts::YearBoundaryInput;
 use crate::core::calculation::YearBoundary;
 
 /// Resolves the effective cyclic birth-year stem-branch under a 年分界 policy.
 ///
-/// `lunar_year` is the lunar-new-year-bounded lunar year, passed explicitly by
+/// `input.lunar_year` is the lunar-new-year-bounded lunar year, passed explicitly by
 /// the caller (it is never re-derived here).
 ///
 /// - [`YearBoundary::ChineseNewYearEve`] uses the lunar-new-year boundary, i.e.
 ///   `StemBranch::from_lunar_year(lunar_year)`.
 /// - [`YearBoundary::LiChun`] is **datetime-level**: the birth instant
-///   `(solar_year, month, day, hour, minute, second)` is compared against
+///   in `input.solar_moment` is compared against
 ///   [`li_chun_datetime(solar_year)`](lunar_lite::li_chun_datetime). A birth
 ///   strictly before the 立春 instant keeps the previous Gregorian/cyclic year;
 ///   at or after it the year advances. This intentionally diverges from upstream
@@ -29,36 +30,14 @@ use crate::core::calculation::YearBoundary;
 /// # Errors
 /// Propagates [`LunarError::SolarTermOutOfRange`] from `li_chun_datetime` when
 /// `solar_year` is outside the supported `1..=9999` range.
-#[allow(clippy::too_many_arguments)]
-pub(super) fn effective_birth_year(
-    lunar_year: i32,
-    solar_year: i32,
-    month: u8,
-    day: u8,
-    hour: u8,
-    minute: u8,
-    second: u8,
-    boundary: YearBoundary,
-) -> Result<StemBranch, LunarError> {
-    match boundary {
-        YearBoundary::ChineseNewYearEve => Ok(StemBranch::from_lunar_year(lunar_year)),
+pub(super) fn effective_birth_year(input: YearBoundaryInput) -> Result<StemBranch, LunarError> {
+    match input.boundary {
+        YearBoundary::ChineseNewYearEve => Ok(StemBranch::from_lunar_year(input.lunar_year)),
         YearBoundary::LiChun => {
-            let li_chun = li_chun_datetime(solar_year)?;
-            // `li_chun_datetime(solar_year).date.year == solar_year`, so a plain
-            // lexicographic tuple comparison resolves the exact instant.
-            let birth = (solar_year, month, day, hour, minute, second);
-            let boundary_instant = (
-                li_chun.date.year,
-                li_chun.date.month,
-                li_chun.date.day,
-                li_chun.hour,
-                li_chun.minute,
-                li_chun.second,
-            );
-            let effective_year = if birth < boundary_instant {
-                solar_year - 1
+            let effective_year = if input.solar_moment.is_before_li_chun()? {
+                input.solar_moment.year - 1
             } else {
-                solar_year
+                input.solar_moment.year
             };
             Ok(StemBranch::from_lunar_year(effective_year))
         }
