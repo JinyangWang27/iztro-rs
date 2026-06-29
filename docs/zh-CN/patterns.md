@@ -24,12 +24,30 @@
 anchor、涉及宫位对结果进行过滤与确定性排序。`PatternDetectionRequest` 控制返回哪些
 scope、status 与 family。
 
+## 状态模型
+
+只有当**基础格局结构成立**时才会产出 `PatternDetection`。条件不足或近似的格局不会被
+检测——不存在 `Partial`／近格 状态，也没有「近格」输出。因此 `PatternStatus` 始终描述
+一个已成立的基础结构：
+
+- `Fulfilled`（成格）：基础结构成立，且无已建模的减力或破格条件。
+- `Weakened`（成而减力）：基础结构成立，但有已建模的减力因素削弱其力量。
+- `Broken`（破格）：基础结构成立，但有已建模的破格条件使其失效或严重受损。
+
+`Broken` 指已成形结构被已建模破格条件破坏——既不表示缺少必要条件，也不表示原文措辞结构
+上不可能。原文措辞结构上不可能或无法建模的条目，只保留为 source inventory，永不作为
+`Broken` 产出。
+
+`PatternDetectionRequest` 通过 `include_weakened`／`include_broken` 让 GUI／格局面板可
+选择是否展示「已成形但受损」的格局。classical runtime bridge 通常只消费 `Fulfilled`
+检测（见下文）。
+
 ## 规则目录
 
 | 格局 | `PatternId` | Family | 吉凶 | 条件 |
 | --- | --- | --- | --- | --- |
 | 紫府朝垣 | `ZiFuChaoYuan` | `MajorStarCombination` | 吉 | 紫微与天府同在命宫三方四正（若涉及宫位有煞星则减力）。 |
-| 机月同梁 | `JiYueTongLiang` | `MajorStarCombination` | 吉凶参半 | 天机／太阴／天同／天梁会于命宫三方四正（`include_partial` 下支持近格）。 |
+| 机月同梁 | `JiYueTongLiang` | `MajorStarCombination` | 吉 | 天机／太阴／天同／天梁四星齐会于命宫三方四正；不齐则不产出。 |
 | 羊陀夹忌 | `YangTuoJiaJi` | `ShaJi` | 凶 | 擎羊与陀罗夹住承载本命化忌之星的宫位。 |
 | 左右夹命 | `ZuoYouJiaMing` | `AuxiliaryStarCombination` | 吉 | 左辅与右弼分居命宫两侧夹宫，各占一边。 |
 | 昌曲夹命 | `ChangQuJiaMing` | `AuxiliaryStarCombination` | 吉 | 文昌与文曲夹住命宫，各占一边。 |
@@ -69,6 +87,10 @@ scope、status 与 family。
 刻意只产出 source hit，因为其面向用户的判断含义与既有太微赋规则
 `migration.tian_ma_void.restless_movement` 重叠。未实现、只写「见前批注」或依赖限运的条目
 继续只保留在 source inventory。
+
+classical runtime bridge 以 `include_weakened: false`、`include_broken: false` 请求格局
+检测，且只消费 `Fulfilled` 本命检测。`Weakened`／`Broken` 格局供格局面板使用，但不会产出
+classical source hit 或 claim，除非未来有规则显式启用减力／破格语义。
 
 ### 夹宫规则
 

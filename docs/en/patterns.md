@@ -30,12 +30,35 @@ deterministically sorts the results by scope, family, id, anchor, and involved
 palaces. `PatternDetectionRequest` controls which scopes, statuses, and families
 are returned.
 
+## Status model
+
+A `PatternDetection` is emitted **only when the base pattern formation exists**.
+Incomplete or near formations are not detected — there is no `Partial` / 近格
+status and no "near-pattern" output. `PatternStatus` therefore always describes
+an existing base formation:
+
+- `Fulfilled` (成格): the base structure exists and no modeled weakening or
+  breaker condition applies.
+- `Weakened` (成而减力): the base structure exists but modeled weakening factors
+  reduce its strength.
+- `Broken` (破格): the base structure exists but a modeled breaker condition
+  invalidates or severely damages it.
+
+`Broken` means a formed structure damaged by a modeled breaker — not a missing
+required condition and not structurally impossible source wording. Source entries
+whose wording is structurally impossible or otherwise unmodelable stay source
+inventory only; they are never emitted as `Broken`.
+
+`PatternDetectionRequest` exposes `include_weakened` / `include_broken` so a
+GUI/pattern panel can choose to show damaged-but-formed patterns. The classical
+runtime bridge normally consumes only `Fulfilled` detections (see below).
+
 ## Rule catalog
 
 | Pattern (格局) | `PatternId` | Family | Polarity | Condition |
 | --- | --- | --- | --- | --- |
 | 紫府朝垣 | `ZiFuChaoYuan` | `MajorStarCombination` | Auspicious | 紫微 and 天府 both in the Life 三方四正 (weakened by a 煞星 in an involved palace). |
-| 机月同梁 | `JiYueTongLiang` | `MajorStarCombination` | Mixed | 天机/太阴/天同/天梁 gathered through the Life 三方四正 (partial support behind `include_partial`). |
+| 机月同梁 | `JiYueTongLiang` | `MajorStarCombination` | Auspicious | 天机/太阴/天同/天梁 all gathered through the Life 三方四正. An incomplete set emits nothing. |
 | 羊陀夹忌 | `YangTuoJiaJi` | `ShaJi` | Inauspicious | 擎羊 and 陀罗 clamp (夹) the palace holding a natal 化忌 star. |
 | 左右夹命 | `ZuoYouJiaMing` | `AuxiliaryStarCombination` | Auspicious | 左辅 and 右弼 occupy the two palaces clamping (夹) the Life palace, one on each side. |
 | 昌曲夹命 | `ChangQuJiaMing` | `AuxiliaryStarCombination` | Auspicious | 文昌 and 文曲 clamp (夹) the Life palace, one on each side. |
@@ -79,6 +102,12 @@ Most executable QuanShu-backed pattern runtime rules emit a
 because its user-facing meaning overlaps the existing 太微赋 rule
 `migration.tian_ma_void.restless_movement`. Unimplemented, referenced, or
 temporal catalogue entries stay recorded as source inventory only.
+
+The classical runtime bridge requests pattern detection with
+`include_weakened: false` and `include_broken: false`, and consumes only
+`Fulfilled` natal detections. `Weakened`/`Broken` formations exist for the
+pattern panel but do not produce classical source hits or claims unless a future
+rule explicitly opts into weakened/broken semantics.
 
 ### Clamp (夹) rules
 
