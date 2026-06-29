@@ -91,7 +91,7 @@ npm ci --prefix tools/iztro-reference
 
 `by_solar` 校验阳历日期，通过内部 `core/calendar` 适配器（由 `lunar-lite` 支撑）取得历法事实，并推导事实性本命四柱。无歧义的日柱与时柱（连续日数、五鼠遁时柱，含晚子时换日）直接来自 `lunar-lite` 的四柱 API。年柱与月柱由 `core/calendar` 适配器按所配置的 `YearBoundary` 重新计算：年柱遵循农历新年或时刻级立春分界，月柱使用由有效年干推出的常规五虎遁。`iztro-rs` 只负责该策略选择。它设置 `is_leap_month` 与 `fix_leap`，委托 `by_lunar` 安星，并把结果（`lunar-lite` 的 `FourPillars` 值对象）保留在 `Chart`。它本身不添加安星逻辑。显式 invariant：当 `Chart::four_pillars()` 存在时，其年柱等于 `Chart::birth_year()`。
 
-真太阳时仍是 `iztro-rs` 计算策略（`SolarTimePolicy::ApparentSolarTime`），在 `lunar-lite` 历法转换**之前**对民用钟表时间应用；历法只接收已解析的本地日期与时辰索引。
+真太阳时仍是 `iztro-rs` 计算策略（`SolarTimePolicy::ApparentSolarTime`），在 `lunar-lite` 历法转换**之前**对民用钟表时间应用；适配器接收已解析的本地日期、时辰索引，以及用于立春比较的解析后钟表小时/分钟。
 
 `ChartCalculationConfig` 是 input/runtime calculation-policy 维度，不是算法或盘面维度。它包含 `SolarTimePolicy`、`YearBoundary`、`LeapMonthBoundary` 与 `NominalAgeBoundary`。`YearBoundary` 将上游 `yearDivide: "normal"` 映射到 `ChineseNewYearEve`，将 `"exact"` 映射到 `LiChun`；`ChineseNewYearEve` 表示上一年持续到除夕结束，新干支年从正月初一开始。`YearBoundary::LiChun` 由 `lunar_lite::li_chun_datetime` 驱动，按**时刻**粒度判定立春分界：立春当日、立春精确时刻之前出生者保留上一干支年，之后出生者进入新干支年，故同一立春当日、不同钟表时间出生者可能落在不同年柱。这有意偏离 `iztro@2.5.8`（日期级）。兼容优先级为：(1) `iztro@2.5.8` supported-field fixture 一致性；(2) 有记录的 `iztro-rs` 语义修正；(3) 底层 `lunar-lite` 兼容性。时刻级立春用例属于优先级 (2) 的有意记录偏离：`year_divide_exact_2000_02_04` 为 2000-02-04 08:00 出生，早于 20:40:24 的立春时刻，故 `iztro-rs` 保留上一干支年 `己卯`，而非上游日期级的 `庚辰`。其余所有 fixture 用例保持与上游严格一致。`LeapMonthBoundary` 将上游 `fixLeap: false` 映射到 `AsPreviousMonth`，将 `fixLeap: true` 映射到 `MidMonth`。`NominalAgeBoundary` 将上游 `ageDivide: "normal"` 映射到 `NaturalYear`，将 `"birthday"` 映射到 `Birthday`，且只用于 runtime/full-horoscope 虚岁解析。
 

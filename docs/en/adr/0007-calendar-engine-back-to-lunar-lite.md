@@ -23,7 +23,7 @@ Two things changed since then:
 
 ## Decision
 
-- Depend on `lunar-lite` (`= 1.2.1`, `serde` feature) as the canonical
+- Depend on `lunar-lite` (`1.2.1`, `serde` feature) as the canonical
   lower-level calendar/GanZhi crate. Remove the `tyme4rs` dependency.
 - Delete the duplicated `core/model/ganzhi.rs`. Use
   `lunar_lite::{HeavenlyStem, EarthlyBranch, StemBranch, FourPillars,

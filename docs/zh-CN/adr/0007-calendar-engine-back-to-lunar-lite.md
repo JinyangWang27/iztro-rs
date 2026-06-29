@@ -20,7 +20,7 @@
 
 ## 决策
 
-- 依赖 `lunar-lite`（`= 1.2.1`，启用 `serde` feature）作为底层历法/干支 crate。移除
+- 依赖 `lunar-lite`（`1.2.1`，启用 `serde` feature）作为底层历法/干支 crate。移除
   `tyme4rs` 依赖。
 - 删除复制的 `core/model/ganzhi.rs`。直接使用
   `lunar_lite::{HeavenlyStem, EarthlyBranch, StemBranch, FourPillars,
