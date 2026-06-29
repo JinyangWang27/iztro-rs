@@ -1,11 +1,12 @@
-# Project pattern/格局/夹宫 rule corpus.
+# Runtime pattern-derived rule corpus.
 #
-# These rules are **not** sourced from a cited 《紫微斗数全书》 passage. They are
-# structured claims derived from chart structures the project models directly
-# (e.g. 夹宫 shapes detected by `core::pattern`), so they carry
-# `work = "iztro_pattern_catalog"` and project-owned `source_id`s
-# (`pattern.*`), not QuanShu source ids. They are therefore not tracked by the
-# QuanShu source inventory under `rule-corpus/quan-shu/source/`.
+# This corpus holds classical runtime rules whose predicates are backed by
+# pattern/格局 shapes. It may contain both:
+#
+# - project-owned pattern rules with `work = "iztro_pattern_catalog"` and
+#   project `source_id = "pattern.*"`;
+# - QuanShu-sourced pattern rules with `work = "zi_wei_dou_shu_quan_shu"` and
+#   `source_id = "quan_shu.v01.*"` from the QuanShu source inventory.
 #
 # This file is loaded at runtime alongside `rule-corpus/quan-shu/rules.toml`
 # (see `crates/iztro/src/rules/classical/corpus.rs`); both feed the same
@@ -43,3 +44,140 @@ themes = ["literary_talent", "reputation", "nobleman_support"]
 polarity = "positive"
 base_strength = 0.60
 claim_key = "claim.life.chang-qu-clamp-life.literary-reputation"
+
+[[rule]]
+id = "wealth.jin_can_guang_hui.sun_bright_life_wu"
+source_id = "quan_shu.v01.ding_fu_ju.jin_can_guang_hui"
+source_clause_id = "jin_can_guang_hui"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "金灿光辉 太阳单守，命在午宫是也"
+normalized_note_zh_hans = "保守实现：命宫在午，太阳在命宫，且该宫仅有太阳一颗主星。"
+status = "executable"
+
+[rule.claim]
+domain = "wealth"
+themes = ["wealth_accumulation", "reputation", "authority"]
+polarity = "positive"
+base_strength = 0.65
+claim_key = "claim.wealth.jin-can-guang-hui.sun-bright-life-wu"
+
+[[rule]]
+id = "status.ri_chu_fu_sang.sun_rising_mao"
+source_id = "quan_shu.v01.ding_gui_ju.ri_chu_fu_sang"
+source_clause_id = "ri_chu_fu_sang"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "日出扶桑 日在卯守命是也，守官禄宫亦然"
+normalized_note_zh_hans = "保守实现：太阳在卯，且卯宫为命宫或官禄宫。"
+status = "executable"
+
+[rule.claim]
+domain = "career"
+themes = ["career_achievement", "reputation", "authority"]
+polarity = "positive"
+base_strength = 0.65
+claim_key = "claim.status.ri-chu-fu-sang.sun-rising-mao"
+
+[[rule]]
+id = "status.yue_luo_hai_gong.moon_hai_life"
+source_id = "quan_shu.v01.ding_gui_ju.yue_luo_hai_gong"
+source_clause_id = "yue_luo_hai_gong"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "月落亥宫 月在亥守命是也，又名月朗天门"
+normalized_note_zh_hans = "保守实现：太阴在亥，且亥宫为命宫。"
+status = "executable"
+
+[rule.claim]
+domain = "fortune"
+themes = ["blessing", "stability", "reputation"]
+polarity = "positive"
+base_strength = 0.60
+claim_key = "claim.status.yue-luo-hai-gong.moon-hai-life"
+
+[[rule]]
+id = "wealth.yue_sheng_cang_hai.moon_zi_property"
+source_id = "quan_shu.v01.ding_gui_ju.yue_sheng_cang_hai"
+source_clause_id = "yue_sheng_cang_hai"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "月生沧海 月在子宫守田宅是也"
+normalized_note_zh_hans = "保守实现：太阴在子，且子宫为田宅宫。"
+status = "executable"
+
+[rule.claim]
+domain = "property"
+themes = ["asset_building", "wealth_accumulation", "stability"]
+polarity = "positive"
+base_strength = 0.60
+claim_key = "claim.wealth.yue-sheng-cang-hai.moon-zi-property"
+
+[[rule]]
+id = "status.ma_tou_dai_jian.horse_blade"
+source_id = "quan_shu.v01.ding_gui_ju.ma_tou_dai_jian"
+source_clause_id = "ma_tou_dai_jian"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "马头带剑 谓马有刃是也不是居午格"
+normalized_note_zh_hans = "保守实现：天马与擎羊同宫；不采用午宫限定口径。"
+status = "executable"
+
+[rule.claim]
+domain = "career"
+themes = ["authority", "responsibility", "injury_risk"]
+polarity = "mixed"
+base_strength = 0.55
+claim_key = "claim.status.ma-tou-dai-jian.horse-blade"
+
+[[rule]]
+id = "status.tan_huo_xiang_feng.tan_lang_fire_star"
+source_id = "quan_shu.v01.ding_gui_ju.tan_huo_xiang_feng"
+source_clause_id = "tan_huo_xiang_feng"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "贪火相逢 谓二星守命同居庙旺是也"
+normalized_note_zh_hans = "保守实现：贪狼与火星同守命宫，且二者皆为已建模的明亮状态；Unknown 亮度不触发。"
+status = "executable"
+
+[rule.claim]
+domain = "career"
+themes = ["ambition", "vitality", "authority"]
+polarity = "positive"
+base_strength = 0.60
+claim_key = "claim.status.tan-huo-xiang-feng.tan-lang-fire-star"
+
+[[rule]]
+id = "status.wu_qu_shou_yuan.wu_qu_life_mao"
+source_id = "quan_shu.v01.ding_gui_ju.wu_qu_shou_yuan"
+source_clause_id = "wu_qu_shou_yuan"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "武曲守垣 武守命卯宫是也，余不是"
+normalized_note_zh_hans = "保守实现：武曲在命宫，且命宫地支为卯。"
+status = "executable"
+
+[rule.claim]
+domain = "career"
+themes = ["authority", "career_achievement", "responsibility"]
+polarity = "positive"
+base_strength = 0.60
+claim_key = "claim.status.wu-qu-shou-yuan.wu-qu-life-mao"
+
+[[rule]]
+id = "hardship.cai_yu_qiu_chou.wu_lian_life_body"
+source_id = "quan_shu.v01.ding_pin_jian_ju.cai_yu_qiu_chou"
+source_clause_id = "cai_yu_qiu_chou"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "财与囚仇 武贞同守身命是也"
+normalized_note_zh_hans = "保守实现：武曲与廉贞同宫，且该宫为命宫或身宫。"
+status = "executable"
+
+[rule.claim]
+domain = "life"
+themes = ["work_pressure", "conflict", "hidden_risk"]
+polarity = "negative"
+base_strength = 0.60
+claim_key = "claim.hardship.cai-yu-qiu-chou.wu-lian-life-body"
+
+[[rule]]
+id = "migration.ma_luo_kong_wang.horse_void"
+source_id = "quan_shu.v01.ding_pin_jian_ju.ma_luo_kong_wang"
+source_clause_id = "ma_luo_kong_wang"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "马落空亡 马既落亡虽禄冲会无用主奔波"
+normalized_note_zh_hans = "保守实现：天马与已建模空亡族星同宫。此条与太微赋「马遇空亡，终身奔走」语义重叠，因此仅产出 source hit，不重复产出用户判断。"
+status = "executable"
