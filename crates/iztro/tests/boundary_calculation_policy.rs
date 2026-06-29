@@ -20,6 +20,7 @@ use iztro::core::{
     YearBoundary, build_full_horoscope_chart, by_lunar, by_lunar_with_options, by_solar,
     by_solar_with_options,
 };
+use lunar_lite::li_chun_datetime;
 use serde_json::Value;
 
 #[test]
@@ -93,15 +94,57 @@ fn year_divide_exact_2000_02_04_diverges_from_upstream() {
 }
 
 #[test]
+fn calculation_config_fixture_records_only_known_upstream_divergence() {
+    let fixture = fixture_value(CALCULATION_CONFIG_FIXTURE);
+    let cases = fixture["cases"].as_array().expect("fixture cases");
+    let divergent_cases: Vec<&Value> = cases
+        .iter()
+        .filter(|case| case.get("divergence_from_upstream").is_some())
+        .collect();
+
+    assert_eq!(
+        divergent_cases.len(),
+        1,
+        "only the intentional LiChun datetime-level correction should diverge from upstream",
+    );
+
+    let divergent = divergent_cases[0];
+    assert_eq!(
+        divergent["case"].as_str(),
+        Some("year_divide_exact_2000_02_04")
+    );
+    let metadata = &divergent["divergence_from_upstream"];
+    assert_eq!(
+        metadata["upstream_iztro_2_5_8_birth_year"].as_str(),
+        Some("geng_chen")
+    );
+    assert_eq!(
+        metadata["upstream_semantics"].as_str(),
+        Some("date-level LiChun")
+    );
+    assert_eq!(metadata["iztro_rs_birth_year"].as_str(), Some("ji_mao"));
+    let semantics = metadata["iztro_rs_semantics"]
+        .as_str()
+        .expect("iztro-rs divergence semantics");
+    assert!(semantics.contains("datetime-level LiChun"));
+    assert!(semantics.contains("lunar_lite::li_chun_datetime"));
+}
+
+#[test]
 fn lichun_boundary_is_datetime_level_within_the_lichun_day() {
-    // `YearBoundary::LiChun` resolves the 立春 boundary at *datetime* granularity,
-    // so two births on the 立春 day (2024-02-04, 立春 instant 16:27:07) with
-    // different clock minutes split across that instant: 16:10 keeps the previous
-    // Ganzhi year 癸卯 while 16:40 advances to 甲辰.
+    // Ask the calendar dependency for the exact 2024 立春 instant so this test
+    // proves datetime-level behavior without hard-coding another solar-term
+    // timestamp. The public clock API has minute precision, so the before/after
+    // pair uses the boundary minute and the next minute.
+    let li_chun = li_chun_datetime(2024).expect("2024 LiChun instant");
+    let before = clock_at(li_chun.hour, li_chun.minute);
+    let after = clock_at(li_chun.hour, li_chun.minute + 1);
+
     let early = by_solar_with_options(
         SolarBirthInput::new(
-            SolarDate::new(2024, 2, 4).expect("valid solar date"),
-            clock_at(16, 10),
+            SolarDate::new(li_chun.date.year, li_chun.date.month, li_chun.date.day)
+                .expect("valid LiChun date"),
+            before,
             Gender::Female,
         ),
         options(
@@ -113,8 +156,9 @@ fn lichun_boundary_is_datetime_level_within_the_lichun_day() {
     .expect("early-LiChun-day chart should build");
     let late = by_solar_with_options(
         SolarBirthInput::new(
-            SolarDate::new(2024, 2, 4).expect("valid solar date"),
-            clock_at(16, 40),
+            SolarDate::new(li_chun.date.year, li_chun.date.month, li_chun.date.day)
+                .expect("valid LiChun date"),
+            after,
             Gender::Female,
         ),
         options(
@@ -132,12 +176,20 @@ fn lichun_boundary_is_datetime_level_within_the_lichun_day() {
     assert_eq!(
         early.birth_year(),
         gui_mao,
-        "16:10 is before the 立春 instant"
+        "boundary minute is before the second-precision 立春 instant"
     );
     assert_eq!(
         late.birth_year(),
         jia_chen,
-        "16:40 is at/after the 立春 instant"
+        "next minute is after the second-precision 立春 instant"
+    );
+    assert_eq!(
+        early.four_pillars().expect("four pillars").yearly,
+        early.birth_year()
+    );
+    assert_eq!(
+        late.four_pillars().expect("four pillars").yearly,
+        late.birth_year()
     );
     assert_ne!(
         early.birth_year(),
