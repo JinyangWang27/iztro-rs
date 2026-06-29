@@ -170,11 +170,11 @@ fn apparent_solar_time_report_records_previous_day_crossing() {
 
 #[test]
 fn year_boundary_report_records_effective_birth_year() {
-    // 2000-02-04 is the 立春 day, before Chinese New Year 2000 (02-05). With
-    // date-level `YearBoundary::LiChun` the two policies differ here regardless of
-    // the clock time: the lunar-new-year-eve boundary keeps the prior year 己卯
-    // while the LiChun boundary advances to 庚辰 (the 立春 day belongs to the new
-    // Ganzhi year).
+    // 2000-02-04 is the 立春 day (立春 instant 20:40:24), before Chinese New Year
+    // 2000 (02-05). This birth is at 21:00, after the 立春 instant, so the
+    // datetime-level `YearBoundary::LiChun` advances to 庚辰 while the
+    // lunar-new-year-eve boundary keeps the prior year 己卯; the two policies
+    // therefore differ here.
     let normal = by_solar_with_options_report(
         solar_input(2000, 2, 4, 21, 0),
         options(

@@ -167,116 +167,117 @@
           "age_divide": "normal"
         }
       },
+      "_divergence_note": "Intentional divergence from upstream iztro@2.5.8. Upstream is date-level, so the 立春 day (2000-02-04) belongs to the new Ganzhi year 庚辰. iztro-rs resolves YearBoundary::LiChun at datetime granularity via lunar_lite::li_chun_datetime: 立春 2000 is 2000-02-04 20:40:24, and this birth (08:00, clock_hour=8 / time_index=4) is before that instant, so it keeps the previous Ganzhi year 己卯. Palace heavenly stems and the five-element bureau follow the 己卯 year stem.",
       "converted_lunar": {
         "lunar_year": 1999,
         "lunar_month": 12,
         "lunar_day": 29,
         "is_leap_month": false,
-        "birth_year_stem": "geng",
-        "raw_birth_year_stem": "庚",
-        "birth_year_branch": "chen",
-        "raw_birth_year_branch": "辰"
+        "birth_year_stem": "ji",
+        "raw_birth_year_stem": "己",
+        "birth_year_branch": "mao",
+        "raw_birth_year_branch": "卯"
       },
       "supported_fields": {
         "life_palace_branch": "you",
         "body_palace_branch": "si",
-        "five_element_bureau": "water2",
+        "five_element_bureau": "metal4",
         "palaces": [
           {
             "branch": "yin",
             "raw_branch": "寅",
             "name": "friends",
             "raw_name": "仆役",
-            "stem": "wu",
-            "raw_stem": "戊"
+            "stem": "bing",
+            "raw_stem": "丙"
           },
           {
             "branch": "mao",
             "raw_branch": "卯",
             "name": "migration",
             "raw_name": "迁移",
-            "stem": "ji",
-            "raw_stem": "己"
+            "stem": "ding",
+            "raw_stem": "丁"
           },
           {
             "branch": "chen",
             "raw_branch": "辰",
             "name": "health",
             "raw_name": "疾厄",
-            "stem": "geng",
-            "raw_stem": "庚"
+            "stem": "wu",
+            "raw_stem": "戊"
           },
           {
             "branch": "si",
             "raw_branch": "巳",
             "name": "wealth",
             "raw_name": "财帛",
-            "stem": "xin",
-            "raw_stem": "辛"
+            "stem": "ji",
+            "raw_stem": "己"
           },
           {
             "branch": "wu",
             "raw_branch": "午",
             "name": "children",
             "raw_name": "子女",
-            "stem": "ren",
-            "raw_stem": "壬"
+            "stem": "geng",
+            "raw_stem": "庚"
           },
           {
             "branch": "wei",
             "raw_branch": "未",
             "name": "spouse",
             "raw_name": "夫妻",
-            "stem": "gui",
-            "raw_stem": "癸"
+            "stem": "xin",
+            "raw_stem": "辛"
           },
           {
             "branch": "shen",
             "raw_branch": "申",
             "name": "siblings",
             "raw_name": "兄弟",
-            "stem": "jia",
-            "raw_stem": "甲"
+            "stem": "ren",
+            "raw_stem": "壬"
           },
           {
             "branch": "you",
             "raw_branch": "酉",
             "name": "life",
             "raw_name": "命宫",
-            "stem": "yi",
-            "raw_stem": "乙"
+            "stem": "gui",
+            "raw_stem": "癸"
           },
           {
             "branch": "xu",
             "raw_branch": "戌",
             "name": "parents",
             "raw_name": "父母",
-            "stem": "bing",
-            "raw_stem": "丙"
+            "stem": "jia",
+            "raw_stem": "甲"
           },
           {
             "branch": "hai",
             "raw_branch": "亥",
             "name": "spirit",
             "raw_name": "福德",
-            "stem": "ding",
-            "raw_stem": "丁"
+            "stem": "yi",
+            "raw_stem": "乙"
           },
           {
             "branch": "zi",
             "raw_branch": "子",
             "name": "property",
             "raw_name": "田宅",
-            "stem": "wu",
-            "raw_stem": "戊"
+            "stem": "bing",
+            "raw_stem": "丙"
           },
           {
             "branch": "chou",
             "raw_branch": "丑",
             "name": "career",
             "raw_name": "官禄",
-            "stem": "ji",
-            "raw_stem": "己"
+            "stem": "ding",
+            "raw_stem": "丁"
           }
         ]
       }

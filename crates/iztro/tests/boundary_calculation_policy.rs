@@ -68,33 +68,36 @@ fn default_boundary_policies_preserve_existing_by_lunar_output() {
 }
 
 #[test]
-fn year_divide_exact_2000_02_04_matches_upstream() {
-    // 2000 立春 is on 2000-02-04; Chinese New Year 2000 is 2000-02-05. With the
-    // `lunar-lite` calendar, `YearBoundary::LiChun` (YearDivide::Exact) resolves
-    // the 立春 boundary at date granularity, matching upstream iztro@2.5.8: the
-    // 立春 day belongs to the new Ganzhi year, so a birth on 2000-02-04 advances
-    // to 庚辰 regardless of the clock time. The lunar-new-year-eve boundary keeps
-    // the prior year 己卯 (2000-02-04 is before Chinese New Year), so the two
-    // charts differ.
+fn year_divide_exact_2000_02_04_diverges_from_upstream() {
+    // 2000 立春 is 2000-02-04 20:40:24; Chinese New Year 2000 is 2000-02-05. With
+    // the `lunar-lite` calendar, `YearBoundary::LiChun` is resolved at *datetime*
+    // granularity via `lunar_lite::li_chun_datetime`. This fixture birth is on
+    // 2000-02-04 at 08:00 (clock_hour=8 / time_index=4), which is *before* the
+    // 立春 instant, so iztro-rs keeps the previous Ganzhi year 己卯. This
+    // intentionally diverges from upstream iztro@2.5.8, which is date-level and
+    // would advance to 庚辰 on the 立春 day. The lunar-new-year-eve boundary also
+    // keeps 己卯 (2000-02-04 is before Chinese New Year), so before the instant
+    // the two charts agree.
     let normal_chart = chart_from_case(&chart_case("year_divide_normal_2000_02_04"));
     let exact = chart_case("year_divide_exact_2000_02_04");
     let exact_chart = chart_from_case(&exact);
 
-    assert_eq!(exact_chart.birth_year().stem(), HeavenlyStem::Geng);
-    assert_eq!(exact_chart.birth_year().branch(), EarthlyBranch::Chen);
-    assert_ne!(
+    assert_eq!(exact_chart.birth_year().stem(), HeavenlyStem::Ji);
+    assert_eq!(exact_chart.birth_year().branch(), EarthlyBranch::Mao);
+    assert_eq!(
         exact_chart, normal_chart,
-        "on the 立春 day the LiChun boundary advances to the new year while the \
-         lunar-new-year-eve boundary keeps the prior year",
+        "before the 立春 instant the LiChun boundary keeps the prior year 己卯, \
+         agreeing with the lunar-new-year-eve boundary",
     );
     assert_year_boundary_chart_matches_fixture(&exact_chart, &exact);
 }
 
 #[test]
-fn lichun_boundary_is_date_level_within_the_lichun_day() {
-    // `YearBoundary::LiChun` resolves the 立春 boundary at date granularity, so
-    // two births on the 立春 day (2024-02-04) with different clock minutes share
-    // the same Ganzhi year. The 立春 day belongs to the new Ganzhi year 甲辰.
+fn lichun_boundary_is_datetime_level_within_the_lichun_day() {
+    // `YearBoundary::LiChun` resolves the 立春 boundary at *datetime* granularity,
+    // so two births on the 立春 day (2024-02-04, 立春 instant 16:27:07) with
+    // different clock minutes split across that instant: 16:10 keeps the previous
+    // Ganzhi year 癸卯 while 16:40 advances to 甲辰.
     let early = by_solar_with_options(
         SolarBirthInput::new(
             SolarDate::new(2024, 2, 4).expect("valid solar date"),
@@ -122,14 +125,24 @@ fn lichun_boundary_is_date_level_within_the_lichun_day() {
     )
     .expect("late-LiChun-day chart should build");
 
+    let gui_mao =
+        StemBranch::try_new(HeavenlyStem::Gui, EarthlyBranch::Mao).expect("valid stem-branch");
     let jia_chen =
         StemBranch::try_new(HeavenlyStem::Jia, EarthlyBranch::Chen).expect("valid stem-branch");
-    assert_eq!(early.birth_year(), jia_chen);
-    assert_eq!(late.birth_year(), jia_chen);
     assert_eq!(
         early.birth_year(),
+        gui_mao,
+        "16:10 is before the 立春 instant"
+    );
+    assert_eq!(
         late.birth_year(),
-        "clock minutes within the 立春 day do not split the Ganzhi year at date granularity",
+        jia_chen,
+        "16:40 is at/after the 立春 instant"
+    );
+    assert_ne!(
+        early.birth_year(),
+        late.birth_year(),
+        "clock minutes within the 立春 day split the Ganzhi year at datetime granularity",
     );
 }
 
@@ -210,10 +223,12 @@ fn calculation_policy_fixture_cases_match_upstream_supported_fields() {
     let fixture = fixture_value(CALCULATION_CONFIG_FIXTURE);
     assert_fixture_metadata(&fixture);
 
-    // The 立春-day LiChun case (`year_divide_exact_2000_02_04`) now matches
-    // iztro@2.5.8, so it flows through this strict upstream-parity loop like every
-    // other case; `year_divide_exact_2000_02_04_matches_upstream` additionally
-    // asserts its relationship to the lunar-new-year-eve chart.
+    // Every case is validated against its fixture-recorded supported fields. All
+    // cases keep strict upstream iztro@2.5.8 parity except the 立春-day LiChun
+    // case (`year_divide_exact_2000_02_04`), whose fixture records iztro-rs's
+    // intentional datetime-level divergence (己卯 before the 立春 instant);
+    // `year_divide_exact_2000_02_04_diverges_from_upstream` documents that
+    // divergence and its relationship to the lunar-new-year-eve chart.
     for fixture_case in fixture["cases"].as_array().expect("fixture cases") {
         match fixture_case["kind"].as_str().expect("case kind") {
             "year_divide" => {

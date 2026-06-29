@@ -177,7 +177,7 @@ Narrative Layer 把结构化判断渲染成人类可读报告。
 - `ChartPlane` 是某派别内的盘面变体（天盘 / 地盘 / 人盘）。
 - `ChartCalculationConfig` 是在排盘*之前*应用的输入计算策略。
 
-`ChartCalculationConfig` 当前包含 `SolarTimePolicy`、`YearBoundary`、`LeapMonthBoundary` 与 `NominalAgeBoundary`。`YearBoundary` 与 `LeapMonthBoundary` 影响本命输入归一化：`YearBoundary::ChineseNewYearEve` 表示上一干支年持续到除夕结束，新干支年从正月初一开始；`YearBoundary::LiChun` 使用立春，按日期粒度判定（`lunar-lite` 的 `YearDivide::Exact`）。`LeapMonthBoundary` 映射旧的 `fix_leap` 分界。`NominalAgeBoundary` 只属于 runtime/horoscope：它影响虚岁解析，不影响本命排盘。
+`ChartCalculationConfig` 当前包含 `SolarTimePolicy`、`YearBoundary`、`LeapMonthBoundary` 与 `NominalAgeBoundary`。`YearBoundary` 与 `LeapMonthBoundary` 影响本命输入归一化：`YearBoundary::ChineseNewYearEve` 表示上一干支年持续到除夕结束，新干支年从正月初一开始；`YearBoundary::LiChun` 使用立春，由 `lunar_lite::li_chun_datetime` 按时刻粒度判定（有意偏离上游日期级的 `iztro@2.5.8`）。`LeapMonthBoundary` 映射旧的 `fix_leap` 分界。`NominalAgeBoundary` 只属于 runtime/horoscope：它影响虚岁解析，不影响本命排盘。
 
 `Chart` 仍然是不可变的命盘事实聚合。计算诊断通过 generation reports 与 diagnostic snapshots 暴露，而不是存入 `Chart`。这些报告让解析后的钟表时间、真太阳时校正、年分界影响、闰月策略映射与虚岁解析可检查，同时不改变普通 `Chart` 序列化。
 

@@ -61,12 +61,15 @@ which is the only place that depends on the `lunar-lite` calendar conversion.
 `lunar-lite` owns the low-level GanZhi value objects (`HeavenlyStem`,
 `EarthlyBranch`, `StemBranch`, `FourPillars`), which `iztro-rs` uses directly;
 `lunar-lite`'s calendar date/error types stay internal to the adapter. The
-adapter supplies the lunar date, leap-month resolution, and the four pillars
-through `lunar-lite`'s four-pillar API: the year pillar follows the configured
-`YearBoundary` (mapped to `lunar-lite`'s `YearDivide`) and the month pillar uses
-the normal 五虎遁 boundary. `YearBoundary::LiChun` resolves the 立春 boundary at
-date granularity (`YearDivide::Exact`). Apparent solar time is an `iztro-rs`
-calculation policy applied before the `lunar-lite` calendar conversion runs.
+adapter supplies the lunar date, leap-month resolution, and the four pillars.
+The day and hour pillars come from `lunar-lite`'s four-pillar API; the year and
+month pillars are recomputed by the adapter from the configured `YearBoundary`
+(year) and the normal 五虎遁 boundary (month, from the effective year stem).
+`YearBoundary::LiChun` resolves the 立春 boundary at **datetime** granularity
+via `lunar_lite::li_chun_datetime` (`lunar-lite`'s own `YearDivide::Exact`
+remains date-level for upstream compatibility). Apparent solar time is an
+`iztro-rs` calculation policy applied before the `lunar-lite` calendar
+conversion runs.
 
 The facade validates the algorithm and plane before calendar work. It derives
 normalized natal inputs, delegates Life Palace anchoring to the dedicated natal

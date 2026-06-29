@@ -194,7 +194,11 @@ pub enum YearBoundary {
     ChineseNewYearEve,
 
     /// 年分界：按立春. The cyclic year changes at 立春 (LiChun), upstream
-    /// `yearDivide: 'exact'`, resolved at date granularity.
+    /// `yearDivide: 'exact'`. `iztro-rs` resolves this at **datetime**
+    /// granularity via `lunar_lite::li_chun_datetime`: a birth before the exact
+    /// 立春 instant on the 立春 day keeps the previous Ganzhi year, while a birth
+    /// at or after it advances. This intentionally diverges from upstream
+    /// `iztro@2.5.8`, which is date-level.
     LiChun,
 }
 

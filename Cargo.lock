@@ -1595,9 +1595,9 @@ checksum = "234cf4f4a04dc1f57e24b96cc0cd600cf2af460d4161ac5ecdd0af8e1f3b2a38"
 
 [[package]]
 name = "lunar-lite"
-version = "1.1.0"
+version = "1.2.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a13b8f3e31ca9924ffef268636df446012c03808215223985b918592d6c07ce5"
+checksum = "448ed6e87150a80af7bd7a2cc68865eb8f1d9328ecef54ad988319e77d292497"
 dependencies = [
  "serde",
  "thiserror 2.0.18",

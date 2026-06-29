@@ -233,14 +233,46 @@ fn default_year_boundary_matches_chinese_new_year_eve() {
 }
 
 #[test]
-fn year_boundary_policies_differ_between_li_chun_and_chinese_new_year() {
-    // Li Chun 2000 is 2000-02-04; Chinese New Year 2000 is 2000-02-05. On
-    // 2000-02-04 the date is on/after Li Chun but before the lunar new year, so
-    // the two policies disagree: the lunar-new-year boundary keeps the prior
-    // cyclic year (1999 己卯) while the Li Chun boundary advances to 2000 庚辰.
-    let eve = resolve_effective_birth_year(2000, month(2), day(4), YearBoundary::ChineseNewYearEve)
-        .expect("eve year");
-    let li_chun = resolve_effective_birth_year(2000, month(2), day(4), YearBoundary::LiChun)
+fn li_chun_before_exact_instant_keeps_previous_year() {
+    // 立春 2000 is 2000-02-04 20:40:24. A birth on 2000-02-04 *before* that
+    // instant (08:00) keeps the previous cyclic year 1999 己卯 under the
+    // datetime-level LiChun boundary. The lunar-new-year-eve boundary also keeps
+    // 己卯 (2000-02-04 is before Chinese New Year 2000-02-05), so on the 立春 day
+    // before the instant the two policies agree.
+    let eve = resolve_effective_birth_year(
+        2000,
+        month(2),
+        day(4),
+        8,
+        0,
+        YearBoundary::ChineseNewYearEve,
+    )
+    .expect("eve year");
+    let li_chun = resolve_effective_birth_year(2000, month(2), day(4), 8, 0, YearBoundary::LiChun)
+        .expect("li chun");
+
+    assert_eq!(li_chun.stem(), HeavenlyStem::Ji);
+    assert_eq!(li_chun.branch(), EarthlyBranch::Mao);
+    assert_eq!(eve, li_chun);
+}
+
+#[test]
+fn li_chun_after_exact_instant_advances_year() {
+    // A birth on 2000-02-04 *at or after* the 立春 instant (21:00 > 20:40:24)
+    // advances to 2000 庚辰 under the datetime-level LiChun boundary, while the
+    // lunar-new-year-eve boundary still keeps 1999 己卯 (before Chinese New
+    // Year), so the two policies disagree. This intentionally diverges from
+    // upstream `iztro@2.5.8`, which is date-level.
+    let eve = resolve_effective_birth_year(
+        2000,
+        month(2),
+        day(4),
+        21,
+        0,
+        YearBoundary::ChineseNewYearEve,
+    )
+    .expect("eve year");
+    let li_chun = resolve_effective_birth_year(2000, month(2), day(4), 21, 0, YearBoundary::LiChun)
         .expect("li chun");
 
     assert_eq!(eve.stem(), HeavenlyStem::Ji);
@@ -254,12 +286,18 @@ fn year_boundary_policies_differ_between_li_chun_and_chinese_new_year() {
 fn year_boundary_after_chinese_new_year_before_li_chun_differs() {
     // Chinese New Year 2001 is 2001-01-24; Li Chun 2001 is 2001-02-04. On
     // 2001-01-28 the date is after the lunar new year (so the normal boundary
-    // already uses 2001 辛巳) but still before Li Chun (so the exact boundary
-    // keeps 2000 庚辰).
-    let eve =
-        resolve_effective_birth_year(2001, month(1), day(28), YearBoundary::ChineseNewYearEve)
-            .expect("eve year");
-    let li_chun = resolve_effective_birth_year(2001, month(1), day(28), YearBoundary::LiChun)
+    // already uses 2001 辛巳) but still before Li Chun regardless of clock time
+    // (so the exact boundary keeps 2000 庚辰).
+    let eve = resolve_effective_birth_year(
+        2001,
+        month(1),
+        day(28),
+        8,
+        0,
+        YearBoundary::ChineseNewYearEve,
+    )
+    .expect("eve year");
+    let li_chun = resolve_effective_birth_year(2001, month(1), day(28), 8, 0, YearBoundary::LiChun)
         .expect("li chun");
 
     assert_eq!(eve.stem(), HeavenlyStem::Xin);
@@ -271,12 +309,28 @@ fn year_boundary_after_chinese_new_year_before_li_chun_differs() {
 
 #[test]
 fn year_boundary_policies_agree_on_ordinary_date() {
-    let eve =
-        resolve_effective_birth_year(1990, month(6), day(15), YearBoundary::ChineseNewYearEve)
-            .expect("eve year");
-    let li_chun = resolve_effective_birth_year(1990, month(6), day(15), YearBoundary::LiChun)
+    let eve = resolve_effective_birth_year(
+        1990,
+        month(6),
+        day(15),
+        8,
+        0,
+        YearBoundary::ChineseNewYearEve,
+    )
+    .expect("eve year");
+    let li_chun = resolve_effective_birth_year(1990, month(6), day(15), 8, 0, YearBoundary::LiChun)
         .expect("li chun");
     assert_eq!(eve, li_chun);
+}
+
+#[test]
+fn synthesized_clock_matches_lunar_lite_midpoint() {
+    // The legacy time-index path synthesizes the 时辰 midpoint exactly as
+    // `lunar-lite` does: hour = max(time_index * 2 - 1, 0), minute = 30.
+    assert_eq!(synthesized_clock(0), (0, 30, 0)); // EarlyZi -> 00:30
+    assert_eq!(synthesized_clock(1), (1, 30, 0)); // Chou    -> 01:30
+    assert_eq!(synthesized_clock(4), (7, 30, 0)); // Chen    -> 07:30
+    assert_eq!(synthesized_clock(12), (23, 30, 0)); // LateZi -> 23:30
 }
 
 #[test]

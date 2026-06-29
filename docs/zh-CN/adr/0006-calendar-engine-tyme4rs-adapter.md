@@ -5,9 +5,10 @@
 被 [ADR 0007](0007-calendar-engine-back-to-lunar-lite.md) 取代。
 
 `iztro-rs` 已将历法引擎迁回 `lunar-lite`。下文的决策——采用 `tyme4rs` 并在
-`core/model/ganzhi` 中复制干支值对象——已不再反映代码现状。尤其是时刻级（精确瞬时）
-「立春」分界及其有意偏离用例 `year_divide_exact_2000_02_04` 已回退为 `lunar-lite`
-的日期级分界，与 `iztro@2.5.8` 一致。本记录仅作历史保留；当前决策见 ADR 0007。
+`core/model/ganzhi` 中复制干支值对象——已不再反映代码现状：引擎重新为 `lunar-lite`，
+干支值对象也直接来自 `lunar-lite`。时刻级（精确瞬时）「立春」分界及其有意偏离用例
+`year_divide_exact_2000_02_04` 的行为不变，现由 `lunar_lite::li_chun_datetime` 驱动，
+而非 `tyme4rs`。本记录仅作历史保留；当前决策见 ADR 0007。
 
 ## 背景
 
