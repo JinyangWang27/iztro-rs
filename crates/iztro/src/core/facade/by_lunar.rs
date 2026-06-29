@@ -4,7 +4,6 @@ use crate::core::calendar::resolve_lunar_date;
 use crate::core::error::{ChartError, validate_chart_algorithm_plane};
 use crate::core::model::calendar::{BirthContext, BirthTime, CalendarDate, Gender};
 use crate::core::model::chart::Chart;
-use crate::core::model::ganzhi::{EarthlyBranch, HeavenlyStem, StemBranch};
 use crate::core::model::profile::{ChartPlane, ChartProfile, MethodProfile};
 use crate::core::placement::natal::input::{NatalChartInput, NatalChartWithSupportedStarsInput};
 use crate::core::placement::natal::life_body::{LunarDay, LunarMonth};
@@ -12,6 +11,7 @@ use crate::core::placement::natal::minimal::build_minimal_natal_chart;
 use crate::core::placement::natal::plane::resolve_natal_chart_anchor;
 use crate::core::placement::natal::strategy::DeterministicNatalStarPlacementStrategy;
 use crate::core::placement::natal::supported::build_natal_chart_with_supported_stars_using_anchor_and_strategy;
+use lunar_lite::{EarthlyBranch, HeavenlyStem, StemBranch};
 
 /// Typed lunar-date request for the iztro-compatible natal chart facade.
 ///
@@ -301,7 +301,7 @@ pub fn by_lunar(request: LunarChartRequest) -> Result<Chart, ChartError> {
     let daily_star_offset = daily_star_offset(resolved.lunar_day(), birth_time);
     let birth_year = StemBranch::try_new(request.birth_year_stem(), request.birth_year_branch())
         .map_err(|err| match err {
-            crate::core::model::ganzhi::StemBranchError::InvalidStemBranchPair { stem, branch } => {
+            lunar_lite::StemBranchError::InvalidStemBranchPair { stem, branch } => {
                 ChartError::InvalidStemBranchPair { stem, branch }
             }
         })?;

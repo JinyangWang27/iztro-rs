@@ -26,9 +26,9 @@ use crate::core::facade::by_solar::{SolarChartRequest, by_solar_with_conversion}
 use crate::core::facade::static_temporal_chart_view::time_index_for_hour;
 use crate::core::model::calendar::{BirthTime, Gender, SolarDate};
 use crate::core::model::chart::Chart;
-use crate::core::model::ganzhi::StemBranch;
 use crate::core::model::profile::{ChartPlane, MethodProfile};
 use crate::core::placement::natal::life_body::{LunarDay, LunarMonth};
+use lunar_lite::StemBranch;
 
 /// A validated lunar (lunisolar) calendar date for the clock-time birth input
 /// API.
@@ -283,15 +283,14 @@ pub fn resolve_solar_birth_input(
         resolve_birth_datetime(input.date, input.birth_time, &options.calculation_config)?;
     let conversion =
         solar_conversion_for_resolved(resolved, options.calculation_config.year_boundary)?;
-    let effective_birth_year = StemBranch::try_new(
-        conversion.birth_year_stem(),
-        conversion.birth_year_branch(),
-    )
-    .map_err(|err| match err {
-        crate::core::model::ganzhi::StemBranchError::InvalidStemBranchPair { stem, branch } => {
-            ChartError::InvalidStemBranchPair { stem, branch }
-        }
-    })?;
+    let effective_birth_year =
+        StemBranch::try_new(conversion.birth_year_stem(), conversion.birth_year_branch()).map_err(
+            |err| match err {
+                lunar_lite::StemBranchError::InvalidStemBranchPair { stem, branch } => {
+                    ChartError::InvalidStemBranchPair { stem, branch }
+                }
+            },
+        )?;
 
     solar_calculation_diagnostic(&options, resolved, effective_birth_year)
 }
@@ -332,13 +331,17 @@ fn solar_conversion_for_resolved(
     year_boundary: YearBoundary,
 ) -> Result<LunarConversion, ChartError> {
     let resolved_date = resolved.resolved_date();
+    // `YearBoundary::LiChun` is datetime-level: the exact resolved clock
+    // hour/minute is preserved and compared against the 立春 instant, so two
+    // births on the 立春 day split at that instant. The resolved 时辰
+    // (`resolved_time_index`) still drives chart placement and the hour pillar.
     solar_to_lunar_with_resolved_datetime(
         resolved_date.year(),
         resolved_date.month(),
         resolved_date.day(),
+        resolved.resolved_time_index(),
         resolved.resolved_hour(),
         resolved.resolved_minute(),
-        0,
         year_boundary,
     )
 }

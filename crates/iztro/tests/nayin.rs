@@ -1,5 +1,5 @@
-use iztro::core::model::ganzhi::{EarthlyBranch, HeavenlyStem, StemBranch};
 use iztro::core::model::nayin::{NaYinElement, nayin_element};
+use iztro::core::{EarthlyBranch, HeavenlyStem, StemBranch};
 
 fn pair(stem: HeavenlyStem, branch: EarthlyBranch) -> StemBranch {
     StemBranch::try_new(stem, branch).expect("valid sexagenary pair")

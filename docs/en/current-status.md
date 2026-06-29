@@ -1,6 +1,6 @@
 # Current Project Status
 
-This document summarizes the current implemented surface after the `tyme4rs` calendar-adapter, fixture, facade snapshot, full horoscope stack, static-chart view model, chart-plane, diagnostic, i18n, pattern, and local GUI prototype work.
+This document summarizes the current implemented surface after the `lunar-lite` calendar-adapter, fixture, facade snapshot, full horoscope stack, static-chart view model, chart-plane, diagnostic, i18n, pattern, and local GUI prototype work.
 
 ## Compatibility target
 
@@ -13,7 +13,7 @@ Compatibility is fixture-driven and scoped to the supported fact surface. The pr
 The supported natal chart fact surface currently includes:
 
 - typed request facades: `by_lunar` and `by_solar`;
-- `tyme4rs`-backed solar-to-lunar conversion and boundary-configurable birth-year/four-pillar derivation for `by_solar`, behind the internal `core/calendar` adapter;
+- `lunar-lite`-backed solar-to-lunar conversion and boundary-configurable birth-year/four-pillar derivation for `by_solar`, behind the internal `core/calendar` adapter;
 - leap-month and `fix_leap` handling for the supported slice, now exposed through `LeapMonthBoundary`;
 - `BirthTime` / upstream `timeIndex` `0..=12`, including early Zi and late Zi;
 - retained `Chart::birth_year()` stem-branch fact;
@@ -42,9 +42,9 @@ The supported natal chart fact surface currently includes:
 - typed `HoroscopeRuntime` projection and query helpers, fixture-backed against `crates/iztro/fixtures/iztro/horoscope_runtime.json`: `age_palace`, `palace`, `surround_palaces`, `has_horoscope_stars`, `not_have_horoscope_stars`, `has_one_of_horoscope_stars`, and `has_horoscope_mutagen`;
 - serializable `HoroscopeFacadeSnapshot` export (`HoroscopeFacadeSnapshot::from_horoscope_chart`), fixture-backed against `crates/iztro/fixtures/iztro/horoscope_facade.json`: an upstream-like horoscope payload built from `HoroscopeChart`, `HoroscopeSupportedFieldsSnapshot`, `NatalFacadeSnapshot`, and `HoroscopeRuntime`.
 
-`by_solar` now attaches factual natal four pillars to `Chart` through `Chart::four_pillars()`, derived through the internal `tyme4rs` adapter with the configured `YearBoundary` (datetime-level for `LiChun`) and normal (五虎遁) month-boundary semantics. `by_lunar` remains conservative: it only receives an explicit birth-year stem/branch today, so `Chart::four_pillars()` is `None` for `by_lunar` charts until a later PR decides whether to accept explicit `FourPillars` or derive them from a normalized solar date. Full BaZi interpretation remains deferred; this implemented surface is only 年柱/月柱/日柱/时柱 fact retention.
+`by_solar` now attaches factual natal four pillars to `Chart` through `Chart::four_pillars()`, derived through the internal `lunar-lite` adapter with the configured `YearBoundary` (datetime-level for `LiChun`, via `lunar_lite::li_chun_datetime`) and normal (五虎遁) month-boundary semantics. `by_lunar` remains conservative: it only receives an explicit birth-year stem/branch today, so `Chart::four_pillars()` is `None` for `by_lunar` charts until a later PR decides whether to accept explicit `FourPillars` or derive them from a normalized solar date. Full BaZi interpretation remains deferred; this implemented surface is only 年柱/月柱/日柱/时柱 fact retention.
 
-Those factual natal four pillars are also exported through facade snapshots. `NatalFacadeSnapshot` carries an optional `NatalFacadeFourPillarsSnapshot` (`four_pillars`) reusing the `iztro-rs`-owned `FourPillars` value object as the underlying fact: each pillar stays a machine-readable `StemBranch` with an additive conventional zh-CN `*_zh` label. The field is `Some(..)` for `by_solar`-derived charts and omitted/`None` for `by_lunar`-derived charts. This is a factual export only: 十神, 藏干, 五行 scoring, 喜用神, 成格, readings, and the rest of full BaZi interpretation remain deferred and are intentionally absent.
+Those factual natal four pillars are also exported through facade snapshots. `NatalFacadeSnapshot` carries an optional `NatalFacadeFourPillarsSnapshot` (`four_pillars`) reusing the `lunar-lite` `FourPillars` value object re-exported by `iztro-rs`. The field is `Some(..)` for `by_solar`-derived charts and omitted/`None` for `by_lunar`-derived charts. This is a factual export only: 十神, 藏干, 五行 scoring, 喜用神, 成格, readings, and the rest of full BaZi interpretation remain deferred and are intentionally absent.
 
 Default/non-Zhongzhou natal output remains 66 typed natal stars. Zhongzhou natal output remains 68 typed natal stars. `represented_star_metadata_table().len() == 70` stays natal-only, while `known_star_metadata_table().len() == 170` inventories the broader upstream runtime star-name universe.
 
@@ -79,7 +79,7 @@ Note: `ChartError` now derives `PartialEq` but no longer derives `Eq`, because c
 
 The following boundaries are deliberate:
 
-- `iztro-rs` owns the public/domain `HeavenlyStem`, `EarthlyBranch`, `StemBranch`, and `FourPillars` value objects (`core/model/ganzhi`); `tyme4rs` is an internal calendar engine behind `core/calendar`.
+- `lunar-lite` owns the low-level `HeavenlyStem`, `EarthlyBranch`, `StemBranch`, and `FourPillars` value objects, which `iztro-rs` uses directly and re-exports; `lunar-lite` is the calendar/GanZhi dependency behind `core/calendar`.
 - `core` owns Zi Wei-specific NaYin and five-element bureau logic.
 - `Chart` retains birth-year `StemBranch` as a natal identity fact.
 - `Chart::stars()` returns typed natal `StarPlacement`s only.

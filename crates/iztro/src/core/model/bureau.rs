@@ -11,8 +11,8 @@
 //! Fire  -> Fire6  (火六局)
 //! ```
 
-use crate::core::model::ganzhi::StemBranch;
 use crate::core::model::nayin::{NaYinElement, nayin_element};
+use lunar_lite::StemBranch;
 use serde::{Deserialize, Serialize};
 
 /// The five-element bureau (五行局) of a chart.
@@ -68,7 +68,7 @@ impl FiveElementBureau {
 
 /// Calculates the five-element bureau from the Life Palace stem-branch pair.
 ///
-/// `crate::core::model::ganzhi::StemBranch` is valid by construction, so this always succeeds.
+/// `lunar_lite::StemBranch` is valid by construction, so this always succeeds.
 pub fn five_element_bureau_from_life_palace(pair: StemBranch) -> FiveElementBureau {
     FiveElementBureau::from_element(nayin_element(pair))
 }

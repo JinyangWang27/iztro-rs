@@ -9,13 +9,13 @@
 
 use crate::core::error::ChartError;
 use crate::core::model::chart::{Chart, DecorativeStarFamily, DecorativeStarPlacement, Palace};
-use crate::core::model::ganzhi::{EarthlyBranch, HeavenlyStem};
 use crate::core::model::profile::ChartAlgorithmKind;
 use crate::core::model::star::StarName;
 use crate::core::model::star::mutagen::Scope;
 use crate::core::placement::location::{
     changsheng_start_branch, lu_yang_tuo_ma_branches, twelve_god_direction_forward,
 };
+use lunar_lite::{EarthlyBranch, HeavenlyStem};
 
 /// 长生十二神 placement order (iztro `getchangsheng12`).
 const CHANGSHENG12: [StarName; 12] = [

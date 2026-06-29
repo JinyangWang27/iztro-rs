@@ -1,20 +1,20 @@
-//! Lunar-date normalization backed by the internal calendar adapter.
+//! Lunar-date normalization backed by `lunar-lite`.
 //!
-//! Upstream `iztro.byLunar(date, _, _, isLeapMonth, _)` delegates to a lunar
-//! conversion that only honors `isLeapMonth = true` when the requested lunar
-//! year actually has a leap month equal to the requested month. If the requested
-//! month is not the year's leap month, the flag is ignored and the date is
-//! treated as the ordinary month.
+//! Upstream `iztro.byLunar(date, _, _, isLeapMonth, _)` delegates to
+//! `lunar-lite.lunar2solar(date, isLeapMonth)`, which only honors
+//! `isLeapMonth = true` when the requested lunar year actually has a leap month
+//! equal to the requested month. If the requested month is not the year's leap
+//! month, the flag is ignored and the date is treated as the ordinary month.
 //!
-//! [`resolve_lunar_date`] reproduces that rule via [`TymeCalendar::resolve_lunar`]:
-//! it never blindly trusts the caller's `is_leap_month`. It resolves the flag
-//! against the real calendar and returns the corrected facts.
+//! [`resolve_lunar_date`] reproduces that rule: it never blindly trusts the
+//! caller's `is_leap_month`. It resolves the flag with `lunar-lite` and returns
+//! the corrected facts.
 //! Like the rest of this module, it exposes only the crate's own domain types.
+
+use lunar_lite::{LunarDate, LunarError, lunar_month_days, normalize_lunar_date};
 
 use crate::core::error::ChartError;
 use crate::core::placement::natal::life_body::{LunarDay, LunarMonth};
-
-use super::tyme::{LunarDateInput, TymeCalendar};
 
 /// A lunar date whose leap-month flag has been resolved against the real
 /// calendar (the leap flag is kept only when the month is actually leap).
@@ -75,20 +75,38 @@ pub(crate) fn resolve_lunar_date(
         day,
     };
 
-    let resolved = TymeCalendar.resolve_lunar(LunarDateInput {
+    let date = normalize_lunar_date(LunarDate {
         year: lunar_year,
         month,
         day,
         is_leap_month,
-    })?;
+    })
+    .map_err(|err| map_lunar_normalize_error(err, lunar_year, month, day))?;
+
+    let month_days = lunar_month_days(date.year, date.month, date.is_leap_month)
+        .map_err(|err| map_lunar_normalize_error(err, lunar_year, month, day))?;
 
     Ok(ResolvedLunarDate {
-        lunar_year: resolved.year,
-        lunar_month: LunarMonth::new(resolved.month).map_err(|_| conversion_failed())?,
-        lunar_day: LunarDay::new(resolved.day).map_err(|_| conversion_failed())?,
-        is_leap_month: resolved.is_leap_month,
-        month_days: resolved.month_day_count,
+        lunar_year: date.year,
+        lunar_month: LunarMonth::new(date.month).map_err(|_| conversion_failed())?,
+        lunar_day: LunarDay::new(date.day).map_err(|_| conversion_failed())?,
+        is_leap_month: date.is_leap_month,
+        month_days,
     })
+}
+
+fn map_lunar_normalize_error(err: LunarError, year: i32, month: u8, day: u8) -> ChartError {
+    match err {
+        LunarError::InvalidLunarDate { .. } | LunarError::YearOutOfRange { .. } => {
+            ChartError::UnsupportedCalendarDate { year, month, day }
+        }
+        LunarError::InvalidSolarDate { .. }
+        | LunarError::InvalidTime { .. }
+        | LunarError::InvalidTimeIndex { .. }
+        | LunarError::SolarTermOutOfRange { .. } => {
+            ChartError::CalendarConversionFailed { year, month, day }
+        }
+    }
 }
 
 #[cfg(test)]

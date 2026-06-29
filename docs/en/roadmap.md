@@ -41,7 +41,7 @@ This roadmap is intentionally conservative. The project should first keep chart 
 - [x] Define decadal and horoscope overlay models.
 - [x] Ensure implemented models are strongly typed and serializable.
 - [x] Inventory upstream `iztro@2.5.8` runtime star names separately from represented chart facts.
-- [x] Own the canonical low-level stem/branch and sexagenary-cycle value objects in `iztro-rs` (`core/model/ganzhi`).
+- [x] Use the canonical low-level stem/branch and sexagenary-cycle value objects from `lunar-lite` directly.
 - [x] Own the `FourPillars` value object in `iztro-rs` for factual natal four-pillar facts.
 - [x] Isolate Zi Wei-specific NaYin and five-element bureau logic in `core`.
 - [x] Retain birth-year `StemBranch` as a reusable natal `Chart` fact.
@@ -66,10 +66,10 @@ Decadal, age, and horoscope models are defined as typed facts and overlays. `bui
 - [x] Add invariant coverage for supported natal algorithm/plane combinations.
 - [x] Place decorative runtime star families as untyped `DecorativeStarPlacement`s.
 - [x] Place scoped flow stars as branch-tagged `ScopedStarPlacement`s.
-- [x] Add solar-to-lunar conversion and leap-month behavior through the internal `tyme4rs` calendar adapter (`core/calendar`).
+- [x] Add solar-to-lunar conversion and leap-month behavior through the internal `lunar-lite` calendar adapter (`core/calendar`).
 - [x] Add boundary calculation policies for solar time, year boundary, leap-month boundary, and nominal-age boundary.
 - [x] Add rat-hour variants for upstream `timeIndex` `0..=12`.
-- [x] Derive the birth-year stem-branch through the internal `tyme4rs` calendar adapter and retain it on `Chart`.
+- [x] Derive the birth-year stem-branch through the internal `lunar-lite` calendar adapter and retain it on `Chart`.
 - [x] Retain full factual natal four pillars on `by_solar` charts as optional `Chart::four_pillars()`, with `by_lunar` left explicit and unsupported for full pillars.
 - [x] Add typed decadal-frame derivation from natal chart facts.
 - [x] Add decadal temporal palace-name layout on the selected decadal layer.
@@ -88,7 +88,7 @@ Decadal, age, and horoscope models are defined as typed facts and overlays. `bui
 - [ ] Add full facade serialization parity.
 - [ ] Add full BaZi interpretation/output beyond factual `by_solar` natal four pillars.
 
-Current supported chart-generation slice: `by_lunar` accepts explicit lunar inputs plus explicit birth-year stem and branch, validates them into a retained `Chart::birth_year()` fact, builds deterministic natal chart facts, and validates supported fields against selected `iztro@2.5.8` fixtures where upstream exposes a comparable surface. `by_solar` adds `tyme4rs`-backed solar-to-lunar conversion behind the internal `core/calendar` adapter, derives the birth-year stem-branch through boundary-configurable policy (datetime-level `YearBoundary::LiChun`), retains the factual `iztro-rs`-owned `FourPillars`, and delegates placement to `by_lunar`. `ChartCalculationConfig` is a separate calculation-policy axis from `ChartAlgorithmKind` and `ChartPlane`; it covers solar time, year boundary, leap-month boundary, and runtime nominal-age boundary. Zhongzhou Earth/Human chart planes are Rust-only extensions because upstream `iztro@2.5.8` does not expose those planes.
+Current supported chart-generation slice: `by_lunar` accepts explicit lunar inputs plus explicit birth-year stem and branch, validates them into a retained `Chart::birth_year()` fact, builds deterministic natal chart facts, and validates supported fields against selected `iztro@2.5.8` fixtures where upstream exposes a comparable surface. `by_solar` adds `lunar-lite`-backed solar-to-lunar conversion behind the internal `core/calendar` adapter, derives the birth-year stem-branch through boundary-configurable policy (datetime-level `YearBoundary::LiChun`), retains the factual `FourPillars`, and delegates placement to `by_lunar`. `ChartCalculationConfig` is a separate calculation-policy axis from `ChartAlgorithmKind` and `ChartPlane`; it covers solar time, year boundary, leap-month boundary, and runtime nominal-age boundary. Zhongzhou Earth/Human chart planes are Rust-only extensions because upstream `iztro@2.5.8` does not expose those planes.
 
 Calculation diagnostics are exposed as generation reports and preview/resolution snapshots. They inspect resolved input facts and runtime nominal-age facts without making `Chart` store calculation config or changing chart serialization.
 

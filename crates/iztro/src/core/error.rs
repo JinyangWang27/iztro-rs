@@ -1,8 +1,8 @@
 use crate::core::model::chart::PalaceName;
-use crate::core::model::ganzhi::{EarthlyBranch, HeavenlyStem, StemBranch};
 use crate::core::model::profile::{ChartAlgorithmKind, ChartPlane, is_valid_chart_algorithm_plane};
 use crate::core::model::star::StarName;
 use crate::core::model::star::mutagen::{Mutagen, Scope};
+use lunar_lite::{EarthlyBranch, HeavenlyStem, StemBranch};
 use thiserror::Error;
 
 /// Errors produced by core chart construction or validation.

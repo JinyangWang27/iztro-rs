@@ -1,7 +1,7 @@
 //! Life and body palace index calculation from lunar month and birth hour.
 
 use crate::core::error::ChartError;
-use crate::core::model::ganzhi::EarthlyBranch;
+use lunar_lite::EarthlyBranch;
 
 /// A validated lunar birth month in the supported `1..=12` range.
 ///
