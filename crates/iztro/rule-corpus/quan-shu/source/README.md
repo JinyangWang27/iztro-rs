@@ -13,9 +13,9 @@ The Markdown files are the human-readable source layer. The TOML files are the m
 ```text
 source Markdown
   -> source inventory TOML
-  -> classical rule metadata TOML
+  -> classical rule metadata TOML OR source-backed pattern metadata
   -> Rust predicates / evaluator
-  -> structured Claim[]
+  -> structured Claim[] OR PatternDetection[]
 ```
 
 ## Structure: atomic source items
@@ -89,11 +89,11 @@ never here.
 
 ## Files
 
-- `volume-01.toml`: source inventory for Volume 1. Every 太微赋「例曰」aphorism is its own atomic source item linked to a runtime rule (`status = "rule_linked"`).
+- `volume-01.toml`: source inventory for Volume 1. Every 太微赋「例曰」aphorism is its own atomic source item linked to a runtime rule (`status = "rule_linked"`). The end-of-volume pattern catalogues `定富局`, `定贵局`, `定贫贱局`, and `定杂局` are segmented as `pattern_rule` source groups and are intentionally not linked to classical claim rules.
 
 > This inventory tracks **only** genuine 《紫微斗数全书》 passages. Rules derived from chart structures the project models directly rather than from a cited QuanShu passage — e.g. 羊陀夹命 and 昌曲夹命 (夹宫 shapes) — are **not** QuanShu source entries; they live in `crates/iztro/rule-corpus/patterns/` with `work = "iztro_pattern_catalog"` and `pattern.*` source ids, and are not tracked here. `pending` is reserved for items believed to be from QuanShu but not yet located in the Markdown volumes.
 
-This is not a complete line-by-line inventory of Volume 1. It is a deliberately small slice that establishes the inventory format and links each reviewed 太微赋 source unit to a rule via `source_id`. Future expansion may add `raw` / `segmented` source items that are not yet linked (`linked_rule_ids = []`); for the current 太微赋 normalization map every `rule_linked` item carries at least one link.
+This is not a complete line-by-line inventory of Volume 1. It is a deliberately small slice that establishes the inventory format, links each reviewed 太微赋 source unit to a rule via `source_id`, and records the first source-backed pattern catalogues. Future expansion may add `raw` / `segmented` source items that are not yet linked (`linked_rule_ids = []`); for the current 太微赋 normalization map every `rule_linked` item carries at least one link. Segmented `pattern_rule` entries may stay unlinked until their conditions are modeled as `PatternDetection`s.
 
 ## Coverage report
 
@@ -138,7 +138,8 @@ The Markdown source text is canonical. A QuanShu rule's `source_text_zh_hans` mu
 
 - The Markdown volumes under `docs/zh-CN/sources/quan_shu/` are the canonical, human-readable source text.
 - This source inventory TOML is machine-checkable corpus tracking only. It is **not** part of the runtime chart-evaluation path: nothing in `crates/iztro/src/` parses it, `evaluate_classical` does not depend on it, and the Markdown volumes are never parsed at runtime.
-- `crates/iztro/tests/classical_source_inventory.rs` validates the inventory and its links to `crates/iztro/rule-corpus/quan-shu/rules.toml` using private, test-only structs. It asserts that the inventory parses, has unique `source_id`s, has non-empty required fields, that 太微赋 `source_order` is continuous `1..=N`, that 太微赋 `source_id`s are stable mnemonics (not purely numeric), that every `rule_linked` item is linked, that every rule `source_id` exists in the inventory, that every `linked_rule_ids` entry exists in the rule corpus, that linked items and rules agree on `source_id` and `work`, and that a source item's text **equals** the linked rule's `source_text_zh_hans` after light punctuation normalization (a `notes_zh_hans` does not bypass this). It also locks the 天马空亡 source unit to `马遇空亡，终身奔走`, the 禄马交驰 unit to `禄马最喜交驰`, and the 日月反背 unit to `日月最嫌反背`. Validation applies to QuanShu rules only: every rule in `rules.toml` must carry `work = "zi_wei_dou_shu_quan_shu"`, and pattern-catalog rules (`rule-corpus/patterns/`) are asserted **not** to appear in this inventory.
+- Source-backed pattern detections carry small static metadata in `core::pattern::metadata` only after a pattern has an executable detector. The inventory is not parsed at runtime and does not imply a classical claim rule.
+- `crates/iztro/tests/classical_source_inventory.rs` validates the inventory and its links to `crates/iztro/rule-corpus/quan-shu/rules.toml` using private, test-only structs. It asserts that the inventory parses, has unique `source_id`s, has non-empty required fields, that 太微赋 and the four source-backed pattern sections have continuous section-local `source_order`, that source ids are stable mnemonics (not purely numeric), that every `rule_linked` item is linked, that every rule `source_id` exists in the inventory, that every `linked_rule_ids` entry exists in the rule corpus, that linked items and rules agree on `source_id` and `work`, and that a source item's text **equals** the linked rule's `source_text_zh_hans` after light punctuation normalization (a `notes_zh_hans` does not bypass this). It also locks the 天马空亡 source unit to `马遇空亡，终身奔走`, the 禄马交驰 unit to `禄马最喜交驰`, and the 日月反背 unit to `日月最嫌反背`. Validation applies to QuanShu rules only: every rule in `rules.toml` must carry `work = "zi_wei_dou_shu_quan_shu"`, the four `ding_*` pattern catalogue prefixes must not appear in classical rules, and pattern-catalog rules (`rule-corpus/patterns/`) are asserted **not** to appear in this inventory.
 
 ## Known pilot limitations
 
@@ -146,7 +147,7 @@ These are intentionally **allowed** in this pilot slice and are not test failure
 
 - `anchor = "TODO"` for items not yet located in the Markdown volumes;
 - `section = "待校"` for sections still pending source review;
-- the inventory covers the complete 太微赋 normalization map for Volume 1; it is not a complete inventory of every section of Volume 1;
+- the inventory covers the complete 太微赋 normalization map plus the four end-of-volume pattern catalogues; it is not a complete inventory of every section of Volume 1;
 - only `volume-01.toml` exists; Volume 2 and Volume 3 have no source inventory TOML yet.
 
 Tightening these (resolving TODO anchors, 待校 sections, and reconciling variants) is deferred to follow-up source-review PRs.

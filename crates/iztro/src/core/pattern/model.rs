@@ -35,6 +35,24 @@ pub enum PatternId {
     RiYueBingMing,
     /// 日月反背.
     RiYueFanBei,
+    /// 金灿光辉.
+    JinCanGuangHui,
+    /// 日出扶桑.
+    RiChuFuSang,
+    /// 月落亥宫.
+    YueLuoHaiGong,
+    /// 月生沧海.
+    YueShengCangHai,
+    /// 马头带剑.
+    MaTouDaiJian,
+    /// 贪火相逢.
+    TanHuoXiangFeng,
+    /// 武曲守垣.
+    WuQuShouYuan,
+    /// 财与囚仇.
+    CaiYuQiuChou,
+    /// 马落空亡.
+    MaLuoKongWang,
 }
 
 /// Coarse family a pattern belongs to.

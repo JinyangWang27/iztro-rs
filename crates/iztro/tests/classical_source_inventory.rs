@@ -263,6 +263,22 @@ fn pattern_rule_category_is_accepted_without_classical_rule_links() {
     }
 }
 
+#[test]
+fn source_backed_pattern_catalogues_do_not_create_classical_rules() {
+    let rules = rules_corpus();
+
+    for rule in &rules.rule {
+        for (prefix, section, _) in SOURCE_BACKED_PATTERN_SECTIONS {
+            assert!(
+                !rule.source_id.starts_with(prefix),
+                "classical rule {} must not use {section} pattern catalogue source id {}",
+                rule.id,
+                rule.source_id
+            );
+        }
+    }
+}
+
 // ---- E. Linked ids by status ---------------------------------------------
 
 /// Every `rule_linked` source item must carry at least one linked rule. The

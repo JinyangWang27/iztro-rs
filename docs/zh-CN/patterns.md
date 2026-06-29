@@ -14,6 +14,9 @@
   空的 `PatternScope::Combined(vec![])` 永远不会通过 scope 守卫。
 - **保守**：只有当结构条件被已建模的命盘事实清晰满足时，规则才会产生检测。依赖亮度
   的规则在星曜亮度为 `Unknown` 时绝不产出。
+- **有出处则显式记录**：《紫微斗数全书》卷一末尾的 `定富局`、`定贵局`、`定贫贱局`、
+  `定杂局` 已作为 `pattern_rule` source inventory 登记。只有结构条件清晰且已建模的条目
+  会成为可执行 `PatternDetection`；其余条目先保留为出处清单。
 
 ## 检测流程
 
@@ -32,6 +35,30 @@ scope、status 与 family。
 | 昌曲夹命 | `ChangQuJiaMing` | `AuxiliaryStarCombination` | 吉 | 文昌与文曲夹住命宫，各占一边。 |
 | 日月并明 | `RiYueBingMing` | `MajorStarCombination` | 吉 | 太阳与太阴皆在盘，且各自处于明亮庙旺之位（庙／旺／得／利）。 |
 | 日月反背 | `RiYueFanBei` | `MajorStarCombination` | 凶 | 太阳与太阴皆在盘，且各自处于失辉落陷之位（不／陷）。 |
+| 金灿光辉 | `JinCanGuangHui` | `MajorStarCombination` | 吉 | 命宫在午，太阳在命宫，且太阳是该宫唯一主星。 |
+| 日出扶桑 | `RiChuFuSang` | `MajorStarCombination` | 吉 | 太阳在卯，且卯宫是命宫或官禄宫。 |
+| 月落亥宫 | `YueLuoHaiGong` | `MajorStarCombination` | 吉 | 太阴在亥，且亥宫是命宫。 |
+| 月生沧海 | `YueShengCangHai` | `MajorStarCombination` | 吉 | 太阴在子，且子宫是田宅宫。 |
+| 马头带剑 | `MaTouDaiJian` | `ShaJi` | 吉凶参半 | 天马与擎羊同宫；不采用午宫限定口径。 |
+| 贪火相逢 | `TanHuoXiangFeng` | `ShaJi` | 吉 | 贪狼与火星同守命宫，且二者皆为已建模的明亮状态。 |
+| 武曲守垣 | `WuQuShouYuan` | `MajorStarCombination` | 吉 | 武曲在命宫，且命宫地支为卯。 |
+| 财与囚仇 | `CaiYuQiuChou` | `MajorStarCombination` | 凶 | 武曲与廉贞同宫，且该宫为命宫或身宫。 |
+| 马落空亡 | `MaLuoKongWang` | `ShaJi` | 凶 | 天马与已建模空亡族星（旬空、空亡、截路、截空）同宫。 |
+
+### 全书出处格局目录
+
+《紫微斗数全书》卷一末尾包含四组显式格局目录：
+
+- `定富局`
+- `定贵局`
+- `定贫贱局`
+- `定杂局`
+
+这些章节属于有出处依据的格局材料，不是普通 classical claim rule。其出处条目记录在
+`crates/iztro/rule-corpus/quan-shu/source/volume-01.toml`，使用
+`category = "pattern_rule"` 与 `status = "segmented"`。运行时代码不解析该 inventory；
+已实现的检测通过 `pattern_source_metadata` 携带少量静态出处元数据，未实现条目仅保留为
+source inventory。
 
 ### 夹宫规则
 
@@ -50,5 +77,6 @@ scope、status 与 family。
 ## 现状
 
 本层刻意保持狭窄且保守。新格局逐条加入，并配有正例／负例规则测试以及有出处依据的条件。
-叙述性解读、超出粗粒度 `PatternStrength` 的评分，以及 LLM 辅助解读都不在本层范围内，
-属于后续层级。
+`PatternDetection` 只产出结构化事实，不产出 classical claim、i18n 判断文案或叙述性报告。
+叙述性解读、超出粗粒度 `PatternStrength` 的评分，以及 LLM 辅助解读都不在本层范围内，属于
+后续层级。

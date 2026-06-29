@@ -85,8 +85,9 @@ pub use core::{
 };
 pub use core::{
     PalaceRelation, PatternAnchor, PatternContext, PatternDetection, PatternDetectionRequest,
-    PatternEvidence, PatternFamily, PatternId, PatternPolarity, PatternScope, PatternStatus,
-    PatternStrength, detect_patterns,
+    PatternEvidence, PatternFamily, PatternId, PatternPolarity, PatternScope, PatternSourceGroup,
+    PatternSourceMetadata, PatternStatus, PatternStrength, detect_patterns,
+    pattern_source_metadata,
 };
 // Input calculation policy layer: clock-time birth input and apparent solar
 // time. These are a separate axis from `ChartAlgorithmKind` and `ChartPlane`.

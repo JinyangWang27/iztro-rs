@@ -4,7 +4,9 @@
 //! common lookups so individual rules stay small and consistent.
 
 use crate::core::pattern::relation::{clamp_branches, san_fang_si_zheng};
-use crate::core::{Brightness, Chart, EarthlyBranch, StarKind, StarName, StarPlacement};
+use crate::core::{
+    Brightness, Chart, EarthlyBranch, PalaceName, StarKind, StarName, StarPlacement,
+};
 
 /// Returns the typed star placements in the palace at `branch`.
 pub fn stars_in_palace(chart: &Chart, branch: EarthlyBranch) -> Vec<&StarPlacement> {
@@ -21,6 +23,26 @@ pub fn palace_has_star(chart: &Chart, branch: EarthlyBranch, star: StarName) -> 
     stars_in_palace(chart, branch)
         .iter()
         .any(|placement| placement.name() == star)
+}
+
+/// Returns the branch occupied by a named palace, if present.
+pub fn branch_of_palace(chart: &Chart, palace: PalaceName) -> Option<EarthlyBranch> {
+    chart.branch_of_palace(palace)
+}
+
+/// Returns whether `stars` all occupy the palace at `branch`.
+pub fn palace_has_all_stars(chart: &Chart, branch: EarthlyBranch, stars: &[StarName]) -> bool {
+    stars
+        .iter()
+        .all(|star| palace_has_star(chart, branch, *star))
+}
+
+/// Returns the number of major stars in the palace at `branch`.
+pub fn major_star_count_in_palace(chart: &Chart, branch: EarthlyBranch) -> usize {
+    stars_in_palace(chart, branch)
+        .iter()
+        .filter(|placement| placement.kind() == StarKind::Major)
+        .count()
 }
 
 /// Returns the branch of the palace containing `star`, if present.
@@ -109,4 +131,24 @@ pub fn any_sha_star_in_palace(chart: &Chart, branch: EarthlyBranch) -> bool {
     stars_in_palace(chart, branch)
         .iter()
         .any(|placement| placement.kind() == StarKind::Tough)
+}
+
+/// Returns whether `star` is one of the modeled 空亡-family stars.
+///
+/// This mirrors the existing classical void family without importing the rule
+/// engine into `core::pattern`: 旬空, 空亡, 截路, and 截空 count; 天空, 地空, and
+/// 地劫 do not.
+pub const fn is_modeled_void_star(star: StarName) -> bool {
+    matches!(
+        star,
+        StarName::XunKong | StarName::KongWang | StarName::JieLu | StarName::JieKong
+    )
+}
+
+/// Returns the first modeled 空亡-family star sharing `branch`, if any.
+pub fn modeled_void_star_in_palace(chart: &Chart, branch: EarthlyBranch) -> Option<StarName> {
+    stars_in_palace(chart, branch)
+        .iter()
+        .map(|placement| placement.name())
+        .find(|star| is_modeled_void_star(*star))
 }

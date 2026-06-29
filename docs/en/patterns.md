@@ -17,6 +17,11 @@ explainable facts and never produces narrative prose.
 - **Conservative**: a rule emits a detection only when its structural
   conditions are clearly met by modeled chart facts. Rules that depend on
   brightness never emit when a star's brightness is `Unknown`.
+- **Source-backed where modeled**: QuanShu Volume 1 catalogues `定富局`,
+  `定贵局`, `定贫贱局`, and `定杂局` are tracked as `pattern_rule` source
+  inventory. Only structurally clear entries become executable
+  `PatternDetection`s; the rest remain source inventory until their conditions
+  are modeled.
 
 ## Detection flow
 
@@ -36,6 +41,32 @@ are returned.
 | 昌曲夹命 | `ChangQuJiaMing` | `AuxiliaryStarCombination` | Auspicious | 文昌 and 文曲 clamp (夹) the Life palace, one on each side. |
 | 日月并明 | `RiYueBingMing` | `MajorStarCombination` | Auspicious | 太阳 and 太阴 are both present and each in a clearly bright state (庙/旺/得/利). |
 | 日月反背 | `RiYueFanBei` | `MajorStarCombination` | Inauspicious | 太阳 and 太阴 are both present and each in a clearly dim/fallen state (不/陷). |
+| 金灿光辉 | `JinCanGuangHui` | `MajorStarCombination` | Auspicious | Life palace is Wu, 太阳 is there, and 太阳 is the only major star in that palace. |
+| 日出扶桑 | `RiChuFuSang` | `MajorStarCombination` | Auspicious | 太阳 is in Mao, and Mao is the Life or Career palace. |
+| 月落亥宫 | `YueLuoHaiGong` | `MajorStarCombination` | Auspicious | 太阴 is in Hai, and Hai is the Life palace. |
+| 月生沧海 | `YueShengCangHai` | `MajorStarCombination` | Auspicious | 太阴 is in Zi, and Zi is the Property palace. |
+| 马头带剑 | `MaTouDaiJian` | `ShaJi` | Mixed | 天马 and 擎羊 share one palace. This does not impose a Wu-only interpretation. |
+| 贪火相逢 | `TanHuoXiangFeng` | `ShaJi` | Auspicious | 贪狼 and 火星 share the Life palace, and both have clearly bright states. |
+| 武曲守垣 | `WuQuShouYuan` | `MajorStarCombination` | Auspicious | 武曲 is in the Life palace and the Life palace branch is Mao. |
+| 财与囚仇 | `CaiYuQiuChou` | `MajorStarCombination` | Inauspicious | 武曲 and 廉贞 share the Life or Body palace. |
+| 马落空亡 | `MaLuoKongWang` | `ShaJi` | Inauspicious | 天马 shares a palace with a modeled 空亡-family star (旬空、空亡、截路、截空). |
+
+### QuanShu source-backed catalogues
+
+The end of QuanShu Volume 1 has explicit pattern catalogues:
+
+- `定富局`
+- `定贵局`
+- `定贫贱局`
+- `定杂局`
+
+These sections are source-backed pattern material, not ordinary classical claim
+rules. Their source entries live in
+`crates/iztro/rule-corpus/quan-shu/source/volume-01.toml` with
+`category = "pattern_rule"` and `status = "segmented"`. Runtime code does not
+parse that inventory. Executable detections carry small static source metadata
+through `pattern_source_metadata`; unimplemented catalogue entries stay recorded
+as source inventory only.
 
 ### Clamp (夹) rules
 
@@ -58,5 +89,7 @@ neutral brightness.
 
 This layer is intentionally narrow and conservative. New patterns are added one
 at a time with positive/negative rule tests and source-grounded conditions.
-Narrative readings, scoring beyond the coarse `PatternStrength`, and LLM-assisted
-interpretation remain out of scope here and belong to later layers.
+`PatternDetection`s are structured facts only: they do not emit classical
+claims, i18n claim prose, or narrative output. Narrative readings, scoring beyond
+the coarse `PatternStrength`, and LLM-assisted interpretation remain out of scope
+here and belong to later layers.

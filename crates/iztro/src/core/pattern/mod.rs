@@ -19,6 +19,7 @@
 
 pub mod context;
 pub mod detector;
+pub mod metadata;
 pub mod model;
 pub mod query;
 pub mod relation;
@@ -26,6 +27,7 @@ pub mod rules;
 
 pub use context::{PatternContext, PatternDetectionRequest};
 pub use detector::detect_patterns;
+pub use metadata::{PatternSourceGroup, PatternSourceMetadata, pattern_source_metadata};
 pub use model::{
     PatternAnchor, PatternCondition, PatternDetection, PatternEvidence, PatternFamily, PatternId,
     PatternPolarity, PatternScope, PatternStatus, PatternStrength,

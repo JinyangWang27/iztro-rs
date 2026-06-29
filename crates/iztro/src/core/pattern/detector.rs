@@ -27,6 +27,7 @@ pub fn detect_patterns(
     rules::chang_qu_jia_ming::detect(ctx, request, &mut out);
     rules::ri_yue_bing_ming::detect(ctx, request, &mut out);
     rules::ri_yue_fan_bei::detect(ctx, request, &mut out);
+    rules::quan_shu_v01::detect(ctx, request, &mut out);
 
     filter_and_sort(out, request)
 }
