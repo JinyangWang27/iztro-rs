@@ -60,13 +60,25 @@ The end of QuanShu Volume 1 has explicit pattern catalogues:
 - `定贫贱局`
 - `定杂局`
 
-These sections are source-backed pattern material, not ordinary classical claim
-rules. Their source entries live in
+These sections are source-backed pattern material. Their source entries live in
 `crates/iztro/rule-corpus/quan-shu/source/volume-01.toml` with
 `category = "pattern_rule"` and `status = "segmented"`. Runtime code does not
-parse that inventory. Executable detections carry small static source metadata
-through `pattern_source_metadata`; unimplemented catalogue entries stay recorded
-as source inventory only.
+parse that inventory.
+
+Executable entries are wired in two layers:
+
+- `core::pattern` performs the structural detection and emits
+  `PatternDetection` facts.
+- `crates/iztro/rule-corpus/patterns/rules.toml` maps the conservative
+  executable subset into classical runtime rules, alongside project-owned
+  pattern rules. QuanShu-sourced pattern rules use
+  `work = "zi_wei_dou_shu_quan_shu"` and `source_id = "quan_shu.v01.*"`.
+
+Most executable QuanShu-backed pattern runtime rules emit a
+`ClassicalSourceHit` and a claim. `马落空亡` is intentionally source-hit-only
+because its user-facing meaning overlaps the existing 太微赋 rule
+`migration.tian_ma_void.restless_movement`. Unimplemented, referenced, or
+temporal catalogue entries stay recorded as source inventory only.
 
 ### Clamp (夹) rules
 
@@ -89,7 +101,7 @@ neutral brightness.
 
 This layer is intentionally narrow and conservative. New patterns are added one
 at a time with positive/negative rule tests and source-grounded conditions.
-`PatternDetection`s are structured facts only: they do not emit classical
-claims, i18n claim prose, or narrative output. Narrative readings, scoring beyond
-the coarse `PatternStrength`, and LLM-assisted interpretation remain out of scope
-here and belong to later layers.
+`PatternDetection`s are structured facts only; any classical source hit or claim
+is produced by the classical rule runtime through explicit pattern-derived rule
+metadata. Narrative readings, scoring beyond the coarse `PatternStrength`, and
+LLM-assisted interpretation remain out of scope here and belong to later layers.

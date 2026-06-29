@@ -54,11 +54,21 @@ scope、status 与 family。
 - `定贫贱局`
 - `定杂局`
 
-这些章节属于有出处依据的格局材料，不是普通 classical claim rule。其出处条目记录在
+这些章节属于有出处依据的格局材料。其出处条目记录在
 `crates/iztro/rule-corpus/quan-shu/source/volume-01.toml`，使用
-`category = "pattern_rule"` 与 `status = "segmented"`。运行时代码不解析该 inventory；
-已实现的检测通过 `pattern_source_metadata` 携带少量静态出处元数据，未实现条目仅保留为
-source inventory。
+`category = "pattern_rule"` 与 `status = "segmented"`。运行时代码不解析该 inventory。
+
+已实现条目分两层接入：
+
+- `core::pattern` 负责结构检测，产出 `PatternDetection` 事实。
+- `crates/iztro/rule-corpus/patterns/rules.toml` 把保守可执行子集接入 classical
+  runtime，与项目自有 pattern 规则并列。全书出处格局规则使用
+  `work = "zi_wei_dou_shu_quan_shu"` 与 `source_id = "quan_shu.v01.*"`。
+
+多数可执行全书出处格局运行时规则会产出 `ClassicalSourceHit` 与 `Claim`。`马落空亡`
+刻意只产出 source hit，因为其面向用户的判断含义与既有太微赋规则
+`migration.tian_ma_void.restless_movement` 重叠。未实现、只写「见前批注」或依赖限运的条目
+继续只保留在 source inventory。
 
 ### 夹宫规则
 
@@ -77,6 +87,6 @@ source inventory。
 ## 现状
 
 本层刻意保持狭窄且保守。新格局逐条加入，并配有正例／负例规则测试以及有出处依据的条件。
-`PatternDetection` 只产出结构化事实，不产出 classical claim、i18n 判断文案或叙述性报告。
-叙述性解读、超出粗粒度 `PatternStrength` 的评分，以及 LLM 辅助解读都不在本层范围内，属于
-后续层级。
+`PatternDetection` 只产出结构化事实；classical source hit 或 claim 必须由 classical
+runtime 通过显式的 pattern-derived rule metadata 产出。叙述性解读、超出粗粒度
+`PatternStrength` 的评分，以及 LLM 辅助解读都不在本层范围内，属于后续层级。
