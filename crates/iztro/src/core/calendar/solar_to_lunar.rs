@@ -18,8 +18,6 @@
 //! with the converted lunar-year stem-branch; under [`YearBoundary::LiChun`]
 //! they follow the exact 立春 instant.
 
-#[cfg(test)]
-use lunar_lite::{EarthlyBranch, HeavenlyStem};
 use lunar_lite::{
     FourPillars, LunarError, MonthDivide, SolarDate, StemBranchOptions, YearDivide,
     four_pillars_from_solar_date_with_options, lunar_month_days,

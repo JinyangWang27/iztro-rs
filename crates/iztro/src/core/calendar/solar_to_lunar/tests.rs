@@ -1,5 +1,8 @@
+use super::super::facts::ResolvedSolarClock;
+use super::synthesized_clock_for_time_index;
 use super::*;
 use crate::core::calculation::YearBoundary;
+use lunar_lite::{EarthlyBranch, HeavenlyStem};
 
 // Golden conversions captured from pinned upstream `iztro@2.5.8`:
 //   node --input-type=module -e "import { astro } from 'iztro';
