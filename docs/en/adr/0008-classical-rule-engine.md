@@ -1,4 +1,4 @@
-# ADR 0007: Classical Rule Engine (Chinese-first, hybrid)
+# ADR 0008: Classical Rule Engine (Chinese-first, hybrid)
 
 ## Status
 

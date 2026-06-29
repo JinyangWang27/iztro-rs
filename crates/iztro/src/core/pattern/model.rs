@@ -55,6 +55,33 @@ pub enum PatternId {
     MaLuoKongWang,
 }
 
+impl PatternId {
+    /// Every `PatternId` variant, in declaration order.
+    ///
+    /// Kept complete by `pattern_id_all_is_exhaustive` (adding a variant without
+    /// updating this list is a compile error there), so tests can iterate the
+    /// whole closed set instead of maintaining ad-hoc lists.
+    pub const ALL: [PatternId; 17] = [
+        PatternId::ZiFuChaoYuan,
+        PatternId::JiYueTongLiang,
+        PatternId::YangTuoJiaJi,
+        PatternId::LingChangTuoWu,
+        PatternId::ZuoYouJiaMing,
+        PatternId::ChangQuJiaMing,
+        PatternId::RiYueBingMing,
+        PatternId::RiYueFanBei,
+        PatternId::JinCanGuangHui,
+        PatternId::RiChuFuSang,
+        PatternId::YueLuoHaiGong,
+        PatternId::YueShengCangHai,
+        PatternId::MaTouDaiJian,
+        PatternId::TanHuoXiangFeng,
+        PatternId::WuQuShouYuan,
+        PatternId::CaiYuQiuChou,
+        PatternId::MaLuoKongWang,
+    ];
+}
+
 /// Coarse family a pattern belongs to.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
@@ -285,4 +312,38 @@ pub struct PatternDetection {
     pub weakening_factors: Vec<PatternCondition>,
     /// Factors breaking the pattern.
     pub breaking_factors: Vec<PatternCondition>,
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Guards `PatternId::ALL`: the exhaustive `match` is a compile error if a
+    /// variant is added without a corresponding arm, prompting the author to also
+    /// extend `ALL`; the length check confirms the array size matches.
+    #[test]
+    fn pattern_id_all_is_exhaustive() {
+        for id in PatternId::ALL {
+            match id {
+                PatternId::ZiFuChaoYuan
+                | PatternId::JiYueTongLiang
+                | PatternId::YangTuoJiaJi
+                | PatternId::LingChangTuoWu
+                | PatternId::ZuoYouJiaMing
+                | PatternId::ChangQuJiaMing
+                | PatternId::RiYueBingMing
+                | PatternId::RiYueFanBei
+                | PatternId::JinCanGuangHui
+                | PatternId::RiChuFuSang
+                | PatternId::YueLuoHaiGong
+                | PatternId::YueShengCangHai
+                | PatternId::MaTouDaiJian
+                | PatternId::TanHuoXiangFeng
+                | PatternId::WuQuShouYuan
+                | PatternId::CaiYuQiuChou
+                | PatternId::MaLuoKongWang => {}
+            }
+        }
+        assert_eq!(PatternId::ALL.len(), 17);
+    }
 }

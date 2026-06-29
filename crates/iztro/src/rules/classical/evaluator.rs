@@ -39,6 +39,21 @@ const TAN_LANG_HAI_ZI: &str = "relationship.tan_ju_hai_zi.water_romance";
 const XING_YU_TAN_LANG: &str = "relationship.xing_yu_tan_lang.romance_with_penalty";
 const SHAN_FU_JU_KONG: &str = "fortune.shan_fu_ju_kong.monastic_life";
 
+/// Every rule id the [`evaluate`] dispatch has a predicate arm for. The `match`
+/// arms below must stay in sync with this list; the `every_executable_corpus_rule_is_handled`
+/// guardrail test fails if a corpus rule is marked `Executable` without a wired
+/// arm here (which would otherwise silently return [`RuleOutcome::NotApplicable`]).
+const HANDLED_RULE_IDS: [&str; 8] = [
+    TIAN_MA_VOID,
+    YANG_TUO_CLAMP_LIFE,
+    CHANG_QU_CLAMP_LIFE,
+    LU_MA_JIAO_CHI,
+    RI_YUE_FAN_BEI,
+    TAN_LANG_HAI_ZI,
+    XING_YU_TAN_LANG,
+    SHAN_FU_JU_KONG,
+];
+
 /// Evaluates `rule` against `chart`, returning a typed outcome.
 ///
 /// All pilot claims are asserted in the natal scope.
@@ -62,7 +77,15 @@ pub fn evaluate(rule: &ClassicalRule, chart: &Chart) -> RuleOutcome {
         // 禄马最喜交驰: the Lu/Tian Ma "交驰" relation is school-dependent and not
         // yet modeled as a deterministic chart fact, so the rule does not fire.
         LU_MA_JIAO_CHI => RuleOutcome::Unsupported(UnsupportedReason::LuMaRelationNotModeled),
-        _ => RuleOutcome::NotApplicable,
+        id => {
+            // A handled id reaching this arm means a match arm above was removed
+            // without updating HANDLED_RULE_IDS (or vice versa).
+            debug_assert!(
+                !HANDLED_RULE_IDS.contains(&id),
+                "rule id {id} is in HANDLED_RULE_IDS but has no predicate arm",
+            );
+            RuleOutcome::NotApplicable
+        }
     }
 }
 
@@ -290,5 +313,39 @@ mod tests {
         assert_eq!(source_hit.status, RuleStatus::Executable);
         assert_eq!(source_hit.scope, ClaimScope::Natal);
         assert_eq!(source_hit.evidence, evidence);
+    }
+
+    /// Every corpus rule authored as `Executable` (or `Tested`) must have a
+    /// predicate arm in [`evaluate`]; otherwise it silently never fires. This is
+    /// the safety net for the hard-coded `match rule.id` dispatch.
+    #[test]
+    fn every_executable_corpus_rule_is_handled() {
+        for rule in crate::rules::classical::corpus::classical_rules() {
+            if matches!(rule.status, RuleStatus::Executable | RuleStatus::Tested) {
+                assert!(
+                    HANDLED_RULE_IDS.contains(&rule.id.as_str()),
+                    "corpus rule {} is `{:?}` but has no predicate arm in `evaluate`; \
+                     it would silently return NotApplicable. Add a match arm and list its \
+                     id in HANDLED_RULE_IDS.",
+                    rule.id,
+                    rule.status,
+                );
+            }
+        }
+    }
+
+    /// Conversely, every id we claim to handle must resolve to a real corpus
+    /// rule, so the handled set can't reference a renamed or deleted rule. (The
+    /// status is intentionally not constrained: some handled rules are still
+    /// `Normalized` and map to a typed `Unsupported` reason rather than silently
+    /// returning `NotApplicable` — e.g. `fortune.lu_ma_jiao_chi.*`.)
+    #[test]
+    fn handled_rule_ids_reference_real_corpus_rules() {
+        for id in HANDLED_RULE_IDS {
+            assert!(
+                crate::rules::classical::corpus::rule_by_id(id).is_some(),
+                "handled rule id {id} is not in the corpus (renamed or deleted?)",
+            );
+        }
     }
 }

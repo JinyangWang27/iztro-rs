@@ -292,17 +292,12 @@ fn canonical_pattern_metadata_references_source_inventory() {
     use iztro::core::pattern::metadata::pattern_source_metadata;
     use iztro::core::pattern::model::PatternId;
 
-    const IMPLEMENTED: [PatternId; 9] = [
-        PatternId::JinCanGuangHui,
-        PatternId::RiChuFuSang,
-        PatternId::YueLuoHaiGong,
-        PatternId::YueShengCangHai,
-        PatternId::MaTouDaiJian,
-        PatternId::TanHuoXiangFeng,
-        PatternId::WuQuShouYuan,
-        PatternId::CaiYuQiuChou,
-        PatternId::MaLuoKongWang,
-    ];
+    // The source-backed pattern set is derived from `PatternId::ALL` (filtered to
+    // variants that carry source metadata) rather than a hand-maintained list, so
+    // a newly source-backed pattern is validated automatically. The count below is
+    // a tripwire: bump it when intentionally adding/removing a source-backed
+    // pattern, which also confirms none silently lost its metadata.
+    const EXPECTED_SOURCE_BACKED: usize = 9;
 
     let inventory = source_inventory();
     let inventory_by_id: HashMap<&str, _> = inventory
@@ -311,9 +306,12 @@ fn canonical_pattern_metadata_references_source_inventory() {
         .map(|item| (item.source_id.as_str(), item))
         .collect();
 
-    for pattern in IMPLEMENTED {
-        let metadata = pattern_source_metadata(pattern)
-            .unwrap_or_else(|| panic!("missing source metadata for {pattern:?}"));
+    let mut source_backed = 0usize;
+    for pattern in PatternId::ALL {
+        let Some(metadata) = pattern_source_metadata(pattern) else {
+            continue;
+        };
+        source_backed += 1;
         assert_eq!(metadata.work, QUAN_SHU_WORK);
         assert!(
             metadata.source_id.starts_with("quan_shu.v01."),
@@ -340,6 +338,12 @@ fn canonical_pattern_metadata_references_source_inventory() {
             item.source_id
         );
     }
+
+    assert_eq!(
+        source_backed, EXPECTED_SOURCE_BACKED,
+        "expected {EXPECTED_SOURCE_BACKED} source-backed patterns, found {source_backed}; \
+         update EXPECTED_SOURCE_BACKED when intentionally changing the set",
+    );
 }
 
 // ---- E. Linked ids by status ---------------------------------------------

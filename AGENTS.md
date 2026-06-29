@@ -4,7 +4,7 @@ This file gives instructions to coding agents working on `iztro-rs`.
 
 ## Project status
 
-`iztro-rs` is in early design and scaffolding. The repository currently prioritizes architecture, documentation, deterministic domain modeling, and testable interfaces over feature completeness.
+`iztro-rs` is pre-1.0. Chart generation is implemented and fixture-backed against `iztro@2.5.8`, with a renderer-neutral snapshot, a desktop GUI prototype, and runtime i18n; feature extraction, the classical rule engine, and narrative interpretation are partial and still evolving. The repository prioritizes architecture, documentation, deterministic domain modeling, and testable interfaces over feature completeness.
 
 Do not assume the project already has a stable public API.
 

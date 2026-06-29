@@ -6,7 +6,7 @@
 > `rules::classical`，是唯一的规则引擎。其实现设计、语料格式与流水线参见
 > [`rules/rule-engine.md`](./rules/rule-engine.md)、
 > [`rules/quan-shu-corpus.md`](./rules/quan-shu-corpus.md) 与
-> [ADR 0007](./adr/0007-classical-rule-engine.md)。
+> [ADR 0008](./adr/0008-classical-rule-engine.md)。
 >
 > 本文余下部分是“特征 → 判断”愿景的**概念性设计词汇**，并非第二套已实现的引擎；
 > 下面的通用条件/效果草案仅为示意——经典引擎刻意采用数据驱动元数据加手写谓词，

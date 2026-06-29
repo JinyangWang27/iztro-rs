@@ -2,7 +2,22 @@
 
 Thank you for contributing to `iztro-rs`.
 
-This project is still in early design and scaffolding. Contributions should preserve the architecture documented under `docs/`.
+This project is pre-1.0: chart generation is implemented and fixture-backed, while feature extraction, the rule engine, and narrative interpretation are still evolving. Contributions should preserve the architecture documented under `docs/`.
+
+## Build prerequisites
+
+The desktop GUI bundles a CJK font that is tracked with **Git LFS** and embedded
+at compile time (`include_bytes!`). Before building `iztro-gui`, install
+[Git LFS](https://git-lfs.com/) and ensure the assets are smudged:
+
+```bash
+git lfs install
+git lfs pull
+```
+
+Without LFS, the font asset stays a pointer file and the GUI embeds invalid bytes.
+A guard test in `crates/iztro-gui/src/fonts.rs` fails fast if that happens, and CI
+checks out with `lfs: true`.
 
 ## Development principles
 

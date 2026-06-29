@@ -20,15 +20,13 @@ This roadmap is intentionally conservative. The project should first keep chart 
 ## Phase 1: Rust workspace scaffolding
 
 - [x] Create Rust workspace.
-- [x] Add core crates:
+- [x] Add workspace crates:
   - [x] `iztro` core/library crate;
-  - [x] `features`;
-  - [x] `rules`;
-  - [x] `reading`;
   - [x] `iztro-cli`;
-  - [x] `render`;
   - [x] `iztro-i18n`;
   - [x] `iztro-gui` local desktop prototype.
+- [x] Organize the `iztro` library into internal domain modules (not separate
+  crates): `core`, `features`, `rules`, `reading`, and `render`.
 - [x] Add basic CI for formatting, clippy, and tests.
 - [x] Add serialization and fixture-based test infrastructure.
 

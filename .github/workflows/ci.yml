@@ -13,6 +13,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # Fonts are tracked with Git LFS and embedded at compile time via
+          # `include_bytes!`; without smudging, the GUI would embed pointer text.
+          lfs: true
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
@@ -38,6 +42,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          # See the rust job: LFS-tracked fonts must be smudged before build.
+          lfs: true
 
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
