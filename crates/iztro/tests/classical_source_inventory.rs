@@ -25,6 +25,12 @@ use support::classical_source::{
 };
 
 const TAI_WEI_FU_PREFIX: &str = "quan_shu.v01.tai_wei_fu.";
+const SOURCE_BACKED_PATTERN_SECTIONS: [(&str, &str, usize); 4] = [
+    ("quan_shu.v01.ding_fu_ju.", "定富局", 6),
+    ("quan_shu.v01.ding_gui_ju.", "定贵局", 27),
+    ("quan_shu.v01.ding_pin_jian_ju.", "定贫贱局", 8),
+    ("quan_shu.v01.ding_za_ju.", "定杂局", 8),
+];
 
 // ---- A. Inventory parses and source ids are unique -----------------------
 
@@ -151,6 +157,107 @@ fn tai_wei_fu_source_ids_are_stable_mnemonics() {
         assert!(
             suffix.chars().any(|c| !c.is_ascii_digit()),
             "太微赋 source_id {} must be a stable mnemonic, not a purely numeric id",
+            item.source_id
+        );
+    }
+}
+
+// ---- D2. Source-backed pattern catalogues --------------------------------
+
+#[test]
+fn source_backed_pattern_sections_are_segmented() {
+    let inventory = source_inventory();
+
+    for (prefix, section, expected_len) in SOURCE_BACKED_PATTERN_SECTIONS {
+        let items: Vec<_> = inventory
+            .source_item
+            .iter()
+            .filter(|item| item.volume == 1 && item.section == section)
+            .collect();
+
+        assert_eq!(
+            items.len(),
+            expected_len,
+            "{section} must have one source item per named pattern entry"
+        );
+
+        for item in items {
+            assert!(
+                item.source_id.starts_with(prefix),
+                "{section} item {} must use prefix {prefix}",
+                item.source_id
+            );
+            assert_eq!(item.category, "pattern_rule");
+            assert_eq!(item.status, "segmented");
+            assert_eq!(item.doc_path, "docs/zh-CN/sources/quan_shu/volume-01.md");
+            assert_eq!(item.anchor, section);
+            assert!(
+                !item.source_text_zh_hans.trim().is_empty(),
+                "{section} item {} has empty source_text_zh_hans",
+                item.source_id
+            );
+            assert!(
+                !item.source_text_zh_hans.ends_with('。'),
+                "{section} item {} must not include final sentence punctuation",
+                item.source_id
+            );
+
+            let suffix = item
+                .source_id
+                .strip_prefix(prefix)
+                .unwrap_or_else(|| panic!("unexpected source id {}", item.source_id));
+            assert!(
+                suffix.chars().any(|c| !c.is_ascii_digit()),
+                "{section} item {} must use a stable mnemonic key",
+                item.source_id
+            );
+        }
+    }
+}
+
+#[test]
+fn source_backed_pattern_section_orders_are_continuous() {
+    let inventory = source_inventory();
+
+    for (_, section, expected_len) in SOURCE_BACKED_PATTERN_SECTIONS {
+        let mut orders: Vec<usize> = inventory
+            .source_item
+            .iter()
+            .filter(|item| item.volume == 1 && item.section == section)
+            .map(|item| item.source_order)
+            .collect();
+        orders.sort_unstable();
+
+        let expected: Vec<usize> = (1..=expected_len).collect();
+        assert_eq!(
+            orders, expected,
+            "{section} source_order must be section-local and continuous"
+        );
+    }
+}
+
+#[test]
+fn pattern_rule_category_is_accepted_without_classical_rule_links() {
+    let inventory = source_inventory();
+    let pattern_items: Vec<_> = inventory
+        .source_item
+        .iter()
+        .filter(|item| item.category == "pattern_rule")
+        .collect();
+
+    assert!(
+        !pattern_items.is_empty(),
+        "expected source-backed pattern inventory items"
+    );
+    for item in pattern_items {
+        assert_eq!(
+            item.status, "segmented",
+            "pattern-rule source item {} must stay segmented until linked to executable pattern metadata",
+            item.source_id
+        );
+        assert!(
+            item.linked_rule_ids.is_empty(),
+            "pattern-rule source item {} must not link to classical claim rules",
             item.source_id
         );
     }

@@ -431,3 +431,295 @@ source_order = 64
 source_text_zh_hans = "学至此诚玄微矣"
 linked_rule_ids = ["meta.xue_zhi_ci_xuan_wei.closing_remark"]
 notes_zh_hans = "太微赋例曰之收束语（赞叹治学），非断语；以独立 source item 记录并链接到 rejected 规则。"
+
+# --- 卷一格局目录：定富局 / 定贵局 / 定贫贱局 / 定杂局 ---
+#
+# 以下四组为卷一末尾显式格局目录。每个 item 保留「格局名 + 条件/说明」
+# 的原文整条，不拆分名称与说明，不链接 classical claim rule。可执行检测仅
+# 通过 core::pattern 的 PatternDetection 暴露，source inventory 仍只作为
+# governance/test data。
+
+[[source_group]]
+source_id_prefix = "quan_shu.v01.ding_fu_ju."
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "定富局"
+category = "pattern_rule"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "定富局"
+
+[[source_group.item]]
+key = "cai_yin_jia_yin"
+source_order = 1
+source_text_zh_hans = "财荫夹印 相守命武梁来夹是也，田宅宫亦然"
+
+[[source_group.item]]
+key = "ri_yue_jia_cai"
+source_order = 2
+source_text_zh_hans = "日月夹财 武守命日月来夹是也，财帛宫亦然"
+
+[[source_group.item]]
+key = "cai_lu_jia_ma"
+source_order = 3
+source_text_zh_hans = "财禄夹马 马守命武禄来夹是也，逢生旺尤妙"
+
+[[source_group.item]]
+key = "yin_yin_gong_shen"
+source_order = 4
+source_text_zh_hans = "荫印拱身 身临田宅梁相拱冲是也，勿坐空亡"
+
+[[source_group.item]]
+key = "ri_yue_zhao_bi"
+source_order = 5
+source_text_zh_hans = "日月照璧 日月临田宅宫是也，喜居墓库"
+
+[[source_group.item]]
+key = "jin_can_guang_hui"
+source_order = 6
+source_text_zh_hans = "金灿光辉 太阳单守，命在午宫是也"
+
+[[source_group]]
+source_id_prefix = "quan_shu.v01.ding_gui_ju."
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "定贵局"
+category = "pattern_rule"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "定贵局"
+
+[[source_group.item]]
+key = "ri_yue_jia_ming"
+source_order = 1
+source_text_zh_hans = "日月夹命 不坐空亡遇逢本宫有吉星是也"
+
+[[source_group.item]]
+key = "ri_chu_fu_sang"
+source_order = 2
+source_text_zh_hans = "日出扶桑 日在卯守命是也，守官禄宫亦然"
+
+[[source_group.item]]
+key = "yue_luo_hai_gong"
+source_order = 3
+source_text_zh_hans = "月落亥宫 月在亥守命是也，又名月朗天门"
+
+[[source_group.item]]
+key = "yue_sheng_cang_hai"
+source_order = 4
+source_text_zh_hans = "月生沧海 月在子宫守田宅是也"
+
+[[source_group.item]]
+key = "fu_bi_gong_zhu"
+source_order = 5
+source_text_zh_hans = "辅弼拱主 紫微守命二星来拱是也，夹之亦然"
+
+[[source_group.item]]
+key = "jun_chen_qing_hui"
+source_order = 6
+source_text_zh_hans = "君臣庆会 紫微左右同守命是也，更会相武阴妙上"
+
+[[source_group.item]]
+key = "cai_yin_jia_lu"
+source_order = 7
+source_text_zh_hans = "财印夹禄 禄守命梁相来夹是也，入财亦然"
+
+[[source_group.item]]
+key = "lu_ma_pei_yin"
+source_order = 8
+source_text_zh_hans = "禄马佩印 马前有禄印星同宫是也"
+
+[[source_group.item]]
+key = "zuo_gui_xiang_gui"
+source_order = 9
+source_text_zh_hans = "坐贵向贵 谓魁钺在命迭相坐拱是也"
+
+[[source_group.item]]
+key = "ma_tou_dai_jian"
+source_order = 10
+source_text_zh_hans = "马头带剑 谓马有刃是也不是居午格"
+
+[[source_group.item]]
+key = "qi_sha_chao_dou"
+source_order = 11
+source_text_zh_hans = "七杀朝斗 见前批注"
+
+[[source_group.item]]
+key = "ri_yue_bing_ming"
+source_order = 12
+source_text_zh_hans = "日月并明 见前批注"
+
+[[source_group.item]]
+key = "ming_zhu_chu_hai"
+source_order = 13
+source_text_zh_hans = "明珠出海 见前批注"
+
+[[source_group.item]]
+key = "ri_yue_tong_lin"
+source_order = 14
+source_text_zh_hans = "日月同临 见前批注"
+
+[[source_group.item]]
+key = "xing_qiu_jia_yin"
+source_order = 15
+source_text_zh_hans = "刑囚夹印 天刑廉贞同临身命主武勇之人"
+
+[[source_group.item]]
+key = "ke_quan_lu_gong"
+source_order = 16
+source_text_zh_hans = "科权禄拱 见前批注"
+
+[[source_group.item]]
+key = "tan_huo_xiang_feng"
+source_order = 17
+source_text_zh_hans = "贪火相逢 谓二星守命同居庙旺是也"
+
+[[source_group.item]]
+key = "wu_qu_shou_yuan"
+source_order = 18
+source_text_zh_hans = "武曲守垣 武守命卯宫是也，余不是"
+
+[[source_group.item]]
+key = "fu_xiang_chao_yuan"
+source_order = 19
+source_text_zh_hans = "府相朝垣 见前批注"
+
+[[source_group.item]]
+key = "zi_fu_chao_yuan"
+source_order = 20
+source_text_zh_hans = "紫府朝垣 见前批注"
+
+[[source_group.item]]
+key = "wen_xing_an_gong"
+source_order = 21
+source_text_zh_hans = "文星暗拱 见前批注"
+
+[[source_group.item]]
+key = "quan_lu_sheng_feng"
+source_order = 22
+source_text_zh_hans = "权禄生逢 二星守命庙旺是也，陷不是"
+
+[[source_group.item]]
+key = "yang_ren_ru_miao"
+source_order = 23
+source_text_zh_hans = "羊刃入庙 辰戍丑未守命遇吉是也"
+
+[[source_group.item]]
+key = "ju_ji_ju_mao"
+source_order = 24
+source_text_zh_hans = "巨机居卯 见前批注"
+
+[[source_group.item]]
+key = "ming_lu_an_lu"
+source_order = 25
+source_text_zh_hans = "明禄暗禄 见前批注"
+
+[[source_group.item]]
+key = "ke_ming_an_lu"
+source_order = 26
+source_text_zh_hans = "科明暗禄 见前批注"
+
+[[source_group.item]]
+key = "jin_yu_fu_jia"
+source_order = 27
+source_text_zh_hans = "金舆扶驾 紫微守命前后有日月来夹是也"
+
+[[source_group]]
+source_id_prefix = "quan_shu.v01.ding_pin_jian_ju."
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "定贫贱局"
+category = "pattern_rule"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "定贫贱局"
+
+[[source_group.item]]
+key = "sheng_bu_feng_shi"
+source_order = 1
+source_text_zh_hans = "生不逢时 命坐空亡逢廉贞是也"
+
+[[source_group.item]]
+key = "lu_feng_liang_sha"
+source_order = 2
+source_text_zh_hans = "禄逢两杀 禄坐空亡又逢空劫杀星是也"
+
+[[source_group.item]]
+key = "ma_luo_kong_wang"
+source_order = 3
+source_text_zh_hans = "马落空亡 马既落亡虽禄冲会无用主奔波"
+
+[[source_group.item]]
+key = "ri_yue_cang_hui"
+source_order = 4
+source_text_zh_hans = "日月藏辉 日月反背又逢巨暗是也"
+
+[[source_group.item]]
+key = "cai_yu_qiu_chou"
+source_order = 5
+source_text_zh_hans = "财与囚仇 武贞同守身命是也"
+
+[[source_group.item]]
+key = "yi_sheng_gu_pin"
+source_order = 6
+source_text_zh_hans = "一生孤贫 谓破守命星陷地是也"
+
+[[source_group.item]]
+key = "jun_zi_zai_ye"
+source_order = 7
+source_text_zh_hans = "君子在野 谓四杀守身命而言临陷地是也"
+
+[[source_group.item]]
+key = "liang_chong_hua_gai"
+source_order = 8
+source_text_zh_hans = "两重华盖 谓禄存化禄坐命遇空劫是也"
+
+[[source_group]]
+source_id_prefix = "quan_shu.v01.ding_za_ju."
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "定杂局"
+category = "pattern_rule"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "定杂局"
+
+[[source_group.item]]
+key = "feng_yun_ji_hui"
+source_order = 1
+source_text_zh_hans = "风云际会 身命虽弱二限逢禄马是也"
+
+[[source_group.item]]
+key = "jin_shang_tian_hua"
+source_order = 2
+source_text_zh_hans = "锦上添花 谓限破恶星而行吉地是也"
+
+[[source_group.item]]
+key = "lu_shuai_ma_kun"
+source_order = 3
+source_text_zh_hans = "禄衰马困 限逢七杀禄马空亡是也"
+
+[[source_group.item]]
+key = "yi_jin_huan_xiang"
+source_order = 4
+source_text_zh_hans = "衣锦还乡 少年不遂四十后行墓运是也"
+
+[[source_group.item]]
+key = "bu_shu_wu_yi"
+source_order = 5
+source_text_zh_hans = "步数无依 前限接后限连绵不分是也"
+
+[[source_group.item]]
+key = "shui_shang_jia_xing"
+source_order = 6
+source_text_zh_hans = "水上驾星 一年好一年不好是也"
+
+[[source_group.item]]
+key = "ji_xiong_xiang_ban"
+source_order = 7
+source_text_zh_hans = "吉凶相伴 命有主星限前则发限衰不发是也"
+
+[[source_group.item]]
+key = "ku_mu_feng_chun"
+source_order = 8
+source_text_zh_hans = "枯木逢春 谓命衰限好是也"
