@@ -7,6 +7,35 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.0](https://github.com/JinyangWang27/iztro-rs/compare/v0.9.0...v0.10.0) - 2026-06-29
+
+### Added
+
+- *(rules)* add classical rule engine foundation (schema + corpus + engine) ([#113](https://github.com/JinyangWang27/iztro-rs/pull/113))
+
+### Other
+
+- detect QuanShu source-backed patterns
+- inventory QuanShu source catalogues
+- Refactor calendar boundary adapter for improved robustness ([#135](https://github.com/JinyangWang27/iztro-rs/pull/135))
+- migrate back to lunar-lite with datetime-level LiChun ([#134](https://github.com/JinyangWang27/iztro-rs/pull/134))
+- Expand QuanShu rules and update documentation ([#133](https://github.com/JinyangWang27/iztro-rs/pull/133))
+- Add classical rule guardrail tests and authoring guide ([#132](https://github.com/JinyangWang27/iztro-rs/pull/132))
+- add selected-view batch facade and per-key scope helper ([#130](https://github.com/JinyangWang27/iztro-rs/pull/130))
+- add layer-level rule and pattern detection APIs ([#128](https://github.com/JinyangWang27/iztro-rs/pull/128))
+- add classical rule panel view model ([#127](https://github.com/JinyangWang27/iztro-rs/pull/127))
+- execute Tan Lang water-romance rules ([#126](https://github.com/JinyangWang27/iztro-rs/pull/126))
+- Update terminology for classical rule provenance ([#125](https://github.com/JinyangWang27/iztro-rs/pull/125))
+- Refactor QuanShu source inventory to grouped TOML format ([#124](https://github.com/JinyangWang27/iztro-rs/pull/124))
+- complete Tai Wei Fu rule normalization map ([#122](https://github.com/JinyangWang27/iztro-rs/pull/122))
+- remove placeholder scaffold modules ([#121](https://github.com/JinyangWang27/iztro-rs/pull/121))
+- Enhance classical rules with source hits and claim metadata ([#120](https://github.com/JinyangWang27/iztro-rs/pull/120))
+- Complete Tai Wei Fu source segmentation and update coverage report ([#119](https://github.com/JinyangWang27/iztro-rs/pull/119))
+- Segment Tai Wei Fu example clauses and add coverage report ([#118](https://github.com/JinyangWang27/iztro-rs/pull/118))
+- *(rules)* introduce clause-level QuanShu source inventory ([#117](https://github.com/JinyangWang27/iztro-rs/pull/117))
+- Align Tian Ma Void Source ID and Validate Source Inventory ([#116](https://github.com/JinyangWang27/iztro-rs/pull/116))
+- *(rules)* add QuanShu source volumes ([#115](https://github.com/JinyangWang27/iztro-rs/pull/115))
+
 ### Changed
 
 - Migrate the calendar engine back to `lunar-lite` (1.2.1) and remove the
