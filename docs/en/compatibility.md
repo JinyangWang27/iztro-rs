@@ -47,7 +47,7 @@ The current fixture-backed chart-generation surface includes:
 - fixture-backed calculation configuration cases for `YearBoundary`, `LeapMonthBoundary`, and `NominalAgeBoundary`;
 - upstream `timeIndex` `0..=12` rat-hour modeling through `BirthTime`;
 - retained birth-year `StemBranch`, twelve palace layout, Life Palace, Body Palace, palace stems, and five-element bureau;
-- optional factual natal `FourPillars` (an `iztro-rs`-owned value object) retained on `by_solar` charts;
+- optional factual natal `FourPillars` (the `lunar-lite` value object re-exported by `iztro-rs`) retained on `by_solar` charts;
 - self-describing `ChartProfile` metadata carrying method profile and chart plane on generated charts;
 - typed palace lookup helpers and compact chart diagnostics for invariant/debug surfaces;
 - represented typed natal stars, supported brightness, and birth-year mutagens;

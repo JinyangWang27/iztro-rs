@@ -42,7 +42,7 @@ This roadmap is intentionally conservative. The project should first keep chart 
 - [x] Ensure implemented models are strongly typed and serializable.
 - [x] Inventory upstream `iztro@2.5.8` runtime star names separately from represented chart facts.
 - [x] Use the canonical low-level stem/branch and sexagenary-cycle value objects from `lunar-lite` directly.
-- [x] Own the `FourPillars` value object in `iztro-rs` for factual natal four-pillar facts.
+- [x] Retain factual natal four-pillar facts through the `lunar-lite` `FourPillars` value object re-exported by `iztro-rs`.
 - [x] Isolate Zi Wei-specific NaYin and five-element bureau logic in `core`.
 - [x] Retain birth-year `StemBranch` as a reusable natal `Chart` fact.
 - [x] Add `ChartProfile` metadata so generated charts carry method profile and chart-plane facts.
