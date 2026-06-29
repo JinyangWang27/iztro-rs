@@ -250,7 +250,6 @@ fn push_single_star(
         involved_stars: vec![star],
         involved_mutagens: Vec::new(),
         evidence: vec![PatternEvidence::StarInPalace { star, branch }],
-        missing_conditions: Vec::new(),
         weakening_factors: Vec::new(),
         breaking_factors: Vec::new(),
     });
@@ -278,7 +277,6 @@ fn push_same_palace(
         involved_stars: stars.clone(),
         involved_mutagens: Vec::new(),
         evidence: vec![PatternEvidence::StarsInSamePalace { stars, branch }],
-        missing_conditions: Vec::new(),
         weakening_factors: Vec::new(),
         breaking_factors: Vec::new(),
     });

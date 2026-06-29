@@ -1,7 +1,14 @@
-//! Static source metadata for executable source-backed patterns.
+//! Source provenance for canonical project-level pattern detections.
+//!
+//! This metadata links a canonical [`PatternId`] to a cited source item, such as
+//! a QuanShu Volume 1 pattern-catalogue entry. It is **not** classical runtime
+//! rule metadata and is **not** consumed by `evaluate_classical`: a 格局/pattern
+//! has exactly one canonical runtime identity (`PatternId`, detected by
+//! `core::pattern`), and this table only records where that pattern is cited.
 //!
 //! The QuanShu source inventory TOML remains governance/test data. Runtime code
-//! only carries metadata for patterns that have executable detections.
+//! only carries provenance for patterns that have executable detections, so a
+//! GUI or docs layer can display a pattern's ancient source citation.
 
 use serde::{Deserialize, Serialize};
 
@@ -21,10 +28,14 @@ pub enum PatternSourceGroup {
     Miscellaneous,
 }
 
-/// Static source metadata for one executable pattern detection.
+/// Static source provenance for one canonical pattern detection.
+///
+/// Links a canonical [`PatternId`] to its cited source item. This is provenance
+/// only; it does not imply a separate classical runtime rule exists for the
+/// pattern.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub struct PatternSourceMetadata {
-    /// Executable pattern id.
+    /// Canonical pattern id this provenance is attached to.
     pub pattern_id: PatternId,
     /// Canonical Chinese pattern name.
     pub name_zh: &'static str,

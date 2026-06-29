@@ -9,15 +9,15 @@
 //! This module handles rules from multiple provenance corpora (currently QuanShu
 //! source rules and project pattern/格局 rules). It is intentionally named for the
 //! evaluation role rather than for any one source corpus.
+//!
+//! Canonical 格局/pattern identity lives in `core::pattern` (`PatternId` →
+//! `PatternDetection`). This evaluator does not re-derive QuanShu pattern
+//! catalogue entries as separate classical runtime rules; it only references a
+//! `PatternId` as corroborating evidence for project-owned pattern rules.
 
-use crate::core::pattern::context::{PatternContext, PatternDetectionRequest};
-use crate::core::pattern::detector::detect_patterns;
-use crate::core::pattern::model::{
-    PatternDetection, PatternEvidence as CorePatternEvidence, PatternId, PatternScope,
-    PatternStatus,
-};
+use crate::core::pattern::model::PatternId;
 use crate::core::pattern::relation::PalaceRelation;
-use crate::core::{Chart, EarthlyBranch, Scope, StarName, StarTag};
+use crate::core::{Chart, EarthlyBranch, StarName, StarTag};
 use crate::rules::classical::claim::{Claim, ClaimId, ClaimScope, ClaimStrength};
 use crate::rules::classical::evidence::{Evidence, EvidenceKind};
 use crate::rules::classical::outcome::{RuleOutcome, UnsupportedReason};
@@ -38,15 +38,6 @@ const RI_YUE_FAN_BEI: &str = "life.ri_yue_fan_bei.hardship_pressure";
 const TAN_LANG_HAI_ZI: &str = "relationship.tan_ju_hai_zi.water_romance";
 const XING_YU_TAN_LANG: &str = "relationship.xing_yu_tan_lang.romance_with_penalty";
 const SHAN_FU_JU_KONG: &str = "fortune.shan_fu_ju_kong.monastic_life";
-const JIN_CAN_GUANG_HUI: &str = "wealth.jin_can_guang_hui.sun_bright_life_wu";
-const RI_CHU_FU_SANG: &str = "status.ri_chu_fu_sang.sun_rising_mao";
-const YUE_LUO_HAI_GONG: &str = "status.yue_luo_hai_gong.moon_hai_life";
-const YUE_SHENG_CANG_HAI: &str = "wealth.yue_sheng_cang_hai.moon_zi_property";
-const MA_TOU_DAI_JIAN: &str = "status.ma_tou_dai_jian.horse_blade";
-const TAN_HUO_XIANG_FENG: &str = "status.tan_huo_xiang_feng.tan_lang_fire_star";
-const WU_QU_SHOU_YUAN: &str = "status.wu_qu_shou_yuan.wu_qu_life_mao";
-const CAI_YU_QIU_CHOU: &str = "hardship.cai_yu_qiu_chou.wu_lian_life_body";
-const MA_LUO_KONG_WANG: &str = "migration.ma_luo_kong_wang.horse_void";
 
 /// Evaluates `rule` against `chart`, returning a typed outcome.
 ///
@@ -68,117 +59,10 @@ pub fn evaluate(rule: &ClassicalRule, chart: &Chart) -> RuleOutcome {
         TAN_LANG_HAI_ZI => evaluate_tan_lang_hai_zi(rule, chart),
         XING_YU_TAN_LANG => evaluate_xing_yu_tan_lang(rule, chart),
         SHAN_FU_JU_KONG => evaluate_shan_fu_ju_kong(rule, chart),
-        JIN_CAN_GUANG_HUI => evaluate_pattern_detection(rule, chart, PatternId::JinCanGuangHui),
-        RI_CHU_FU_SANG => evaluate_pattern_detection(rule, chart, PatternId::RiChuFuSang),
-        YUE_LUO_HAI_GONG => evaluate_pattern_detection(rule, chart, PatternId::YueLuoHaiGong),
-        YUE_SHENG_CANG_HAI => evaluate_pattern_detection(rule, chart, PatternId::YueShengCangHai),
-        MA_TOU_DAI_JIAN => evaluate_pattern_detection(rule, chart, PatternId::MaTouDaiJian),
-        TAN_HUO_XIANG_FENG => evaluate_pattern_detection(rule, chart, PatternId::TanHuoXiangFeng),
-        WU_QU_SHOU_YUAN => evaluate_pattern_detection(rule, chart, PatternId::WuQuShouYuan),
-        CAI_YU_QIU_CHOU => evaluate_pattern_detection(rule, chart, PatternId::CaiYuQiuChou),
-        MA_LUO_KONG_WANG => evaluate_pattern_detection(rule, chart, PatternId::MaLuoKongWang),
         // 禄马最喜交驰: the Lu/Tian Ma "交驰" relation is school-dependent and not
         // yet modeled as a deterministic chart fact, so the rule does not fire.
         LU_MA_JIAO_CHI => RuleOutcome::Unsupported(UnsupportedReason::LuMaRelationNotModeled),
         _ => RuleOutcome::NotApplicable,
-    }
-}
-
-fn evaluate_pattern_detection(
-    rule: &ClassicalRule,
-    chart: &Chart,
-    pattern: PatternId,
-) -> RuleOutcome {
-    // Classical runtime rules emit source hits / claims only for clean, fulfilled
-    // pattern formations. `core::pattern` may surface Weakened/Broken detections
-    // for GUI/pattern-panel use, but those are excluded here unless a future rule
-    // explicitly opts into weakened/broken semantics.
-    let request = PatternDetectionRequest {
-        scopes: vec![Scope::Natal],
-        include_weakened: false,
-        include_broken: false,
-        families: Vec::new(),
-    };
-    let detections = detect_patterns(&PatternContext::natal(chart), &request);
-    let Some(detection) = select_fulfilled_natal(&detections, pattern) else {
-        return RuleOutcome::NotApplicable;
-    };
-
-    let mut evidence = vec![Evidence::new(EvidenceKind::PatternShapeMatched { pattern })];
-    for item in &detection.evidence {
-        evidence.extend(pattern_evidence_to_classical(item));
-    }
-    matched(rule, evidence)
-}
-
-/// Selects the natal detection of `pattern` only when its base formation is
-/// clean ([`PatternStatus::Fulfilled`]).
-///
-/// `core::pattern` may surface `Weakened`/`Broken` detections for GUI use, but
-/// the classical runtime bridge consumes only fulfilled formations unless a
-/// future rule explicitly opts into weakened/broken semantics.
-fn select_fulfilled_natal<'a>(
-    detections: &'a [PatternDetection],
-    pattern: PatternId,
-) -> Option<&'a PatternDetection> {
-    detections.iter().find(|detection| {
-        detection.id == pattern
-            && detection.scope == PatternScope::Natal
-            && detection.status == PatternStatus::Fulfilled
-    })
-}
-
-fn pattern_evidence_to_classical(evidence: &CorePatternEvidence) -> Vec<Evidence> {
-    match evidence {
-        CorePatternEvidence::StarInPalace { star, branch } => {
-            vec![Evidence::new(EvidenceKind::StarInPalace {
-                star: *star,
-                branch: *branch,
-            })]
-        }
-        CorePatternEvidence::StarInPalaceRelation {
-            star,
-            anchor,
-            branch,
-            relation,
-        } => vec![
-            Evidence::new(EvidenceKind::StarInPalace {
-                star: *star,
-                branch: *branch,
-            }),
-            Evidence::new(EvidenceKind::PalaceRelation {
-                from: *anchor,
-                to: *branch,
-                relation: *relation,
-            }),
-        ],
-        CorePatternEvidence::StarsInSamePalace { stars, branch } => stars
-            .iter()
-            .map(|star| {
-                Evidence::new(EvidenceKind::StarInPalace {
-                    star: *star,
-                    branch: *branch,
-                })
-            })
-            .collect(),
-        CorePatternEvidence::MutagenOnStar {
-            star,
-            mutagen,
-            branch,
-            ..
-        } => vec![Evidence::new(EvidenceKind::MutagenInPalace {
-            star: *star,
-            mutagen: *mutagen,
-            branch: *branch,
-        })],
-        CorePatternEvidence::PalaceRelation { from, to, relation } => {
-            vec![Evidence::new(EvidenceKind::PalaceRelation {
-                from: *from,
-                to: *to,
-                relation: *relation,
-            })]
-        }
-        CorePatternEvidence::StarsInSanFangSiZheng { .. } => Vec::new(),
     }
 }
 
@@ -368,48 +252,8 @@ mod tests {
     use super::*;
 
     use crate::core::EarthlyBranch;
-    use crate::core::pattern::model::{
-        PatternAnchor, PatternFamily, PatternPolarity, PatternStrength,
-    };
     use crate::rules::classical::rule::{ClassicalRuleId, RuleStatus};
     use crate::rules::classical::source::ClassicalWork;
-
-    fn detection(id: PatternId, status: PatternStatus) -> PatternDetection {
-        PatternDetection {
-            id,
-            name_zh: "测试格局",
-            family: PatternFamily::MajorStarCombination,
-            polarity: PatternPolarity::Auspicious,
-            status,
-            strength: PatternStrength::Medium,
-            scope: PatternScope::Natal,
-            anchor: PatternAnchor::Chart,
-            involved_palaces: Vec::new(),
-            involved_stars: Vec::new(),
-            involved_mutagens: Vec::new(),
-            evidence: Vec::new(),
-            missing_conditions: Vec::new(),
-            weakening_factors: Vec::new(),
-            breaking_factors: Vec::new(),
-        }
-    }
-
-    #[test]
-    fn bridge_selects_only_fulfilled_natal_detections() {
-        let pattern = PatternId::JinCanGuangHui;
-
-        // Fulfilled natal detection is selected.
-        let fulfilled = vec![detection(pattern, PatternStatus::Fulfilled)];
-        assert!(select_fulfilled_natal(&fulfilled, pattern).is_some());
-
-        // Weakened / broken base formations are not consumed by the classical
-        // bridge, even though `core::pattern` may surface them for GUI use.
-        let weakened = vec![detection(pattern, PatternStatus::Weakened)];
-        assert!(select_fulfilled_natal(&weakened, pattern).is_none());
-
-        let broken = vec![detection(pattern, PatternStatus::Broken)];
-        assert!(select_fulfilled_natal(&broken, pattern).is_none());
-    }
 
     #[test]
     fn matched_rule_without_claim_spec_emits_source_hit_only() {

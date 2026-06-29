@@ -31,18 +31,6 @@ const SOURCE_BACKED_PATTERN_SECTIONS: [(&str, &str, usize); 4] = [
     ("quan_shu.v01.ding_pin_jian_ju.", "定贫贱局", 8),
     ("quan_shu.v01.ding_za_ju.", "定杂局", 8),
 ];
-const EXECUTABLE_QUAN_SHU_PATTERN_RULE_IDS: [&str; 9] = [
-    "wealth.jin_can_guang_hui.sun_bright_life_wu",
-    "status.ri_chu_fu_sang.sun_rising_mao",
-    "status.yue_luo_hai_gong.moon_hai_life",
-    "wealth.yue_sheng_cang_hai.moon_zi_property",
-    "status.ma_tou_dai_jian.horse_blade",
-    "status.tan_huo_xiang_feng.tan_lang_fire_star",
-    "status.wu_qu_shou_yuan.wu_qu_life_mao",
-    "hardship.cai_yu_qiu_chou.wu_lian_life_body",
-    "migration.ma_luo_kong_wang.horse_void",
-];
-
 // ---- A. Inventory parses and source ids are unique -----------------------
 
 #[test]
@@ -276,9 +264,14 @@ fn pattern_rule_category_is_accepted_without_classical_rule_links() {
 
 #[test]
 fn source_backed_pattern_catalogues_do_not_create_classical_rules() {
-    let rules = rules_corpus();
+    // Neither the QuanShu rule corpus nor the project pattern rule corpus may use
+    // a pattern-catalogue source id: QuanShu pattern catalogue entries are source
+    // provenance for canonical `PatternId`s, never separate classical runtime
+    // rules.
+    let quan_shu = rules_corpus();
+    let patterns = pattern_rules_corpus();
 
-    for rule in &rules.rule {
+    for rule in quan_shu.rule.iter().chain(patterns.rule.iter()) {
         for (prefix, section, _) in SOURCE_BACKED_PATTERN_SECTIONS {
             assert!(
                 !rule.source_id.starts_with(prefix),
@@ -290,49 +283,61 @@ fn source_backed_pattern_catalogues_do_not_create_classical_rules() {
     }
 }
 
+/// The implemented canonical pattern metadata (`pattern_source_metadata`) points
+/// to a real QuanShu source-inventory item, and its cited source text matches the
+/// inventory text after punctuation normalization. This is provenance only: there
+/// is no separate classical runtime rule for these patterns.
 #[test]
-fn quan_shu_pattern_runtime_rules_reference_source_inventory() {
+fn canonical_pattern_metadata_references_source_inventory() {
+    use iztro::core::pattern::metadata::pattern_source_metadata;
+    use iztro::core::pattern::model::PatternId;
+
+    const IMPLEMENTED: [PatternId; 9] = [
+        PatternId::JinCanGuangHui,
+        PatternId::RiChuFuSang,
+        PatternId::YueLuoHaiGong,
+        PatternId::YueShengCangHai,
+        PatternId::MaTouDaiJian,
+        PatternId::TanHuoXiangFeng,
+        PatternId::WuQuShouYuan,
+        PatternId::CaiYuQiuChou,
+        PatternId::MaLuoKongWang,
+    ];
+
     let inventory = source_inventory();
-    let patterns = pattern_rules_corpus();
     let inventory_by_id: HashMap<&str, _> = inventory
         .source_item
         .iter()
         .map(|item| (item.source_id.as_str(), item))
         .collect();
 
-    for id in EXECUTABLE_QUAN_SHU_PATTERN_RULE_IDS {
-        let rule = patterns
-            .rule
-            .iter()
-            .find(|rule| rule.id == id)
-            .unwrap_or_else(|| panic!("missing QuanShu-backed pattern runtime rule {id}"));
-        assert_eq!(rule.work, QUAN_SHU_WORK);
-        assert_eq!(rule.status, "executable");
+    for pattern in IMPLEMENTED {
+        let metadata = pattern_source_metadata(pattern)
+            .unwrap_or_else(|| panic!("missing source metadata for {pattern:?}"));
+        assert_eq!(metadata.work, QUAN_SHU_WORK);
         assert!(
-            rule.source_id.starts_with("quan_shu.v01."),
-            "{id} must cite a QuanShu source inventory id"
+            metadata.source_id.starts_with("quan_shu.v01."),
+            "{pattern:?} must cite a QuanShu source inventory id"
         );
 
-        let item = inventory_by_id
-            .get(rule.source_id.as_str())
-            .unwrap_or_else(|| panic!("rule {id} source_id {} not in inventory", rule.source_id));
+        let item = inventory_by_id.get(metadata.source_id).unwrap_or_else(|| {
+            panic!(
+                "{pattern:?} source_id {} not in inventory",
+                metadata.source_id
+            )
+        });
         assert_eq!(item.category, "pattern_rule");
         assert_eq!(item.status, "segmented");
-        assert_eq!(
-            strip_punct(&rule.source_text_zh_hans),
-            strip_punct(&item.source_text_zh_hans),
-            "rule {id} source text must match inventory item {}",
+        assert!(
+            item.linked_rule_ids.is_empty(),
+            "pattern source item {} must not link to a classical runtime rule",
             item.source_id
         );
         assert_eq!(
-            rule.source_clause_id.as_deref(),
-            Some(
-                rule.source_id
-                    .rsplit('.')
-                    .next()
-                    .expect("source id has final key")
-            ),
-            "rule {id} source_clause_id should mirror source item key"
+            strip_punct(metadata.source_text_zh_hans),
+            strip_punct(&item.source_text_zh_hans),
+            "{pattern:?} metadata source text must match inventory item {}",
+            item.source_id
         );
     }
 }
@@ -572,10 +577,10 @@ fn quan_shu_corpus_rules_are_all_quan_shu_work() {
     }
 }
 
-/// The pattern runtime corpus can mix project-owned and QuanShu-sourced pattern
-/// rules. Project-owned rules stay outside the QuanShu source inventory; QuanShu
-/// pattern rules must cite real source-inventory ids. Conversely, the original
-/// project-owned 夹宫 rules must not re-enter the QuanShu source inventory.
+/// The pattern runtime corpus is project-owned only. Every pattern rule carries
+/// the project pattern-catalog work and a `pattern.*` source id, and none use a
+/// QuanShu source-inventory id. The original project-owned 夹宫 rules must not
+/// re-enter the QuanShu source inventory.
 #[test]
 fn pattern_catalog_is_separate_from_quan_shu_source_inventory() {
     const REMOVED_SOURCE_IDS: [&str; 2] = [
@@ -601,26 +606,22 @@ fn pattern_catalog_is_separate_from_quan_shu_source_inventory() {
         .collect();
 
     for rule in &patterns.rule {
-        if rule.work == QUAN_SHU_WORK {
-            assert!(
-                inventory_source_ids.contains(rule.source_id.as_str()),
-                "QuanShu-backed pattern rule {} source_id {} must be in source inventory",
-                rule.id,
-                rule.source_id
-            );
-        } else {
-            assert!(
-                rule.source_id.starts_with("pattern."),
-                "project-owned pattern rule {} must use pattern.* source_id",
-                rule.id
-            );
-            assert!(
-                !inventory_source_ids.contains(rule.source_id.as_str()),
-                "project-owned pattern rule {} source_id {} must not be a QuanShu source-inventory id",
-                rule.id,
-                rule.source_id
-            );
-        }
+        assert_ne!(
+            rule.work, QUAN_SHU_WORK,
+            "pattern rule {} must be project-owned, not a QuanShu runtime rule",
+            rule.id
+        );
+        assert!(
+            rule.source_id.starts_with("pattern."),
+            "project-owned pattern rule {} must use pattern.* source_id",
+            rule.id
+        );
+        assert!(
+            !inventory_source_ids.contains(rule.source_id.as_str()),
+            "project-owned pattern rule {} source_id {} must not be a QuanShu source-inventory id",
+            rule.id,
+            rule.source_id
+        );
     }
 
     // The moved 夹宫 rules must not re-enter the QuanShu source inventory, by

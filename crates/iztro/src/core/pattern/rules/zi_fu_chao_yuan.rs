@@ -81,7 +81,6 @@ pub fn detect(
             anchor,
             branches,
         }],
-        missing_conditions: Vec::new(),
         weakening_factors,
         breaking_factors: Vec::new(),
     });

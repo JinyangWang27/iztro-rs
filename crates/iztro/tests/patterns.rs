@@ -302,7 +302,6 @@ fn ji_yue_tong_liang_positive() {
             StarName::TianLiang,
         ])
     );
-    assert!(detection.missing_conditions.is_empty());
 }
 
 #[test]

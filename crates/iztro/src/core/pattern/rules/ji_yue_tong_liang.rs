@@ -72,7 +72,6 @@ pub fn detect(
         involved_stars,
         involved_mutagens: Vec::new(),
         evidence,
-        missing_conditions: Vec::new(),
         weakening_factors: Vec::new(),
         breaking_factors: Vec::new(),
     });

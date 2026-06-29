@@ -327,7 +327,6 @@ mod tests {
             involved_stars: vec![StarName::ZiWei, StarName::TianFu],
             involved_mutagens: vec![Mutagen::Lu],
             evidence: Vec::new(),
-            missing_conditions: Vec::new(),
             weakening_factors: Vec::new(),
             breaking_factors: Vec::new(),
         };
@@ -354,7 +353,6 @@ mod tests {
             involved_stars: Vec::new(),
             involved_mutagens: Vec::new(),
             evidence: Vec::new(),
-            missing_conditions: Vec::new(),
             weakening_factors: Vec::new(),
             breaking_factors: Vec::new(),
         };

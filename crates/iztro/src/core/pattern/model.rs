@@ -224,38 +224,14 @@ pub enum PatternEvidence {
     },
 }
 
-/// A required, missing, weakening, or breaking condition for a pattern.
+/// A weakening or breaking condition damaging an existing base formation.
+///
+/// There is no "missing required condition" variant: an incomplete base
+/// formation is not detected at all (no [`PatternDetection`] is emitted), so a
+/// condition here always describes damage to a formation that *does* exist.
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum PatternCondition {
-    /// Requires a star to be present anywhere.
-    RequiresStar {
-        /// The required star.
-        star: StarName,
-    },
-    /// Requires a star in a specific palace branch.
-    RequiresStarInPalace {
-        /// The required star.
-        star: StarName,
-        /// The branch it must occupy.
-        branch: EarthlyBranch,
-    },
-    /// Requires a star in a palace standing in a relation to the anchor.
-    RequiresStarInRelation {
-        /// The required star.
-        star: StarName,
-        /// The anchor palace branch.
-        anchor: EarthlyBranch,
-        /// The required relation.
-        relation: PalaceRelation,
-    },
-    /// Requires a mutagen on a star.
-    RequiresMutagen {
-        /// The star.
-        star: StarName,
-        /// The required mutagen.
-        mutagen: Mutagen,
-    },
     /// The pattern is weakened by a star in a branch.
     WeakenedByStar {
         /// The weakening star.
@@ -305,8 +281,6 @@ pub struct PatternDetection {
     pub involved_mutagens: Vec<Mutagen>,
     /// Evidence explaining why the rule matched.
     pub evidence: Vec<PatternEvidence>,
-    /// Conditions that were required but missing.
-    pub missing_conditions: Vec<PatternCondition>,
     /// Factors weakening the pattern.
     pub weakening_factors: Vec<PatternCondition>,
     /// Factors breaking the pattern.
