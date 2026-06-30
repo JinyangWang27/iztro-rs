@@ -267,5 +267,8 @@ fn huo_ling_branches(
 }
 
 fn birth_time_index(birth_time: BirthTime) -> isize {
+    // `iztro_time_index()` is 0..=12: 0 = early Zi, 1..=11 = Chou..Hai, 12 = late
+    // Zi. `% 12` folds late Zi (12) back onto the Zi branch (0) so both Zi hours
+    // place these stars on the same branch.
     isize::from(birth_time.iztro_time_index() % 12)
 }

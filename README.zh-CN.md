@@ -17,9 +17,8 @@ English version: [README.md](README.md).
 
 公开 API 以单个 crate 发布：
 
-```toml
-[dependencies]
-iztro = "0.1"
+```
+cargo add iztro
 ```
 
 ```rust

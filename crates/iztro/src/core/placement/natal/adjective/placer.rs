@@ -116,6 +116,8 @@ fn adjective_star_placements(
     let month_index = usize::from(input.lunar_month().value()) - 1;
     let month_offset = month_index as isize;
     let day_offset = isize::from(input.daily_star_offset());
+    // `iztro_time_index()` is 0..=12; `% 12` folds late Zi (12) back onto the Zi
+    // branch (0) so early and late Zi share a branch for adjective placement.
     let time_index = isize::from(input.birth_time_variant().iztro_time_index() % 12);
     let year_stem = input.birth_year_stem();
     let year_branch = input.birth_year_branch();

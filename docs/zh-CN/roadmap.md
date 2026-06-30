@@ -20,15 +20,13 @@
 ## Phase 1：Rust workspace 脚手架
 
 - [x] 创建 Rust workspace。
-- [x] 添加核心 crates：
+- [x] 添加 workspace crates：
   - [x] `iztro` core/library crate；
-  - [x] `features`；
-  - [x] `rules`；
-  - [x] `reading`；
   - [x] `iztro-cli`；
-  - [x] `render`；
   - [x] `iztro-i18n`；
   - [x] `iztro-gui` local desktop prototype。
+- [x] 将 `iztro` 库组织为内部领域模块（而非独立 crate）：`core`、`features`、
+  `rules`、`reading`、`render`。
 - [x] 添加格式化、clippy、测试 CI。
 - [x] 添加序列化和 fixture-based test 基础设施。
 

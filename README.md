@@ -9,7 +9,10 @@
 
 A Rust implementation for Zi Wei Dou Shu (紫微斗数) chart generation, feature extraction, and eventually rule-based interpretation.
 
-> Status: early design and scaffolding. The project is not yet a complete charting or interpretation engine.
+> Status: pre-1.0. Chart generation is implemented and fixture-backed against
+> `iztro@2.5.8`, with a renderer-neutral snapshot, a desktop GUI prototype, and
+> runtime i18n. Feature extraction, the classical rule engine, and narrative
+> interpretation are partial and still evolving. APIs may change before 1.0.
 
 中文说明见 [README.zh-CN.md](README.zh-CN.md).
 

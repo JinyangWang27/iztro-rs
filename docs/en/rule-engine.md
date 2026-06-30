@@ -5,7 +5,7 @@ The rule engine converts extracted features into structured claims. It should no
 > The **active, concrete implementation is the classical rule engine**
 > (Chinese-first 《紫微斗数全书》). It lives under `rules::classical` and is the
 > sole rule engine. See [`rules/rule-engine.md`](./rules/rule-engine.md) and
-> [ADR 0007](./adr/0007-classical-rule-engine.md) for the implemented design,
+> [ADR 0008](./adr/0008-classical-rule-engine.md) for the implemented design,
 > corpus format, and pipeline.
 >
 > The rest of this document is **conceptual design vocabulary** for the

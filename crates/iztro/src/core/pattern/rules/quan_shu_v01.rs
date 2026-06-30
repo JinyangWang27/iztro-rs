@@ -281,3 +281,40 @@ fn push_same_palace(
         breaking_factors: Vec::new(),
     });
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The `PatternId`s [`detect`] can emit via [`push_single_star`] /
+    /// [`push_same_palace`]. Each is passed to
+    /// `pattern_source_metadata(id).expect(..)`, so a missing entry panics at
+    /// runtime. Keep in sync with the [`detect`] call order. Test-only and private
+    /// so this detector detail stays out of the public API.
+    const EMITTED_SOURCE_BACKED_PATTERN_IDS: [PatternId; 9] = [
+        PatternId::JinCanGuangHui,
+        PatternId::RiChuFuSang,
+        PatternId::YueLuoHaiGong,
+        PatternId::YueShengCangHai,
+        PatternId::MaTouDaiJian,
+        PatternId::TanHuoXiangFeng,
+        PatternId::WuQuShouYuan,
+        PatternId::CaiYuQiuChou,
+        PatternId::MaLuoKongWang,
+    ];
+
+    /// Guards the `.expect("source-backed pattern metadata")` calls in
+    /// [`push_single_star`] / [`push_same_palace`]: every emitted id must resolve
+    /// to source metadata. (Inventory-reference correctness for source-backed
+    /// patterns is checked separately in `tests/classical_source_inventory.rs`,
+    /// which owns the test-only inventory loader.)
+    #[test]
+    fn every_emitted_pattern_has_source_metadata() {
+        for id in EMITTED_SOURCE_BACKED_PATTERN_IDS {
+            assert!(
+                pattern_source_metadata(id).is_some(),
+                "emitted pattern {id:?} has no source metadata; detection would panic",
+            );
+        }
+    }
+}

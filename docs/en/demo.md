@@ -86,5 +86,10 @@ to `static_temporal_chart_view` and renders core-prepared labels, enabled flags,
 selected flags, overlays, and palace names. Natal facts remain immutable across
 selections, and disabled cells stay inert.
 
-This GUI remains a prototype chart-fact viewer; it does not provide readings,
-rules, 成格 detection, BaZi interpretation, or narrative output.
+A collapsible right-side inspector **displays** structured analysis — 全书规则
+(QuanShu classical rules) and 格局 (patterns) — that it requests from core's
+per-layer analysis facade and caches; the GUI itself computes no rule evaluation
+or pattern detection (see [`current-status.md`](current-status.md) for the
+inspector's caching model). Beyond surfacing those structured hits and their
+evidence, this GUI remains a prototype chart-fact viewer: it does not generate
+deterministic readings, BaZi interpretation, or narrative output.

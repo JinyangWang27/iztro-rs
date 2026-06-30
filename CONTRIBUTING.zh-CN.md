@@ -2,7 +2,22 @@
 
 感谢你为 `iztro-rs` 做贡献。
 
-本项目仍处于早期设计和脚手架阶段。贡献应遵守 `docs/` 下记录的架构设计。
+本项目处于 1.0 之前阶段：排盘已实现并有 fixture 兜底，而特征提取、规则引擎与叙事解盘仍在演进。贡献应遵守 `docs/` 下记录的架构设计。
+
+## 构建前置要求
+
+桌面 GUI 内置了一个 CJK 字体，该字体由 **Git LFS** 跟踪，并在编译期通过
+`include_bytes!` 嵌入。构建 `iztro-gui` 前，请安装
+[Git LFS](https://git-lfs.com/) 并确保资源已被检出（smudge）：
+
+```bash
+git lfs install
+git lfs pull
+```
+
+若未使用 LFS，字体资源会停留在指针文件状态，GUI 将嵌入无效字节。
+`crates/iztro-gui/src/fonts.rs` 中的守卫测试会在此情况下立即失败，
+CI 也以 `lfs: true` 进行检出。
 
 ## 开发原则
 

@@ -94,6 +94,8 @@ pub(crate) fn nian_jie_branch(year_branch: EarthlyBranch) -> EarthlyBranch {
         EarthlyBranch::Hai,
     ];
 
+    // `EarthlyBranch::index()` is always 0..=11 (twelve branches), and the table
+    // has exactly twelve entries, so this index is in bounds by construction.
     NIAN_JIE_BY_YEAR_BRANCH[year_branch.index()]
 }
 
