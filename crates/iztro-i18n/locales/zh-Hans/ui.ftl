@@ -91,6 +91,8 @@ settings-sidebar-mode = 侧栏模式
 settings-sidebar-hidden = 隐藏
 settings-sidebar-compact = 紧凑
 settings-sidebar-expanded = 展开
+settings-theme = 主题
+theme-ink-paper = 水墨纸笺
 
 rules-scope-natal = 本命
 rules-scope-decadal = 大限

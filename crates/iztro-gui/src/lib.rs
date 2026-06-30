@@ -26,6 +26,7 @@ const WINDOW_TITLE: &str = "iztro-rs";
 /// Launches the local Iced desktop window rendering the static chart.
 pub fn run() -> iced::Result {
     iced::application(WINDOW_TITLE, update, static_chart_screen::view)
+        .theme(theme)
         .font(fonts::CJK_FONT_BYTES)
         .default_font(fonts::CJK_FONT)
         .window(iced::window::Settings {
@@ -50,6 +51,13 @@ pub fn run() -> iced::Result {
                 iced::Task::none(),
             )
         })
+}
+
+/// Resolves the iced [`Theme`](iced::Theme) from the app's persisted GUI theme
+/// setting, so the whole window (and iced's built-in widget styles) follow the
+/// selected palette.
+fn theme(app: &StaticChartApp) -> iced::Theme {
+    static_chart_screen::iced_theme(app.settings().theme)
 }
 
 /// Bridges the pure [`StaticChartApp::update`] into the Iced update loop.

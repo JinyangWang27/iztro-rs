@@ -8,6 +8,7 @@ use iztro_i18n::{I18n, Locale};
 use crate::app::Message;
 
 use super::style::section_title_style;
+use super::theme::GuiPalette;
 
 /// The single-row 四柱 label, such as `癸酉 丁巳 戊申 辛酉` / `Gui You Ding Si …`,
 /// built from the typed pillar stem-branches. `None` when the chart carries no
@@ -42,10 +43,10 @@ pub(super) fn fact_row(
         .into()
 }
 
-pub(super) fn section_title(label: &str) -> Element<'static, Message> {
+pub(super) fn section_title(palette: GuiPalette, label: &str) -> Element<'static, Message> {
     text(label.to_owned())
         .size(13)
-        .style(section_title_style)
+        .style(section_title_style(palette))
         .into()
 }
 

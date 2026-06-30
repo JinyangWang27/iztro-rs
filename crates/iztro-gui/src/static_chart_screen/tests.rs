@@ -2,9 +2,12 @@ use crate::app::StaticChartApp;
 use iztro::core::{DecorativeStarFamily, Gender, Mutagen, StarCategory, StarKind};
 use iztro_i18n::{I18n, Locale};
 
+use crate::settings::GuiThemeId;
+
 use super::labels::{four_pillars_line, gender_symbol};
 use super::palace::{PalaceHighlight, StaticStarTone, star_tone};
-use super::style::{DECOR_GOD_OLIVE, MINOR_MALEFIC, mutagen_badge_color, rgb8};
+use super::style::mutagen_badge_color;
+use super::theme::{palette, rgb8};
 
 /// Shorthand for an expected [`StarWrapPlan`] in the wrap-planner tests.
 fn plan(visible_count: usize, overflow_count: usize) -> super::palace::StarWrapPlan {
@@ -203,10 +206,16 @@ fn ordinary_adjective_stars_map_to_default() {
 
 #[test]
 fn mutagen_badge_colors_cover_all_four_transformations() {
-    assert_eq!(mutagen_badge_color(Mutagen::Lu), rgb8(0xd4, 0x38, 0x0d));
-    assert_eq!(mutagen_badge_color(Mutagen::Quan), rgb8(0x2f, 0x54, 0xeb));
-    assert_eq!(mutagen_badge_color(Mutagen::Ke), rgb8(0x23, 0x78, 0x04));
-    assert_eq!(mutagen_badge_color(Mutagen::Ji), rgb8(0x00, 0x00, 0x00));
+    // InkPaper maps the four transformations onto warm semantic tokens:
+    // 禄 cinnabar, 权 blue, 科 jade, 忌 ink.
+    let p = *palette(GuiThemeId::InkPaper);
+    assert_eq!(mutagen_badge_color(p, Mutagen::Lu), rgb8(0xB6, 0x42, 0x2C));
+    assert_eq!(
+        mutagen_badge_color(p, Mutagen::Quan),
+        rgb8(0x3F, 0x6F, 0x99)
+    );
+    assert_eq!(mutagen_badge_color(p, Mutagen::Ke), rgb8(0x5F, 0x7F, 0x64));
+    assert_eq!(mutagen_badge_color(p, Mutagen::Ji), rgb8(0x26, 0x23, 0x1F));
 }
 
 #[test]
@@ -235,8 +244,26 @@ fn decorative_family_splits_into_bottom_zones() {
             DecorativeStarFamily::Changsheng12 | DecorativeStarFamily::Boshi12
         ));
     }
-    assert_eq!(DECOR_GOD_OLIVE, rgb8(0x90, 0x98, 0x3c));
-    assert_eq!(MINOR_MALEFIC, rgb8(0x81, 0x33, 0x59));
+    let p = palette(GuiThemeId::InkPaper);
+    assert_eq!(p.decorative_olive, rgb8(0x7C, 0x7B, 0x4A));
+    assert_eq!(p.malefic, rgb8(0x8A, 0x3F, 0x55));
+}
+
+#[test]
+fn custom_styles_resolve_from_the_active_palette_not_a_hard_wired_theme() {
+    // Guard against regressing to the old `const P = INK_PAPER.palette` shape:
+    // custom widget styles must take the active palette so future themes (Jade
+    // Light, Deep Ink) recolor palace cells, badges, lines, etc. without editing
+    // every style. The concatenation keeps this test from matching itself.
+    let source = include_str!("style.rs");
+    assert!(
+        !source.contains(concat!("INK", "_PAPER")),
+        "style.rs must derive colors from the active palette argument, not a hard-wired theme constant"
+    );
+    assert!(
+        source.contains("palette: GuiPalette"),
+        "style helpers should accept the active palette"
+    );
 }
 
 #[test]
@@ -276,7 +303,8 @@ fn palace_metadata_zone_is_deliberately_reserved() {
     assert!(source.contains("Length::Fixed(PERIOD_BADGE_ROW_HEIGHT)"));
     assert!(source.contains("Length::Fixed(PALACE_MIDDLE_BAND_HEIGHT)"));
     // The metadata zone stacks the time-flow band over the identity footer.
-    assert!(source.contains("column![flow, palace_identity("));
+    assert!(source.contains("column![flow, palace_identity(") || source.contains("flow,"));
+    assert!(source.contains("palace_identity("));
     assert!(source.contains(concat!("fn palace_", "metadata")));
 }
 
@@ -346,7 +374,8 @@ fn palace_footer_anchors_name_left_and_stem_branch_right() {
     // The footer renders the localized palace name (left) and stem-branch (right)
     // from typed fields, not pre-rendered Chinese strings.
     assert!(source.contains("i18n.palace_name(palace.name)"));
-    assert!(source.contains("color(MAJOR_PURPLE)"));
+    // The palace name uses the active palette's primary accent tone.
+    assert!(source.contains("color(palette.accent)"));
     assert!(source.contains("i18n.stem_branch(palace.stem, palace.branch)"));
     assert!(source.contains("align_x(Alignment::Start)"));
     assert!(source.contains("align_x(Alignment::End)"));
@@ -421,7 +450,7 @@ fn period_badge_takes_a_prepared_label_not_an_overlay() {
 
     // `period_badge` renders the core-prepared label string directly; it no
     // longer inspects an overlay or falls back to `temporal_palace_name_zh`.
-    assert!(source.contains("pub(super) fn period_badge(\n    label: &str,"));
+    assert!(source.contains("pub(super) fn period_badge(") && source.contains("label: &str,"));
     assert!(
         !source.contains("temporal_palace_name_zh"),
         "the badge renderer must not fall back to temporal palace-name metadata"

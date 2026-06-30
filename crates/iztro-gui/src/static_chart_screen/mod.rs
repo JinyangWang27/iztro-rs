@@ -23,6 +23,9 @@ mod palace;
 mod startup;
 mod style;
 mod temporal;
+mod theme;
+
+pub(crate) use theme::iced_theme;
 
 #[cfg(test)]
 mod tests;
@@ -39,9 +42,13 @@ use crate::app::{Message, Screen, StaticChartApp};
 /// this presentation boundary.
 pub fn view(app: &StaticChartApp) -> Element<'_, Message> {
     let i18n = I18n::new(app.locale());
+    // Resolve the active palette once per frame from the persisted theme id, then
+    // thread it through the custom renderer path so every custom style derives
+    // from the selected theme rather than a single hard-wired palette.
+    let palette = *theme::palette(app.settings().theme);
     match (app.screen(), app.snapshot()) {
-        (Screen::Chart, Some(snapshot)) => chart::chart_screen(app, snapshot, &i18n),
+        (Screen::Chart, Some(snapshot)) => chart::chart_screen(app, snapshot, palette, &i18n),
         // Startup, or a defensive fallback if the chart screen has no snapshot.
-        _ => startup::startup_screen(app, &i18n),
+        _ => startup::startup_screen(app, palette, &i18n),
     }
 }

@@ -19,14 +19,18 @@ use iztro_i18n::I18n;
 
 use crate::analysis::{PatternHitExpansionKey, RuleHitExpansionKey};
 use crate::app::{Message, StaticChartApp};
-use crate::settings::{RightPanelMode, RightPanelTab};
+use crate::settings::{GuiThemeId, RightPanelMode, RightPanelTab};
 
-use super::style::{input_panel_style, section_title_style, subtle_text_style};
+use super::style::{
+    input_panel_style, inspector_row_style, pill_badge, secondary_text_style, section_title_style,
+    segmented_track_style, subtle_text_style,
+};
+use super::theme::{CHART_LAYOUT, GuiPalette, SPACING, TYPE};
 
 /// Compact-mode inspector width.
-const RIGHT_PANEL_COMPACT_WIDTH: f32 = 280.0;
+const RIGHT_PANEL_COMPACT_WIDTH: f32 = CHART_LAYOUT.inspector_compact_width;
 /// Expanded-mode inspector width.
-const RIGHT_PANEL_EXPANDED_WIDTH: f32 = 360.0;
+const RIGHT_PANEL_EXPANDED_WIDTH: f32 = CHART_LAYOUT.inspector_expanded_width;
 
 /// Renders the right inspector for the current mode, or `None` when hidden.
 ///
@@ -34,6 +38,7 @@ const RIGHT_PANEL_EXPANDED_WIDTH: f32 = 360.0;
 /// rather than reserving a zero-width slot.
 pub(super) fn right_inspector<'a>(
     app: &'a StaticChartApp,
+    palette: GuiPalette,
     i18n: &I18n,
 ) -> Option<Element<'a, Message>> {
     let width = match app.right_panel_mode() {
@@ -43,40 +48,46 @@ pub(super) fn right_inspector<'a>(
     };
 
     let body = match app.right_panel_tab() {
-        RightPanelTab::QuanShuRules => rules_tab(app, i18n),
-        RightPanelTab::Patterns => patterns_tab(app, i18n),
-        RightPanelTab::Settings => settings_tab(app, i18n),
+        RightPanelTab::QuanShuRules => rules_tab(app, palette, i18n),
+        RightPanelTab::Patterns => patterns_tab(app, palette, i18n),
+        RightPanelTab::Settings => settings_tab(app, palette, i18n),
     };
 
-    let panel = column![tab_bar(app, i18n), body]
-        .spacing(10)
-        .padding(12)
+    let panel = column![tab_bar(app, palette, i18n), body]
+        .spacing(SPACING.lg)
+        .padding(SPACING.xl)
         .width(Length::Fill);
 
     Some(
         container(panel)
-            .style(input_panel_style)
+            .style(input_panel_style(palette))
             .width(Length::Fixed(width))
             .height(Length::Fill)
             .into(),
     )
 }
 
-/// The three-tab selector row.
-fn tab_bar<'a>(app: &'a StaticChartApp, i18n: &I18n) -> Element<'a, Message> {
+/// The three-tab selector, rendered as a segmented control sitting on a recessed
+/// track so it reads as one grouped control rather than three loose buttons.
+fn tab_bar<'a>(app: &'a StaticChartApp, palette: GuiPalette, i18n: &I18n) -> Element<'a, Message> {
     let active = app.right_panel_tab();
     let tab = |label: &str, value: RightPanelTab| {
         let style = if active == value {
             button::primary
         } else {
-            button::secondary
+            button::text
         };
-        button(text(i18n.text(label)).size(12))
-            .on_press(Message::SetRightPanelTab(value))
-            .style(style)
-            .padding([4, 8])
+        button(
+            text(i18n.text(label))
+                .size(TYPE.label)
+                .align_x(Alignment::Center),
+        )
+        .on_press(Message::SetRightPanelTab(value))
+        .style(style)
+        .padding([SPACING.sm, SPACING.lg])
+        .width(Length::FillPortion(1))
     };
-    row![
+    let segments = row![
         tab(
             "right-panel-tab-quan-shu-rules",
             RightPanelTab::QuanShuRules
@@ -84,13 +95,22 @@ fn tab_bar<'a>(app: &'a StaticChartApp, i18n: &I18n) -> Element<'a, Message> {
         tab("right-panel-tab-patterns", RightPanelTab::Patterns),
         tab("right-panel-tab-settings", RightPanelTab::Settings),
     ]
-    .spacing(6)
-    .into()
+    .spacing(SPACING.xs);
+
+    container(segments)
+        .style(segmented_track_style(palette))
+        .padding(SPACING.xs)
+        .width(Length::Fill)
+        .into()
 }
 
 /// The 全书规则 tab: cached QuanShu rule hits grouped by layer scope.
-fn rules_tab<'a>(app: &'a StaticChartApp, i18n: &I18n) -> Element<'a, Message> {
-    let mut content = column![].spacing(10);
+fn rules_tab<'a>(
+    app: &'a StaticChartApp,
+    palette: GuiPalette,
+    i18n: &I18n,
+) -> Element<'a, Message> {
+    let mut content = column![].spacing(SPACING.lg);
     let mut any = false;
 
     for key in app.required_analysis_layers() {
@@ -102,9 +122,14 @@ fn rules_tab<'a>(app: &'a StaticChartApp, i18n: &I18n) -> Element<'a, Message> {
         }
         any = true;
         let scope_label = i18n.analysis_scope_label(key.scope());
-        let mut group = column![text(scope_label).size(13).style(section_title_style)].spacing(4);
+        let mut group = column![
+            text(scope_label)
+                .size(TYPE.body)
+                .style(section_title_style(palette))
+        ]
+        .spacing(SPACING.md);
         for hit in &result.rule_hits {
-            group = group.push(rule_hit_line(app, &key, hit, i18n));
+            group = group.push(rule_hit_line(app, &key, hit, palette, i18n));
         }
         content = content.push(group);
     }
@@ -112,7 +137,7 @@ fn rules_tab<'a>(app: &'a StaticChartApp, i18n: &I18n) -> Element<'a, Message> {
     if any {
         scrollable(content).height(Length::Fill).into()
     } else {
-        empty_notice(i18n.text("rules-panel-empty"))
+        empty_notice(palette, i18n.text("rules-panel-empty"))
     }
 }
 
@@ -122,17 +147,13 @@ fn rule_hit_line<'a>(
     app: &StaticChartApp,
     key: &AnalysisLayerKey,
     hit: &iztro::rules::classical::ClassicalRuleHitRef,
+    palette: GuiPalette,
     i18n: &I18n,
 ) -> Element<'a, Message> {
     let metadata = classical_rule_metadata(hit.rule_id.clone());
     let source_text = metadata
         .map(|m| m.source_text_zh_hans.to_owned())
         .unwrap_or_else(|| i18n.text("rules-panel-unknown-rule"));
-    let line = format!(
-        "{}· {}",
-        i18n.analysis_scope_label(key.scope()),
-        source_text
-    );
 
     let expansion_key = RuleHitExpansionKey {
         layer: key.clone(),
@@ -140,13 +161,18 @@ fn rule_hit_line<'a>(
     };
     let expanded = app.is_rule_hit_expanded(&expansion_key);
 
+    let header = row![text(source_text).size(TYPE.body)]
+        .spacing(SPACING.md)
+        .align_y(Alignment::Center);
+
     let mut block = column![
-        button(text(line).size(13))
+        button(header)
             .on_press(Message::ToggleRuleHit(expansion_key))
             .style(button::text)
+            .padding(0)
             .width(Length::Fill),
     ]
-    .spacing(2);
+    .spacing(SPACING.xs);
 
     if expanded {
         let claim = hit
@@ -156,18 +182,34 @@ fn rule_hit_line<'a>(
             .unwrap_or_else(|| i18n.text("rules-panel-no-claim"));
         block = block.push(
             text(claim)
-                .size(12)
-                .style(subtle_text_style)
+                .size(TYPE.label)
+                .style(subtle_text_style(palette))
                 .width(Length::Fill),
         );
     }
 
-    block.into()
+    inspector_card(palette, block)
+}
+
+/// Wraps inspector row content in a compact card surface.
+fn inspector_card<'a>(
+    palette: GuiPalette,
+    content: impl Into<Element<'a, Message>>,
+) -> Element<'a, Message> {
+    container(content)
+        .style(inspector_row_style(palette))
+        .padding([SPACING.md, SPACING.lg])
+        .width(Length::Fill)
+        .into()
 }
 
 /// The 格局 tab: cached pattern detections grouped by layer scope.
-fn patterns_tab<'a>(app: &'a StaticChartApp, i18n: &I18n) -> Element<'a, Message> {
-    let mut content = column![].spacing(10);
+fn patterns_tab<'a>(
+    app: &'a StaticChartApp,
+    palette: GuiPalette,
+    i18n: &I18n,
+) -> Element<'a, Message> {
+    let mut content = column![].spacing(SPACING.lg);
     let mut any = false;
 
     for key in app.required_analysis_layers() {
@@ -179,9 +221,14 @@ fn patterns_tab<'a>(app: &'a StaticChartApp, i18n: &I18n) -> Element<'a, Message
         }
         any = true;
         let scope_label = i18n.analysis_scope_label(key.scope());
-        let mut group = column![text(scope_label).size(13).style(section_title_style)].spacing(4);
+        let mut group = column![
+            text(scope_label)
+                .size(TYPE.body)
+                .style(section_title_style(palette))
+        ]
+        .spacing(SPACING.md);
         for detection in &result.pattern_hits {
-            group = group.push(pattern_hit_line(app, &key, detection, i18n));
+            group = group.push(pattern_hit_line(app, &key, detection, palette, i18n));
         }
         content = content.push(group);
     }
@@ -189,7 +236,7 @@ fn patterns_tab<'a>(app: &'a StaticChartApp, i18n: &I18n) -> Element<'a, Message
     if any {
         scrollable(content).height(Length::Fill).into()
     } else {
-        empty_notice(i18n.text("patterns-panel-empty"))
+        empty_notice(palette, i18n.text("patterns-panel-empty"))
     }
 }
 
@@ -198,43 +245,48 @@ fn pattern_hit_line<'a>(
     app: &StaticChartApp,
     key: &AnalysisLayerKey,
     detection: &iztro::core::PatternDetection,
+    palette: GuiPalette,
     i18n: &I18n,
 ) -> Element<'a, Message> {
-    let line = format!(
-        "{}· {}（{}）",
-        i18n.analysis_scope_label(key.scope()),
-        detection.name_zh,
-        i18n.pattern_status_label(detection.status),
-    );
-
     let expansion_key = PatternHitExpansionKey {
         layer: key.clone(),
         pattern_id: detection.id,
     };
     let expanded = app.is_pattern_hit_expanded(&expansion_key);
 
+    let header = row![
+        text(detection.name_zh.to_owned()).size(TYPE.body),
+        iced::widget::horizontal_space(),
+        pill_badge(palette, i18n.pattern_status_label(detection.status)),
+    ]
+    .spacing(SPACING.md)
+    .align_y(Alignment::Center);
+
     let mut block = column![
-        button(text(line).size(13))
+        button(header)
             .on_press(Message::TogglePatternHit(expansion_key))
             .style(button::text)
+            .padding(0)
             .width(Length::Fill),
     ]
-    .spacing(2);
+    .spacing(SPACING.xs);
 
     if expanded {
-        block = block.push(pattern_details(detection, i18n));
+        block = block.push(pattern_details(detection, palette, i18n));
     }
 
-    block.into()
+    inspector_card(palette, block)
 }
 
 /// Basic structured detail rows for an expanded pattern: strength plus the
 /// involved stars / palaces / mutagens. No narrative prose is added.
 fn pattern_details<'a>(
     detection: &iztro::core::PatternDetection,
+    palette: GuiPalette,
     i18n: &I18n,
 ) -> Element<'a, Message> {
     let mut rows = column![detail_row(
+        palette,
         &i18n.text("patterns-detail-strength"),
         &pattern_strength_label(detection.strength, i18n),
     )]
@@ -247,7 +299,11 @@ fn pattern_details<'a>(
             .map(|star| i18n.star_name(*star))
             .collect::<Vec<_>>()
             .join("、");
-        rows = rows.push(detail_row(&i18n.text("patterns-detail-stars"), &stars));
+        rows = rows.push(detail_row(
+            palette,
+            &i18n.text("patterns-detail-stars"),
+            &stars,
+        ));
     }
     if !detection.involved_palaces.is_empty() {
         let palaces = detection
@@ -256,7 +312,11 @@ fn pattern_details<'a>(
             .map(|branch| i18n.branch(*branch))
             .collect::<Vec<_>>()
             .join("、");
-        rows = rows.push(detail_row(&i18n.text("patterns-detail-palaces"), &palaces));
+        rows = rows.push(detail_row(
+            palette,
+            &i18n.text("patterns-detail-palaces"),
+            &palaces,
+        ));
     }
     if !detection.involved_mutagens.is_empty() {
         let mutagens = detection
@@ -266,6 +326,7 @@ fn pattern_details<'a>(
             .collect::<Vec<_>>()
             .join("、");
         rows = rows.push(detail_row(
+            palette,
             &i18n.text("patterns-detail-mutagens"),
             &mutagens,
         ));
@@ -274,12 +335,20 @@ fn pattern_details<'a>(
     rows.into()
 }
 
-/// A `label: value` detail row in the muted detail style.
-fn detail_row<'a>(label: &str, value: &str) -> Element<'a, Message> {
-    text(format!("{label}: {value}"))
-        .size(12)
-        .style(subtle_text_style)
-        .into()
+/// A structured `label / value` detail row: a muted label over the ink value,
+/// so expanded details read as a small key-value table rather than prose.
+fn detail_row<'a>(palette: GuiPalette, label: &str, value: &str) -> Element<'a, Message> {
+    row![
+        text(label.to_owned())
+            .size(TYPE.label)
+            .style(secondary_text_style(palette))
+            .width(Length::FillPortion(2)),
+        text(value.to_owned())
+            .size(TYPE.label)
+            .width(Length::FillPortion(3)),
+    ]
+    .spacing(SPACING.md)
+    .into()
 }
 
 /// Localized coarse pattern-strength label.
@@ -292,7 +361,11 @@ fn pattern_strength_label(strength: PatternStrength, i18n: &I18n) -> String {
 }
 
 /// The 设置 tab: language selection and sidebar mode controls.
-fn settings_tab<'a>(app: &'a StaticChartApp, i18n: &I18n) -> Element<'a, Message> {
+fn settings_tab<'a>(
+    app: &'a StaticChartApp,
+    palette: GuiPalette,
+    i18n: &I18n,
+) -> Element<'a, Message> {
     let language = {
         let choice = |label: &str, locale| {
             let selected = app.locale() == locale;
@@ -301,22 +374,37 @@ fn settings_tab<'a>(app: &'a StaticChartApp, i18n: &I18n) -> Element<'a, Message
             } else {
                 button::secondary
             };
-            button(text(i18n.text(label)).size(12))
+            button(text(i18n.text(label)).size(TYPE.label))
                 .on_press(Message::SetLocale(locale))
                 .style(style)
-                .padding([4, 10])
+                .padding([SPACING.sm, SPACING.lg])
         };
         column![
             text(i18n.text("settings-language"))
-                .size(13)
-                .style(section_title_style),
+                .size(TYPE.body)
+                .style(section_title_style(palette)),
             row![
                 choice("ui-english", iztro_i18n::Locale::EnUs),
                 choice("ui-simplified-chinese", iztro_i18n::Locale::ZhHans),
             ]
-            .spacing(6),
+            .spacing(SPACING.md),
         ]
-        .spacing(4)
+        .spacing(SPACING.sm)
+    };
+
+    // Theme is read-only for now: InkPaper is the only implemented theme, so the
+    // section reports the active theme rather than offering unbuilt choices.
+    let theme = {
+        let current = match app.settings().theme {
+            GuiThemeId::InkPaper => i18n.text("theme-ink-paper"),
+        };
+        column![
+            text(i18n.text("settings-theme"))
+                .size(TYPE.body)
+                .style(section_title_style(palette)),
+            pill_badge(palette, current),
+        ]
+        .spacing(SPACING.sm)
     };
 
     let sidebar = {
@@ -327,44 +415,49 @@ fn settings_tab<'a>(app: &'a StaticChartApp, i18n: &I18n) -> Element<'a, Message
             } else {
                 button::secondary
             };
-            button(text(i18n.text(label)).size(12))
+            button(text(i18n.text(label)).size(TYPE.label))
                 .on_press(Message::SetRightPanelMode(mode))
                 .style(style)
-                .padding([4, 10])
+                .padding([SPACING.sm, SPACING.lg])
         };
         column![
             text(i18n.text("settings-sidebar-mode"))
-                .size(13)
-                .style(section_title_style),
+                .size(TYPE.body)
+                .style(section_title_style(palette)),
             row![
                 choice("settings-sidebar-hidden", RightPanelMode::Hidden),
                 choice("settings-sidebar-compact", RightPanelMode::Compact),
                 choice("settings-sidebar-expanded", RightPanelMode::Expanded),
             ]
-            .spacing(6),
+            .spacing(SPACING.md),
         ]
-        .spacing(4)
+        .spacing(SPACING.sm)
     };
 
     scrollable(
         column![
-            text(i18n.text("settings-panel-title")).size(15),
+            text(i18n.text("settings-panel-title")).size(TYPE.heading),
             language,
+            theme,
             sidebar,
         ]
-        .spacing(14),
+        .spacing(SPACING.xxl),
     )
     .height(Length::Fill)
     .into()
 }
 
 /// A centered muted empty-state notice for a tab with no visible groups.
-fn empty_notice<'a>(message: String) -> Element<'a, Message> {
-    container(text(message).size(13).style(subtle_text_style))
-        .padding(8)
-        .width(Length::Fill)
-        .align_x(Alignment::Center)
-        .into()
+fn empty_notice<'a>(palette: GuiPalette, message: String) -> Element<'a, Message> {
+    container(
+        text(message)
+            .size(TYPE.body)
+            .style(subtle_text_style(palette)),
+    )
+    .padding(8)
+    .width(Length::Fill)
+    .align_x(Alignment::Center)
+    .into()
 }
 
 #[cfg(test)]
@@ -373,12 +466,17 @@ mod tests {
     use crate::app::{Message, StaticChartApp};
     use iztro_i18n::Locale;
 
+    /// The active palette under test: the default (InkPaper) theme.
+    fn test_palette() -> GuiPalette {
+        *super::super::theme::palette(GuiThemeId::InkPaper)
+    }
+
     #[test]
     fn hidden_mode_removes_the_inspector_from_the_layout() {
         let mut app = StaticChartApp::new();
         app.update(Message::SetRightPanelMode(RightPanelMode::Hidden));
         let i18n = I18n::new(Locale::EnUs);
-        assert!(right_inspector(&app, &i18n).is_none());
+        assert!(right_inspector(&app, test_palette(), &i18n).is_none());
     }
 
     #[test]
@@ -395,7 +493,7 @@ mod tests {
                 app.update(Message::SetRightPanelMode(mode));
                 app.update(Message::SetRightPanelTab(tab));
                 assert!(
-                    right_inspector(&app, &i18n).is_some(),
+                    right_inspector(&app, test_palette(), &i18n).is_some(),
                     "{mode:?}/{tab:?} should render"
                 );
             }

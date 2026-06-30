@@ -95,6 +95,8 @@ settings-sidebar-mode = Sidebar mode
 settings-sidebar-hidden = Hidden
 settings-sidebar-compact = Compact
 settings-sidebar-expanded = Expanded
+settings-theme = Theme
+theme-ink-paper = Ink Paper
 
 rules-scope-natal = Natal
 rules-scope-decadal = Decadal

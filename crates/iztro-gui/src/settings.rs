@@ -39,6 +39,23 @@ pub enum RightPanelMode {
     Expanded,
 }
 
+/// Selects the GUI visual theme (palette + design tokens).
+///
+/// Only [`GuiThemeId::InkPaper`] is implemented today; the enum is the extension
+/// point for future themes (JadeLight, DeepInk, …). It is a stable internal key,
+/// never a localized display string, so settings files round-trip safely. A
+/// *missing* theme field fills in from the serde default on
+/// [`AppSettings`](AppSettings::theme); an explicit unknown variant string is not
+/// handled specially here (there is no `#[serde(other)]` fallback), so a settings
+/// file naming a theme this build doesn't know fails to parse and the whole file
+/// falls back to [`AppSettings::default`] via [`SettingsStore::load`].
+#[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize, Default)]
+pub enum GuiThemeId {
+    /// Warm paper background, ivory palace cards, deep-purple primary accents.
+    #[default]
+    InkPaper,
+}
+
 /// Which inspector tab is active. Defaults to [`RightPanelTab::QuanShuRules`].
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize, Default)]
 pub enum RightPanelTab {
@@ -67,6 +84,9 @@ pub struct AppSettings {
     /// Active right inspector tab.
     #[serde(default)]
     pub right_panel_tab: RightPanelTab,
+    /// Active GUI visual theme.
+    #[serde(default)]
+    pub theme: GuiThemeId,
 }
 
 impl Default for AppSettings {
@@ -75,6 +95,7 @@ impl Default for AppSettings {
             locale: Locale::default(),
             right_panel_mode: RightPanelMode::Compact,
             right_panel_tab: RightPanelTab::QuanShuRules,
+            theme: GuiThemeId::InkPaper,
         }
     }
 }
@@ -163,10 +184,45 @@ mod tests {
             locale: Locale::ZhHans,
             right_panel_mode: RightPanelMode::Expanded,
             right_panel_tab: RightPanelTab::Patterns,
+            theme: GuiThemeId::InkPaper,
         };
 
         store.save(&settings).expect("save should succeed");
         assert_eq!(store.load(), settings);
+    }
+
+    #[test]
+    fn default_settings_use_ink_paper_theme() {
+        assert_eq!(AppSettings::default().theme, GuiThemeId::InkPaper);
+    }
+
+    #[test]
+    fn missing_theme_field_deserializes_to_ink_paper() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let path = dir.path().join("settings.json");
+        // A settings file written before the theme field existed must still load,
+        // filling the theme in from its serde default.
+        fs::write(
+            &path,
+            r#"{ "locale": "zh-Hans", "right_panel_mode": "Expanded" }"#,
+        )
+        .expect("write file");
+        let store = SettingsStore::new(path);
+        let loaded = store.load();
+        assert_eq!(loaded.theme, GuiThemeId::InkPaper);
+        assert_eq!(loaded.locale, Locale::ZhHans);
+    }
+
+    #[test]
+    fn theme_setting_roundtrips_through_the_store() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let store = SettingsStore::new(dir.path().join("settings.json"));
+        let settings = AppSettings {
+            theme: GuiThemeId::InkPaper,
+            ..AppSettings::default()
+        };
+        store.save(&settings).expect("save");
+        assert_eq!(store.load().theme, GuiThemeId::InkPaper);
     }
 
     #[test]
@@ -227,5 +283,6 @@ mod tests {
         assert_eq!(settings.locale, Locale::EnUs);
         assert_eq!(settings.right_panel_mode, RightPanelMode::Compact);
         assert_eq!(settings.right_panel_tab, RightPanelTab::QuanShuRules);
+        assert_eq!(settings.theme, GuiThemeId::InkPaper);
     }
 }
