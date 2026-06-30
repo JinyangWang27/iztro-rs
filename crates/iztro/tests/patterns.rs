@@ -1552,7 +1552,7 @@ fn ma_tou_dai_jian_matches_tian_ma_with_qing_yang_in_any_branch() {
         detection(&detections, PatternId::MaTouDaiJian),
         PatternId::MaTouDaiJian,
         PatternFamily::ShaJi,
-        PatternPolarity::Mixed,
+        PatternPolarity::Neutral,
         PatternAnchor::Palace(EarthlyBranch::Chen),
         &[StarName::TianMa, StarName::QingYang],
         &[EarthlyBranch::Chen],
