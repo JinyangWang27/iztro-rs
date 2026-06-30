@@ -1,7 +1,7 @@
 use iced::widget::{button, column, container, mouse_area, row, text};
 use iced::{Alignment, Color, Element, Length};
 use iztro::core::{
-    DecorativeStarFamily, Mutagen, Scope, StarCategory, StarKind, StaticChartCenterView,
+    DecorativeStarFamily, Scope, StarCategory, StarKind, StaticChartCenterView,
     StaticChartViewSnapshot, StaticDecorativeStarView, StaticPalaceView,
     StaticTemporalNavigationSelection, StaticTypedStarView,
 };
@@ -14,9 +14,10 @@ use super::style::{
     ADJ_GRAY, BRIGHTNESS_GRAY, DECOR_GOD_OLIVE, DECORATIVE_AREA_HEIGHT, LIMIT_ACTIVE, LIMIT_GRAY,
     LU_CUN_ORANGE, MAJOR_PURPLE, MAX_STAR_COLUMNS, MAX_STAR_ROWS, MINOR_MALEFIC,
     PALACE_MIDDLE_BAND_HEIGHT, PEACH_MAGENTA, PERIOD_BADGE_ROW_HEIGHT, TIAN_MA_BLUE,
-    center_panel_style, mutagen_badge_color, mutagen_inline_badge, palace_cell_style,
+    center_panel_style, mutagen_inline_badge, palace_cell_style, secondary_text_style,
     section_title_style,
 };
+use super::theme::TYPE;
 use super::temporal::{period_badge, temporal_controls};
 
 // Palace grid
@@ -262,7 +263,7 @@ fn star_line(star: &StaticTypedStarView, major: bool, i18n: &I18n) -> Element<'s
     // font ships a single (Regular) weight; requesting Bold makes cosmic-text
     // fall back to a non-CJK face and render the names as tofu, so no bold here.
     let color = star_color(star_tone(star));
-    let size = if major { 15 } else { 12 };
+    let size = if major { TYPE.star_major } else { TYPE.star_minor };
     let name = text(i18n.star_name(star.name)).size(size).color(color);
     let mut line = row![name].spacing(1).align_y(Alignment::Center);
     let brightness = i18n.brightness(star.brightness);
@@ -327,7 +328,7 @@ fn wrapped_star_group(
             // tooltip support exists.
             col = col.push(
                 text(format!("+{}", plan.overflow_count))
-                    .size(11)
+                    .size(TYPE.small)
                     .color(ADJ_GRAY),
             );
         }
@@ -377,7 +378,7 @@ fn decorative_column(
 ) -> Element<'static, Message> {
     let mut col = column![].spacing(1);
     for star in stars {
-        col = col.push(text(i18n.star_name(star.name)).size(10).color(color));
+        col = col.push(text(i18n.star_name(star.name)).size(TYPE.caption).color(color));
     }
     col.into()
 }
@@ -443,7 +444,7 @@ fn palace_identity<'a>(
     let left = column![
         container(decorative_column(gods_left, DECOR_GOD_OLIVE, i18n)).width(Length::Fill),
         text(i18n.palace_name(palace.name))
-            .size(16)
+            .size(TYPE.heading)
             .color(MAJOR_PURPLE),
     ]
     .spacing(1)
@@ -452,9 +453,11 @@ fn palace_identity<'a>(
         container(decorative_column(gods_right, MINOR_MALEFIC, i18n))
             .width(Length::Fill)
             .align_x(Alignment::End),
+        // The 干支 footer stays calm and readable in secondary ink rather than a
+        // saturated tone, so the palace identity row reads as stable metadata.
         text(i18n.stem_branch(palace.stem, palace.branch))
-            .size(12)
-            .color(mutagen_badge_color(Mutagen::Ke)),
+            .size(TYPE.label)
+            .style(secondary_text_style),
     ]
     .spacing(1)
     .align_x(Alignment::End);

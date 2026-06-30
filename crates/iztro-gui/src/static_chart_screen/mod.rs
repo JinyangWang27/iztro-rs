@@ -23,6 +23,9 @@ mod palace;
 mod startup;
 mod style;
 mod temporal;
+mod theme;
+
+pub(crate) use theme::iced_theme;
 
 #[cfg(test)]
 mod tests;

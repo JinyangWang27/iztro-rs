@@ -4,7 +4,8 @@ use iztro_i18n::{I18n, Locale};
 
 use super::labels::{four_pillars_line, gender_symbol};
 use super::palace::{PalaceHighlight, StaticStarTone, star_tone};
-use super::style::{DECOR_GOD_OLIVE, MINOR_MALEFIC, mutagen_badge_color, rgb8};
+use super::style::{DECOR_GOD_OLIVE, MINOR_MALEFIC, mutagen_badge_color};
+use super::theme::rgb8;
 
 /// Shorthand for an expected [`StarWrapPlan`] in the wrap-planner tests.
 fn plan(visible_count: usize, overflow_count: usize) -> super::palace::StarWrapPlan {
@@ -203,10 +204,12 @@ fn ordinary_adjective_stars_map_to_default() {
 
 #[test]
 fn mutagen_badge_colors_cover_all_four_transformations() {
-    assert_eq!(mutagen_badge_color(Mutagen::Lu), rgb8(0xd4, 0x38, 0x0d));
-    assert_eq!(mutagen_badge_color(Mutagen::Quan), rgb8(0x2f, 0x54, 0xeb));
-    assert_eq!(mutagen_badge_color(Mutagen::Ke), rgb8(0x23, 0x78, 0x04));
-    assert_eq!(mutagen_badge_color(Mutagen::Ji), rgb8(0x00, 0x00, 0x00));
+    // InkPaper maps the four transformations onto warm semantic tokens:
+    // 禄 cinnabar, 权 blue, 科 jade, 忌 ink.
+    assert_eq!(mutagen_badge_color(Mutagen::Lu), rgb8(0xB6, 0x42, 0x2C));
+    assert_eq!(mutagen_badge_color(Mutagen::Quan), rgb8(0x3F, 0x6F, 0x99));
+    assert_eq!(mutagen_badge_color(Mutagen::Ke), rgb8(0x5F, 0x7F, 0x64));
+    assert_eq!(mutagen_badge_color(Mutagen::Ji), rgb8(0x26, 0x23, 0x1F));
 }
 
 #[test]
@@ -235,8 +238,8 @@ fn decorative_family_splits_into_bottom_zones() {
             DecorativeStarFamily::Changsheng12 | DecorativeStarFamily::Boshi12
         ));
     }
-    assert_eq!(DECOR_GOD_OLIVE, rgb8(0x90, 0x98, 0x3c));
-    assert_eq!(MINOR_MALEFIC, rgb8(0x81, 0x33, 0x59));
+    assert_eq!(DECOR_GOD_OLIVE, rgb8(0x7C, 0x7B, 0x4A));
+    assert_eq!(MINOR_MALEFIC, rgb8(0x8A, 0x3F, 0x55));
 }
 
 #[test]
