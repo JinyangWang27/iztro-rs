@@ -41,8 +41,8 @@ pub enum RightPanelMode {
 
 /// Selects the GUI visual theme (palette + design tokens).
 ///
-/// Only [`GuiThemeId::InkPaper`] is implemented today; the enum is the extension
-/// point for future themes (JadeLight, DeepInk, …). It is a stable internal key,
+/// `InkPaper` is the default theme. `JadeLight` and `DeepInk` are also available
+/// as user-selectable themes. It is a stable internal key,
 /// never a localized display string, so settings files round-trip safely. A
 /// *missing* theme field fills in from the serde default on
 /// [`AppSettings`](AppSettings::theme); an explicit unknown variant string is not
@@ -54,6 +54,10 @@ pub enum GuiThemeId {
     /// Warm paper background, ivory palace cards, deep-purple primary accents.
     #[default]
     InkPaper,
+    /// Soft jade/green accents on ivory-pale surfaces. High-readability light theme.
+    JadeLight,
+    /// Deep navy background with soft purple/jade accents. Premium dark theme.
+    DeepInk,
 }
 
 /// Which inspector tab is active. Defaults to [`RightPanelTab::QuanShuRules`].
@@ -284,5 +288,24 @@ mod tests {
         assert_eq!(settings.right_panel_mode, RightPanelMode::Compact);
         assert_eq!(settings.right_panel_tab, RightPanelTab::QuanShuRules);
         assert_eq!(settings.theme, GuiThemeId::InkPaper);
+    }
+
+    #[test]
+    fn jade_light_and_deep_ink_round_trip_through_the_store() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        for theme in [GuiThemeId::JadeLight, GuiThemeId::DeepInk] {
+            let store = SettingsStore::new(dir.path().join("settings.json"));
+            let settings = AppSettings {
+                theme,
+                ..AppSettings::default()
+            };
+            store.save(&settings).expect("save");
+            assert_eq!(store.load().theme, theme);
+        }
+    }
+
+    #[test]
+    fn default_settings_still_use_ink_paper_after_new_variants_added() {
+        assert_eq!(AppSettings::default().theme, GuiThemeId::InkPaper);
     }
 }

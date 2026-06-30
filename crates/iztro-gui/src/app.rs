@@ -23,7 +23,7 @@ use crate::analysis::{
     missing_analysis_layers,
 };
 use crate::persistence::ChartStore;
-use crate::settings::{AppSettings, RightPanelMode, RightPanelTab, SettingsStore};
+use crate::settings::{AppSettings, GuiThemeId, RightPanelMode, RightPanelTab, SettingsStore};
 use iztro::analysis::{
     AnalysisLayerKey, AnalysisLayerRequest, analysis_layers_for_selection,
     detect_static_temporal_analysis_layers_from_chart,
@@ -545,6 +545,8 @@ pub enum Message {
     BackToStartup,
     /// Switch the active display locale.
     SetLocale(Locale),
+    /// Switch the active GUI visual theme.
+    SetTheme(GuiThemeId),
     /// Toggle the right inspector between hidden and visible (compact).
     ToggleRightPanel,
     /// Set the right inspector visibility/width mode.
@@ -1391,6 +1393,10 @@ impl StaticChartApp {
                         }
                     }
                 }
+                self.persist_settings();
+            }
+            Message::SetTheme(theme_id) => {
+                self.settings.theme = theme_id;
                 self.persist_settings();
             }
             Message::ToggleRightPanel => {

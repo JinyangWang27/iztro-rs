@@ -163,7 +163,7 @@ fn detect_ma_tou_dai_jian(ctx: &PatternContext<'_>, scope: Scope, out: &mut Vec<
         scope,
         PatternId::MaTouDaiJian,
         PatternFamily::ShaJi,
-        PatternPolarity::Mixed,
+        PatternPolarity::Neutral,
         branch,
         vec![tian_ma.placement().name(), qing_yang.placement().name()],
     );

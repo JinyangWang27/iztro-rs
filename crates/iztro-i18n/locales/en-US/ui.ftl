@@ -96,7 +96,9 @@ settings-sidebar-hidden = Hidden
 settings-sidebar-compact = Compact
 settings-sidebar-expanded = Expanded
 settings-theme = Theme
-theme-ink-paper = Ink Paper
+theme-ink-paper = InkPaper
+theme-jade-light = JadeLight
+theme-deep-ink = DeepInk
 
 rules-scope-natal = Natal
 rules-scope-decadal = Decadal
@@ -114,3 +116,9 @@ patterns-detail-mutagens = Mutagens
 pattern-strength-weak = Weak
 pattern-strength-medium = Medium
 pattern-strength-strong = Strong
+
+# Pattern polarity labels
+pattern-polarity-auspicious = Auspicious
+pattern-polarity-inauspicious = Inauspicious
+pattern-polarity-neutral = Neutral
+patterns-detail-polarity = Polarity

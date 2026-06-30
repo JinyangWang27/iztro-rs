@@ -109,8 +109,13 @@ pub enum PatternPolarity {
     Auspicious,
     /// Inauspicious (凶).
     Inauspicious,
-    /// Mixed (吉凶参半).
-    Mixed,
+    /// Neutral / balanced (平).
+    ///
+    /// This replaces the earlier "mixed / 吉凶参半" presentation while preserving
+    /// the same coarse bucket for patterns that are neither purely auspicious nor
+    /// purely inauspicious.
+    #[serde(alias = "mixed")]
+    Neutral,
 }
 
 /// Fulfilment/integrity status of a detected pattern.
@@ -345,5 +350,19 @@ mod tests {
             }
         }
         assert_eq!(PatternId::ALL.len(), 17);
+    }
+
+    #[test]
+    fn mixed_alias_deserializes_to_neutral() {
+        let polarity: PatternPolarity = serde_json::from_str(r#""mixed""#).unwrap();
+        assert_eq!(polarity, PatternPolarity::Neutral);
+    }
+
+    #[test]
+    fn neutral_serializes_as_neutral_not_mixed() {
+        assert_eq!(
+            serde_json::to_string(&PatternPolarity::Neutral).unwrap(),
+            r#""neutral""#
+        );
     }
 }
