@@ -203,34 +203,24 @@ fn inspector_card<'a>(
         .into()
 }
 
-/// The 格局 tab: cached pattern detections grouped by layer scope.
+/// The 格局 tab: all detected patterns across all layers, each row showing
+/// scope · name · polarity inline (no separate scope-group headers).
 fn patterns_tab<'a>(
     app: &'a StaticChartApp,
     palette: GuiPalette,
     i18n: &I18n,
 ) -> Element<'a, Message> {
-    let mut content = column![].spacing(SPACING.lg);
+    let mut content = column![].spacing(SPACING.md);
     let mut any = false;
 
     for key in app.required_analysis_layers() {
         let Some(result) = app.analysis_cache().get(&key) else {
             continue;
         };
-        if result.pattern_hits.is_empty() {
-            continue;
-        }
-        any = true;
-        let scope_label = i18n.analysis_scope_label(key.scope());
-        let mut group = column![
-            text(scope_label)
-                .size(TYPE.body)
-                .style(section_title_style(palette))
-        ]
-        .spacing(SPACING.md);
         for detection in &result.pattern_hits {
-            group = group.push(pattern_hit_line(app, &key, detection, palette, i18n));
+            any = true;
+            content = content.push(pattern_hit_line(app, &key, detection, palette, i18n));
         }
-        content = content.push(group);
     }
 
     if any {
@@ -254,8 +244,15 @@ fn pattern_hit_line<'a>(
     };
     let expanded = app.is_pattern_hit_expanded(&expansion_key);
 
+    let scope_label = i18n.analysis_scope_label(key.scope());
+    let polarity_label = i18n.pattern_polarity_label(detection.polarity);
+    let header_text = format!(
+        "{} · {} · {}",
+        scope_label, detection.name_zh, polarity_label
+    );
+
     let header = row![
-        text(detection.name_zh.to_owned()).size(TYPE.body),
+        text(header_text).size(TYPE.body),
         iced::widget::horizontal_space(),
         pill_badge(palette, i18n.pattern_status_label(detection.status)),
     ]
@@ -285,11 +282,18 @@ fn pattern_details<'a>(
     palette: GuiPalette,
     i18n: &I18n,
 ) -> Element<'a, Message> {
-    let mut rows = column![detail_row(
-        palette,
-        &i18n.text("patterns-detail-strength"),
-        &pattern_strength_label(detection.strength, i18n),
-    )]
+    let mut rows = column![
+        detail_row(
+            palette,
+            &i18n.text("patterns-detail-polarity"),
+            &i18n.pattern_polarity_label(detection.polarity),
+        ),
+        detail_row(
+            palette,
+            &i18n.text("patterns-detail-strength"),
+            &pattern_strength_label(detection.strength, i18n),
+        ),
+    ]
     .spacing(2);
 
     if !detection.involved_stars.is_empty() {
@@ -392,19 +396,29 @@ fn settings_tab<'a>(
         .spacing(SPACING.sm)
     };
 
-    // Theme is read-only for now, so the section reports the active theme
-    // rather than offering unbuilt choices.
     let theme = {
-        let current = match app.settings().theme {
-            GuiThemeId::InkPaper => i18n.text("theme-ink-paper"),
-            GuiThemeId::JadeLight => i18n.text("theme-jade-light"),
-            GuiThemeId::DeepInk => i18n.text("theme-deep-ink"),
+        let active = app.settings().theme;
+        let choice = |label: &str, theme_id: GuiThemeId| {
+            let style = if active == theme_id {
+                button::primary
+            } else {
+                button::secondary
+            };
+            button(text(i18n.text(label)).size(TYPE.label))
+                .on_press(Message::SetTheme(theme_id))
+                .style(style)
+                .padding([SPACING.sm, SPACING.lg])
         };
         column![
             text(i18n.text("settings-theme"))
                 .size(TYPE.body)
                 .style(section_title_style(palette)),
-            pill_badge(palette, current),
+            row![
+                choice("theme-ink-paper", GuiThemeId::InkPaper),
+                choice("theme-jade-light", GuiThemeId::JadeLight),
+                choice("theme-deep-ink", GuiThemeId::DeepInk),
+            ]
+            .spacing(SPACING.md),
         ]
         .spacing(SPACING.sm)
     };
@@ -479,6 +493,31 @@ mod tests {
         app.update(Message::SetRightPanelMode(RightPanelMode::Hidden));
         let i18n = I18n::new(Locale::EnUs);
         assert!(right_inspector(&app, test_palette(), &i18n).is_none());
+    }
+
+    #[test]
+    fn patterns_tab_renders_with_generated_chart() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        app.update(Message::SetRightPanelMode(RightPanelMode::Compact));
+        app.update(Message::SetRightPanelTab(RightPanelTab::Patterns));
+        let i18n = I18n::new(Locale::ZhHans);
+        assert!(right_inspector(&app, test_palette(), &i18n).is_some());
+    }
+
+    #[test]
+    fn settings_tab_renders_for_every_theme() {
+        let i18n = I18n::new(Locale::EnUs);
+        for theme in [
+            GuiThemeId::InkPaper,
+            GuiThemeId::JadeLight,
+            GuiThemeId::DeepInk,
+        ] {
+            let mut app = StaticChartApp::new();
+            app.update(Message::SetTheme(theme));
+            app.update(Message::SetRightPanelTab(RightPanelTab::Settings));
+            assert!(right_inspector(&app, test_palette(), &i18n).is_some());
+        }
     }
 
     #[test]
