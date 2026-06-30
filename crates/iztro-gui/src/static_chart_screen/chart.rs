@@ -1,6 +1,6 @@
 use iced::widget::{button, column, container, row, scrollable, stack, text};
 use iced::{Alignment, Element, Length, Padding};
-use iztro::core::StaticChartViewSnapshot;
+use iztro::StaticChartViewSnapshot;
 use iztro_i18n::I18n;
 
 use crate::app::{Message, StaticChartApp};

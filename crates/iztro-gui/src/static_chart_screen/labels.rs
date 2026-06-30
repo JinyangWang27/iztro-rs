@@ -2,7 +2,8 @@ use std::fmt;
 
 use iced::Element;
 use iced::widget::text;
-use iztro::core::{Gender, StaticChartCenterView};
+use iztro::StaticChartCenterView;
+use iztro::core::Gender;
 use iztro_i18n::{I18n, Locale};
 
 use crate::app::Message;

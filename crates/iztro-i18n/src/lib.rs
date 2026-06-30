@@ -22,10 +22,11 @@ mod localizer;
 #[cfg(test)]
 mod star_table;
 
+use iztro::LunarDateView;
 use iztro::core::labels::chinese_date;
 use iztro::core::{
-    Brightness, EarthlyBranch, FiveElementBureau, Gender, HeavenlyStem, LunarDateView, Mutagen,
-    PalaceName, PatternPolarity, PatternStatus, Scope, StarName, StemBranch, WesternZodiac,
+    Brightness, EarthlyBranch, FiveElementBureau, Gender, HeavenlyStem, Mutagen, PalaceName,
+    PatternPolarity, PatternStatus, Scope, StarName, StemBranch, WesternZodiac,
 };
 use iztro::rules::classical::{Claim, ClaimDomain, ClaimPolarity, ClaimTheme};
 

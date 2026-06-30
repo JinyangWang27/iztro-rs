@@ -22,7 +22,7 @@
 //! only `Natal..=Yearly`, never 流月, so a cached 流年 result stays stable when the
 //! selected 流月 / 流日 / 流时 changes.
 
-use crate::core::facade::static_temporal_chart_view::{
+use crate::core::placement::overlay::selected_temporal::{
     SelectedTemporalChart, build_selected_temporal_chart,
 };
 use crate::core::{Chart, ChartError, StaticTemporalNavigationSelection};

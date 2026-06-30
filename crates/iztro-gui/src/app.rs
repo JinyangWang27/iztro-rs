@@ -30,8 +30,11 @@ use iztro::analysis::{
 };
 use iztro::core::{
     BirthTime, Chart, ChartAlgorithmKind, ChartError, EarthlyBranch, Gender, MethodProfile,
-    SolarChartRequest, SolarDay, SolarMonth, StaticChartCenterView, StaticChartViewSnapshot,
-    StaticPalaceView, StaticTemporalNavigationSelection, by_solar, static_temporal_chart_view,
+    SolarChartRequest, SolarDay, SolarMonth, by_solar,
+};
+use iztro::{
+    StaticChartCenterView, StaticChartViewSnapshot, StaticPalaceView,
+    StaticTemporalNavigationSelection, static_temporal_chart_view,
     temporal_selection_for_solar_moment,
 };
 use iztro_i18n::{I18n, Locale};
@@ -812,7 +815,7 @@ impl StaticChartApp {
     /// Lookup is keyed by [`grid_position`], not by `Vec` order. Center cells and
     /// the empty-snapshot case return `None`.
     ///
-    /// [`grid_position`]: iztro::core::StaticPalaceView::grid_position
+    /// [`grid_position`]: iztro::StaticPalaceView::grid_position
     pub fn palace_at(&self, row: u8, column: u8) -> Option<&StaticPalaceView> {
         self.palaces().iter().find(|palace| {
             palace.grid_position.row() == row && palace.grid_position.column() == column
@@ -859,7 +862,7 @@ impl StaticChartApp {
     /// prepared [`surround`] field; performs no branch arithmetic. 三方四正 is
     /// always shown, matching the original iztro chart.
     ///
-    /// [`surround`]: iztro::core::StaticPalaceView::surround
+    /// [`surround`]: iztro::StaticPalaceView::surround
     pub fn is_in_san_fang(&self, branch: EarthlyBranch) -> bool {
         self.active_palace()
             .is_some_and(|palace| palace.surround.involves(branch))

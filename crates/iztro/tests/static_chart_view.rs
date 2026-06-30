@@ -8,9 +8,10 @@
 //! Regenerate with:
 //! `cargo test -p iztro --test static_chart_view -- --ignored regenerate_fixture`
 
+use iztro::StaticChartViewSnapshot;
 use iztro::core::{
     Chart, ChartAlgorithmKind, Gender, LunarChartRequest, LunarDay, LunarMonth, MethodProfile,
-    StaticChartViewSnapshot, StemBranch, by_lunar,
+    StemBranch, by_lunar,
 };
 use serde_json::Value;
 

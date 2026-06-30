@@ -2,9 +2,9 @@ use std::collections::HashSet;
 
 use iztro::core::{
     Chart, ChartAlgorithmKind, Gender, LunarChartRequest, LunarDay, LunarMonth, MethodProfile,
-    PALACE_COUNT, StaticChartViewSnapshot, StaticTemporalPanelView, StemBranch, build_empty_chart,
-    by_lunar,
+    PALACE_COUNT, StemBranch, build_empty_chart, by_lunar,
 };
+use iztro::{StaticChartViewSnapshot, StaticTemporalPanelView};
 
 fn canonical_chart() -> Chart {
     let birth_year = StemBranch::from_lunar_year(1990);

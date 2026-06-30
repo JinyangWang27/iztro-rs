@@ -8,7 +8,10 @@
 
 use iztro::core::{
     BirthTime, ChartAlgorithmKind, ChartError, Gender, MethodProfile, Scope, SolarChartRequest,
-    SolarDay, SolarMonth, StaticTemporalNavigationSelection, by_solar, static_temporal_chart_view,
+    SolarDay, SolarMonth, by_solar,
+};
+use iztro::{
+    StaticTemporalNavigationSelection, static_temporal_chart_view,
     static_temporal_chart_view_from_chart, temporal_selection_for_local_moment,
 };
 
@@ -65,7 +68,7 @@ fn center_carries_prepared_iztro_style_natal_labels() {
     // presentation layer can render them in any locale.
     assert_eq!(
         center.birth_lunar_date,
-        Some(iztro::core::LunarDateView {
+        Some(iztro::LunarDateView {
             year: 1993,
             month: 4,
             day: 7,
@@ -186,7 +189,7 @@ fn every_palace_carries_a_decadal_age_range() {
 
 /// Counts, across all palaces, the overlays of `scope` whose `period_label_zh`
 /// marks the palace as that scope's period anchor.
-fn marker_count(snapshot: &iztro::core::StaticChartViewSnapshot, scope: Scope) -> usize {
+fn marker_count(snapshot: &iztro::StaticChartViewSnapshot, scope: Scope) -> usize {
     snapshot
         .palaces
         .iter()
@@ -374,7 +377,7 @@ fn temporal_selection_changes_overlays_only_not_natal_facts() {
 
     // Natal center facts are identical regardless of temporal selection; only
     // the navigation-dependent labels (年龄(虚岁), 运限农历/阳历) may differ.
-    let stable = |center: &iztro::core::StaticChartCenterView| {
+    let stable = |center: &iztro::StaticChartCenterView| {
         let mut center = center.clone();
         center.nominal_age_label = None;
         center.temporal_lunar_label = None;
@@ -628,8 +631,7 @@ fn snapshot_with_selection_flags_serializes_round_trip() {
     )
     .unwrap();
     let json = serde_json::to_string(&snapshot).expect("serialize");
-    let back: iztro::core::StaticChartViewSnapshot =
-        serde_json::from_str(&json).expect("deserialize");
+    let back: iztro::StaticChartViewSnapshot = serde_json::from_str(&json).expect("deserialize");
     assert_eq!(snapshot, back);
 }
 
@@ -738,7 +740,7 @@ fn hourly_selection_rejects_out_of_range_hour_index() {
 /// The branch of the single palace carrying the 流年 (`Scope::Yearly`) period
 /// marker for `snapshot`, if any.
 fn yearly_marker_branch(
-    snapshot: &iztro::core::StaticChartViewSnapshot,
+    snapshot: &iztro::StaticChartViewSnapshot,
 ) -> Option<iztro::core::EarthlyBranch> {
     snapshot
         .palaces
@@ -902,7 +904,7 @@ fn snapshot_without_small_limit_fields_still_deserializes() {
         limit.remove("is_active_small_limit");
         limit.remove("active_small_limit_age");
     }
-    let restored: iztro::core::StaticChartViewSnapshot =
+    let restored: iztro::StaticChartViewSnapshot =
         serde_json::from_value(value).expect("legacy snapshot without 小限 fields deserializes");
     assert!(restored.center.small_limit_age.is_none());
     assert!(

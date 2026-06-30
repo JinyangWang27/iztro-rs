@@ -13,7 +13,7 @@
 //! view models and already-computed analysis results — no astrology placement,
 //! 三方四正, mutagen, rule evaluation, pattern detection, or 成格 derivation.
 //!
-//! [`StaticChartViewSnapshot`]: iztro::core::StaticChartViewSnapshot
+//! [`StaticChartViewSnapshot`]: iztro::StaticChartViewSnapshot
 
 mod chart;
 mod inspector;

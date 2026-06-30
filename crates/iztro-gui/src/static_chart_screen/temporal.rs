@@ -1,6 +1,7 @@
 use iced::widget::{button, container, row, text};
 use iced::{Alignment, Element};
-use iztro::core::{EarthlyBranch, Scope, StaticTemporalNavigationSelection};
+use iztro::StaticTemporalNavigationSelection;
+use iztro::core::{EarthlyBranch, Scope};
 use iztro_i18n::I18n;
 
 use crate::app::{Message, StepDirection, TemporalUnit};

@@ -1,8 +1,8 @@
 use iced::widget::{button, column, container, mouse_area, row, text};
 use iced::{Alignment, Color, Element, Length};
-use iztro::core::{
-    DecorativeStarFamily, Scope, StarCategory, StarKind, StaticChartCenterView,
-    StaticChartViewSnapshot, StaticDecorativeStarView, StaticPalaceView,
+use iztro::core::{DecorativeStarFamily, Scope, StarCategory, StarKind};
+use iztro::{
+    StaticChartCenterView, StaticChartViewSnapshot, StaticDecorativeStarView, StaticPalaceView,
     StaticTemporalNavigationSelection, StaticTypedStarView,
 };
 use iztro_i18n::I18n;

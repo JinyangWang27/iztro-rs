@@ -7,7 +7,8 @@
 //! through `iztro-i18n`) and additionally build the full view under both locales
 //! to prove the render path never panics or yields a missing-key placeholder.
 
-use iztro::core::{PalaceName, Scope, StaticChartCenterView, StaticPalaceView};
+use iztro::core::{PalaceName, Scope};
+use iztro::{StaticChartCenterView, StaticPalaceView};
 use iztro_gui::app::{FormError, Message, StaticChartApp, TemporalCell};
 use iztro_i18n::{I18n, Locale};
 

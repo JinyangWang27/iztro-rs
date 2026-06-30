@@ -312,6 +312,19 @@ impl BirthTime {
     }
 }
 
+/// Maps a clock hour (`0..=23`) to the upstream `iztro` `timeIndex` (`0..=12`).
+///
+/// `0` is early Zi (子) and `23` is late Zi (晚子时, `timeIndex = 12`); every other
+/// hour rounds up to its 时辰 index. This is a pure time transformation owned by
+/// `core`, used by both the calculation layer and the projection facade.
+pub(crate) const fn time_index_for_hour(hour: u8) -> u8 {
+    match hour {
+        0 => 0,
+        23 => 12,
+        h => h.div_ceil(2),
+    }
+}
+
 impl Serialize for BirthTime {
     fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
     where

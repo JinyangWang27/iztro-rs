@@ -6,7 +6,7 @@
 //! state *requests* structured, per-layer [`AnalysisLayerResult`]s and caches
 //! them, while the renderer only displays already-computed values.
 //!
-//! [`StaticChartViewSnapshot`]: iztro::core::StaticChartViewSnapshot
+//! [`StaticChartViewSnapshot`]: iztro::StaticChartViewSnapshot
 //! [`AnalysisLayerResult`]: iztro::analysis::AnalysisLayerResult
 
 pub mod analysis;
@@ -134,7 +134,7 @@ mod tests {
         assert_eq!(reads, 1);
         assert!(matches!(
             app.selected_temporal_selection(),
-            iztro::core::StaticTemporalNavigationSelection::Hourly { hour_index: 12, .. }
+            iztro::StaticTemporalNavigationSelection::Hourly { hour_index: 12, .. }
         ));
     }
 

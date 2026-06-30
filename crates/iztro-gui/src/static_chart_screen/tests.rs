@@ -25,14 +25,14 @@ fn chart_app() -> StaticChartApp {
 }
 
 /// Owned copy of the generated chart's center facts.
-fn sample_center() -> iztro::core::StaticChartCenterView {
+fn sample_center() -> iztro::StaticChartCenterView {
     chart_app()
         .center()
         .expect("generated chart center")
         .clone()
 }
 
-fn sample_typed_star() -> iztro::core::StaticTypedStarView {
+fn sample_typed_star() -> iztro::StaticTypedStarView {
     let app = chart_app();
     app.palaces()
         .iter()
@@ -139,7 +139,7 @@ fn basic_information_uses_two_alternating_columns() {
 }
 
 /// A typed star carrying only the field that drives visual classification.
-fn typed_star_with_kind(kind: StarKind) -> iztro::core::StaticTypedStarView {
+fn typed_star_with_kind(kind: StarKind) -> iztro::StaticTypedStarView {
     let mut star = sample_typed_star();
     star.kind = kind;
     star
@@ -390,7 +390,7 @@ fn palace_highlight_is_disjoint_between_selected_and_related() {
 
 #[test]
 fn period_badge_label_comes_from_prepared_overlay_field() {
-    use iztro::core::{StaticTemporalNavigationSelection, static_temporal_chart_view};
+    use iztro::{StaticTemporalNavigationSelection, static_temporal_chart_view};
 
     // A 流年 selection attaches an overlay whose compact badge label is prepared
     // by core (e.g. `流年·丁`); the GUI renders it verbatim.
