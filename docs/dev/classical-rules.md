@@ -71,6 +71,44 @@ in **separate** tabs:
 Do not widen `user_facing()` to include `IztroPatternCatalog`. The guardrail
 test `user_facing_analysis_request_is_quan_shu_only` pins this.
 
+## Pattern metadata boundaries
+
+`core::pattern` has two metadata surfaces with different purposes:
+
+- `PatternSourceMetadata` is verified source provenance only. It should quote
+  the source-facing name and verbatim source text, and it must not carry
+  runtime condition normalization or interpretation.
+- `PatternDisplayMetadata` is display/runtime metadata. It may carry display
+  name, aliases, condition note, source note, and interpretation note. A source
+  note is presentation context, not verified provenance.
+
+Use the three-line convention for every pattern:
+
+1. Condition -> detector logic and structured `PatternEvidence`.
+2. Source -> verified provenance or display source note.
+3. Claim -> display/docs only unless a rule-engine claim is explicitly added.
+
+In pattern docs and display metadata, `加会` means present in the anchor
+palace's `三方四正`. `RiChuFuSang` remains the public id for the source-inventory
+entry, while runtime display metadata may show `日照雷门` and alias
+`日出扶桑格`.
+
+## Checklist for adding one executable pattern
+
+- [ ] Add the `PatternId` variant and update `PatternId::ALL` plus its
+  exhaustive unit test.
+- [ ] Add `PatternDisplayMetadata` for display/runtime names and notes.
+- [ ] Add `PatternSourceMetadata` only when the exact source-facing name and
+  verbatim source text are verified against the inventory.
+- [ ] Add a focused detector in `core::pattern::rules` and register it in
+  `detector.rs`.
+- [ ] Populate `involved_palaces`, `involved_stars`, `involved_mutagens`, and
+  `PatternEvidence` from structured query results.
+- [ ] Add positive and negative integration tests in
+  `crates/iztro/tests/patterns.rs`.
+- [ ] Update `docs/en/patterns.md` and `docs/zh-CN/patterns.md` when the public
+  catalog changes.
+
 ## Checklist for adding one executable QuanShu rule
 
 - [ ] Confirm the source inventory entry exists in
