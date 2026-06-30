@@ -477,7 +477,7 @@ fn palace_identity<'a>(
 ) -> Element<'a, Message> {
     let left = column![
         container(decorative_column(gods_left, palette.decorative_olive, i18n)).width(Length::Fill),
-        text(i18n.palace_name(palace.name))
+        text(i18n.palace_name(palace.natal_identity.palace_name))
             .size(TYPE.heading)
             .color(palette.accent),
     ]
@@ -489,7 +489,7 @@ fn palace_identity<'a>(
             .align_x(Alignment::End),
         // The 干支 footer stays calm and readable in secondary ink rather than a
         // saturated tone, so the palace identity row reads as stable metadata.
-        text(i18n.stem_branch(palace.stem, palace.branch))
+        text(i18n.stem_branch(palace.natal_identity.stem, palace.branch))
             .size(TYPE.label)
             .style(secondary_text_style(palette)),
     ]

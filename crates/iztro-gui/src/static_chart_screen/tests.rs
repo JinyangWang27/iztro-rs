@@ -373,10 +373,10 @@ fn palace_footer_anchors_name_left_and_stem_branch_right() {
 
     // The footer renders the localized palace name (left) and stem-branch (right)
     // from typed fields, not pre-rendered Chinese strings.
-    assert!(source.contains("i18n.palace_name(palace.name)"));
+    assert!(source.contains("i18n.palace_name(palace.natal_identity.palace_name)"));
     // The palace name uses the active palette's primary accent tone.
     assert!(source.contains("color(palette.accent)"));
-    assert!(source.contains("i18n.stem_branch(palace.stem, palace.branch)"));
+    assert!(source.contains("i18n.stem_branch(palace.natal_identity.stem, palace.branch)"));
     assert!(source.contains("align_x(Alignment::Start)"));
     assert!(source.contains("align_x(Alignment::End)"));
 }

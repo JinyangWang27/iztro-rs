@@ -7,6 +7,7 @@
 //! so it lives in `core` (depended on by everything above it) rather than in the
 //! projection layer.
 
+use crate::core::model::star::mutagen::Scope;
 use serde::{Deserialize, Serialize};
 
 /// A renderer-neutral, hierarchical drill-down selection for the bottom panel.
@@ -76,6 +77,25 @@ pub enum StaticTemporalNavigationSelection {
 }
 
 impl StaticTemporalNavigationSelection {
+    /// The scope whose palace-name layout is the active/primary frame for this
+    /// selection.
+    ///
+    /// This is the single canonical mapping from a navigation selection to its
+    /// active palace frame: natal/pre-decadal resolve to [`Scope::Natal`], and
+    /// every deeper selection resolves to its own scope. Note that a 流年
+    /// (`Yearly`) selection is [`Scope::Yearly`], never [`Scope::Age`] — 小限 may
+    /// be a visible auxiliary overlay but is never the active frame.
+    pub const fn active_frame_scope(&self) -> Scope {
+        match self {
+            Self::Natal | Self::PreDecadal => Scope::Natal,
+            Self::Decadal { .. } => Scope::Decadal,
+            Self::Yearly { .. } => Scope::Yearly,
+            Self::Monthly { .. } => Scope::Monthly,
+            Self::Daily { .. } => Scope::Daily,
+            Self::Hourly { .. } => Scope::Hourly,
+        }
+    }
+
     /// The selected decadal period index, if the path reaches 大限.
     pub const fn decadal_index(&self) -> Option<usize> {
         match self {

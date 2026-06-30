@@ -91,8 +91,9 @@ fn chart_app() -> StaticChartApp {
 /// Every user-facing label the renderer derives for a palace, via `iztro-i18n`.
 fn palace_labels(palace: &StaticPalaceProjection, i18n: &I18n) -> Vec<String> {
     let mut labels = vec![
-        i18n.palace_name(palace.name),
-        i18n.stem(palace.stem),
+        i18n.palace_name(palace.natal_identity.palace_name),
+        i18n.palace_name(palace.active_frame.palace_name),
+        i18n.stem(palace.natal_identity.stem),
         i18n.branch(palace.branch),
     ];
     for star in palace

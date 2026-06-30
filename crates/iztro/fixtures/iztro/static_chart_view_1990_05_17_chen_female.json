@@ -1,6 +1,6 @@
 {
   "case_id": "1990_05_17_chen_female",
-  "note": "Self-generated golden: serialized StaticChartViewSnapshot::from_chart for the canonical natal case. No upstream iztro data.",
+  "note": "Self-generated golden: serialized StaticChartProjection::from_chart for the canonical natal case. No upstream iztro data.",
   "snapshot": {
     "active_scopes": [
       "natal"
@@ -47,6 +47,12 @@
     "highlights": [],
     "palaces": [
       {
+        "active_frame": {
+          "frame_scope": "natal",
+          "is_life_palace": false,
+          "palace_name": "property",
+          "palace_name_zh": "田宅"
+        },
         "adjective_stars": [
           {
             "brightness": "unknown",
@@ -176,18 +182,20 @@
             "name_zh": "火星"
           }
         ],
-        "name": "property",
-        "name_zh": "田宅",
+        "natal_identity": {
+          "palace_name": "property",
+          "palace_name_zh": "田宅",
+          "roles": [
+            {
+              "kind": "natal_palace",
+              "palace_name": "property"
+            }
+          ],
+          "stem": "xin",
+          "stem_zh": "辛"
+        },
         "other_typed_stars": [],
         "overlays": [],
-        "roles": [
-          {
-            "kind": "natal_palace",
-            "palace_name": "property"
-          }
-        ],
-        "stem": "xin",
-        "stem_zh": "辛",
         "surround": {
           "career": "you",
           "opposite": "hai",
@@ -195,6 +203,12 @@
         }
       },
       {
+        "active_frame": {
+          "frame_scope": "natal",
+          "is_life_palace": false,
+          "palace_name": "career",
+          "palace_name_zh": "官禄"
+        },
         "adjective_stars": [
           {
             "brightness": "unknown",
@@ -360,18 +374,20 @@
             "name_zh": "文昌"
           }
         ],
-        "name": "career",
-        "name_zh": "官禄",
+        "natal_identity": {
+          "palace_name": "career",
+          "palace_name_zh": "官禄",
+          "roles": [
+            {
+              "kind": "natal_palace",
+              "palace_name": "career"
+            }
+          ],
+          "stem": "ren",
+          "stem_zh": "壬"
+        },
         "other_typed_stars": [],
         "overlays": [],
-        "roles": [
-          {
-            "kind": "natal_palace",
-            "palace_name": "career"
-          }
-        ],
-        "stem": "ren",
-        "stem_zh": "壬",
         "surround": {
           "career": "xu",
           "opposite": "zi",
@@ -379,6 +395,12 @@
         }
       },
       {
+        "active_frame": {
+          "frame_scope": "natal",
+          "is_life_palace": false,
+          "palace_name": "friends",
+          "palace_name_zh": "仆役"
+        },
         "adjective_stars": [
           {
             "brightness": "unknown",
@@ -556,18 +578,20 @@
             "name_zh": "地空"
           }
         ],
-        "name": "friends",
-        "name_zh": "仆役",
+        "natal_identity": {
+          "palace_name": "friends",
+          "palace_name_zh": "仆役",
+          "roles": [
+            {
+              "kind": "natal_palace",
+              "palace_name": "friends"
+            }
+          ],
+          "stem": "gui",
+          "stem_zh": "癸"
+        },
         "other_typed_stars": [],
         "overlays": [],
-        "roles": [
-          {
-            "kind": "natal_palace",
-            "palace_name": "friends"
-          }
-        ],
-        "stem": "gui",
-        "stem_zh": "癸",
         "surround": {
           "career": "hai",
           "opposite": "chou",
@@ -575,6 +599,12 @@
         }
       },
       {
+        "active_frame": {
+          "frame_scope": "natal",
+          "is_life_palace": false,
+          "palace_name": "migration",
+          "palace_name_zh": "迁移"
+        },
         "adjective_stars": [
           {
             "brightness": "unknown",
@@ -728,18 +758,20 @@
             "name_zh": "天马"
           }
         ],
-        "name": "migration",
-        "name_zh": "迁移",
+        "natal_identity": {
+          "palace_name": "migration",
+          "palace_name_zh": "迁移",
+          "roles": [
+            {
+              "kind": "natal_palace",
+              "palace_name": "migration"
+            }
+          ],
+          "stem": "jia",
+          "stem_zh": "甲"
+        },
         "other_typed_stars": [],
         "overlays": [],
-        "roles": [
-          {
-            "kind": "natal_palace",
-            "palace_name": "migration"
-          }
-        ],
-        "stem": "jia",
-        "stem_zh": "甲",
         "surround": {
           "career": "zi",
           "opposite": "yin",
@@ -747,6 +779,12 @@
         }
       },
       {
+        "active_frame": {
+          "frame_scope": "natal",
+          "is_life_palace": false,
+          "palace_name": "spirit",
+          "palace_name_zh": "福德"
+        },
         "adjective_stars": [
           {
             "brightness": "unknown",
@@ -875,18 +913,20 @@
           }
         ],
         "minor_stars": [],
-        "name": "spirit",
-        "name_zh": "福德",
+        "natal_identity": {
+          "palace_name": "spirit",
+          "palace_name_zh": "福德",
+          "roles": [
+            {
+              "kind": "natal_palace",
+              "palace_name": "spirit"
+            }
+          ],
+          "stem": "geng",
+          "stem_zh": "庚"
+        },
         "other_typed_stars": [],
         "overlays": [],
-        "roles": [
-          {
-            "kind": "natal_palace",
-            "palace_name": "spirit"
-          }
-        ],
-        "stem": "geng",
-        "stem_zh": "庚",
         "surround": {
           "career": "shen",
           "opposite": "xu",
@@ -894,6 +934,12 @@
         }
       },
       {
+        "active_frame": {
+          "frame_scope": "natal",
+          "is_life_palace": false,
+          "palace_name": "health",
+          "palace_name_zh": "疾厄"
+        },
         "adjective_stars": [
           {
             "brightness": "unknown",
@@ -1023,18 +1069,20 @@
             "name_zh": "擎羊"
           }
         ],
-        "name": "health",
-        "name_zh": "疾厄",
+        "natal_identity": {
+          "palace_name": "health",
+          "palace_name_zh": "疾厄",
+          "roles": [
+            {
+              "kind": "natal_palace",
+              "palace_name": "health"
+            }
+          ],
+          "stem": "yi",
+          "stem_zh": "乙"
+        },
         "other_typed_stars": [],
         "overlays": [],
-        "roles": [
-          {
-            "kind": "natal_palace",
-            "palace_name": "health"
-          }
-        ],
-        "stem": "yi",
-        "stem_zh": "乙",
         "surround": {
           "career": "chou",
           "opposite": "mao",
@@ -1042,6 +1090,12 @@
         }
       },
       {
+        "active_frame": {
+          "frame_scope": "natal",
+          "is_life_palace": false,
+          "palace_name": "parents",
+          "palace_name_zh": "父母"
+        },
         "adjective_stars": [
           {
             "brightness": "unknown",
@@ -1171,18 +1225,20 @@
             "name_zh": "地劫"
           }
         ],
-        "name": "parents",
-        "name_zh": "父母",
+        "natal_identity": {
+          "palace_name": "parents",
+          "palace_name_zh": "父母",
+          "roles": [
+            {
+              "kind": "natal_palace",
+              "palace_name": "parents"
+            }
+          ],
+          "stem": "ji",
+          "stem_zh": "己"
+        },
         "other_typed_stars": [],
         "overlays": [],
-        "roles": [
-          {
-            "kind": "natal_palace",
-            "palace_name": "parents"
-          }
-        ],
-        "stem": "ji",
-        "stem_zh": "己",
         "surround": {
           "career": "wei",
           "opposite": "you",
@@ -1190,6 +1246,12 @@
         }
       },
       {
+        "active_frame": {
+          "frame_scope": "natal",
+          "is_life_palace": false,
+          "palace_name": "wealth",
+          "palace_name_zh": "财帛"
+        },
         "adjective_stars": [
           {
             "brightness": "unknown",
@@ -1318,21 +1380,23 @@
           }
         ],
         "minor_stars": [],
-        "name": "wealth",
-        "name_zh": "财帛",
+        "natal_identity": {
+          "palace_name": "wealth",
+          "palace_name_zh": "财帛",
+          "roles": [
+            {
+              "kind": "natal_palace",
+              "palace_name": "wealth"
+            },
+            {
+              "kind": "body_palace"
+            }
+          ],
+          "stem": "bing",
+          "stem_zh": "丙"
+        },
         "other_typed_stars": [],
         "overlays": [],
-        "roles": [
-          {
-            "kind": "natal_palace",
-            "palace_name": "wealth"
-          },
-          {
-            "kind": "body_palace"
-          }
-        ],
-        "stem": "bing",
-        "stem_zh": "丙",
         "surround": {
           "career": "yin",
           "opposite": "chen",
@@ -1340,6 +1404,12 @@
         }
       },
       {
+        "active_frame": {
+          "frame_scope": "natal",
+          "is_life_palace": true,
+          "palace_name": "life",
+          "palace_name_zh": "命宫"
+        },
         "adjective_stars": [
           {
             "brightness": "unknown",
@@ -1468,18 +1538,20 @@
           }
         ],
         "minor_stars": [],
-        "name": "life",
-        "name_zh": "命宫",
+        "natal_identity": {
+          "palace_name": "life",
+          "palace_name_zh": "命宫",
+          "roles": [
+            {
+              "kind": "natal_palace",
+              "palace_name": "life"
+            }
+          ],
+          "stem": "wu",
+          "stem_zh": "戊"
+        },
         "other_typed_stars": [],
         "overlays": [],
-        "roles": [
-          {
-            "kind": "natal_palace",
-            "palace_name": "life"
-          }
-        ],
-        "stem": "wu",
-        "stem_zh": "戊",
         "surround": {
           "career": "wu",
           "opposite": "shen",
@@ -1487,6 +1559,12 @@
         }
       },
       {
+        "active_frame": {
+          "frame_scope": "natal",
+          "is_life_palace": false,
+          "palace_name": "siblings",
+          "palace_name_zh": "兄弟"
+        },
         "adjective_stars": [
           {
             "brightness": "unknown",
@@ -1592,18 +1670,20 @@
             "name_zh": "天魁"
           }
         ],
-        "name": "siblings",
-        "name_zh": "兄弟",
+        "natal_identity": {
+          "palace_name": "siblings",
+          "palace_name_zh": "兄弟",
+          "roles": [
+            {
+              "kind": "natal_palace",
+              "palace_name": "siblings"
+            }
+          ],
+          "stem": "ji",
+          "stem_zh": "己"
+        },
         "other_typed_stars": [],
         "overlays": [],
-        "roles": [
-          {
-            "kind": "natal_palace",
-            "palace_name": "siblings"
-          }
-        ],
-        "stem": "ji",
-        "stem_zh": "己",
         "surround": {
           "career": "si",
           "opposite": "wei",
@@ -1611,6 +1691,12 @@
         }
       },
       {
+        "active_frame": {
+          "frame_scope": "natal",
+          "is_life_palace": false,
+          "palace_name": "spouse",
+          "palace_name_zh": "夫妻"
+        },
         "adjective_stars": [
           {
             "brightness": "unknown",
@@ -1739,18 +1825,20 @@
           }
         ],
         "minor_stars": [],
-        "name": "spouse",
-        "name_zh": "夫妻",
+        "natal_identity": {
+          "palace_name": "spouse",
+          "palace_name_zh": "夫妻",
+          "roles": [
+            {
+              "kind": "natal_palace",
+              "palace_name": "spouse"
+            }
+          ],
+          "stem": "wu",
+          "stem_zh": "戊"
+        },
         "other_typed_stars": [],
         "overlays": [],
-        "roles": [
-          {
-            "kind": "natal_palace",
-            "palace_name": "spouse"
-          }
-        ],
-        "stem": "wu",
-        "stem_zh": "戊",
         "surround": {
           "career": "chen",
           "opposite": "wu",
@@ -1758,6 +1846,12 @@
         }
       },
       {
+        "active_frame": {
+          "frame_scope": "natal",
+          "is_life_palace": false,
+          "palace_name": "children",
+          "palace_name_zh": "子女"
+        },
         "adjective_stars": [
           {
             "brightness": "unknown",
@@ -1874,18 +1968,20 @@
           }
         ],
         "minor_stars": [],
-        "name": "children",
-        "name_zh": "子女",
+        "natal_identity": {
+          "palace_name": "children",
+          "palace_name_zh": "子女",
+          "roles": [
+            {
+              "kind": "natal_palace",
+              "palace_name": "children"
+            }
+          ],
+          "stem": "ding",
+          "stem_zh": "丁"
+        },
         "other_typed_stars": [],
         "overlays": [],
-        "roles": [
-          {
-            "kind": "natal_palace",
-            "palace_name": "children"
-          }
-        ],
-        "stem": "ding",
-        "stem_zh": "丁",
         "surround": {
           "career": "mao",
           "opposite": "si",
@@ -2376,5 +2472,5 @@
       ]
     }
   },
-  "view_model": "StaticChartViewSnapshot"
+  "view_model": "StaticChartProjection"
 }

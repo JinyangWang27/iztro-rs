@@ -82,10 +82,15 @@ pub fn static_temporal_chart_view_from_chart(
         _ => {
             let (spec, visible_scopes) = resolve_partial(&natal, selection)?;
             let horoscope = build_partial_horoscope_chart(natal, spec)?;
+            // The active palace frame is the selection's own scope (流年 → Yearly,
+            // never Age), even though 小限 may remain visible as an overlay.
             let mut snapshot = StaticChartProjection::from_horoscope_chart_with(
                 &horoscope,
-                &StaticChartProjectionRequest { visible_scopes },
-            );
+                &StaticChartProjectionRequest {
+                    visible_scopes,
+                    active_frame_scope: selection.active_frame_scope(),
+                },
+            )?;
             snapshot.temporal_panel =
                 StaticTemporalPanelProjection::from_selection(horoscope.natal(), selection);
             let target = horoscope.target_context().cloned();

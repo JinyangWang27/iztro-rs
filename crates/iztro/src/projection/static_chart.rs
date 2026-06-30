@@ -11,14 +11,16 @@
 //! ordering so a renderer never has to depend on accidental `Vec` order.
 
 use crate::core::calendar::lunar_month_has_thirtieth;
+use crate::core::error::ChartError;
 use crate::core::labels::{chinese_date, zh_cn};
 use crate::core::model::bureau::FiveElementBureau;
 use crate::core::model::calendar::{CalendarKind, Gender};
 use crate::core::model::chart::{
     Chart, DecadalFrame, DecadalPeriod, DecorativeStarFamily, DecorativeStarPlacement,
     HoroscopeChart, MutagenActivation, PALACE_COUNT, Palace, PalaceGridPosition, PalaceName,
-    StarPlacement, StaticTemporalNavigationSelection, TemporalLayer, TemporalPalaceName,
-    VISUAL_BRANCH_ORDER, build_age_period, build_decadal_frame, palace_grid_position,
+    StarPlacement, StaticTemporalNavigationSelection, TemporalLayer, TemporalPalaceLayout,
+    TemporalPalaceName, VISUAL_BRANCH_ORDER, build_age_period, build_decadal_frame,
+    palace_grid_position,
 };
 use crate::core::model::master::{body_master, soul_master};
 use crate::core::model::star::mutagen::Scope;
@@ -628,7 +630,58 @@ pub struct StaticPalaceLimitProjection {
     pub active_small_limit_age: Option<u16>,
 }
 
+/// The immutable natal identity of a branch.
+///
+/// A branch is the stable palace-cell coordinate; palace names are
+/// frame-relative. This is the natal frame's meaning of the branch — the natal
+/// 宫名, its Heavenly Stem, and its natal role markers — and it never changes with
+/// the selected temporal scope. See [`StaticPalaceFrameIdentity`] for the
+/// active-frame meaning.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct StaticNatalPalaceIdentity {
+    /// Natal palace name (本命宫名).
+    pub palace_name: PalaceName,
+    /// Chinese label for the natal palace name.
+    pub palace_name_zh: String,
+    /// Palace Heavenly Stem (宫干) — a natal fact.
+    pub stem: HeavenlyStem,
+    /// Chinese label for the palace stem.
+    pub stem_zh: String,
+    /// Natal role markers (natal palace name, 身宫).
+    pub roles: Vec<StaticPalaceRole>,
+}
+
+/// The active-frame identity of a branch for one selected chart view.
+///
+/// Palace names are frame-relative: the natal chart and each temporal layer may
+/// assign a different [`PalaceName`] to the same branch. This is the *selected*
+/// frame's meaning of the branch — for a natal/pre-decadal selection it is the
+/// natal name, and for a temporal selection it is the selected layer's palace
+/// name. A GUI renders this as the main palace title so it never confuses natal
+/// 命宫 with temporal 命宫.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct StaticPalaceFrameIdentity {
+    /// The scope of the active palace-name frame (Natal/Decadal/Yearly/…).
+    pub frame_scope: Scope,
+    /// The palace name this branch carries in the active frame.
+    pub palace_name: PalaceName,
+    /// Chinese label for the active-frame palace name.
+    pub palace_name_zh: String,
+    /// Whether this branch is the active frame's Life palace (命宫).
+    pub is_life_palace: bool,
+}
+
 /// One perimeter palace cell of a static chart.
+///
+/// A branch is the stable palace-cell coordinate. Palace names are
+/// frame-relative: the projection carries both [`natal_identity`] (the immutable
+/// natal meaning of this branch) and [`active_frame`] (the selected frame's
+/// meaning), so GUI consumers never confuse natal 命宫 with temporal 命宫.
+/// [`overlays`] carry the additional visible temporal-layer facts on this branch.
+///
+/// [`natal_identity`]: StaticPalaceProjection::natal_identity
+/// [`active_frame`]: StaticPalaceProjection::active_frame
+/// [`overlays`]: StaticPalaceProjection::overlays
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct StaticPalaceProjection {
     /// Palace branch (the stable spatial reference).
@@ -646,16 +699,17 @@ pub struct StaticPalaceProjection {
     /// Prepared 大限 / 小限 limit facts shown in the palace center.
     #[serde(default)]
     pub limit: StaticPalaceLimitProjection,
-    /// Natal palace name.
-    pub name: PalaceName,
-    /// Chinese label for the natal palace name.
-    pub name_zh: String,
-    /// Palace Heavenly Stem.
-    pub stem: HeavenlyStem,
-    /// Chinese label for the palace stem.
-    pub stem_zh: String,
-    /// Role markers (natal palace name, body palace).
-    pub roles: Vec<StaticPalaceRole>,
+    /// The immutable natal meaning of this branch (natal 宫名, 干, 身宫/命宫 roles).
+    ///
+    /// Always the natal frame, regardless of the selected temporal scope. Render
+    /// it only where natal/background identity is intended.
+    pub natal_identity: StaticNatalPalaceIdentity,
+    /// The selected chart-frame meaning of this branch (the current 宫名 ring).
+    ///
+    /// Equals the natal name for a natal/pre-decadal selection, and the selected
+    /// temporal layer's palace name otherwise. This is the palace identity a GUI
+    /// should render as the main palace title.
+    pub active_frame: StaticPalaceFrameIdentity,
     /// Major stars (主星) in this palace.
     pub major_stars: Vec<StaticTypedStarProjection>,
     /// Minor stars (辅星) in this palace.
@@ -847,26 +901,41 @@ pub struct HighlightProjection {
     pub involved_mutagens: Vec<Mutagen>,
 }
 
-/// A request describing which temporal overlays a static chart view should show.
+/// A request describing which temporal layers a static chart projection should
+/// show, and which one is the active palace-name frame.
 ///
-/// [`Scope::Natal`] is always the base layer of a static chart, so it is always
-/// selected/active regardless of this request. `visible_scopes` only controls
-/// the requested temporal overlays on top of natal.
+/// The two concepts are distinct and both explicit:
+///
+/// - `visible_scopes` — which temporal layers are visible as overlays. Natal is
+///   always the base layer regardless of this list.
+/// - `active_frame_scope` — which palace-name frame is the primary chart ring
+///   (the 宫名 a GUI renders as each palace's main title).
+///
+/// For example, a 流年 view has `visible_scopes = [Natal, Decadal, Age, Yearly]`
+/// but `active_frame_scope = Yearly`: 小限 (Age) stays visible as auxiliary data
+/// yet never becomes the active frame.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct StaticChartProjectionRequest {
     /// Requested temporal overlays. Natal is always included as the base layer
     /// even if omitted here. Scopes absent from the chart are ignored (their
     /// selector is emitted disabled).
     pub visible_scopes: Vec<Scope>,
+    /// The scope whose palace-name layout is the active/primary frame. For a
+    /// natal/pre-decadal view this is [`Scope::Natal`]; otherwise it is the
+    /// selected temporal scope, and that layer (with a palace layout) must be
+    /// present in the chart.
+    pub active_frame_scope: Scope,
 }
 
 impl StaticChartProjection {
     /// Builds a natal-only static chart view from a natal chart.
     ///
     /// Only [`Scope::Natal`] is enabled and selected; every temporal selector is
-    /// disabled. No overlays are produced.
+    /// disabled, and the active palace frame is the natal frame. No overlays are
+    /// produced.
     pub fn from_chart(chart: &Chart) -> Self {
-        let palaces = build_palaces(chart, &[]);
+        let active_frame = ActiveFrame::natal();
+        let palaces = build_palaces(chart, &active_frame, &[]);
         let present = [Scope::Natal];
         let selected = [Scope::Natal];
         Self {
@@ -880,26 +949,43 @@ impl StaticChartProjection {
     }
 
     /// Builds a static chart view from a horoscope chart, with 本命 plus every
-    /// available temporal layer selected.
-    pub fn from_horoscope_chart(chart: &HoroscopeChart) -> Self {
+    /// available temporal layer visible.
+    ///
+    /// This "show every overlay" convenience view carries no specific temporal
+    /// selection, so the natal frame stays the active palace ring. The real
+    /// selection path (the facade) uses [`from_horoscope_chart_with`] with the
+    /// selected scope as the active frame.
+    ///
+    /// [`from_horoscope_chart_with`]: StaticChartProjection::from_horoscope_chart_with
+    pub fn from_horoscope_chart(chart: &HoroscopeChart) -> Result<Self, ChartError> {
         let mut visible_scopes = vec![Scope::Natal];
         visible_scopes.extend(
             present_scopes(chart)
                 .into_iter()
                 .filter(|s| *s != Scope::Natal),
         );
-        Self::from_horoscope_chart_with(chart, &StaticChartProjectionRequest { visible_scopes })
+        Self::from_horoscope_chart_with(
+            chart,
+            &StaticChartProjectionRequest {
+                visible_scopes,
+                active_frame_scope: Scope::Natal,
+            },
+        )
     }
 
     /// Builds a static chart view from a horoscope chart, selecting exactly the
-    /// scopes in `request` that are present in the chart.
+    /// scopes in `request` that are present in the chart and applying
+    /// `request.active_frame_scope` as the active palace-name frame.
     ///
-    /// Natal facts are identical regardless of selection: selecting scopes only
-    /// changes which temporal overlays are attached to each palace.
+    /// Natal facts are immutable across selections; the active palace frame and
+    /// the visible overlays change with the selected temporal scope. A non-natal
+    /// active frame requires its temporal layer (and palace layout) to be present
+    /// in the chart, otherwise this fails loudly rather than falling back to natal
+    /// names.
     pub fn from_horoscope_chart_with(
         chart: &HoroscopeChart,
         request: &StaticChartProjectionRequest,
-    ) -> Self {
+    ) -> Result<Self, ChartError> {
         let natal = chart.natal();
         let present = present_scopes(chart);
         // Natal is always the base layer of a static chart, so it is always
@@ -924,13 +1010,77 @@ impl StaticChartProjection {
             })
             .collect();
 
-        Self {
+        let active_frame = ActiveFrame::resolve(chart, request.active_frame_scope)?;
+
+        Ok(Self {
             center: StaticChartCenterProjection::from_chart(natal),
-            palaces: build_palaces(natal, &overlay_layers),
+            palaces: build_palaces(natal, &active_frame, &overlay_layers),
             temporal_panel: StaticTemporalPanelProjection::from_horoscope_chart(chart),
             selectors: build_selectors(&present, &selected),
             active_scopes: active_scopes(&selected),
             highlights: Vec::new(),
+        })
+    }
+}
+
+/// The resolved active palace-name frame for a projection: the scope plus the
+/// branch -> [`PalaceName`] mapping to apply. `layout: None` is the natal frame
+/// (use the natal chart's own palace names).
+struct ActiveFrame<'a> {
+    scope: Scope,
+    layout: Option<&'a TemporalPalaceLayout>,
+}
+
+impl<'a> ActiveFrame<'a> {
+    /// The natal palace-name frame.
+    const fn natal() -> Self {
+        Self {
+            scope: Scope::Natal,
+            layout: None,
+        }
+    }
+
+    /// Resolves the active frame for `active_frame_scope` against a horoscope
+    /// chart's layers.
+    ///
+    /// A natal frame needs no layer. A non-natal active frame requires the
+    /// matching [`TemporalLayer`] to be present and to carry a
+    /// [`TemporalPalaceLayout`]; otherwise it fails loudly
+    /// ([`ChartError::MissingHoroscopeLayer`] /
+    /// [`ChartError::MissingHoroscopePalaceLayout`]) rather than silently falling
+    /// back to natal names.
+    fn resolve(chart: &'a HoroscopeChart, active_frame_scope: Scope) -> Result<Self, ChartError> {
+        if active_frame_scope == Scope::Natal {
+            return Ok(Self::natal());
+        }
+        let layer = chart
+            .layers()
+            .iter()
+            .find(|layer| layer.scope() == active_frame_scope)
+            .ok_or(ChartError::MissingHoroscopeLayer {
+                scope: active_frame_scope,
+            })?;
+        let layout = layer
+            .palace_layout()
+            .ok_or(ChartError::MissingHoroscopePalaceLayout {
+                scope: active_frame_scope,
+            })?;
+        Ok(Self {
+            scope: active_frame_scope,
+            layout: Some(layout),
+        })
+    }
+
+    /// The active-frame palace name for `branch`. The natal ring and a temporal
+    /// layer's twelve-name layout both cover every branch.
+    fn palace_name(&self, natal: &Chart, branch: EarthlyBranch) -> PalaceName {
+        match self.layout {
+            None => natal
+                .palace_name_at_branch(branch)
+                .expect("natal palace ring covers every branch"),
+            Some(layout) => layout
+                .name_for_branch(branch)
+                .expect("temporal palace layout covers every branch"),
         }
     }
 }
@@ -1118,19 +1268,30 @@ impl PalaceLimits {
     }
 }
 
-/// Builds the twelve palace cells in fixed [`VISUAL_BRANCH_ORDER`], attaching any
-/// overlays from `overlay_layers`.
-fn build_palaces(chart: &Chart, overlay_layers: &[&TemporalLayer]) -> Vec<StaticPalaceProjection> {
-    let limits = PalaceLimits::for_chart(chart);
+/// Builds the twelve palace cells in fixed [`VISUAL_BRANCH_ORDER`], applying the
+/// `active_frame` palace-name ring and attaching any overlays from
+/// `overlay_layers`.
+fn build_palaces(
+    natal: &Chart,
+    active_frame: &ActiveFrame<'_>,
+    overlay_layers: &[&TemporalLayer],
+) -> Vec<StaticPalaceProjection> {
+    let limits = PalaceLimits::for_chart(natal);
     VISUAL_BRANCH_ORDER
         .into_iter()
         .filter_map(|branch| {
-            chart
+            natal
                 .palaces()
                 .iter()
                 .find(|palace| palace.branch() == branch)
                 .map(|palace| {
-                    StaticPalaceProjection::from_palace(chart, palace, overlay_layers, &limits)
+                    StaticPalaceProjection::from_palace(
+                        natal,
+                        active_frame,
+                        palace,
+                        overlay_layers,
+                        &limits,
+                    )
                 })
         })
         .collect()
@@ -1139,6 +1300,7 @@ fn build_palaces(chart: &Chart, overlay_layers: &[&TemporalLayer]) -> Vec<Static
 impl StaticPalaceProjection {
     fn from_palace(
         chart: &Chart,
+        active_frame: &ActiveFrame<'_>,
         palace: &Palace,
         overlay_layers: &[&TemporalLayer],
         limits: &PalaceLimits,
@@ -1176,17 +1338,32 @@ impl StaticPalaceProjection {
             .map(|layer| StaticTemporalOverlayProjection::from_layer(layer, palace.branch()))
             .collect();
 
+        let natal_identity = StaticNatalPalaceIdentity {
+            palace_name: palace.name(),
+            palace_name_zh: zh_cn::palace_name_zh(palace.name()).to_owned(),
+            stem: palace.stem(),
+            stem_zh: zh_cn::heavenly_stem_zh(palace.stem()).to_owned(),
+            roles,
+        };
+
+        // The active-frame name is frame-relative: it is the natal name for a
+        // natal frame, and the selected temporal layer's name otherwise.
+        let frame_palace_name = active_frame.palace_name(chart, palace.branch());
+        let active_frame = StaticPalaceFrameIdentity {
+            frame_scope: active_frame.scope,
+            palace_name: frame_palace_name,
+            palace_name_zh: zh_cn::palace_name_zh(frame_palace_name).to_owned(),
+            is_life_palace: frame_palace_name == PalaceName::Life,
+        };
+
         Self {
             branch: palace.branch(),
             branch_zh: zh_cn::earthly_branch_zh(palace.branch()).to_owned(),
             grid_position: palace_grid_position(palace.branch()),
             surround: StaticSurroundProjection::for_branch(palace.branch()),
             limit: limits.view_for(palace.branch()),
-            name: palace.name(),
-            name_zh: zh_cn::palace_name_zh(palace.name()).to_owned(),
-            stem: palace.stem(),
-            stem_zh: zh_cn::heavenly_stem_zh(palace.stem()).to_owned(),
-            roles,
+            natal_identity,
+            active_frame,
             major_stars,
             minor_stars,
             adjective_stars,
@@ -1400,8 +1577,8 @@ mod tests {
         let snapshot = StaticChartProjection::from_chart(&sample_chart());
         for palace in &snapshot.palaces {
             assert!(!palace.branch_zh.is_empty());
-            assert!(!palace.name_zh.is_empty());
-            assert!(!palace.stem_zh.is_empty());
+            assert!(!palace.natal_identity.palace_name_zh.is_empty());
+            assert!(!palace.natal_identity.stem_zh.is_empty());
         }
     }
 
@@ -1538,7 +1715,7 @@ mod tests {
     fn surround_is_a_natal_fact_independent_of_overlays() {
         let chart = sample_horoscope_chart();
         let natal_only = StaticChartProjection::from_chart(chart.natal());
-        let with_overlays = StaticChartProjection::from_horoscope_chart(&chart);
+        let with_overlays = StaticChartProjection::from_horoscope_chart(&chart).unwrap();
         for (a, b) in natal_only.palaces.iter().zip(&with_overlays.palaces) {
             assert_eq!(a.branch, b.branch);
             // 三方四正 is a positional natal fact; overlays never change it.
@@ -1640,7 +1817,7 @@ mod tests {
     #[test]
     fn from_horoscope_chart_enables_and_selects_present_scopes() {
         let chart = sample_horoscope_chart();
-        let snapshot = StaticChartProjection::from_horoscope_chart(&chart);
+        let snapshot = StaticChartProjection::from_horoscope_chart(&chart).unwrap();
 
         let present = [Scope::Natal, Scope::Decadal, Scope::Yearly];
         for selector in &snapshot.selectors {
@@ -1657,7 +1834,8 @@ mod tests {
 
     #[test]
     fn selector_labels_are_correct() {
-        let snapshot = StaticChartProjection::from_horoscope_chart(&sample_horoscope_chart());
+        let snapshot =
+            StaticChartProjection::from_horoscope_chart(&sample_horoscope_chart()).unwrap();
         let labels: Vec<(Scope, &str)> = snapshot
             .selectors
             .iter()
@@ -1679,7 +1857,8 @@ mod tests {
 
     #[test]
     fn absent_scopes_are_disabled_deterministically() {
-        let snapshot = StaticChartProjection::from_horoscope_chart(&sample_horoscope_chart());
+        let snapshot =
+            StaticChartProjection::from_horoscope_chart(&sample_horoscope_chart()).unwrap();
         for scope in [Scope::Age, Scope::Monthly, Scope::Daily, Scope::Hourly] {
             let selector = snapshot
                 .selectors
@@ -1697,8 +1876,9 @@ mod tests {
         // Request only Natal + Decadal, plus an absent Monthly (must be ignored).
         let request = StaticChartProjectionRequest {
             visible_scopes: vec![Scope::Natal, Scope::Decadal, Scope::Monthly],
+            active_frame_scope: Scope::Natal,
         };
-        let snapshot = StaticChartProjection::from_horoscope_chart_with(&chart, &request);
+        let snapshot = StaticChartProjection::from_horoscope_chart_with(&chart, &request).unwrap();
         assert_eq!(snapshot.active_scopes, vec![Scope::Natal, Scope::Decadal]);
 
         // Yearly is present but not requested: enabled yet not selected.
@@ -1716,9 +1896,10 @@ mod tests {
         let chart = sample_horoscope_chart();
         let request = StaticChartProjectionRequest {
             visible_scopes: vec![Scope::Yearly],
+            active_frame_scope: Scope::Natal,
         };
 
-        let snapshot = StaticChartProjection::from_horoscope_chart_with(&chart, &request);
+        let snapshot = StaticChartProjection::from_horoscope_chart_with(&chart, &request).unwrap();
 
         assert_eq!(snapshot.active_scopes, vec![Scope::Natal, Scope::Yearly]);
 
@@ -1734,7 +1915,8 @@ mod tests {
 
     #[test]
     fn selected_overlays_appear_only_on_the_overlay_branch() {
-        let snapshot = StaticChartProjection::from_horoscope_chart(&sample_horoscope_chart());
+        let snapshot =
+            StaticChartProjection::from_horoscope_chart(&sample_horoscope_chart()).unwrap();
         for palace in &snapshot.palaces {
             // One overlay per selected non-natal layer (decadal + yearly).
             assert_eq!(palace.overlays.len(), 2, "{:?}", palace.branch);
@@ -1759,7 +1941,7 @@ mod tests {
     fn selecting_scopes_changes_only_overlays_not_natal_facts() {
         let chart = sample_horoscope_chart();
         let natal_only = StaticChartProjection::from_chart(chart.natal());
-        let with_overlays = StaticChartProjection::from_horoscope_chart(&chart);
+        let with_overlays = StaticChartProjection::from_horoscope_chart(&chart).unwrap();
 
         // Center and per-palace natal facts are identical; only overlays differ.
         assert_eq!(natal_only.center, with_overlays.center);
@@ -1769,7 +1951,10 @@ mod tests {
             assert_eq!(a.minor_stars, b.minor_stars);
             assert_eq!(a.adjective_stars, b.adjective_stars);
             assert_eq!(a.decorative_stars, b.decorative_stars);
-            assert_eq!(a.roles, b.roles);
+            // Natal identity is immutable, and both views resolve to the natal
+            // active frame (from_horoscope_chart carries no temporal selection).
+            assert_eq!(a.natal_identity, b.natal_identity);
+            assert_eq!(a.active_frame, b.active_frame);
             assert!(a.overlays.is_empty());
             assert!(!b.overlays.is_empty());
         }
@@ -1779,10 +1964,12 @@ mod tests {
     fn horoscope_snapshot_serializes_deterministically_and_keeps_natal_immutable() {
         let chart = sample_horoscope_chart();
         let before = chart.clone();
-        let first = serde_json::to_string(&StaticChartProjection::from_horoscope_chart(&chart))
-            .expect("serialize");
-        let second = serde_json::to_string(&StaticChartProjection::from_horoscope_chart(&chart))
-            .expect("serialize");
+        let first =
+            serde_json::to_string(&StaticChartProjection::from_horoscope_chart(&chart).unwrap())
+                .expect("serialize");
+        let second =
+            serde_json::to_string(&StaticChartProjection::from_horoscope_chart(&chart).unwrap())
+                .expect("serialize");
         assert_eq!(first, second);
         assert_eq!(chart, before);
     }
