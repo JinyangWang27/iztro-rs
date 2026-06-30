@@ -9,12 +9,11 @@ use iztro::rules::classical::{ClaimScope, ClassicalRuleId, classical_rule_metada
 use iztro::{
     AnalysisLayerKey, AnalysisLayerRequest, BirthContext, Brightness, CalendarDate, Chart,
     ClaimEvaluationRequest, ClassicalRuleContext, EarthlyBranch, Gender, HeavenlyStem,
-    MethodProfile, Mutagen, PALACE_NAMES, Palace, PatternScope, Scope, SolarChartRequest,
-    SolarDay, SolarMonth, StarKind, StarName, StarPlacement, StaticTemporalNavigationSelection,
-    StemBranch, TemporalAnalysisContext, analysis_layers_for_selection,
-    analysis_scopes_for_layer_key, by_solar, detect_analysis_layer,
-    detect_static_temporal_analysis_layers_from_chart, evaluate_classical,
-    evaluate_classical_in_context,
+    MethodProfile, Mutagen, PALACE_NAMES, Palace, PatternScope, Scope, SolarChartRequest, SolarDay,
+    SolarMonth, StarKind, StarName, StarPlacement, StaticTemporalNavigationSelection, StemBranch,
+    TemporalAnalysisContext, analysis_layers_for_selection, analysis_scopes_for_layer_key,
+    by_solar, detect_analysis_layer, detect_static_temporal_analysis_layers_from_chart,
+    evaluate_classical, evaluate_classical_in_context,
 };
 
 // ---- synthetic chart builders --------------------------------------------
@@ -589,7 +588,7 @@ fn selected_view_facade_returns_monthly_pattern_hits_under_requested_key() {
             let results = detect_static_temporal_analysis_layers_from_chart(
                 chart.clone(),
                 selection,
-                &[requested.clone()],
+                std::slice::from_ref(&requested),
                 &request,
             )
             .expect("selected monthly analysis should build");
