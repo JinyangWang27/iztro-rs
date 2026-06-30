@@ -1,4 +1,4 @@
-//! GUI design tokens and the InkPaper theme.
+//! GUI design tokens and themes.
 //!
 //! This module is the single source of truth for the GUI's visual language:
 //! semantic colors, spacing, radius, typography, and the fixed chart-layout
@@ -7,10 +7,11 @@
 //! constants, so a future theme is added by extending [`GuiThemeId`] and
 //! supplying another [`GuiTheme`] — not by rewriting every widget.
 //!
-//! Only `InkPaper` exists today. Its direction is a warm, paper-like reading
-//! surface: ivory palace cards on a warm background, thin beige borders, deep
-//! purple primary accents, and restrained semantic star tones — never a bright
-//! SaaS dashboard, parchment, or dark manuscript.
+//! Three themes are implemented:
+//! - `InkPaper`: warm, paper-like reading surface with ivory palace cards,
+//!   thin beige borders, deep purple accents, and restrained semantic star tones.
+//! - `JadeLight`: soft jade/green light theme for bright environments.
+//! - `DeepInk`: deep navy dark theme with purple accents.
 //!
 //! This is presentation-only. No astrology, overlay, rule, or pattern logic
 //! lives here.
@@ -177,11 +178,13 @@ impl GuiTheme {
     pub(super) const fn resolve(id: GuiThemeId) -> &'static GuiTheme {
         match id {
             GuiThemeId::InkPaper => &INK_PAPER,
+            GuiThemeId::JadeLight => &JADE_LIGHT,
+            GuiThemeId::DeepInk => &DEEP_INK,
         }
     }
 }
 
-/// The InkPaper palette — the project's only implemented theme.
+/// The InkPaper palette — warm, paper-like reading surface.
 pub(super) const INK_PAPER: GuiTheme = GuiTheme {
     palette: GuiPalette {
         app_background: rgb8(0xF7, 0xF1, 0xE6),
@@ -209,6 +212,68 @@ pub(super) const INK_PAPER: GuiTheme = GuiTheme {
         disabled_text: rgb8(0xBD, 0xB3, 0xA7),
         line_passive: rgb8(0xC9, 0xBD, 0xAA),
         line_active: rgb8(0x7B, 0x4A, 0x86),
+    },
+};
+
+/// The JadeLight palette — soft jade/green light theme.
+pub(super) const JADE_LIGHT: GuiTheme = GuiTheme {
+    palette: GuiPalette {
+        app_background: rgb8(0xF0, 0xF5, 0xED),
+        chart_surface: rgb8(0xF6, 0xFA, 0xF4),
+        panel_surface: rgb8(0xFE, 0xFF, 0xFB),
+        palace_surface: rgb8(0xFE, 0xFF, 0xFB),
+        muted_surface: rgb8(0xE6, 0xEF, 0xE2),
+        subtle_border: rgb8(0xC9, 0xD8, 0xC1),
+        strong_border: rgb8(0x9D, 0xB2, 0x94),
+        ink: rgb8(0x1F, 0x2A, 0x22),
+        text_secondary: rgb8(0x63, 0x70, 0x5F),
+        text_muted: rgb8(0x8A, 0x98, 0x85),
+        accent: rgb8(0x4F, 0x7D, 0x5A),
+        accent_soft: rgb8(0xE1, 0xED, 0xE2),
+        accent_border: rgb8(0x7D, 0xA6, 0x84),
+        cinnabar: rgb8(0xAD, 0x4E, 0x38),
+        cinnabar_soft: rgb8(0xF1, 0xDD, 0xD5),
+        jade: rgb8(0x3F, 0x7A, 0x50),
+        jade_soft: rgb8(0xDC, 0xEB, 0xDD),
+        malefic: rgb8(0x88, 0x46, 0x5A),
+        peach: rgb8(0xA8, 0x5F, 0x7D),
+        tian_ma: rgb8(0x3F, 0x74, 0x84),
+        decorative_olive: rgb8(0x6F, 0x77, 0x48),
+        brightness_suffix: rgb8(0xA7, 0xB1, 0xA2),
+        disabled_text: rgb8(0xB3, 0xBD, 0xAF),
+        line_passive: rgb8(0xB8, 0xC8, 0xB1),
+        line_active: rgb8(0x54, 0x7F, 0x60),
+    },
+};
+
+/// The DeepInk palette — deep navy dark theme.
+pub(super) const DEEP_INK: GuiTheme = GuiTheme {
+    palette: GuiPalette {
+        app_background: rgb8(0x10, 0x15, 0x1D),
+        chart_surface: rgb8(0x15, 0x1C, 0x26),
+        panel_surface: rgb8(0x1B, 0x24, 0x30),
+        palace_surface: rgb8(0x20, 0x2B, 0x38),
+        muted_surface: rgb8(0x26, 0x33, 0x42),
+        subtle_border: rgb8(0x35, 0x43, 0x52),
+        strong_border: rgb8(0x52, 0x62, 0x73),
+        ink: rgb8(0xF2, 0xED, 0xE4),
+        text_secondary: rgb8(0xC8, 0xBF, 0xB3),
+        text_muted: rgb8(0x9E, 0x94, 0x88),
+        accent: rgb8(0xB8, 0x95, 0xC8),
+        accent_soft: rgb8(0x33, 0x26, 0x3B),
+        accent_border: rgb8(0x8F, 0x6C, 0xA0),
+        cinnabar: rgb8(0xD0, 0x7A, 0x63),
+        cinnabar_soft: rgb8(0x3F, 0x28, 0x24),
+        jade: rgb8(0x8A, 0xB3, 0x8D),
+        jade_soft: rgb8(0x22, 0x36, 0x29),
+        malefic: rgb8(0xC9, 0x79, 0x91),
+        peach: rgb8(0xD2, 0x8B, 0xAE),
+        tian_ma: rgb8(0x83, 0xA9, 0xD2),
+        decorative_olive: rgb8(0xB0, 0xB1, 0x6E),
+        brightness_suffix: rgb8(0x8F, 0x98, 0xA3),
+        disabled_text: rgb8(0x6F, 0x78, 0x84),
+        line_passive: rgb8(0x59, 0x65, 0x74),
+        line_active: rgb8(0xB8, 0x95, 0xC8),
     },
 };
 
@@ -266,13 +331,18 @@ pub(super) const fn palette(id: GuiThemeId) -> &'static GuiPalette {
 
 /// Builds the iced [`Theme`] backing a [`GuiThemeId`], so iced's built-in widget
 /// styles (`button::primary`, `button::secondary`, text inputs, pick lists,
-/// scrollbars) inherit the InkPaper palette. Chart-specific surfaces are styled
+/// scrollbars) inherit the theme's palette. Chart-specific surfaces are styled
 /// explicitly from the same tokens elsewhere; this keeps the framework defaults
 /// on-theme without rewriting every widget.
 pub fn iced_theme(id: GuiThemeId) -> Theme {
     let p = palette(id);
+    let name = match id {
+        GuiThemeId::InkPaper => "InkPaper",
+        GuiThemeId::JadeLight => "JadeLight",
+        GuiThemeId::DeepInk => "DeepInk",
+    };
     Theme::custom(
-        "InkPaper".to_owned(),
+        name.to_owned(),
         iced::theme::Palette {
             background: p.app_background,
             text: p.ink,
@@ -296,9 +366,30 @@ mod tests {
     }
 
     #[test]
-    fn every_theme_id_resolves_to_a_palette() {
-        // Resolution is total over every theme id (currently just InkPaper).
-        let _ = iced_theme(GuiThemeId::InkPaper);
-        let _ = GuiTheme::resolve(GuiThemeId::InkPaper);
+    fn every_theme_id_resolves_to_a_palette_and_iced_theme() {
+        for id in [
+            GuiThemeId::InkPaper,
+            GuiThemeId::JadeLight,
+            GuiThemeId::DeepInk,
+        ] {
+            let _ = GuiTheme::resolve(id);
+            let _ = iced_theme(id);
+        }
+    }
+
+    #[test]
+    fn jade_light_uses_pale_jade_background_and_green_accent() {
+        let p = palette(GuiThemeId::JadeLight);
+        assert_eq!(p.app_background, rgb8(0xF0, 0xF5, 0xED));
+        assert_eq!(p.accent, rgb8(0x4F, 0x7D, 0x5A));
+        assert_eq!(p.ink, rgb8(0x1F, 0x2A, 0x22));
+    }
+
+    #[test]
+    fn deep_ink_uses_dark_navy_background_and_purple_accent() {
+        let p = palette(GuiThemeId::DeepInk);
+        assert_eq!(p.app_background, rgb8(0x10, 0x15, 0x1D));
+        assert_eq!(p.accent, rgb8(0xB8, 0x95, 0xC8));
+        assert_eq!(p.ink, rgb8(0xF2, 0xED, 0xE4));
     }
 }

@@ -392,11 +392,13 @@ fn settings_tab<'a>(
         .spacing(SPACING.sm)
     };
 
-    // Theme is read-only for now: InkPaper is the only implemented theme, so the
-    // section reports the active theme rather than offering unbuilt choices.
+    // Theme is read-only for now, so the section reports the active theme
+    // rather than offering unbuilt choices.
     let theme = {
         let current = match app.settings().theme {
             GuiThemeId::InkPaper => i18n.text("theme-ink-paper"),
+            GuiThemeId::JadeLight => i18n.text("theme-jade-light"),
+            GuiThemeId::DeepInk => i18n.text("theme-deep-ink"),
         };
         column![
             text(i18n.text("settings-theme"))
