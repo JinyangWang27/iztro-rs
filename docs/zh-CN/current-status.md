@@ -65,6 +65,11 @@
 
 检视面板通过核心的整批分析门面（`detect_static_temporal_analysis_layers_from_chart`）请求所选视图的分析：GUI 传入本命命盘、当前运限选择与缺失的层键，核心在内部构建一次运限/horoscope 上下文，并返回精简的逐层结果；GUI 负责缓存与渲染。GUI 自身绝不构造 `HoroscopeChart` 或运限叠加。每个被请求的层都使用截断到该层的活动 scope 链（`analysis_scopes_for_layer_key`）进行检测，因此一个层可以检视其祖先与自身，但绝不检视后代——切换流月 / 流日 / 流时不会改变此前已缓存的流年结果。
 
+检视面板中的格局展示已经接入 core 的逐层分析。现有 `core::pattern` 目录可以通过
+`TemporalLayer` 星曜落点、时间宫名布局与显式 `MutagenActivation` 事实评估已支持的
+运限叠加层；同 scope 的流曜等价星会以实际 runtime 名称记录。这仍是保守的结构化格局
+事实面，不是完整的古法限运解读。全书格局扩展仍保持暂停。
+
 点击检视面板中的规则或格局命中项会选中该项，并在缓存的结构化证据足够时高亮相关宫位/星曜/四化目标。高亮状态仅属于 GUI，不会持久化；当生成新的命盘或运限切换导致所在层不再可见时，高亮会被释放。
 
 GUI 设置（界面语言、右侧面板模式、当前标签页）与已保存命盘**分开**持久化：命盘存于 `charts.json`（`ChartStore`），偏好存于 `settings.json`（独立的 `SettingsStore`），遵循同样的可注入路径、无当前目录回退、容错读取策略。
@@ -92,7 +97,7 @@ Core 模型保持语言中立。Facade/export DTO 可以保留附加 zh-CN `*_zh
 - 完整八字解读、十神、藏干、五行评分、喜用神、成格等；
 - temporal decorative arrays beyond yearly `yearlyDecStar`；
 - bindings、TUI、MCP、WASM frontend；
-- 完整规则评估与确定性解读；
+- 超出已支持叠加格局目录的完整运限特征提取、规则评估与确定性解读；
 - 叙事或 LLM-assisted prose。
 
 ## 近期方向
