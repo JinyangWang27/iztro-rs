@@ -41,8 +41,8 @@ pub enum RightPanelMode {
 
 /// Selects the GUI visual theme (palette + design tokens).
 ///
-/// Only [`GuiThemeId::InkPaper`] is implemented today; the enum is the extension
-/// point for future themes (JadeLight, DeepInk, …). It is a stable internal key,
+/// `InkPaper` is the default theme. `JadeLight` and `DeepInk` are also available
+/// as user-selectable themes. It is a stable internal key,
 /// never a localized display string, so settings files round-trip safely. A
 /// *missing* theme field fills in from the serde default on
 /// [`AppSettings`](AppSettings::theme); an explicit unknown variant string is not
