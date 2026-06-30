@@ -93,6 +93,8 @@ settings-sidebar-compact = 紧凑
 settings-sidebar-expanded = 展开
 settings-theme = 主题
 theme-ink-paper = 水墨纸笺
+theme-jade-light = 青玉明笺
+theme-deep-ink = 深墨夜笺
 
 rules-scope-natal = 本命
 rules-scope-decadal = 大限
@@ -110,3 +112,9 @@ patterns-detail-mutagens = 四化
 pattern-strength-weak = 弱
 pattern-strength-medium = 中
 pattern-strength-strong = 强
+
+# Pattern polarity labels
+pattern-polarity-auspicious = 吉
+pattern-polarity-inauspicious = 凶
+pattern-polarity-neutral = 平
+patterns-detail-polarity = 吉凶

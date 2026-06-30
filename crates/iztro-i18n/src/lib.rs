@@ -25,7 +25,7 @@ mod star_table;
 use iztro::core::labels::chinese_date;
 use iztro::core::{
     Brightness, EarthlyBranch, FiveElementBureau, Gender, HeavenlyStem, LunarDateView, Mutagen,
-    PalaceName, PatternStatus, Scope, StarName, StemBranch, WesternZodiac,
+    PalaceName, PatternPolarity, PatternStatus, Scope, StarName, StemBranch, WesternZodiac,
 };
 use iztro::rules::classical::{Claim, ClaimDomain, ClaimPolarity, ClaimTheme};
 
@@ -103,6 +103,15 @@ impl I18n {
             PatternStatus::Fulfilled => "patterns-status-fulfilled",
             PatternStatus::Weakened => "patterns-status-weakened",
             PatternStatus::Broken => "patterns-status-broken",
+        })
+    }
+
+    /// Localized pattern polarity label (吉 / 凶 / 平).
+    pub fn pattern_polarity_label(&self, polarity: PatternPolarity) -> String {
+        self.text(match polarity {
+            PatternPolarity::Auspicious => "pattern-polarity-auspicious",
+            PatternPolarity::Inauspicious => "pattern-polarity-inauspicious",
+            PatternPolarity::Neutral => "pattern-polarity-neutral",
         })
     }
 
@@ -509,6 +518,55 @@ mod tests {
     /// Regenerates `locales/{en-US,zh-Hans}/stars.ftl` from [`star_table::STARS`].
     /// Ignored by default; run explicitly after editing the star table:
     /// `cargo test -p iztro-i18n -- --ignored generate_star_ftl`.
+    #[test]
+    fn pattern_polarity_label_maps_all_variants_in_both_locales() {
+        use iztro::core::PatternPolarity;
+        let en = I18n::new(Locale::EnUs);
+        let zh = I18n::new(Locale::ZhHans);
+
+        assert_eq!(
+            en.pattern_polarity_label(PatternPolarity::Auspicious),
+            "Auspicious"
+        );
+        assert_eq!(
+            en.pattern_polarity_label(PatternPolarity::Inauspicious),
+            "Inauspicious"
+        );
+        assert_eq!(
+            en.pattern_polarity_label(PatternPolarity::Neutral),
+            "Neutral"
+        );
+
+        assert_eq!(zh.pattern_polarity_label(PatternPolarity::Auspicious), "吉");
+        assert_eq!(
+            zh.pattern_polarity_label(PatternPolarity::Inauspicious),
+            "凶"
+        );
+        assert_eq!(zh.pattern_polarity_label(PatternPolarity::Neutral), "平");
+    }
+
+    #[test]
+    fn theme_labels_exist_for_all_three_themes_in_both_locales() {
+        let en = I18n::new(Locale::EnUs);
+        let zh = I18n::new(Locale::ZhHans);
+
+        assert_eq!(en.text("theme-ink-paper"), "InkPaper");
+        assert_eq!(en.text("theme-jade-light"), "JadeLight");
+        assert_eq!(en.text("theme-deep-ink"), "DeepInk");
+
+        assert_eq!(zh.text("theme-ink-paper"), "水墨纸笺");
+        assert_eq!(zh.text("theme-jade-light"), "青玉明笺");
+        assert_eq!(zh.text("theme-deep-ink"), "深墨夜笺");
+    }
+
+    #[test]
+    fn patterns_detail_polarity_key_exists_in_both_locales() {
+        let en = I18n::new(Locale::EnUs);
+        let zh = I18n::new(Locale::ZhHans);
+        assert_eq!(en.text("patterns-detail-polarity"), "Polarity");
+        assert_eq!(zh.text("patterns-detail-polarity"), "吉凶");
+    }
+
     #[test]
     #[ignore]
     fn generate_star_ftl() {
