@@ -16,7 +16,7 @@ use iztro::{
     TemporalPalaceName,
 };
 use iztro::{PalaceRelation, PatternEvidence};
-use iztro::{PatternSourceGroup, pattern_source_metadata};
+use iztro::{PatternSourceGroup, pattern_display_metadata, pattern_source_metadata};
 
 /// One synthetic star placement: (branch, star, kind, optional mutagen).
 type Spec = (EarthlyBranch, StarName, StarKind, Option<Mutagen>);
@@ -30,6 +30,23 @@ fn build_chart(life_branch: EarthlyBranch, placements: &[Spec]) -> Chart {
 
 fn build_chart_with_body(
     life_branch: EarthlyBranch,
+    body_branch: Option<EarthlyBranch>,
+    placements: &[Spec],
+) -> Chart {
+    build_chart_with_time_and_body(life_branch, EarthlyBranch::Chen, body_branch, placements)
+}
+
+fn build_chart_with_time(
+    life_branch: EarthlyBranch,
+    birth_time: EarthlyBranch,
+    placements: &[Spec],
+) -> Chart {
+    build_chart_with_time_and_body(life_branch, birth_time, None, placements)
+}
+
+fn build_chart_with_time_and_body(
+    life_branch: EarthlyBranch,
+    birth_time: EarthlyBranch,
     body_branch: Option<EarthlyBranch>,
     placements: &[Spec],
 ) -> Chart {
@@ -49,11 +66,7 @@ fn build_chart_with_body(
         .collect();
 
     Chart::try_new(
-        BirthContext::new(
-            CalendarDate::solar(1990, 5, 17),
-            EarthlyBranch::Chen,
-            Gender::Female,
-        ),
+        BirthContext::new(CalendarDate::solar(1990, 5, 17), birth_time, Gender::Female),
         StemBranch::try_new(HeavenlyStem::Geng, EarthlyBranch::Wu).expect("valid stem-branch"),
         MethodProfile::placeholder("pattern_test"),
         palaces,
@@ -164,6 +177,15 @@ fn build_chart_bright_with_body(
     body_branch: Option<EarthlyBranch>,
     placements: &[BrightSpec],
 ) -> Chart {
+    build_chart_bright_with_time_and_body(life_branch, EarthlyBranch::Chen, body_branch, placements)
+}
+
+fn build_chart_bright_with_time_and_body(
+    life_branch: EarthlyBranch,
+    birth_time: EarthlyBranch,
+    body_branch: Option<EarthlyBranch>,
+    placements: &[BrightSpec],
+) -> Chart {
     let palaces: Vec<Palace> = (0..12)
         .map(|index| {
             let name = PALACE_NAMES[index];
@@ -180,11 +202,7 @@ fn build_chart_bright_with_body(
         .collect();
 
     Chart::try_new(
-        BirthContext::new(
-            CalendarDate::solar(1990, 5, 17),
-            EarthlyBranch::Chen,
-            Gender::Female,
-        ),
+        BirthContext::new(CalendarDate::solar(1990, 5, 17), birth_time, Gender::Female),
         StemBranch::try_new(HeavenlyStem::Geng, EarthlyBranch::Wu).expect("valid stem-branch"),
         MethodProfile::placeholder("pattern_test"),
         palaces,
@@ -1374,6 +1392,39 @@ fn quan_shu_source_backed_pattern_metadata_is_available_for_executable_subset() 
     }
 }
 
+#[test]
+fn pattern_display_metadata_separates_runtime_display_from_source_provenance() {
+    let display = pattern_display_metadata(PatternId::RiChuFuSang);
+    assert_eq!(display.pattern_id, PatternId::RiChuFuSang);
+    assert_eq!(display.name_zh, "日照雷门");
+    assert_eq!(display.aliases_zh, &["日出扶桑格"]);
+    assert!(display.condition_note_zh_hans.contains("出生时辰为卯至未"));
+
+    let source = pattern_source_metadata(PatternId::RiChuFuSang).expect("source metadata");
+    assert_eq!(source.name_zh, "日出扶桑");
+    assert_eq!(
+        source.source_text_zh_hans,
+        "日出扶桑 日在卯守命是也，守官禄宫亦然"
+    );
+}
+
+#[test]
+fn display_metadata_carries_unverified_source_notes_without_source_metadata() {
+    let ming_zhu = pattern_display_metadata(PatternId::MingZhuChuHai);
+    assert_eq!(
+        ming_zhu.source_note_zh_hans,
+        Some("三合明珠生旺地稳步蟾宫（斗数骨髓赋）")
+    );
+    assert!(pattern_source_metadata(PatternId::MingZhuChuHai).is_none());
+
+    let fu_xiang = pattern_display_metadata(PatternId::FuXiangChaoYuan);
+    assert_eq!(
+        fu_xiang.source_note_zh_hans,
+        Some("府相朝垣命必荣（女命骨髓赋）")
+    );
+    assert!(pattern_source_metadata(PatternId::FuXiangChaoYuan).is_none());
+}
+
 // ---- QuanShu Volume 1 executable pattern subset --------------------------
 
 #[test]
@@ -1420,10 +1471,15 @@ fn jin_can_guang_hui_positive_and_negative() {
 }
 
 #[test]
-fn ri_chu_fu_sang_matches_life_or_career_at_mao() {
-    let life = build_chart(
+fn ri_chu_fu_sang_requires_natal_mao_life_tai_yang_tian_liang_and_support() {
+    let life = build_chart_with_time(
         EarthlyBranch::Mao,
-        &[major(EarthlyBranch::Mao, StarName::TaiYang)],
+        EarthlyBranch::Mao,
+        &[
+            major(EarthlyBranch::Mao, StarName::TaiYang),
+            major(EarthlyBranch::Mao, StarName::TianLiang),
+            soft(EarthlyBranch::Wei, StarName::WenChang),
+        ],
     );
     let detections = iztro::detect_patterns(
         &PatternContext::natal(&life),
@@ -1435,27 +1491,68 @@ fn ri_chu_fu_sang_matches_life_or_career_at_mao() {
         PatternFamily::MajorStarCombination,
         PatternPolarity::Auspicious,
         PatternAnchor::Palace(EarthlyBranch::Mao),
-        &[StarName::TaiYang],
-        &[EarthlyBranch::Mao],
+        &[StarName::TaiYang, StarName::TianLiang, StarName::WenChang],
+        &[EarthlyBranch::Mao, EarthlyBranch::Wei],
     );
 
+    let wrong_birth_time = build_chart_with_time(
+        EarthlyBranch::Mao,
+        EarthlyBranch::Yin,
+        &[
+            major(EarthlyBranch::Mao, StarName::TaiYang),
+            major(EarthlyBranch::Mao, StarName::TianLiang),
+            soft(EarthlyBranch::Wei, StarName::WenChang),
+        ],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&wrong_birth_time),
+        &PatternDetectionRequest::default(),
+    );
+    assert!(detections.iter().all(|d| d.id != PatternId::RiChuFuSang));
+
+    let no_tian_liang = build_chart_with_time(
+        EarthlyBranch::Mao,
+        EarthlyBranch::Mao,
+        &[
+            major(EarthlyBranch::Mao, StarName::TaiYang),
+            soft(EarthlyBranch::Wei, StarName::WenChang),
+        ],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&no_tian_liang),
+        &PatternDetectionRequest::default(),
+    );
+    assert!(detections.iter().all(|d| d.id != PatternId::RiChuFuSang));
+
+    let no_support = build_chart_with_time(
+        EarthlyBranch::Mao,
+        EarthlyBranch::Mao,
+        &[
+            major(EarthlyBranch::Mao, StarName::TaiYang),
+            major(EarthlyBranch::Mao, StarName::TianLiang),
+        ],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&no_support),
+        &PatternDetectionRequest::default(),
+    );
+    assert!(detections.iter().all(|d| d.id != PatternId::RiChuFuSang));
+}
+
+#[test]
+fn ri_chu_fu_sang_no_longer_matches_career_only_tai_yang_at_mao() {
     let career_life_branch = EarthlyBranch::Mao.offset(-8);
-    let career = build_chart(
+    let career = build_chart_with_time(
         career_life_branch,
-        &[major(EarthlyBranch::Mao, StarName::TaiYang)],
+        EarthlyBranch::Mao,
+        &[
+            major(EarthlyBranch::Mao, StarName::TaiYang),
+            major(EarthlyBranch::Mao, StarName::TianLiang),
+            soft(EarthlyBranch::Wei, StarName::WenChang),
+        ],
     );
     let detections = iztro::detect_patterns(
         &PatternContext::natal(&career),
-        &PatternDetectionRequest::default(),
-    );
-    assert!(detections.iter().any(|d| d.id == PatternId::RiChuFuSang));
-
-    let neither = build_chart(
-        EarthlyBranch::Zi,
-        &[major(EarthlyBranch::Mao, StarName::TaiYang)],
-    );
-    let detections = iztro::detect_patterns(
-        &PatternContext::natal(&neither),
         &PatternDetectionRequest::default(),
     );
     assert!(detections.iter().all(|d| d.id != PatternId::RiChuFuSang));
@@ -1765,4 +1862,400 @@ fn ma_luo_kong_wang_matches_tian_ma_with_modeled_void_star() {
         &PatternDetectionRequest::default(),
     );
     assert!(detections.iter().all(|d| d.id != PatternId::MaLuoKongWang));
+}
+
+#[test]
+fn ming_li_feng_kong_requires_life_with_modeled_void_star() {
+    let chart = build_chart(
+        EarthlyBranch::Zi,
+        &[(
+            EarthlyBranch::Zi,
+            StarName::XunKong,
+            StarKind::Adjective,
+            None,
+        )],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&chart),
+        &PatternDetectionRequest::default(),
+    );
+    assert_detection_shape(
+        detection(&detections, PatternId::MingLiFengKong),
+        PatternId::MingLiFengKong,
+        PatternFamily::ShaJi,
+        PatternPolarity::Inauspicious,
+        PatternAnchor::Palace(EarthlyBranch::Zi),
+        &[StarName::XunKong],
+        &[EarthlyBranch::Zi],
+    );
+
+    let not_life = build_chart(
+        EarthlyBranch::Zi,
+        &[(
+            EarthlyBranch::Wu,
+            StarName::XunKong,
+            StarKind::Adjective,
+            None,
+        )],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&not_life),
+        &PatternDetectionRequest::default(),
+    );
+    assert!(detections.iter().all(|d| d.id != PatternId::MingLiFengKong));
+}
+
+#[test]
+fn lu_feng_chong_po_matches_lu_support_broken_by_sha_or_void() {
+    let chart = build_chart(
+        EarthlyBranch::Zi,
+        &[
+            (
+                EarthlyBranch::Wu,
+                StarName::TaiYang,
+                StarKind::Major,
+                Some(Mutagen::Lu),
+            ),
+            (EarthlyBranch::Wu, StarName::DiKong, StarKind::Tough, None),
+        ],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&chart),
+        &PatternDetectionRequest::default(),
+    );
+    let matched = detection(&detections, PatternId::LuFengChongPo);
+    assert_eq!(matched.status, PatternStatus::Broken);
+    assert_eq!(matched.involved_mutagens, vec![Mutagen::Lu]);
+    assert!(matched.evidence.iter().any(|evidence| {
+        matches!(
+            evidence,
+            PatternEvidence::MutagenOnStar {
+                star: StarName::TaiYang,
+                mutagen: Mutagen::Lu,
+                scope: Scope::Natal,
+                branch: EarthlyBranch::Wu,
+            }
+        )
+    }));
+
+    let clean_lu = build_chart(
+        EarthlyBranch::Zi,
+        &[(EarthlyBranch::Wu, StarName::LuCun, StarKind::LuCun, None)],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&clean_lu),
+        &PatternDetectionRequest::default(),
+    );
+    assert!(detections.iter().all(|d| d.id != PatternId::LuFengChongPo));
+}
+
+#[test]
+fn wen_xing_gong_ming_requires_chang_qu_in_life_san_fang_si_zheng() {
+    let chart = build_chart(
+        EarthlyBranch::Zi,
+        &[
+            soft(EarthlyBranch::Zi, StarName::WenChang),
+            soft(EarthlyBranch::Wu, StarName::WenQu),
+        ],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&chart),
+        &PatternDetectionRequest::default(),
+    );
+    assert_detection_shape(
+        detection(&detections, PatternId::WenXingGongMing),
+        PatternId::WenXingGongMing,
+        PatternFamily::AuxiliaryStarCombination,
+        PatternPolarity::Auspicious,
+        PatternAnchor::Palace(EarthlyBranch::Zi),
+        &[StarName::WenChang, StarName::WenQu],
+        &[EarthlyBranch::Zi, EarthlyBranch::Wu],
+    );
+
+    let outside = build_chart(
+        EarthlyBranch::Zi,
+        &[
+            soft(EarthlyBranch::Zi, StarName::WenChang),
+            soft(EarthlyBranch::Mao, StarName::WenQu),
+        ],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&outside),
+        &PatternDetectionRequest::default(),
+    );
+    assert!(
+        detections
+            .iter()
+            .all(|d| d.id != PatternId::WenXingGongMing)
+    );
+}
+
+#[test]
+fn tian_ji_si_hai_requires_tian_ji_at_si_or_hai_supporting_life() {
+    let chart = build_chart(
+        EarthlyBranch::Si,
+        &[major(EarthlyBranch::Si, StarName::TianJi)],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&chart),
+        &PatternDetectionRequest::default(),
+    );
+    assert_detection_shape(
+        detection(&detections, PatternId::TianJiSiHai),
+        PatternId::TianJiSiHai,
+        PatternFamily::MajorStarCombination,
+        PatternPolarity::Auspicious,
+        PatternAnchor::Palace(EarthlyBranch::Si),
+        &[StarName::TianJi],
+        &[EarthlyBranch::Si],
+    );
+
+    let wrong_branch = build_chart(
+        EarthlyBranch::Si,
+        &[major(EarthlyBranch::Mao, StarName::TianJi)],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&wrong_branch),
+        &PatternDetectionRequest::default(),
+    );
+    assert!(detections.iter().all(|d| d.id != PatternId::TianJiSiHai));
+}
+
+#[test]
+fn zuo_you_tong_gong_uses_body_palace_and_natal_scope_only() {
+    let chart = build_chart_with_body(
+        EarthlyBranch::Zi,
+        Some(EarthlyBranch::Si),
+        &[
+            soft(EarthlyBranch::Si, StarName::ZuoFu),
+            soft(EarthlyBranch::Si, StarName::YouBi),
+        ],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&chart),
+        &PatternDetectionRequest::default(),
+    );
+    assert_detection_shape(
+        detection(&detections, PatternId::ZuoYouTongGong),
+        PatternId::ZuoYouTongGong,
+        PatternFamily::AuxiliaryStarCombination,
+        PatternPolarity::Auspicious,
+        PatternAnchor::Palace(EarthlyBranch::Si),
+        &[StarName::ZuoFu, StarName::YouBi],
+        &[EarthlyBranch::Si],
+    );
+
+    let life_not_body = build_chart_with_body(
+        EarthlyBranch::Zi,
+        Some(EarthlyBranch::Si),
+        &[
+            soft(EarthlyBranch::Zi, StarName::ZuoFu),
+            soft(EarthlyBranch::Zi, StarName::YouBi),
+        ],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&life_not_body),
+        &PatternDetectionRequest::default(),
+    );
+    assert!(detections.iter().all(|d| d.id != PatternId::ZuoYouTongGong));
+}
+
+#[test]
+fn ming_zhu_chu_hai_requires_bright_sun_moon_in_life_san_fang_si_zheng() {
+    let chart = build_chart_bright(
+        EarthlyBranch::Si,
+        &[
+            (
+                EarthlyBranch::You,
+                StarName::TaiYang,
+                StarKind::Major,
+                Brightness::Temple,
+            ),
+            (
+                EarthlyBranch::Hai,
+                StarName::TaiYin,
+                StarKind::Major,
+                Brightness::Prosperous,
+            ),
+        ],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&chart),
+        &PatternDetectionRequest::default(),
+    );
+    assert_detection_shape(
+        detection(&detections, PatternId::MingZhuChuHai),
+        PatternId::MingZhuChuHai,
+        PatternFamily::MajorStarCombination,
+        PatternPolarity::Auspicious,
+        PatternAnchor::Palace(EarthlyBranch::Si),
+        &[StarName::TaiYang, StarName::TaiYin],
+        &[EarthlyBranch::You, EarthlyBranch::Hai],
+    );
+
+    let unknown = build_chart_bright(
+        EarthlyBranch::Si,
+        &[
+            (
+                EarthlyBranch::You,
+                StarName::TaiYang,
+                StarKind::Major,
+                Brightness::Unknown,
+            ),
+            (
+                EarthlyBranch::Hai,
+                StarName::TaiYin,
+                StarKind::Major,
+                Brightness::Prosperous,
+            ),
+        ],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&unknown),
+        &PatternDetectionRequest::default(),
+    );
+    assert!(detections.iter().all(|d| d.id != PatternId::MingZhuChuHai));
+}
+
+#[test]
+fn ming_wu_zheng_yao_emits_no_major_star_evidence_and_can_coexist_with_ming_zhu() {
+    let chart = build_chart_bright(
+        EarthlyBranch::Si,
+        &[
+            (
+                EarthlyBranch::Si,
+                StarName::WenChang,
+                StarKind::Soft,
+                Brightness::Unknown,
+            ),
+            (
+                EarthlyBranch::You,
+                StarName::TaiYang,
+                StarKind::Major,
+                Brightness::Temple,
+            ),
+            (
+                EarthlyBranch::Hai,
+                StarName::TaiYin,
+                StarKind::Major,
+                Brightness::Prosperous,
+            ),
+        ],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&chart),
+        &PatternDetectionRequest::default(),
+    );
+    let no_major = detection(&detections, PatternId::MingWuZhengYao);
+    assert!(no_major.evidence.iter().any(|evidence| {
+        matches!(
+            evidence,
+            PatternEvidence::NoMajorStarInPalace {
+                branch: EarthlyBranch::Si
+            }
+        )
+    }));
+    assert!(detections.iter().any(|d| d.id == PatternId::MingZhuChuHai));
+
+    let has_major = build_chart(
+        EarthlyBranch::Si,
+        &[major(EarthlyBranch::Si, StarName::ZiWei)],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&has_major),
+        &PatternDetectionRequest::default(),
+    );
+    assert!(detections.iter().all(|d| d.id != PatternId::MingWuZhengYao));
+}
+
+#[test]
+fn ji_xiang_li_ming_is_fulfilled_without_tough_star_and_broken_with_tough_star() {
+    let fulfilled = build_chart(
+        EarthlyBranch::Wu,
+        &[major(EarthlyBranch::Wu, StarName::ZiWei)],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&fulfilled),
+        &PatternDetectionRequest::default(),
+    );
+    let matched = detection(&detections, PatternId::JiXiangLiMing);
+    assert_eq!(matched.status, PatternStatus::Fulfilled);
+
+    let broken = build_chart(
+        EarthlyBranch::Wu,
+        &[
+            major(EarthlyBranch::Wu, StarName::ZiWei),
+            (EarthlyBranch::Zi, StarName::QingYang, StarKind::Tough, None),
+        ],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&broken),
+        &PatternDetectionRequest::default(),
+    );
+    let matched = detection(&detections, PatternId::JiXiangLiMing);
+    assert_eq!(matched.status, PatternStatus::Broken);
+    assert!(matched.breaking_factors.iter().any(|factor| {
+        matches!(
+            factor,
+            iztro::PatternCondition::BrokenByStar {
+                star: StarName::QingYang,
+                branch: EarthlyBranch::Zi,
+            }
+        )
+    }));
+}
+
+#[test]
+fn fu_xiang_chao_yuan_covers_wealth_career_split_and_tian_fu_in_life_forms() {
+    let split = build_chart(
+        EarthlyBranch::Zi,
+        &[
+            major(EarthlyBranch::Chen, StarName::TianFu),
+            major(EarthlyBranch::Shen, StarName::TianXiang),
+        ],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&split),
+        &PatternDetectionRequest::default(),
+    );
+    assert_detection_shape(
+        detection(&detections, PatternId::FuXiangChaoYuan),
+        PatternId::FuXiangChaoYuan,
+        PatternFamily::MajorStarCombination,
+        PatternPolarity::Auspicious,
+        PatternAnchor::Palace(EarthlyBranch::Zi),
+        &[StarName::TianFu, StarName::TianXiang],
+        &[EarthlyBranch::Chen, EarthlyBranch::Shen],
+    );
+
+    let tian_fu_in_life = build_chart(
+        EarthlyBranch::Zi,
+        &[
+            major(EarthlyBranch::Zi, StarName::TianFu),
+            major(EarthlyBranch::Wu, StarName::TianXiang),
+        ],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&tian_fu_in_life),
+        &PatternDetectionRequest::default(),
+    );
+    assert!(
+        detections
+            .iter()
+            .any(|d| d.id == PatternId::FuXiangChaoYuan)
+    );
+
+    let missing_tian_xiang = build_chart(
+        EarthlyBranch::Zi,
+        &[major(EarthlyBranch::Zi, StarName::TianFu)],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&missing_tian_xiang),
+        &PatternDetectionRequest::default(),
+    );
+    assert!(
+        detections
+            .iter()
+            .all(|d| d.id != PatternId::FuXiangChaoYuan)
+    );
 }

@@ -25,7 +25,6 @@ pub fn detect(
 ) {
     for &scope in &request.scopes {
         detect_jin_can_guang_hui(ctx, scope, out);
-        detect_ri_chu_fu_sang(ctx, scope, out);
         detect_yue_luo_hai_gong(ctx, scope, out);
         detect_yue_sheng_cang_hai(ctx, scope, out);
         detect_ma_tou_dai_jian(ctx, scope, out);
@@ -59,32 +58,6 @@ fn detect_jin_can_guang_hui(
         out,
         scope,
         PatternId::JinCanGuangHui,
-        PatternFamily::MajorStarCombination,
-        PatternPolarity::Auspicious,
-        branch,
-        tai_yang.placement().name(),
-    );
-}
-
-fn detect_ri_chu_fu_sang(ctx: &PatternContext<'_>, scope: Scope, out: &mut Vec<PatternDetection>) {
-    let branch = EarthlyBranch::Mao;
-    let Some(tai_yang) = find_star_for_scope(ctx, scope, StarName::TaiYang) else {
-        return;
-    };
-    if tai_yang.branch() != branch {
-        return;
-    }
-
-    let is_life = branch_of_palace_for_scope(ctx, scope, PalaceName::Life) == Some(branch);
-    let is_career = branch_of_palace_for_scope(ctx, scope, PalaceName::Career) == Some(branch);
-    if !(is_life || is_career) {
-        return;
-    }
-
-    push_single_star(
-        out,
-        scope,
-        PatternId::RiChuFuSang,
         PatternFamily::MajorStarCombination,
         PatternPolarity::Auspicious,
         branch,
@@ -348,9 +321,8 @@ mod tests {
     /// `pattern_source_metadata(id).expect(..)`, so a missing entry panics at
     /// runtime. Keep in sync with the [`detect`] call order. Test-only and private
     /// so this detector detail stays out of the public API.
-    const EMITTED_SOURCE_BACKED_PATTERN_IDS: [PatternId; 9] = [
+    const EMITTED_SOURCE_BACKED_PATTERN_IDS: [PatternId; 8] = [
         PatternId::JinCanGuangHui,
-        PatternId::RiChuFuSang,
         PatternId::YueLuoHaiGong,
         PatternId::YueShengCangHai,
         PatternId::MaTouDaiJian,
