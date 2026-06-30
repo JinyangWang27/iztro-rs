@@ -11,7 +11,7 @@ use iztro::core::PalaceGridPosition;
 
 use crate::app::{Message, StaticChartApp};
 
-use super::style::{SAN_FANG_ACTIVE, SAN_FANG_PASSIVE};
+use super::theme::GuiPalette;
 
 /// Normalized center (`0.0..=1.0` in both axes) of a fixed 4x4 grid cell.
 fn cell_center(position: PalaceGridPosition) -> Point {
@@ -27,7 +27,7 @@ fn cell_center(position: PalaceGridPosition) -> Point {
 /// natal 命宫 default uses a passive tone; a clicked palace / 流 badge uses the
 /// active tone. Returns an empty (still transparent) overlay when no palace is
 /// active, keeping the stack layout stable.
-pub(super) fn san_fang_overlay(app: &StaticChartApp) -> Element<'_, Message> {
+pub(super) fn san_fang_overlay(app: &StaticChartApp, palette: GuiPalette) -> Element<'_, Message> {
     let mut segments = Vec::new();
     if let Some(active) = app.active_palace() {
         let from = cell_center(active.grid_position);
@@ -39,9 +39,9 @@ pub(super) fn san_fang_overlay(app: &StaticChartApp) -> Element<'_, Message> {
     }
 
     let color = if app.san_fang_is_default() {
-        SAN_FANG_PASSIVE
+        palette.line_passive
     } else {
-        SAN_FANG_ACTIVE
+        palette.line_active
     };
 
     canvas::Canvas::new(SanFangLines { segments, color })

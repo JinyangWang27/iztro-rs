@@ -44,8 +44,11 @@ pub enum RightPanelMode {
 /// Only [`GuiThemeId::InkPaper`] is implemented today; the enum is the extension
 /// point for future themes (JadeLight, DeepInk, …). It is a stable internal key,
 /// never a localized display string, so settings files round-trip safely. A
-/// missing or unknown theme field deserializes to the default via `#[serde(other)]`
-/// / serde defaults, so older settings files keep loading.
+/// *missing* theme field fills in from the serde default on
+/// [`AppSettings`](AppSettings::theme); an explicit unknown variant string is not
+/// handled specially here (there is no `#[serde(other)]` fallback), so a settings
+/// file naming a theme this build doesn't know fails to parse and the whole file
+/// falls back to [`AppSettings::default`] via [`SettingsStore::load`].
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize, Default)]
 pub enum GuiThemeId {
     /// Warm paper background, ivory palace cards, deep-purple primary accents.

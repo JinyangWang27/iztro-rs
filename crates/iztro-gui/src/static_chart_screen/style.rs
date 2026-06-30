@@ -5,31 +5,15 @@ use iztro::core::Mutagen;
 use crate::app::Message;
 
 use super::palace::PalaceHighlight;
-use super::theme::{CHART_LAYOUT, INK_PAPER, RADIUS, TYPE};
+use super::theme::{CHART_LAYOUT, GuiPalette, RADIUS, TYPE};
 
-use super::theme::GuiPalette;
+// Custom widget styles are theme-aware: every helper takes the active
+// [`GuiPalette`] (resolved once per frame from the persisted `GuiThemeId`) and
+// derives its colors from it, rather than reading any one theme's constant.
+// Adding a future theme therefore needs only a new palette + resolver arm, not
+// edits to these widget styles. Layout/spacing/radius/typography tokens are
+// theme-independent scales and stay as shared constants.
 
-/// The active InkPaper palette. All widget colors derive from these semantic
-/// tokens rather than scattered hex constants, so a future theme swaps one
-/// palette instead of editing every widget.
-const P: GuiPalette = INK_PAPER.palette;
-
-/// Major stars (主星) and the auspicious soft minor pair stars.
-pub(super) const MAJOR_PURPLE: Color = P.accent;
-/// Brightness suffix (庙旺得利平陷不), independent of star category.
-pub(super) const BRIGHTNESS_GRAY: Color = P.brightness_suffix;
-/// Six malefics / 六煞 (擎羊陀罗火星铃星地空地劫).
-pub(super) const MINOR_MALEFIC: Color = P.malefic;
-/// 禄存.
-pub(super) const LU_CUN_ORANGE: Color = P.cinnabar;
-/// 天马.
-pub(super) const TIAN_MA_BLUE: Color = P.tian_ma;
-/// Ordinary adjective / miscellaneous stars (杂曜).
-pub(super) const ADJ_GRAY: Color = P.text_muted;
-/// 桃花 / festive relationship stars (红鸾咸池天姚天喜, and flow variants).
-pub(super) const PEACH_MAGENTA: Color = P.peach;
-/// 长生十二神 / 博士十二神 decorative gods (bottom-left).
-pub(super) const DECOR_GOD_OLIVE: Color = P.decorative_olive;
 /// Vertical space reserved so variable-height temporal overlays cannot cover the
 /// bottom footer layer: decorative-star lines plus the anchored palace/stem labels.
 pub(super) const DECORATIVE_AREA_HEIGHT: f32 = CHART_LAYOUT.decorative_area_height;
@@ -61,25 +45,9 @@ pub(super) const MAX_STAR_ROWS: usize = CHART_LAYOUT.max_star_rows;
 /// indicator, bounding horizontal growth so wrapped stars cannot crowd out the
 /// protected metadata's horizontal space.
 pub(super) const MAX_STAR_COLUMNS: usize = CHART_LAYOUT.max_star_columns;
-/// Passive 三方四正 connecting-line tone, used for the natal 命宫 default lines.
-pub(super) const SAN_FANG_PASSIVE: Color = P.line_passive;
-/// Active 三方四正 connecting-line tone, used after a 流 badge / palace click.
-pub(super) const SAN_FANG_ACTIVE: Color = P.line_active;
-/// 大限 / 小限 limit text shown in the palace center.
-pub(super) const LIMIT_GRAY: Color = P.text_muted;
-/// Highlight tone for the active 大限 palace's limit text.
-pub(super) const LIMIT_ACTIVE: Color = P.cinnabar;
-
-/// 化禄 badge background.
-const MUTAGEN_LU: Color = P.cinnabar;
-/// 化权 badge background.
-const MUTAGEN_QUAN: Color = P.tian_ma;
-/// 化科 badge background.
-const MUTAGEN_KE: Color = P.jade;
-/// 化忌 badge background.
-const MUTAGEN_JI: Color = P.ink;
 
 pub(super) fn palace_cell_style(
+    palette: GuiPalette,
     highlight: PalaceHighlight,
     analysis_emphasis: bool,
 ) -> impl Fn(&Theme, button::Status) -> button::Style {
@@ -90,16 +58,28 @@ pub(super) fn palace_cell_style(
         // the selected palace stays the single strongest cell.
         let (background, text_color, border_color, width): (Color, Color, Color, f32) =
             match highlight {
-                PalaceHighlight::Selected => (P.accent_soft, P.ink, P.accent, 2.0),
-                PalaceHighlight::Related => (P.palace_surface, P.ink, P.accent_border, 1.25),
-                PalaceHighlight::None => (P.palace_surface, P.ink, P.subtle_border, 1.0),
+                PalaceHighlight::Selected => {
+                    (palette.accent_soft, palette.ink, palette.accent, 2.0)
+                }
+                PalaceHighlight::Related => (
+                    palette.palace_surface,
+                    palette.ink,
+                    palette.accent_border,
+                    1.25,
+                ),
+                PalaceHighlight::None => (
+                    palette.palace_surface,
+                    palette.ink,
+                    palette.subtle_border,
+                    1.0,
+                ),
             };
         // Analysis emphasis is additive: it only nudges the border tone on top
         // of the structural highlight, so the selected/related visual identity
         // is preserved. An inactive palace gains a soft jade border to mark it as
         // an analysis target without overriding background or text.
         let (border_color, width) = if analysis_emphasis {
-            (P.jade, width.max(1.5))
+            (palette.jade, width.max(1.5))
         } else {
             (border_color, width)
         };
@@ -117,12 +97,12 @@ pub(super) fn palace_cell_style(
 }
 
 /// A calm card surface used for the right inspector and startup cards.
-pub(super) fn input_panel_style(_theme: &Theme) -> container::Style {
-    container::Style {
-        background: Some(P.panel_surface.into()),
-        text_color: Some(P.ink),
+pub(super) fn input_panel_style(palette: GuiPalette) -> impl Fn(&Theme) -> container::Style {
+    move |_theme| container::Style {
+        background: Some(palette.panel_surface.into()),
+        text_color: Some(palette.ink),
         border: Border {
-            color: P.subtle_border,
+            color: palette.subtle_border,
             width: 1.0,
             radius: RADIUS.lg.into(),
         },
@@ -131,11 +111,11 @@ pub(super) fn input_panel_style(_theme: &Theme) -> container::Style {
 }
 
 /// The chart-canvas surface card sitting behind the fixed palace grid.
-pub(super) fn chart_surface_style(_theme: &Theme) -> container::Style {
-    container::Style {
-        background: Some(P.chart_surface.into()),
+pub(super) fn chart_surface_style(palette: GuiPalette) -> impl Fn(&Theme) -> container::Style {
+    move |_theme| container::Style {
+        background: Some(palette.chart_surface.into()),
         border: Border {
-            color: P.subtle_border,
+            color: palette.subtle_border,
             width: 1.0,
             radius: RADIUS.lg.into(),
         },
@@ -144,12 +124,12 @@ pub(super) fn chart_surface_style(_theme: &Theme) -> container::Style {
 }
 
 /// The slim application header bar above the chart.
-pub(super) fn header_bar_style(_theme: &Theme) -> container::Style {
-    container::Style {
-        background: Some(P.panel_surface.into()),
-        text_color: Some(P.ink),
+pub(super) fn header_bar_style(palette: GuiPalette) -> impl Fn(&Theme) -> container::Style {
+    move |_theme| container::Style {
+        background: Some(palette.panel_surface.into()),
+        text_color: Some(palette.ink),
         border: Border {
-            color: P.subtle_border,
+            color: palette.subtle_border,
             width: 1.0,
             radius: RADIUS.lg.into(),
         },
@@ -157,12 +137,12 @@ pub(super) fn header_bar_style(_theme: &Theme) -> container::Style {
     }
 }
 
-pub(super) fn center_panel_style(_theme: &Theme) -> container::Style {
-    container::Style {
-        background: Some(P.chart_surface.into()),
-        text_color: Some(P.ink),
+pub(super) fn center_panel_style(palette: GuiPalette) -> impl Fn(&Theme) -> container::Style {
+    move |_theme| container::Style {
+        background: Some(palette.chart_surface.into()),
+        text_color: Some(palette.ink),
         border: Border {
-            color: P.accent_border,
+            color: palette.accent_border,
             width: 1.5,
             radius: RADIUS.lg.into(),
         },
@@ -170,17 +150,22 @@ pub(super) fn center_panel_style(_theme: &Theme) -> container::Style {
     }
 }
 
-pub(super) fn temporal_cell_style(_theme: &Theme, enabled: bool) -> container::Style {
+/// The styled surface for an enabled/disabled temporal cell or inert stepper.
+pub(super) fn temporal_cell_style(palette: GuiPalette, enabled: bool) -> container::Style {
     let background = if enabled {
-        P.palace_surface
+        palette.palace_surface
     } else {
-        P.muted_surface
+        palette.muted_surface
     };
     container::Style {
         background: Some(background.into()),
-        text_color: Some(if enabled { P.ink } else { P.disabled_text }),
+        text_color: Some(if enabled {
+            palette.ink
+        } else {
+            palette.disabled_text
+        }),
         border: Border {
-            color: P.subtle_border,
+            color: palette.subtle_border,
             width: 1.0,
             radius: RADIUS.sm.into(),
         },
@@ -190,17 +175,17 @@ pub(super) fn temporal_cell_style(_theme: &Theme, enabled: bool) -> container::S
 
 /// A compact temporal-period badge (`流年·丁` …) in the accent tone. The selected
 /// badge is filled; the rest are outlined.
-pub(super) fn period_badge_button_style(selected: bool) -> button::Style {
+pub(super) fn period_badge_button_style(palette: GuiPalette, selected: bool) -> button::Style {
     let (background, text_color) = if selected {
-        (Some(P.accent.into()), Color::WHITE)
+        (Some(palette.accent.into()), Color::WHITE)
     } else {
-        (Some(P.accent_soft.into()), P.accent)
+        (Some(palette.accent_soft.into()), palette.accent)
     };
     button::Style {
         background,
         text_color,
         border: Border {
-            color: P.accent,
+            color: palette.accent,
             width: if selected { 0.0 } else { 1.0 },
             radius: RADIUS.sm.into(),
         },
@@ -210,12 +195,14 @@ pub(super) fn period_badge_button_style(selected: bool) -> button::Style {
 
 /// Style for a compact temporal stepper button (`◀限`, `今`, `限▶`). Disabled
 /// steps are rendered as inert containers elsewhere, so this is the enabled tone.
-pub(super) fn stepper_button_style(_theme: &Theme, _status: button::Status) -> button::Style {
-    button::Style {
-        background: Some(P.panel_surface.into()),
-        text_color: P.ink,
+pub(super) fn stepper_button_style(
+    palette: GuiPalette,
+) -> impl Fn(&Theme, button::Status) -> button::Style {
+    move |_theme, _status| button::Style {
+        background: Some(palette.panel_surface.into()),
+        text_color: palette.ink,
         border: Border {
-            color: P.subtle_border,
+            color: palette.subtle_border,
             width: 1.0,
             radius: RADIUS.sm.into(),
         },
@@ -225,12 +212,12 @@ pub(super) fn stepper_button_style(_theme: &Theme, _status: button::Status) -> b
 
 /// A compact card row used for inspector rule/pattern lines, so they read as
 /// discrete cards rather than a flat debug list.
-pub(super) fn inspector_row_style(_theme: &Theme) -> container::Style {
-    container::Style {
-        background: Some(P.panel_surface.into()),
-        text_color: Some(P.ink),
+pub(super) fn inspector_row_style(palette: GuiPalette) -> impl Fn(&Theme) -> container::Style {
+    move |_theme| container::Style {
+        background: Some(palette.panel_surface.into()),
+        text_color: Some(palette.ink),
         border: Border {
-            color: P.subtle_border,
+            color: palette.subtle_border,
             width: 1.0,
             radius: RADIUS.md.into(),
         },
@@ -239,11 +226,11 @@ pub(super) fn inspector_row_style(_theme: &Theme) -> container::Style {
 }
 
 /// The recessed track behind the inspector's segmented tab control.
-pub(super) fn segmented_track_style(_theme: &Theme) -> container::Style {
-    container::Style {
-        background: Some(P.muted_surface.into()),
+pub(super) fn segmented_track_style(palette: GuiPalette) -> impl Fn(&Theme) -> container::Style {
+    move |_theme| container::Style {
+        background: Some(palette.muted_surface.into()),
         border: Border {
-            color: P.subtle_border,
+            color: palette.subtle_border,
             width: 1.0,
             radius: RADIUS.md.into(),
         },
@@ -252,13 +239,13 @@ pub(super) fn segmented_track_style(_theme: &Theme) -> container::Style {
 }
 
 /// A compact status pill (accent-soft fill, accent ink) for inspector rows.
-pub(super) fn pill_badge(label: String) -> Element<'static, Message> {
-    container(text(label).size(TYPE.badge).color(P.accent))
-        .style(|_theme| container::Style {
-            background: Some(P.accent_soft.into()),
-            text_color: Some(P.accent),
+pub(super) fn pill_badge(palette: GuiPalette, label: String) -> Element<'static, Message> {
+    container(text(label).size(TYPE.badge).color(palette.accent))
+        .style(move |_theme| container::Style {
+            background: Some(palette.accent_soft.into()),
+            text_color: Some(palette.accent),
             border: Border {
-                color: P.accent_border,
+                color: palette.accent_border,
                 width: 1.0,
                 radius: RADIUS.sm.into(),
             },
@@ -268,45 +255,50 @@ pub(super) fn pill_badge(label: String) -> Element<'static, Message> {
         .into()
 }
 
-pub(super) fn subtle_text_style(_theme: &Theme) -> text::Style {
-    text::Style {
-        color: Some(P.text_muted),
+pub(super) fn subtle_text_style(palette: GuiPalette) -> impl Fn(&Theme) -> text::Style {
+    move |_theme| text::Style {
+        color: Some(palette.text_muted),
     }
 }
 
 /// Secondary text tone, a step stronger than [`subtle_text_style`].
-pub(super) fn secondary_text_style(_theme: &Theme) -> text::Style {
-    text::Style {
-        color: Some(P.text_secondary),
+pub(super) fn secondary_text_style(palette: GuiPalette) -> impl Fn(&Theme) -> text::Style {
+    move |_theme| text::Style {
+        color: Some(palette.text_secondary),
     }
 }
 
-pub(super) fn section_title_style(_theme: &Theme) -> text::Style {
-    text::Style {
-        color: Some(P.accent),
+pub(super) fn section_title_style(palette: GuiPalette) -> impl Fn(&Theme) -> text::Style {
+    move |_theme| text::Style {
+        color: Some(palette.accent),
     }
 }
 
-pub(super) fn error_text_style(_theme: &Theme) -> text::Style {
-    text::Style {
-        color: Some(P.cinnabar),
+pub(super) fn error_text_style(palette: GuiPalette) -> impl Fn(&Theme) -> text::Style {
+    move |_theme| text::Style {
+        color: Some(palette.cinnabar),
     }
 }
 
-/// 科权禄忌 badge background color (禄 cinnabar / 权 blue / 科 jade / 忌 ink).
-pub(super) fn mutagen_badge_color(mutagen: Mutagen) -> Color {
+/// 科权禄忌 badge background color (禄 cinnabar / 权 blue / 科 jade / 忌 ink),
+/// resolved from the active palette.
+pub(super) fn mutagen_badge_color(palette: GuiPalette, mutagen: Mutagen) -> Color {
     match mutagen {
-        Mutagen::Lu => MUTAGEN_LU,
-        Mutagen::Quan => MUTAGEN_QUAN,
-        Mutagen::Ke => MUTAGEN_KE,
-        Mutagen::Ji => MUTAGEN_JI,
+        Mutagen::Lu => palette.cinnabar,
+        Mutagen::Quan => palette.tian_ma,
+        Mutagen::Ke => palette.jade,
+        Mutagen::Ji => palette.ink,
     }
 }
 
 /// A compact 科权禄忌 badge rendered inline after a star's brightness. The
 /// mutagen char is the prepared `mutagen_zh`; the GUI derives no mutagens.
-pub(super) fn mutagen_inline_badge(mutagen: Mutagen, label: &str) -> Element<'static, Message> {
-    let background = mutagen_badge_color(mutagen);
+pub(super) fn mutagen_inline_badge(
+    palette: GuiPalette,
+    mutagen: Mutagen,
+    label: &str,
+) -> Element<'static, Message> {
+    let background = mutagen_badge_color(palette, mutagen);
     container(
         text::Text::new(label.to_owned())
             .size(TYPE.badge)

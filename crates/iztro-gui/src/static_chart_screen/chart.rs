@@ -9,7 +9,7 @@ use super::inspector::right_inspector;
 use super::lines::san_fang_overlay;
 use super::palace::palace_grid;
 use super::style::{chart_surface_style, header_bar_style};
-use super::theme::{CHART_LAYOUT, SPACING, TYPE};
+use super::theme::{CHART_LAYOUT, GuiPalette, SPACING, TYPE};
 
 /// Minimum width of a single palace cell that keeps the original-iztro-style
 /// star, 大限/小限, and 流 badge text legible instead of collapsing into dashes.
@@ -36,11 +36,15 @@ const SCROLLBAR_GUTTER: f32 = CHART_LAYOUT.scrollbar_gutter;
 pub(super) fn chart_screen<'a>(
     app: &'a StaticChartApp,
     snapshot: &'a StaticChartViewSnapshot,
+    palette: GuiPalette,
     i18n: &I18n,
 ) -> Element<'a, Message> {
-    let grid = stack![palace_grid(app, snapshot, i18n), san_fang_overlay(app)]
-        .width(Length::Fixed(MIN_CHART_WIDTH))
-        .height(Length::Fixed(MIN_CHART_HEIGHT));
+    let grid = stack![
+        palace_grid(app, snapshot, palette, i18n),
+        san_fang_overlay(app, palette)
+    ]
+    .width(Length::Fixed(MIN_CHART_WIDTH))
+    .height(Length::Fixed(MIN_CHART_HEIGHT));
 
     // Inset the fixed canvas by a gutter on the right and bottom so the
     // scrollable's floating scrollbars overlay padding, not palace content.
@@ -63,7 +67,7 @@ pub(super) fn chart_screen<'a>(
     // reads as a single scholarly reading surface rather than bare widgets on
     // the app background.
     let chart_card = container(chart_area)
-        .style(chart_surface_style)
+        .style(chart_surface_style(palette))
         .padding(SPACING.lg)
         .width(Length::Fill)
         .height(Length::Fill);
@@ -78,11 +82,11 @@ pub(super) fn chart_screen<'a>(
         .spacing(SPACING.xl)
         .width(Length::Fill)
         .height(Length::Fill);
-    if let Some(inspector) = right_inspector(app, i18n) {
+    if let Some(inspector) = right_inspector(app, palette, i18n) {
         body = body.push(inspector);
     }
 
-    column![chart_toolbar(i18n), body]
+    column![chart_toolbar(palette, i18n), body]
         .spacing(SPACING.xl)
         .padding(SPACING.xl)
         .into()
@@ -93,14 +97,14 @@ pub(super) fn chart_screen<'a>(
 /// reads as part of a real application rather than a debug toolbar. 三方四正 is
 /// always shown as connecting lines, matching the original iztro chart, so there
 /// is no toggle for it.
-pub(super) fn chart_toolbar<'a>(i18n: &I18n) -> Element<'a, Message> {
+pub(super) fn chart_toolbar<'a>(palette: GuiPalette, i18n: &I18n) -> Element<'a, Message> {
     let bar = row![
         button(text(i18n.text("button-back")).size(TYPE.label))
             .on_press(Message::BackToStartup)
             .style(button::secondary),
         text(i18n.text("startup-title"))
             .size(TYPE.heading)
-            .style(super::style::section_title_style),
+            .style(super::style::section_title_style(palette)),
         iced::widget::horizontal_space(),
         button(text(i18n.text("right-panel-toggle")).size(TYPE.label))
             .on_press(Message::ToggleRightPanel)
@@ -110,7 +114,7 @@ pub(super) fn chart_toolbar<'a>(i18n: &I18n) -> Element<'a, Message> {
     .align_y(Alignment::Center);
 
     container(bar)
-        .style(header_bar_style)
+        .style(header_bar_style(palette))
         .padding(Padding {
             top: SPACING.lg,
             right: SPACING.xl,

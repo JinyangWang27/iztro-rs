@@ -11,42 +11,48 @@ use crate::app::{Message, StaticChartApp};
 
 use super::labels::{fact_row, four_pillars_line, gender_symbol, section_title};
 use super::style::{
-    ADJ_GRAY, BRIGHTNESS_GRAY, DECOR_GOD_OLIVE, DECORATIVE_AREA_HEIGHT, LIMIT_ACTIVE, LIMIT_GRAY,
-    LU_CUN_ORANGE, MAJOR_PURPLE, MAX_STAR_COLUMNS, MAX_STAR_ROWS, MINOR_MALEFIC,
-    PALACE_MIDDLE_BAND_HEIGHT, PEACH_MAGENTA, PERIOD_BADGE_ROW_HEIGHT, TIAN_MA_BLUE,
-    center_panel_style, mutagen_inline_badge, palace_cell_style, secondary_text_style,
-    section_title_style,
+    DECORATIVE_AREA_HEIGHT, MAX_STAR_COLUMNS, MAX_STAR_ROWS, PALACE_MIDDLE_BAND_HEIGHT,
+    PERIOD_BADGE_ROW_HEIGHT, center_panel_style, mutagen_inline_badge, palace_cell_style,
+    secondary_text_style, section_title_style,
 };
 use super::temporal::{period_badge, temporal_controls};
-use super::theme::TYPE;
+use super::theme::{GuiPalette, TYPE};
 
 // Palace grid
 pub(super) fn palace_grid<'a>(
     app: &'a StaticChartApp,
     snapshot: &'a StaticChartViewSnapshot,
+    palette: GuiPalette,
     i18n: &I18n,
 ) -> Element<'a, Message> {
     let top = row![
-        grid_cell(app, 0, 0, i18n),
-        grid_cell(app, 0, 1, i18n),
-        grid_cell(app, 0, 2, i18n),
-        grid_cell(app, 0, 3, i18n),
+        grid_cell(app, 0, 0, palette, i18n),
+        grid_cell(app, 0, 1, palette, i18n),
+        grid_cell(app, 0, 2, palette, i18n),
+        grid_cell(app, 0, 3, palette, i18n),
     ]
     .spacing(6)
     .height(Length::FillPortion(1));
 
-    let left = column![grid_cell(app, 1, 0, i18n), grid_cell(app, 2, 0, i18n)]
-        .spacing(6)
-        .width(Length::FillPortion(1));
-    let right = column![grid_cell(app, 1, 3, i18n), grid_cell(app, 2, 3, i18n)]
-        .spacing(6)
-        .width(Length::FillPortion(1));
+    let left = column![
+        grid_cell(app, 1, 0, palette, i18n),
+        grid_cell(app, 2, 0, palette, i18n)
+    ]
+    .spacing(6)
+    .width(Length::FillPortion(1));
+    let right = column![
+        grid_cell(app, 1, 3, palette, i18n),
+        grid_cell(app, 2, 3, palette, i18n)
+    ]
+    .spacing(6)
+    .width(Length::FillPortion(1));
     let center = container(center_panel(
         &snapshot.center,
         app.selected_temporal_selection(),
+        palette,
         i18n,
     ))
-    .style(center_panel_style)
+    .style(center_panel_style(palette))
     .padding(10)
     .width(Length::FillPortion(2))
     .height(Length::Fill);
@@ -55,10 +61,10 @@ pub(super) fn palace_grid<'a>(
         .height(Length::FillPortion(2));
 
     let bottom = row![
-        grid_cell(app, 3, 0, i18n),
-        grid_cell(app, 3, 1, i18n),
-        grid_cell(app, 3, 2, i18n),
-        grid_cell(app, 3, 3, i18n),
+        grid_cell(app, 3, 0, palette, i18n),
+        grid_cell(app, 3, 1, palette, i18n),
+        grid_cell(app, 3, 2, palette, i18n),
+        grid_cell(app, 3, 3, palette, i18n),
     ]
     .spacing(6)
     .height(Length::FillPortion(1));
@@ -76,6 +82,7 @@ pub(super) fn grid_cell<'a>(
     app: &'a StaticChartApp,
     row: u8,
     column_index: u8,
+    palette: GuiPalette,
     i18n: &I18n,
 ) -> Element<'a, Message> {
     match app.palace_at(row, column_index) {
@@ -94,7 +101,7 @@ pub(super) fn grid_cell<'a>(
             let analysis_emphasis = app
                 .active_chart_highlight()
                 .is_some_and(|view| view.highlights_palace(palace.branch));
-            palace_cell(palace, highlight, analysis_emphasis, i18n)
+            palace_cell(palace, highlight, analysis_emphasis, palette, i18n)
         }
         None => container(text("")).width(Length::FillPortion(1)).into(),
     }
@@ -115,6 +122,7 @@ pub(super) fn palace_cell<'a>(
     palace: &'a StaticPalaceView,
     highlight: PalaceHighlight,
     analysis_emphasis: bool,
+    palette: GuiPalette,
     i18n: &I18n,
 ) -> Element<'a, Message> {
     // Zone every prepared natal typed star by its coarse `kind.category()`:
@@ -140,12 +148,13 @@ pub(super) fn palace_cell<'a>(
     // `MAX_STAR_ROWS`, so a star-heavy palace grows sideways instead of running
     // down into the protected metadata below.
     let star_groups = row![
-        container(typed_star_column(majors, true, i18n)).width(Length::FillPortion(3)),
+        container(typed_star_column(majors, true, palette, i18n)).width(Length::FillPortion(3)),
         container(wrapped_star_group(
             minors,
             false,
             MAX_STAR_ROWS,
             false,
+            palette,
             i18n
         ))
         .width(Length::FillPortion(3)),
@@ -154,6 +163,7 @@ pub(super) fn palace_cell<'a>(
             false,
             MAX_STAR_ROWS,
             true,
+            palette,
             i18n
         ))
         .width(Length::FillPortion(2))
@@ -188,7 +198,7 @@ pub(super) fn palace_cell<'a>(
     // The metadata zone is a fixed-height column pinned below the star area, so
     // it is always visible and its time-flow / identity rows keep a constant
     // y-position across every palace regardless of star count.
-    let metadata = palace_metadata(palace, highlight, gods_left, gods_right, i18n);
+    let metadata = palace_metadata(palace, highlight, gods_left, gods_right, palette, i18n);
 
     let content: Element<'_, Message> = column![star_area, metadata]
         .width(Length::Fill)
@@ -200,7 +210,7 @@ pub(super) fn palace_cell<'a>(
         .width(Length::FillPortion(1))
         .height(Length::Fill)
         .padding(6)
-        .style(palace_cell_style(highlight, analysis_emphasis));
+        .style(palace_cell_style(palette, highlight, analysis_emphasis));
 
     // Hovering a palace drives the 三方四正 highlight; the exit carries the
     // branch so a stale exit cannot clear a newer hover.
@@ -243,26 +253,31 @@ pub(super) fn star_tone(star: &StaticTypedStarView) -> StaticStarTone {
     }
 }
 
-/// The star-name color for a display tone.
-fn star_color(tone: StaticStarTone) -> Color {
+/// The star-name color for a display tone, resolved from the active palette.
+fn star_color(palette: GuiPalette, tone: StaticStarTone) -> Color {
     match tone {
-        StaticStarTone::Major | StaticStarTone::MinorPurple => MAJOR_PURPLE,
-        StaticStarTone::MinorMalefic => MINOR_MALEFIC,
-        StaticStarTone::LuCun => LU_CUN_ORANGE,
-        StaticStarTone::TianMa => TIAN_MA_BLUE,
-        StaticStarTone::AdjDefault => ADJ_GRAY,
-        StaticStarTone::AdjPeachBlossom => PEACH_MAGENTA,
+        StaticStarTone::Major | StaticStarTone::MinorPurple => palette.accent,
+        StaticStarTone::MinorMalefic => palette.malefic,
+        StaticStarTone::LuCun => palette.cinnabar,
+        StaticStarTone::TianMa => palette.tian_ma,
+        StaticStarTone::AdjDefault => palette.text_muted,
+        StaticStarTone::AdjPeachBlossom => palette.peach,
     }
 }
 
 /// One star line: name (tone color, bold for majors) + inline brightness
 /// (gray) + inline mutagen badge. Star name, brightness, and mutagen are
 /// localized from the prepared typed fields.
-fn star_line(star: &StaticTypedStarView, major: bool, i18n: &I18n) -> Element<'static, Message> {
+fn star_line(
+    star: &StaticTypedStarView,
+    major: bool,
+    palette: GuiPalette,
+    i18n: &I18n,
+) -> Element<'static, Message> {
     // Majors are emphasized by larger size + tone color only. The bundled CJK
     // font ships a single (Regular) weight; requesting Bold makes cosmic-text
     // fall back to a non-CJK face and render the names as tofu, so no bold here.
-    let color = star_color(star_tone(star));
+    let color = star_color(palette, star_tone(star));
     let size = if major {
         TYPE.star_major
     } else {
@@ -272,11 +287,15 @@ fn star_line(star: &StaticTypedStarView, major: bool, i18n: &I18n) -> Element<'s
     let mut line = row![name].spacing(1).align_y(Alignment::Center);
     let brightness = i18n.brightness(star.brightness);
     if !brightness.is_empty() {
-        line = line.push(text(brightness).size(size - 2).color(BRIGHTNESS_GRAY));
+        line = line.push(
+            text(brightness)
+                .size(size - 2)
+                .color(palette.brightness_suffix),
+        );
     }
     if let Some(mutagen) = star.mutagen {
         let label = i18n.mutagen(mutagen);
-        line = line.push(mutagen_inline_badge(mutagen, &label));
+        line = line.push(mutagen_inline_badge(palette, mutagen, &label));
     }
     line.into()
 }
@@ -285,11 +304,12 @@ fn star_line(star: &StaticTypedStarView, major: bool, i18n: &I18n) -> Element<'s
 fn typed_star_column(
     stars: Vec<&StaticTypedStarView>,
     major: bool,
+    palette: GuiPalette,
     i18n: &I18n,
 ) -> Element<'static, Message> {
     let mut col = column![].spacing(1);
     for star in stars {
-        col = col.push(star_line(star, major, i18n));
+        col = col.push(star_line(star, major, palette, i18n));
     }
     col.into()
 }
@@ -308,6 +328,7 @@ fn wrapped_star_group(
     major: bool,
     max_rows: usize,
     align_end: bool,
+    palette: GuiPalette,
     i18n: &I18n,
 ) -> Element<'static, Message> {
     let max_rows = max_rows.max(1);
@@ -323,7 +344,7 @@ fn wrapped_star_group(
             col = col.align_x(Alignment::End);
         }
         for star in *chunk {
-            col = col.push(star_line(star, major, i18n));
+            col = col.push(star_line(star, major, palette, i18n));
         }
         if plan.overflow_count > 0 && index == last {
             // The `+N` marker occupies a reserved grid cell (see `star_wrap_plan`)
@@ -333,7 +354,7 @@ fn wrapped_star_group(
             col = col.push(
                 text(format!("+{}", plan.overflow_count))
                     .size(TYPE.small)
-                    .color(ADJ_GRAY),
+                    .color(palette.text_muted),
             );
         }
         columns = columns.push(col);
@@ -405,6 +426,7 @@ fn palace_metadata<'a>(
     highlight: PalaceHighlight,
     gods_left: Vec<&'a StaticDecorativeStarView>,
     gods_right: Vec<&'a StaticDecorativeStarView>,
+    palette: GuiPalette,
     i18n: &I18n,
 ) -> Element<'a, Message> {
     // 流年/流月/流日/流时 badges sit above the 大限/小限 line. Only overlays core
@@ -415,7 +437,7 @@ fn palace_metadata<'a>(
     for overlay in &palace.overlays {
         if let Some(stem) = overlay.period_stem {
             let label = format!("{}·{}", i18n.temporal_label(overlay.scope), i18n.stem(stem));
-            badges = badges.push(period_badge(&label, palace.branch, is_source));
+            badges = badges.push(period_badge(palette, &label, palace.branch, is_source));
         }
     }
     // Always reserve the badge-row height (an empty placeholder when there is no
@@ -426,7 +448,7 @@ fn palace_metadata<'a>(
         .height(Length::Fixed(PERIOD_BADGE_ROW_HEIGHT))
         .align_x(Alignment::Center);
     let flow = container(
-        column![badge_row, limit_middle(palace, i18n)]
+        column![badge_row, limit_middle(palace, palette, i18n)]
             .spacing(2)
             .align_x(Alignment::Center),
     )
@@ -434,9 +456,12 @@ fn palace_metadata<'a>(
     .height(Length::Fixed(PALACE_MIDDLE_BAND_HEIGHT))
     .align_y(Alignment::End);
 
-    column![flow, palace_identity(palace, gods_left, gods_right, i18n)]
-        .width(Length::Fill)
-        .into()
+    column![
+        flow,
+        palace_identity(palace, gods_left, gods_right, palette, i18n)
+    ]
+    .width(Length::Fill)
+    .into()
 }
 
 /// The fixed-height identity footer: decorative "twelve gods" above the localized
@@ -447,25 +472,26 @@ fn palace_identity<'a>(
     palace: &'a StaticPalaceView,
     gods_left: Vec<&'a StaticDecorativeStarView>,
     gods_right: Vec<&'a StaticDecorativeStarView>,
+    palette: GuiPalette,
     i18n: &I18n,
 ) -> Element<'a, Message> {
     let left = column![
-        container(decorative_column(gods_left, DECOR_GOD_OLIVE, i18n)).width(Length::Fill),
+        container(decorative_column(gods_left, palette.decorative_olive, i18n)).width(Length::Fill),
         text(i18n.palace_name(palace.name))
             .size(TYPE.heading)
-            .color(MAJOR_PURPLE),
+            .color(palette.accent),
     ]
     .spacing(1)
     .align_x(Alignment::Start);
     let right = column![
-        container(decorative_column(gods_right, MINOR_MALEFIC, i18n))
+        container(decorative_column(gods_right, palette.malefic, i18n))
             .width(Length::Fill)
             .align_x(Alignment::End),
         // The 干支 footer stays calm and readable in secondary ink rather than a
         // saturated tone, so the palace identity row reads as stable metadata.
         text(i18n.stem_branch(palace.stem, palace.branch))
             .size(TYPE.label)
-            .style(secondary_text_style),
+            .style(secondary_text_style(palette)),
     ]
     .spacing(1)
     .align_x(Alignment::End);
@@ -493,11 +519,15 @@ fn palace_identity<'a>(
 /// the palace holding the selected nominal age's 小限 is emphasized with the same
 /// active color as the active 大限, while the badge mechanism used by 流年 is
 /// deliberately not reused here.
-fn limit_middle(palace: &StaticPalaceView, i18n: &I18n) -> Element<'static, Message> {
+fn limit_middle(
+    palace: &StaticPalaceView,
+    palette: GuiPalette,
+    i18n: &I18n,
+) -> Element<'static, Message> {
     let decadal_color = if palace.limit.is_active_decadal {
-        LIMIT_ACTIVE
+        palette.cinnabar
     } else {
-        LIMIT_GRAY
+        palette.text_muted
     };
     let mut col = column![].spacing(0).align_x(Alignment::Center);
     if let Some(range) = palace.limit.decadal_age_range_zh.as_deref() {
@@ -516,7 +546,7 @@ fn limit_middle(palace: &StaticPalaceView, i18n: &I18n) -> Element<'static, Mess
     let small_limit = if palace.limit.is_active_small_limit {
         palace.limit.active_small_limit_age.map(|age| {
             let prefix = i18n.temporal_label(Scope::Age);
-            (format!("{prefix} {age}"), LIMIT_ACTIVE)
+            (format!("{prefix} {age}"), palette.cinnabar)
         })
     } else {
         let ages = if !palace.limit.small_limit_ages.is_empty() {
@@ -530,7 +560,7 @@ fn limit_middle(palace: &StaticPalaceView, i18n: &I18n) -> Element<'static, Mess
         } else {
             palace.limit.small_limit_ages_zh.join(" ")
         };
-        (!ages.is_empty()).then_some((ages, LIMIT_GRAY))
+        (!ages.is_empty()).then_some((ages, palette.text_muted))
     };
     if let Some((label, color)) = small_limit {
         col = col.push(text(label).size(8).color(color));
@@ -547,6 +577,7 @@ fn limit_middle(palace: &StaticPalaceView, i18n: &I18n) -> Element<'static, Mess
 pub(super) fn center_panel(
     center: &StaticChartCenterView,
     selection: StaticTemporalNavigationSelection,
+    palette: GuiPalette,
     i18n: &I18n,
 ) -> Element<'static, Message> {
     let dash = || "—".to_owned();
@@ -556,7 +587,7 @@ pub(super) fn center_panel(
         i18n.text("center-basic-info")
     ))
     .size(14)
-    .style(section_title_style);
+    .style(section_title_style(palette));
 
     let bureau = center
         .five_element_bureau
@@ -654,11 +685,11 @@ pub(super) fn center_panel(
         .unwrap_or_else(dash);
 
     let run_xian = column![
-        section_title(&i18n.text("center-temporal-info")),
+        section_title(palette, &i18n.text("center-temporal-info")),
         fact_row(i18n, &i18n.text("center-lunar"), temporal_lunar),
         fact_row(i18n, &i18n.text("center-solar"), temporal_solar),
         fact_row(i18n, &i18n.temporal_label(Scope::Age), small_limit),
-        temporal_controls(selection, i18n),
+        temporal_controls(palette, selection, i18n),
     ]
     .spacing(2);
 

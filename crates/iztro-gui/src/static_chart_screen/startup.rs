@@ -6,17 +6,21 @@ use crate::app::{BirthForm, FormError, Message, SavedChart, StaticChartApp};
 
 use super::labels::{GenderChoice, TimeChoice, gender_choices, time_choices};
 use super::style::{error_text_style, input_panel_style, section_title_style, subtle_text_style};
-use super::theme::{SPACING, TYPE};
+use super::theme::{GuiPalette, SPACING, TYPE};
 
 /// The landing page: birth-input form plus the list of saved charts.
-pub(super) fn startup_screen<'a>(app: &'a StaticChartApp, i18n: &I18n) -> Element<'a, Message> {
+pub(super) fn startup_screen<'a>(
+    app: &'a StaticChartApp,
+    palette: GuiPalette,
+    i18n: &I18n,
+) -> Element<'a, Message> {
     let title = column![
         text(i18n.text("startup-title"))
             .size(TYPE.title)
-            .style(section_title_style),
+            .style(section_title_style(palette)),
         text(i18n.text("startup-subtitle"))
             .size(TYPE.body)
-            .style(subtle_text_style),
+            .style(subtle_text_style(palette)),
     ]
     .spacing(SPACING.sm);
 
@@ -24,8 +28,8 @@ pub(super) fn startup_screen<'a>(app: &'a StaticChartApp, i18n: &I18n) -> Elemen
     column![
         language_bar(app, i18n),
         title,
-        input_bar(app.form(), app.error(), editing, i18n),
-        saved_charts_panel(app.saved(), i18n),
+        input_bar(app.form(), app.error(), editing, palette, i18n),
+        saved_charts_panel(app.saved(), palette, i18n),
     ]
     .spacing(SPACING.xl)
     .padding(SPACING.xxl)
@@ -58,24 +62,28 @@ fn language_bar<'a>(app: &'a StaticChartApp, i18n: &I18n) -> Element<'a, Message
 
 /// The saved-charts list shown on the startup page. Each row shows the saved
 /// name prominently with birth metadata, plus open / edit / delete actions.
-pub(super) fn saved_charts_panel<'a>(saved: &'a [SavedChart], i18n: &I18n) -> Element<'a, Message> {
+pub(super) fn saved_charts_panel<'a>(
+    saved: &'a [SavedChart],
+    palette: GuiPalette,
+    i18n: &I18n,
+) -> Element<'a, Message> {
     let mut content =
         column![text(i18n.text("chart-saved-charts")).size(TYPE.heading)].spacing(SPACING.lg);
     if saved.is_empty() {
         content = content.push(
             text(i18n.text("saved-empty"))
                 .size(TYPE.body)
-                .style(subtle_text_style),
+                .style(subtle_text_style(palette)),
         );
     } else {
         let mut list = column![].spacing(SPACING.md);
         for (index, saved) in saved.iter().enumerate() {
-            list = list.push(saved_chart_row(index, saved, i18n));
+            list = list.push(saved_chart_row(index, saved, palette, i18n));
         }
         content = content.push(list);
     }
     container(content)
-        .style(input_panel_style)
+        .style(input_panel_style(palette))
         .padding(SPACING.xl)
         .width(Length::Fill)
         .into()
@@ -83,7 +91,12 @@ pub(super) fn saved_charts_panel<'a>(saved: &'a [SavedChart], i18n: &I18n) -> El
 
 /// One saved-chart row: the name (click to open) over its birth metadata, with
 /// edit / delete actions.
-fn saved_chart_row<'a>(index: usize, saved: &'a SavedChart, i18n: &I18n) -> Element<'a, Message> {
+fn saved_chart_row<'a>(
+    index: usize,
+    saved: &'a SavedChart,
+    palette: GuiPalette,
+    i18n: &I18n,
+) -> Element<'a, Message> {
     let input = &saved.input;
     let meta = format!(
         "{}-{:02}-{:02} · {} · {}",
@@ -95,7 +108,9 @@ fn saved_chart_row<'a>(index: usize, saved: &'a SavedChart, i18n: &I18n) -> Elem
     );
     let info = column![
         text(saved.name.clone()).size(TYPE.heading),
-        text(meta).size(TYPE.label).style(subtle_text_style),
+        text(meta)
+            .size(TYPE.label)
+            .style(subtle_text_style(palette)),
     ]
     .spacing(SPACING.xs);
 
@@ -123,6 +138,7 @@ pub(super) fn input_bar<'a>(
     form: &'a BirthForm,
     error: Option<&'a FormError>,
     editing: bool,
+    palette: GuiPalette,
     i18n: &I18n,
 ) -> Element<'a, Message> {
     let locale = i18n.locale();
@@ -207,12 +223,12 @@ pub(super) fn input_bar<'a>(
         args.set("message", message);
         bar = bar.push(
             text(i18n.text_args("input-error", &args))
-                .style(error_text_style)
+                .style(error_text_style(palette))
                 .size(14),
         );
     }
     container(bar)
-        .style(input_panel_style)
+        .style(input_panel_style(palette))
         .padding(SPACING.lg)
         .width(Length::Fill)
         .into()
