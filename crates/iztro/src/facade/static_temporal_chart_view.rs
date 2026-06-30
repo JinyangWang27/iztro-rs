@@ -5,7 +5,7 @@
 //! user chose as a [`StaticTemporalNavigationSelection`] index path; core builds
 //! the natal chart, resolves the indices to concrete lunar/solar coordinates,
 //! derives the partial temporal-overlay stack up to the selected scope, and
-//! returns a prepared [`StaticChartViewSnapshot`]. All overlay derivation
+//! returns a prepared [`StaticChartProjection`]. All overlay derivation
 //! (decadal frame, flow stars, mutagens, temporal palace layout, lunar→solar
 //! resolution) stays inside core — the renderer never constructs a
 //! [`HoroscopeChart`](crate::core::HoroscopeChart) or
@@ -30,7 +30,8 @@ use crate::core::placement::overlay::selected_temporal::{
     lunar_year_for, resolve_partial, validate_selection_indices,
 };
 use crate::projection::static_chart::{
-    LunarDateView, StaticChartViewRequest, StaticChartViewSnapshot, StaticTemporalPanelView,
+    LunarDateProjection, StaticChartProjection, StaticChartProjectionRequest,
+    StaticTemporalPanelProjection,
 };
 
 /// Builds a prepared static chart view for one temporal navigation selection.
@@ -47,7 +48,7 @@ use crate::projection::static_chart::{
 pub fn static_temporal_chart_view(
     request: SolarChartRequest,
     selection: StaticTemporalNavigationSelection,
-) -> Result<StaticChartViewSnapshot, ChartError> {
+) -> Result<StaticChartProjection, ChartError> {
     let natal = by_solar(request)?;
     static_temporal_chart_view_from_chart(natal, selection)
 }
@@ -66,26 +67,27 @@ pub fn static_temporal_chart_view(
 pub fn static_temporal_chart_view_from_chart(
     natal: Chart,
     selection: StaticTemporalNavigationSelection,
-) -> Result<StaticChartViewSnapshot, ChartError> {
+) -> Result<StaticChartProjection, ChartError> {
     validate_selection_indices(selection)?;
 
     match selection {
         StaticTemporalNavigationSelection::Natal
         | StaticTemporalNavigationSelection::PreDecadal => {
-            let mut snapshot = StaticChartViewSnapshot::from_chart(&natal);
-            snapshot.temporal_panel = StaticTemporalPanelView::from_selection(&natal, selection);
+            let mut snapshot = StaticChartProjection::from_chart(&natal);
+            snapshot.temporal_panel =
+                StaticTemporalPanelProjection::from_selection(&natal, selection);
             decorate_temporal(&mut snapshot, &natal, selection, None)?;
             Ok(snapshot)
         }
         _ => {
             let (spec, visible_scopes) = resolve_partial(&natal, selection)?;
             let horoscope = build_partial_horoscope_chart(natal, spec)?;
-            let mut snapshot = StaticChartViewSnapshot::from_horoscope_chart_with(
+            let mut snapshot = StaticChartProjection::from_horoscope_chart_with(
                 &horoscope,
-                &StaticChartViewRequest { visible_scopes },
+                &StaticChartProjectionRequest { visible_scopes },
             );
             snapshot.temporal_panel =
-                StaticTemporalPanelView::from_selection(horoscope.natal(), selection);
+                StaticTemporalPanelProjection::from_selection(horoscope.natal(), selection);
             let target = horoscope.target_context().cloned();
             decorate_temporal(&mut snapshot, horoscope.natal(), selection, target.as_ref())?;
             Ok(snapshot)
@@ -99,7 +101,7 @@ pub fn static_temporal_chart_view_from_chart(
 /// All natal facts already live on the snapshot; this only layers on the facts
 /// that depend on the temporal navigation selection.
 fn decorate_temporal(
-    snapshot: &mut StaticChartViewSnapshot,
+    snapshot: &mut StaticChartProjection,
     natal: &Chart,
     selection: StaticTemporalNavigationSelection,
     target: Option<&HoroscopeTargetContext>,
@@ -144,7 +146,7 @@ fn decorate_temporal(
             lunar.day(),
             lunar.is_leap_month(),
         ));
-        snapshot.center.temporal_lunar_date = Some(LunarDateView {
+        snapshot.center.temporal_lunar_date = Some(LunarDateProjection {
             year: lunar.year(),
             month: lunar.month(),
             day: lunar.day(),
@@ -180,7 +182,7 @@ fn decorate_temporal(
 /// state, not an error. Any genuine inconsistency surfaced by
 /// [`build_age_period`] (an unbuildable palace stem-branch) is propagated.
 fn decorate_active_small_limit(
-    snapshot: &mut StaticChartViewSnapshot,
+    snapshot: &mut StaticChartProjection,
     natal: &Chart,
     nominal_age: u16,
 ) -> Result<(), ChartError> {

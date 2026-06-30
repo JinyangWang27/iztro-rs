@@ -3,7 +3,7 @@
 //! This module is renderer-agnostic: it depends only on `iztro` facade APIs and
 //! read models, never on `iced`. It owns the birth-input form, builds charts
 //! through the public `static_temporal_chart_view` facade, caches the resulting
-//! [`StaticChartViewSnapshot`] values by `(input, selection)`, and exposes
+//! [`StaticChartProjection`] values by `(input, selection)`, and exposes
 //! deterministic, testable accessors. No astrology placement, rule evaluation,
 //! pattern detection, temporal-overlay, 三方四正, mutagen, or 成格 derivation is
 //! computed here — chart facts are read from prepared snapshots, and the right
@@ -33,7 +33,7 @@ use iztro::core::{
     SolarChartRequest, SolarDay, SolarMonth, by_solar,
 };
 use iztro::{
-    StaticChartCenterView, StaticChartViewSnapshot, StaticPalaceView,
+    StaticChartCenterProjection, StaticChartProjection, StaticPalaceProjection,
     StaticTemporalNavigationSelection, static_temporal_chart_view,
     temporal_selection_for_solar_moment,
 };
@@ -438,7 +438,7 @@ pub enum GenerateOutcome {
 /// not persisted to disk.
 #[derive(Clone, Debug, Default)]
 pub struct ChartCache {
-    entries: HashMap<(BirthInput, StaticTemporalNavigationSelection), StaticChartViewSnapshot>,
+    entries: HashMap<(BirthInput, StaticTemporalNavigationSelection), StaticChartProjection>,
     hits: u64,
     misses: u64,
 }
@@ -448,7 +448,7 @@ impl ChartCache {
     pub fn get_or_build(
         &mut self,
         input: &BirthInput,
-    ) -> Result<(StaticChartViewSnapshot, bool), ChartError> {
+    ) -> Result<(StaticChartProjection, bool), ChartError> {
         self.get_or_build_with(input, StaticTemporalNavigationSelection::PreDecadal)
     }
 
@@ -461,7 +461,7 @@ impl ChartCache {
         &mut self,
         input: &BirthInput,
         selection: StaticTemporalNavigationSelection,
-    ) -> Result<(StaticChartViewSnapshot, bool), ChartError> {
+    ) -> Result<(StaticChartProjection, bool), ChartError> {
         let key = (*input, selection);
         if let Some(snapshot) = self.entries.get(&key) {
             self.hits += 1;
@@ -568,7 +568,7 @@ pub struct StaticChartApp {
     screen: Screen,
     form: BirthForm,
     input: Option<BirthInput>,
-    snapshot: Option<StaticChartViewSnapshot>,
+    snapshot: Option<StaticChartProjection>,
     selected: Option<EarthlyBranch>,
     hovered_palace: Option<EarthlyBranch>,
     selected_temporal_selection: StaticTemporalNavigationSelection,
@@ -689,7 +689,7 @@ impl StaticChartApp {
     }
 
     /// Returns the static chart snapshot driving the chart view, if any.
-    pub fn snapshot(&self) -> Option<&StaticChartViewSnapshot> {
+    pub fn snapshot(&self) -> Option<&StaticChartProjection> {
         self.snapshot.as_ref()
     }
 
@@ -798,7 +798,7 @@ impl StaticChartApp {
     }
 
     /// Returns the twelve perimeter palaces of the current snapshot, if any.
-    pub fn palaces(&self) -> &[StaticPalaceView] {
+    pub fn palaces(&self) -> &[StaticPalaceProjection] {
         self.snapshot
             .as_ref()
             .map(|snapshot| snapshot.palaces.as_slice())
@@ -806,7 +806,7 @@ impl StaticChartApp {
     }
 
     /// Returns the center-panel facts of the current snapshot, if any.
-    pub fn center(&self) -> Option<&StaticChartCenterView> {
+    pub fn center(&self) -> Option<&StaticChartCenterProjection> {
         self.snapshot.as_ref().map(|snapshot| &snapshot.center)
     }
 
@@ -815,8 +815,8 @@ impl StaticChartApp {
     /// Lookup is keyed by [`grid_position`], not by `Vec` order. Center cells and
     /// the empty-snapshot case return `None`.
     ///
-    /// [`grid_position`]: iztro::StaticPalaceView::grid_position
-    pub fn palace_at(&self, row: u8, column: u8) -> Option<&StaticPalaceView> {
+    /// [`grid_position`]: iztro::StaticPalaceProjection::grid_position
+    pub fn palace_at(&self, row: u8, column: u8) -> Option<&StaticPalaceProjection> {
         self.palaces().iter().find(|palace| {
             palace.grid_position.row() == row && palace.grid_position.column() == column
         })
@@ -828,7 +828,7 @@ impl StaticChartApp {
     }
 
     /// Returns the currently selected palace, if any.
-    pub fn selected_palace(&self) -> Option<&StaticPalaceView> {
+    pub fn selected_palace(&self) -> Option<&StaticPalaceProjection> {
         let branch = self.selected?;
         self.palaces().iter().find(|palace| palace.branch == branch)
     }
@@ -845,7 +845,7 @@ impl StaticChartApp {
     }
 
     /// Returns the palace driving highlighting (hovered, else selected), if any.
-    pub fn active_palace(&self) -> Option<&StaticPalaceView> {
+    pub fn active_palace(&self) -> Option<&StaticPalaceProjection> {
         let branch = self.active_branch()?;
         self.palaces().iter().find(|palace| palace.branch == branch)
     }
@@ -862,7 +862,7 @@ impl StaticChartApp {
     /// prepared [`surround`] field; performs no branch arithmetic. 三方四正 is
     /// always shown, matching the original iztro chart.
     ///
-    /// [`surround`]: iztro::StaticPalaceView::surround
+    /// [`surround`]: iztro::StaticPalaceProjection::surround
     pub fn is_in_san_fang(&self, branch: EarthlyBranch) -> bool {
         self.active_palace()
             .is_some_and(|palace| palace.surround.involves(branch))
@@ -1467,13 +1467,13 @@ impl Default for StaticChartApp {
     }
 }
 
-/// Builds a [`StaticChartViewSnapshot`] for `input` and `selection` through the
+/// Builds a [`StaticChartProjection`] for `input` and `selection` through the
 /// `static_temporal_chart_view` facade, so all temporal-overlay derivation stays
 /// in core. Returns the facade error for invalid calendar input or selection.
 fn build_snapshot(
     input: &BirthInput,
     selection: StaticTemporalNavigationSelection,
-) -> Result<StaticChartViewSnapshot, ChartError> {
+) -> Result<StaticChartProjection, ChartError> {
     static_temporal_chart_view(build_request(input)?, selection)
 }
 
@@ -2662,7 +2662,7 @@ mod tests {
             "PlacementInput",
             // 三方四正 / mutagen must be read from prepared snapshots, never derived.
             ".offset(",
-            "StaticSurroundPalacesView::for_branch",
+            "StaticSurroundProjection::for_branch",
             "birth_year_star_mutagen",
             "birth_year_major_star_mutagen",
             // Temporal overlays must be prepared by the `static_temporal_chart_view`

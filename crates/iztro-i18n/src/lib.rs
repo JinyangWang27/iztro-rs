@@ -22,7 +22,7 @@ mod localizer;
 #[cfg(test)]
 mod star_table;
 
-use iztro::LunarDateView;
+use iztro::LunarDateProjection;
 use iztro::core::labels::chinese_date;
 use iztro::core::{
     Brightness, EarthlyBranch, FiveElementBureau, Gender, HeavenlyStem, Mutagen, PalaceName,
@@ -188,7 +188,7 @@ impl I18n {
     /// Simplified Chinese reuses the authoritative almanac form
     /// (`一九九三年四月初七`); English renders `Lunar 1993-04-07`, marking a leap
     /// month explicitly.
-    pub fn lunar_date(&self, date: &LunarDateView) -> String {
+    pub fn lunar_date(&self, date: &LunarDateProjection) -> String {
         match self.locale() {
             Locale::ZhHans => {
                 chinese_date::lunar_date_label(date.year, date.month, date.day, date.is_leap_month)
@@ -405,7 +405,7 @@ mod tests {
     fn composite_helpers_render_per_locale() {
         let en = I18n::new(Locale::EnUs);
         let zh = I18n::new(Locale::ZhHans);
-        let date = LunarDateView {
+        let date = LunarDateProjection {
             year: 1993,
             month: 4,
             day: 7,

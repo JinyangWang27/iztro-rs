@@ -4,7 +4,7 @@ use iztro::core::{
     Chart, ChartAlgorithmKind, Gender, LunarChartRequest, LunarDay, LunarMonth, MethodProfile,
     PALACE_COUNT, StemBranch, build_empty_chart, by_lunar,
 };
-use iztro::{StaticChartViewSnapshot, StaticTemporalPanelView};
+use iztro::{StaticChartProjection, StaticTemporalPanelProjection};
 
 fn canonical_chart() -> Chart {
     let birth_year = StemBranch::from_lunar_year(1990);
@@ -32,7 +32,7 @@ fn canonical_chart() -> Chart {
 
 #[test]
 fn decadal_cells_follow_public_static_view_order() {
-    let cells = StaticChartViewSnapshot::from_chart(&canonical_chart())
+    let cells = StaticChartProjection::from_chart(&canonical_chart())
         .temporal_panel
         .decadal_cells;
 
@@ -74,7 +74,7 @@ fn missing_natal_facts_produce_twelve_disabled_decadal_cells() {
         sample.method_profile().clone(),
     )
     .expect("empty chart scaffold should build");
-    let cells = StaticChartViewSnapshot::from_chart(&empty)
+    let cells = StaticChartProjection::from_chart(&empty)
         .temporal_panel
         .decadal_cells;
 
@@ -86,7 +86,7 @@ fn missing_natal_facts_produce_twelve_disabled_decadal_cells() {
 
 #[test]
 fn natal_panel_exposes_static_navigation_and_neutral_yearly_age_cells() {
-    let panel = StaticChartViewSnapshot::from_chart(&canonical_chart()).temporal_panel;
+    let panel = StaticChartProjection::from_chart(&canonical_chart()).temporal_panel;
 
     assert_eq!(panel.decadal_cells.len(), PALACE_COUNT);
     assert_eq!(panel.yearly_age_cells.len(), PALACE_COUNT);
@@ -127,7 +127,7 @@ fn natal_panel_exposes_static_navigation_and_neutral_yearly_age_cells() {
 
 #[test]
 fn pre_decadal_cell_labels_the_span_before_the_first_limit() {
-    let cell = StaticChartViewSnapshot::from_chart(&canonical_chart())
+    let cell = StaticChartProjection::from_chart(&canonical_chart())
         .temporal_panel
         .pre_decadal_cell;
 
@@ -146,7 +146,7 @@ fn pre_decadal_cell_is_disabled_when_the_frame_is_missing() {
         sample.method_profile().clone(),
     )
     .expect("empty chart scaffold should build");
-    let cell = StaticChartViewSnapshot::from_chart(&empty)
+    let cell = StaticChartProjection::from_chart(&empty)
         .temporal_panel
         .pre_decadal_cell;
 
@@ -159,16 +159,15 @@ fn pre_decadal_cell_is_disabled_when_the_frame_is_missing() {
 fn temporal_panel_decodes_legacy_json_without_pre_decadal_cell() {
     // A snapshot serialized before `pre_decadal_cell` existed must still decode,
     // defaulting the new field rather than failing the roundtrip.
-    let mut value = serde_json::to_value(
-        StaticChartViewSnapshot::from_chart(&canonical_chart()).temporal_panel,
-    )
-    .expect("panel should serialize");
+    let mut value =
+        serde_json::to_value(StaticChartProjection::from_chart(&canonical_chart()).temporal_panel)
+            .expect("panel should serialize");
     value
         .as_object_mut()
         .expect("panel is an object")
         .remove("pre_decadal_cell");
 
-    let decoded: StaticTemporalPanelView =
+    let decoded: StaticTemporalPanelProjection =
         serde_json::from_value(value).expect("legacy panel should deserialize via serde default");
     assert!(!decoded.pre_decadal_cell.enabled);
     assert_eq!(decoded.pre_decadal_cell.label_zh, "");
@@ -176,7 +175,7 @@ fn temporal_panel_decodes_legacy_json_without_pre_decadal_cell() {
 
 #[test]
 fn temporal_panel_serialization_has_stable_public_shape() {
-    let panel = StaticChartViewSnapshot::from_chart(&canonical_chart()).temporal_panel;
+    let panel = StaticChartProjection::from_chart(&canonical_chart()).temporal_panel;
     let value = serde_json::to_value(&panel).expect("temporal panel should serialize");
     let object = value
         .as_object()
@@ -215,7 +214,7 @@ fn temporal_panel_serialization_has_stable_public_shape() {
     );
     assert_eq!(object["hour_cells"].as_array().unwrap().len(), PALACE_COUNT);
 
-    let decoded: StaticTemporalPanelView =
+    let decoded: StaticTemporalPanelProjection =
         serde_json::from_value(value).expect("temporal panel should deserialize");
     assert_eq!(decoded, panel);
 }

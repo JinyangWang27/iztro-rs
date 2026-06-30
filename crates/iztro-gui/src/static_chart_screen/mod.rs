@@ -1,4 +1,4 @@
-//! Iced rendering of one [`StaticChartViewSnapshot`] in a layout.
+//! Iced rendering of one [`StaticChartProjection`] in a layout.
 //!
 //! The screen is a composed grid — a top row of four palaces, a middle band with
 //! a left palace column, a center panel spanning the middle 2x2, and a right
@@ -13,7 +13,7 @@
 //! view models and already-computed analysis results — no astrology placement,
 //! 三方四正, mutagen, rule evaluation, pattern detection, or 成格 derivation.
 //!
-//! [`StaticChartViewSnapshot`]: iztro::StaticChartViewSnapshot
+//! [`StaticChartProjection`]: iztro::StaticChartProjection
 
 mod chart;
 mod inspector;

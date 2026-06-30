@@ -1,6 +1,6 @@
 use iced::widget::{button, column, container, row, scrollable, stack, text};
 use iced::{Alignment, Element, Length, Padding};
-use iztro::StaticChartViewSnapshot;
+use iztro::StaticChartProjection;
 use iztro_i18n::I18n;
 
 use crate::app::{Message, StaticChartApp};
@@ -35,7 +35,7 @@ const SCROLLBAR_GUTTER: f32 = CHART_LAYOUT.scrollbar_gutter;
 /// aligned with the palace grid.
 pub(super) fn chart_screen<'a>(
     app: &'a StaticChartApp,
-    snapshot: &'a StaticChartViewSnapshot,
+    snapshot: &'a StaticChartProjection,
     palette: GuiPalette,
     i18n: &I18n,
 ) -> Element<'a, Message> {

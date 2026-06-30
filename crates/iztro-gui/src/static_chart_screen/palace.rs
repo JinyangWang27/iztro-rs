@@ -2,8 +2,8 @@ use iced::widget::{button, column, container, mouse_area, row, text};
 use iced::{Alignment, Color, Element, Length};
 use iztro::core::{DecorativeStarFamily, Scope, StarCategory, StarKind};
 use iztro::{
-    StaticChartCenterView, StaticChartViewSnapshot, StaticDecorativeStarView, StaticPalaceView,
-    StaticTemporalNavigationSelection, StaticTypedStarView,
+    StaticChartCenterProjection, StaticChartProjection, StaticDecorativeStarProjection,
+    StaticPalaceProjection, StaticTemporalNavigationSelection, StaticTypedStarProjection,
 };
 use iztro_i18n::I18n;
 
@@ -21,7 +21,7 @@ use super::theme::{GuiPalette, TYPE};
 // Palace grid
 pub(super) fn palace_grid<'a>(
     app: &'a StaticChartApp,
-    snapshot: &'a StaticChartViewSnapshot,
+    snapshot: &'a StaticChartProjection,
     palette: GuiPalette,
     i18n: &I18n,
 ) -> Element<'a, Message> {
@@ -119,7 +119,7 @@ pub(super) enum PalaceHighlight {
 }
 
 pub(super) fn palace_cell<'a>(
-    palace: &'a StaticPalaceView,
+    palace: &'a StaticPalaceProjection,
     highlight: PalaceHighlight,
     analysis_emphasis: bool,
     palette: GuiPalette,
@@ -241,7 +241,7 @@ pub(super) enum StaticStarTone {
 
 /// Classifies a prepared typed star into a display tone by its `kind`. This is
 /// pure visual classification of an already-derived core field — no astrology.
-pub(super) fn star_tone(star: &StaticTypedStarView) -> StaticStarTone {
+pub(super) fn star_tone(star: &StaticTypedStarProjection) -> StaticStarTone {
     match star.kind {
         StarKind::Major => StaticStarTone::Major,
         StarKind::Soft => StaticStarTone::MinorPurple,
@@ -269,7 +269,7 @@ fn star_color(palette: GuiPalette, tone: StaticStarTone) -> Color {
 /// (gray) + inline mutagen badge. Star name, brightness, and mutagen are
 /// localized from the prepared typed fields.
 fn star_line(
-    star: &StaticTypedStarView,
+    star: &StaticTypedStarProjection,
     major: bool,
     palette: GuiPalette,
     i18n: &I18n,
@@ -302,7 +302,7 @@ fn star_line(
 
 /// A vertical stack of typed star lines for one palace-cell zone.
 fn typed_star_column(
-    stars: Vec<&StaticTypedStarView>,
+    stars: Vec<&StaticTypedStarProjection>,
     major: bool,
     palette: GuiPalette,
     i18n: &I18n,
@@ -324,7 +324,7 @@ fn typed_star_column(
 /// `+N` indicator, bounding horizontal growth. `align_end` right-aligns each
 /// column for the right-hand adjective zone.
 fn wrapped_star_group(
-    stars: Vec<&StaticTypedStarView>,
+    stars: Vec<&StaticTypedStarProjection>,
     major: bool,
     max_rows: usize,
     align_end: bool,
@@ -335,7 +335,7 @@ fn wrapped_star_group(
     let plan = star_wrap_plan(stars.len(), max_rows, MAX_STAR_COLUMNS);
     let visible = &stars[..plan.visible_count];
 
-    let chunks: Vec<&[&StaticTypedStarView]> = visible.chunks(max_rows).collect();
+    let chunks: Vec<&[&StaticTypedStarProjection]> = visible.chunks(max_rows).collect();
     let last = chunks.len().saturating_sub(1);
     let mut columns = row![].spacing(4).align_y(Alignment::Start);
     for (index, chunk) in chunks.iter().enumerate() {
@@ -397,7 +397,7 @@ pub(super) fn star_wrap_plan(total: usize, max_rows: usize, max_columns: usize) 
 
 /// A vertical stack of decorative "twelve gods" star names in one tone.
 fn decorative_column(
-    stars: Vec<&StaticDecorativeStarView>,
+    stars: Vec<&StaticDecorativeStarProjection>,
     color: Color,
     i18n: &I18n,
 ) -> Element<'static, Message> {
@@ -422,10 +422,10 @@ fn decorative_column(
 /// Both parts have fixed heights, so the 大限/小限 line and the 宫名 / 干支 row
 /// keep a constant y-position regardless of how many stars sit above them.
 fn palace_metadata<'a>(
-    palace: &'a StaticPalaceView,
+    palace: &'a StaticPalaceProjection,
     highlight: PalaceHighlight,
-    gods_left: Vec<&'a StaticDecorativeStarView>,
-    gods_right: Vec<&'a StaticDecorativeStarView>,
+    gods_left: Vec<&'a StaticDecorativeStarProjection>,
+    gods_right: Vec<&'a StaticDecorativeStarProjection>,
     palette: GuiPalette,
     i18n: &I18n,
 ) -> Element<'a, Message> {
@@ -469,9 +469,9 @@ fn palace_metadata<'a>(
 /// to the cell's bottom edge. Both labels come from typed fields, not
 /// pre-rendered Chinese strings.
 fn palace_identity<'a>(
-    palace: &'a StaticPalaceView,
-    gods_left: Vec<&'a StaticDecorativeStarView>,
-    gods_right: Vec<&'a StaticDecorativeStarView>,
+    palace: &'a StaticPalaceProjection,
+    gods_left: Vec<&'a StaticDecorativeStarProjection>,
+    gods_right: Vec<&'a StaticDecorativeStarProjection>,
     palette: GuiPalette,
     i18n: &I18n,
 ) -> Element<'a, Message> {
@@ -520,7 +520,7 @@ fn palace_identity<'a>(
 /// active color as the active 大限, while the badge mechanism used by 流年 is
 /// deliberately not reused here.
 fn limit_middle(
-    palace: &StaticPalaceView,
+    palace: &StaticPalaceProjection,
     palette: GuiPalette,
     i18n: &I18n,
 ) -> Element<'static, Message> {
@@ -575,7 +575,7 @@ fn limit_middle(
 /// a period-info panel with the compact temporal stepper. Data values come from
 /// prepared typed fields; labels are localized.
 pub(super) fn center_panel(
-    center: &StaticChartCenterView,
+    center: &StaticChartCenterProjection,
     selection: StaticTemporalNavigationSelection,
     palette: GuiPalette,
     i18n: &I18n,

@@ -25,14 +25,14 @@ fn chart_app() -> StaticChartApp {
 }
 
 /// Owned copy of the generated chart's center facts.
-fn sample_center() -> iztro::StaticChartCenterView {
+fn sample_center() -> iztro::StaticChartCenterProjection {
     chart_app()
         .center()
         .expect("generated chart center")
         .clone()
 }
 
-fn sample_typed_star() -> iztro::StaticTypedStarView {
+fn sample_typed_star() -> iztro::StaticTypedStarProjection {
     let app = chart_app();
     app.palaces()
         .iter()
@@ -139,7 +139,7 @@ fn basic_information_uses_two_alternating_columns() {
 }
 
 /// A typed star carrying only the field that drives visual classification.
-fn typed_star_with_kind(kind: StarKind) -> iztro::StaticTypedStarView {
+fn typed_star_with_kind(kind: StarKind) -> iztro::StaticTypedStarProjection {
     let mut star = sample_typed_star();
     star.kind = kind;
     star

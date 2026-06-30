@@ -95,12 +95,12 @@ pub use facade::static_temporal_chart_view::{
     temporal_selection_for_local_moment, temporal_selection_for_solar_moment,
 };
 pub use projection::static_chart::{
-    HighlightView, LunarDateView, StaticChartCenterView, StaticChartSelectorView,
-    StaticChartViewRequest, StaticChartViewSnapshot, StaticDecadalCellView,
-    StaticDecorativeStarView, StaticFourPillarsView, StaticNavigationCellView,
-    StaticOverlayMutagenView, StaticPalaceRole, StaticPalaceView, StaticPreDecadalCellView,
-    StaticSurroundPalacesView, StaticTemporalOverlayView, StaticTemporalPanelView,
-    StaticTypedStarView, StaticYearlyAgeCellView,
+    HighlightProjection, LunarDateProjection, StaticChartCenterProjection, StaticChartProjection,
+    StaticChartProjectionRequest, StaticChartSelectorProjection, StaticDecadalCellProjection,
+    StaticDecorativeStarProjection, StaticFourPillarsProjection, StaticNavigationCellProjection,
+    StaticOverlayMutagenProjection, StaticPalaceProjection, StaticPalaceRole,
+    StaticPreDecadalCellProjection, StaticSurroundProjection, StaticTemporalOverlayProjection,
+    StaticTemporalPanelProjection, StaticTypedStarProjection, StaticYearlyAgeCellProjection,
 };
 // Input calculation policy layer: clock-time birth input and apparent solar
 // time. These are a separate axis from `ChartAlgorithmKind` and `ChartPlane`.

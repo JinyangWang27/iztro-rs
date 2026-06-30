@@ -1,6 +1,6 @@
 //! A renderer-neutral static 12-palace chart view model.
 //!
-//! [`StaticChartViewSnapshot`] is the GUI-facing read model that backs a future static chart.
+//! [`StaticChartProjection`] is the GUI-facing read model that backs a future static chart.
 //! It is one selected chart slice: a center panel,
 //! twelve perimeter palaces laid out on the conventional 4x4 grid, scope-selector
 //! state (本命/大限/小限/流年/流月/流日/流时), optional temporal overlays, and a
@@ -30,9 +30,9 @@ use serde::{Deserialize, Serialize};
 /// Fixed display order for chart scope selectors.
 ///
 /// This ordering (本命/大限/小限/流年/流月/流日/流时) is independent of the [`Scope`] declaration order.
-/// It also fixes the order of [`StaticChartViewSnapshot::selectors`] and [`active_scopes`].
+/// It also fixes the order of [`StaticChartProjection::selectors`] and [`active_scopes`].
 ///
-/// [`active_scopes`]: StaticChartViewSnapshot::active_scopes
+/// [`active_scopes`]: StaticChartProjection::active_scopes
 const SELECTOR_ORDER: [Scope; 7] = [
     Scope::Natal,
     Scope::Decadal,
@@ -65,20 +65,20 @@ const HOUR_LABELS: [&str; PALACE_COUNT] = [
 
 /// A renderer-neutral static 12-palace chart view model for one selected slice.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct StaticChartViewSnapshot {
+pub struct StaticChartProjection {
     /// Center panel facts (gender, birth-year pillar, bureau, life/body palaces).
-    pub center: StaticChartCenterView,
+    pub center: StaticChartCenterProjection,
     /// The twelve perimeter palaces in fixed [`VISUAL_BRANCH_ORDER`].
-    pub palaces: Vec<StaticPalaceView>,
+    pub palaces: Vec<StaticPalaceProjection>,
     /// Renderer-neutral bottom temporal navigation panel.
-    pub temporal_panel: StaticTemporalPanelView,
+    pub temporal_panel: StaticTemporalPanelProjection,
     /// Scope-selector state in fixed `SELECTOR_ORDER`.
-    pub selectors: Vec<StaticChartSelectorView>,
+    pub selectors: Vec<StaticChartSelectorProjection>,
     /// The scopes currently visible, in fixed `SELECTOR_ORDER`.
     pub active_scopes: Vec<Scope>,
     /// Reserved highlight annotations. Always empty until feature/rule layers
     /// populate it; this PR performs no 成格 detection.
-    pub highlights: Vec<HighlightView>,
+    pub highlights: Vec<HighlightProjection>,
 }
 
 /// A language-neutral lunisolar (农历) date, for presentation-layer formatting.
@@ -87,7 +87,7 @@ pub struct StaticChartViewSnapshot {
 /// them in any locale. The conventional Chinese string form is still available
 /// via [`chinese_date::lunar_date_label`].
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct LunarDateView {
+pub struct LunarDateProjection {
     /// Lunar year.
     pub year: i32,
     /// One-based lunar month (`1..=12`).
@@ -100,7 +100,7 @@ pub struct LunarDateView {
 
 /// Center panel facts for a static chart.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct StaticChartCenterView {
+pub struct StaticChartCenterProjection {
     /// Retained gender marker.
     pub gender: Gender,
     /// Birth-year Heavenly Stem.
@@ -113,7 +113,7 @@ pub struct StaticChartCenterView {
     pub birth_year_branch_zh: String,
     /// Natal four pillars, if available from the chart facade.
     #[serde(default)]
-    pub four_pillars: Option<StaticFourPillarsView>,
+    pub four_pillars: Option<StaticFourPillarsProjection>,
     /// Five-element bureau, if modeled.
     pub five_element_bureau: Option<FiveElementBureau>,
     /// Chinese label for the five-element bureau (五行局), such as `木三局`.
@@ -164,7 +164,7 @@ pub struct StaticChartCenterView {
     /// Mirrors [`birth_lunar_label`](Self::birth_lunar_label); `None` when the
     /// chart carries no retained lunar date.
     #[serde(default)]
-    pub birth_lunar_date: Option<LunarDateView>,
+    pub birth_lunar_date: Option<LunarDateProjection>,
     /// Upstream `iztro` double-hour `timeIndex` (`0..=12`) for the birth time.
     ///
     /// Mirrors [`birth_time_label`](Self::birth_time_label) as typed data so the
@@ -194,7 +194,7 @@ pub struct StaticChartCenterView {
     /// selections. A 流年-only selection resolves to a lunar year only, exposed via
     /// [`temporal_lunar_year`](Self::temporal_lunar_year) instead.
     #[serde(default)]
-    pub temporal_lunar_date: Option<LunarDateView>,
+    pub temporal_lunar_date: Option<LunarDateProjection>,
     /// Selected period lunar year for a 流年-only selection, when no concrete day
     /// is known. Mirrors the year portion of [`temporal_lunar_label`](Self::temporal_lunar_label).
     #[serde(default)]
@@ -217,7 +217,7 @@ pub struct StaticChartCenterView {
 
 /// Presentation-friendly natal four-pillar facts.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct StaticFourPillarsView {
+pub struct StaticFourPillarsProjection {
     /// Year pillar (年柱).
     pub yearly: StemBranch,
     /// Chinese label for the year pillar.
@@ -238,23 +238,23 @@ pub struct StaticFourPillarsView {
 
 /// Renderer-neutral bottom temporal navigation panel.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct StaticTemporalPanelView {
+pub struct StaticTemporalPanelProjection {
     /// The pre-decadal (限前) cell shown before the normal 大限 row.
     ///
     /// `#[serde(default)]` keeps snapshots serialized before this field existed
     /// roundtripping: they decode to the disabled [`Default`] cell.
     #[serde(default)]
-    pub pre_decadal_cell: StaticPreDecadalCellView,
+    pub pre_decadal_cell: StaticPreDecadalCellProjection,
     /// Twelve factual decadal cells in existing core period order.
-    pub decadal_cells: Vec<StaticDecadalCellView>,
+    pub decadal_cells: Vec<StaticDecadalCellProjection>,
     /// Twelve factual or neutral flowing-year / nominal-age cells.
-    pub yearly_age_cells: Vec<StaticYearlyAgeCellView>,
+    pub yearly_age_cells: Vec<StaticYearlyAgeCellProjection>,
     /// Conventional Chinese month navigation labels.
-    pub month_cells: Vec<StaticNavigationCellView>,
+    pub month_cells: Vec<StaticNavigationCellProjection>,
     /// Three rows of ten conventional Chinese lunar-day labels.
-    pub day_rows: Vec<Vec<StaticNavigationCellView>>,
+    pub day_rows: Vec<Vec<StaticNavigationCellProjection>>,
     /// Conventional Earthly Branch double-hour labels.
-    pub hour_cells: Vec<StaticNavigationCellView>,
+    pub hour_cells: Vec<StaticNavigationCellProjection>,
 }
 
 /// The pre-decadal (限前) cell shown before the normal 大限 row.
@@ -263,7 +263,7 @@ pub struct StaticTemporalPanelView {
 /// only truthfully represents the nominal-age span *before* the first 大限. It
 /// carries no temporal overlay: selecting it shows the natal base slice.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, Default)]
-pub struct StaticPreDecadalCellView {
+pub struct StaticPreDecadalCellProjection {
     /// Whether the span before the first decadal period is available.
     pub enabled: bool,
     /// Whether this cell is the current temporal selection.
@@ -280,7 +280,7 @@ pub struct StaticPreDecadalCellView {
 
 /// One factual or disabled decadal-period display cell.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct StaticDecadalCellView {
+pub struct StaticDecadalCellProjection {
     /// Whether factual display data is available.
     pub enabled: bool,
     /// Whether this cell is the current temporal selection.
@@ -294,7 +294,7 @@ pub struct StaticDecadalCellView {
 
 /// One factual or disabled flowing-year / nominal-age display cell.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct StaticYearlyAgeCellView {
+pub struct StaticYearlyAgeCellProjection {
     /// Whether an exact yearly and age fact pair is available.
     pub enabled: bool,
     /// Whether this cell is the current temporal selection.
@@ -308,7 +308,7 @@ pub struct StaticYearlyAgeCellView {
 
 /// One static navigation label cell.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct StaticNavigationCellView {
+pub struct StaticNavigationCellProjection {
     /// Chinese navigation label.
     pub label_zh: String,
     /// Whether the navigation item is available for display.
@@ -318,7 +318,7 @@ pub struct StaticNavigationCellView {
     pub selected: bool,
 }
 
-impl StaticFourPillarsView {
+impl StaticFourPillarsProjection {
     fn from_four_pillars(pillars: FourPillars) -> Self {
         Self {
             yearly: pillars.yearly,
@@ -333,7 +333,7 @@ impl StaticFourPillarsView {
     }
 }
 
-impl StaticTemporalPanelView {
+impl StaticTemporalPanelProjection {
     /// Builds the bottom panel for one drill-down selection.
     ///
     /// All enable/selected flags and lunar labels are prepared here so the
@@ -409,7 +409,7 @@ fn lunar_year_of(natal: &Chart, period: &DecadalPeriod, year_index: u8) -> i32 {
     natal.birth_context().date().year() + nominal_age - 1
 }
 
-fn pre_decadal_cell(chart: &Chart, selected: bool) -> StaticPreDecadalCellView {
+fn pre_decadal_cell(chart: &Chart, selected: bool) -> StaticPreDecadalCellProjection {
     const LABEL: &str = "限前";
     match build_decadal_frame(chart) {
         Ok(frame) => {
@@ -418,14 +418,14 @@ fn pre_decadal_cell(chart: &Chart, selected: bool) -> StaticPreDecadalCellView {
                 Some(start) if start > 1 => Some(format!("1-{}", start - 1)),
                 _ => None,
             };
-            StaticPreDecadalCellView {
+            StaticPreDecadalCellProjection {
                 enabled: true,
                 selected,
                 label_zh: LABEL.to_owned(),
                 age_range_zh,
             }
         }
-        Err(_) => StaticPreDecadalCellView {
+        Err(_) => StaticPreDecadalCellProjection {
             enabled: false,
             selected,
             label_zh: LABEL.to_owned(),
@@ -437,13 +437,13 @@ fn pre_decadal_cell(chart: &Chart, selected: bool) -> StaticPreDecadalCellView {
 fn decadal_cells(
     frame: Option<&DecadalFrame>,
     selected_index: Option<usize>,
-) -> Vec<StaticDecadalCellView> {
+) -> Vec<StaticDecadalCellProjection> {
     match frame {
         Some(frame) => frame
             .periods()
             .iter()
             .enumerate()
-            .map(|(index, period)| StaticDecadalCellView {
+            .map(|(index, period)| StaticDecadalCellProjection {
                 enabled: true,
                 selected: selected_index == Some(index),
                 age_range_zh: Some(format!("{}-{}", period.start_age(), period.end_age())),
@@ -451,7 +451,7 @@ fn decadal_cells(
             })
             .collect(),
         None => (0..PALACE_COUNT)
-            .map(|_| StaticDecadalCellView {
+            .map(|_| StaticDecadalCellProjection {
                 enabled: false,
                 selected: false,
                 age_range_zh: None,
@@ -461,9 +461,9 @@ fn decadal_cells(
     }
 }
 
-fn disabled_yearly_age_cells() -> Vec<StaticYearlyAgeCellView> {
+fn disabled_yearly_age_cells() -> Vec<StaticYearlyAgeCellProjection> {
     (0..PALACE_COUNT)
-        .map(|_| StaticYearlyAgeCellView {
+        .map(|_| StaticYearlyAgeCellProjection {
             enabled: false,
             selected: false,
             year_label: None,
@@ -478,13 +478,13 @@ fn yearly_age_cells(
     natal: &Chart,
     period: &DecadalPeriod,
     selected_index: Option<u8>,
-) -> Vec<StaticYearlyAgeCellView> {
-    let mut cells: Vec<StaticYearlyAgeCellView> = (0u8..10)
+) -> Vec<StaticYearlyAgeCellProjection> {
+    let mut cells: Vec<StaticYearlyAgeCellProjection> = (0u8..10)
         .map(|year_index| {
             let nominal_age = period.start_age() + year_index;
             let lunar_year = lunar_year_of(natal, period, year_index);
             let stem_branch = StemBranch::from_lunar_year(lunar_year);
-            StaticYearlyAgeCellView {
+            StaticYearlyAgeCellProjection {
                 enabled: true,
                 selected: selected_index == Some(year_index),
                 year_label: Some(lunar_year.to_string()),
@@ -510,7 +510,7 @@ fn day_rows(
     selected_lunar_year: Option<i32>,
     selected_lunar_month: Option<u8>,
     selected_index: Option<u8>,
-) -> Vec<Vec<StaticNavigationCellView>> {
+) -> Vec<Vec<StaticNavigationCellProjection>> {
     let enabled = selected_lunar_month.is_some();
     let has_thirtieth = match (selected_lunar_year, selected_lunar_month) {
         (Some(year), Some(month)) => lunar_month_has_thirtieth(year, month),
@@ -527,7 +527,7 @@ fn day_rows(
                     let day_index = (row * labels.len() + col) as u8;
                     // 三十 is day_index 29 (the last cell); disable it for a 29-day month.
                     let cell_enabled = enabled && (day_index != 29 || has_thirtieth);
-                    StaticNavigationCellView {
+                    StaticNavigationCellProjection {
                         label_zh: (*label).to_owned(),
                         enabled: cell_enabled,
                         selected: cell_enabled && selected_index == Some(day_index),
@@ -544,11 +544,11 @@ fn labeled_cells(
     labels: &[&str],
     enabled: bool,
     selected_index: Option<u8>,
-) -> Vec<StaticNavigationCellView> {
+) -> Vec<StaticNavigationCellProjection> {
     labels
         .iter()
         .enumerate()
-        .map(|(index, label)| StaticNavigationCellView {
+        .map(|(index, label)| StaticNavigationCellProjection {
             label_zh: (*label).to_owned(),
             enabled,
             selected: enabled && selected_index == Some(index as u8),
@@ -563,7 +563,7 @@ fn labeled_cells(
 /// [`wealth`](Self::wealth) = `+8`, [`career`](Self::career) = `+4`), so a
 /// renderer never performs branch arithmetic of its own.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
-pub struct StaticSurroundPalacesView {
+pub struct StaticSurroundProjection {
     /// 对宫 — the opposite palace (`+6`).
     pub opposite: EarthlyBranch,
     /// 财帛位 — the wealth trine palace (`+8`).
@@ -572,7 +572,7 @@ pub struct StaticSurroundPalacesView {
     pub career: EarthlyBranch,
 }
 
-impl StaticSurroundPalacesView {
+impl StaticSurroundProjection {
     /// Builds the 三方四正 branch set for `branch` using the canonical offsets.
     pub fn for_branch(branch: EarthlyBranch) -> Self {
         Self {
@@ -599,7 +599,7 @@ impl StaticSurroundPalacesView {
 /// and age-period walk. The GUI draws them in the palace center without
 /// performing any age or branch arithmetic of its own.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize, Default)]
-pub struct StaticPalaceLimitView {
+pub struct StaticPalaceLimitProjection {
     /// Inclusive decadal age range (大限) for this palace, such as `6-15`.
     pub decadal_age_range_zh: Option<String>,
     /// Nominal small-limit ages (小限) that land on this palace, ascending.
@@ -630,7 +630,7 @@ pub struct StaticPalaceLimitView {
 
 /// One perimeter palace cell of a static chart.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct StaticPalaceView {
+pub struct StaticPalaceProjection {
     /// Palace branch (the stable spatial reference).
     pub branch: EarthlyBranch,
     /// Chinese label for the palace branch.
@@ -642,10 +642,10 @@ pub struct StaticPalaceView {
     /// A pure positional fact derived from the palace branch; it carries no
     /// interpretation. Renderers use it to highlight a palace's surrounding
     /// influence set without performing any branch arithmetic themselves.
-    pub surround: StaticSurroundPalacesView,
+    pub surround: StaticSurroundProjection,
     /// Prepared 大限 / 小限 limit facts shown in the palace center.
     #[serde(default)]
-    pub limit: StaticPalaceLimitView,
+    pub limit: StaticPalaceLimitProjection,
     /// Natal palace name.
     pub name: PalaceName,
     /// Chinese label for the natal palace name.
@@ -657,23 +657,23 @@ pub struct StaticPalaceView {
     /// Role markers (natal palace name, body palace).
     pub roles: Vec<StaticPalaceRole>,
     /// Major stars (主星) in this palace.
-    pub major_stars: Vec<StaticTypedStarView>,
+    pub major_stars: Vec<StaticTypedStarProjection>,
     /// Minor stars (辅星) in this palace.
-    pub minor_stars: Vec<StaticTypedStarView>,
+    pub minor_stars: Vec<StaticTypedStarProjection>,
     /// Adjective / miscellaneous stars (杂曜) in this palace.
-    pub adjective_stars: Vec<StaticTypedStarView>,
+    pub adjective_stars: Vec<StaticTypedStarProjection>,
     /// Typed stars whose [`StarCategory`] falls outside major/minor/adjective.
     ///
     /// Reserved for forward compatibility: [`StarCategory`] is currently
     /// exhaustive over [`Major`](StarCategory::Major), [`Minor`](StarCategory::Minor),
     /// and [`Adjective`](StarCategory::Adjective), so this is always empty today.
-    pub other_typed_stars: Vec<StaticTypedStarView>,
+    pub other_typed_stars: Vec<StaticTypedStarProjection>,
     /// Decorative "twelve gods" stars (十二神) in this palace.
-    pub decorative_stars: Vec<StaticDecorativeStarView>,
+    pub decorative_stars: Vec<StaticDecorativeStarProjection>,
     /// Selected temporal overlays for this palace, kept separate from natal facts.
-    pub overlays: Vec<StaticTemporalOverlayView>,
+    pub overlays: Vec<StaticTemporalOverlayProjection>,
     /// Reserved per-palace highlight annotations. Always empty for now.
-    pub highlights: Vec<HighlightView>,
+    pub highlights: Vec<HighlightProjection>,
 }
 
 /// Role marker attached to a static palace cell.
@@ -688,7 +688,7 @@ pub enum StaticPalaceRole {
 
 /// A typed star for display, with grouping category and finer kind.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct StaticTypedStarView {
+pub struct StaticTypedStarProjection {
     /// Star name.
     pub name: StarName,
     /// Chinese label for the star name.
@@ -711,7 +711,7 @@ pub struct StaticTypedStarView {
     pub mutagen_zh: Option<String>,
 }
 
-impl StaticTypedStarView {
+impl StaticTypedStarProjection {
     fn from_star_placement(placement: &StarPlacement) -> Self {
         Self {
             name: placement.name(),
@@ -737,7 +737,7 @@ impl StaticTypedStarView {
 
 /// A decorative "twelve gods" star for display.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct StaticDecorativeStarView {
+pub struct StaticDecorativeStarProjection {
     /// Decorative star name.
     pub name: StarName,
     /// Chinese label for the decorative star name.
@@ -748,7 +748,7 @@ pub struct StaticDecorativeStarView {
     pub family_zh: String,
 }
 
-impl StaticDecorativeStarView {
+impl StaticDecorativeStarProjection {
     fn from_decorative_star_placement(placement: &DecorativeStarPlacement) -> Self {
         Self {
             name: placement.name(),
@@ -766,7 +766,7 @@ impl StaticDecorativeStarView {
 
 /// Selector state for one horoscope scope (renderer draws the actual control).
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct StaticChartSelectorView {
+pub struct StaticChartSelectorProjection {
     /// The scope this selector represents.
     pub scope: Scope,
     /// Chinese label (本命/大限/小限/流年/流月/流日/流时).
@@ -779,7 +779,7 @@ pub struct StaticChartSelectorView {
 
 /// A temporal overlay on a palace cell, kept separate from natal facts.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct StaticTemporalOverlayView {
+pub struct StaticTemporalOverlayProjection {
     /// The non-natal scope this overlay belongs to.
     pub scope: Scope,
     /// Compact prepared badge label for this period, such as `流年·丁`.
@@ -795,16 +795,16 @@ pub struct StaticTemporalOverlayView {
     /// Chinese label for the temporal palace name, if any.
     pub temporal_palace_name_zh: Option<String>,
     /// Typed flow stars this period places on the branch.
-    pub typed_stars: Vec<StaticTypedStarView>,
+    pub typed_stars: Vec<StaticTypedStarProjection>,
     /// Untyped decorative stars this period adds to the branch.
-    pub decorative_stars: Vec<StaticDecorativeStarView>,
+    pub decorative_stars: Vec<StaticDecorativeStarProjection>,
     /// Mutagen activations this period lands on stars in the branch.
-    pub mutagens: Vec<StaticOverlayMutagenView>,
+    pub mutagens: Vec<StaticOverlayMutagenProjection>,
 }
 
 /// A mutagen activation landing on a star within an overlay's palace.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct StaticOverlayMutagenView {
+pub struct StaticOverlayMutagenProjection {
     /// The star the mutagen lands on.
     pub star: StarName,
     /// Chinese label for the target star.
@@ -815,7 +815,7 @@ pub struct StaticOverlayMutagenView {
     pub mutagen_zh: String,
 }
 
-impl StaticOverlayMutagenView {
+impl StaticOverlayMutagenProjection {
     fn from_activation(activation: &MutagenActivation) -> Self {
         Self {
             star: activation.target_star(),
@@ -832,7 +832,7 @@ impl StaticOverlayMutagenView {
 /// performs no 成格 detection, so generated snapshots always carry an empty
 /// highlight list.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct HighlightView {
+pub struct HighlightProjection {
     /// Stable identifier for the highlight.
     pub id: String,
     /// Optional Chinese label.
@@ -853,14 +853,14 @@ pub struct HighlightView {
 /// selected/active regardless of this request. `visible_scopes` only controls
 /// the requested temporal overlays on top of natal.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
-pub struct StaticChartViewRequest {
+pub struct StaticChartProjectionRequest {
     /// Requested temporal overlays. Natal is always included as the base layer
     /// even if omitted here. Scopes absent from the chart are ignored (their
     /// selector is emitted disabled).
     pub visible_scopes: Vec<Scope>,
 }
 
-impl StaticChartViewSnapshot {
+impl StaticChartProjection {
     /// Builds a natal-only static chart view from a natal chart.
     ///
     /// Only [`Scope::Natal`] is enabled and selected; every temporal selector is
@@ -870,9 +870,9 @@ impl StaticChartViewSnapshot {
         let present = [Scope::Natal];
         let selected = [Scope::Natal];
         Self {
-            center: StaticChartCenterView::from_chart(chart),
+            center: StaticChartCenterProjection::from_chart(chart),
             palaces,
-            temporal_panel: StaticTemporalPanelView::from_chart(chart),
+            temporal_panel: StaticTemporalPanelProjection::from_chart(chart),
             selectors: build_selectors(&present, &selected),
             active_scopes: active_scopes(&selected),
             highlights: Vec::new(),
@@ -888,7 +888,7 @@ impl StaticChartViewSnapshot {
                 .into_iter()
                 .filter(|s| *s != Scope::Natal),
         );
-        Self::from_horoscope_chart_with(chart, &StaticChartViewRequest { visible_scopes })
+        Self::from_horoscope_chart_with(chart, &StaticChartProjectionRequest { visible_scopes })
     }
 
     /// Builds a static chart view from a horoscope chart, selecting exactly the
@@ -898,7 +898,7 @@ impl StaticChartViewSnapshot {
     /// changes which temporal overlays are attached to each palace.
     pub fn from_horoscope_chart_with(
         chart: &HoroscopeChart,
-        request: &StaticChartViewRequest,
+        request: &StaticChartProjectionRequest,
     ) -> Self {
         let natal = chart.natal();
         let present = present_scopes(chart);
@@ -925,9 +925,9 @@ impl StaticChartViewSnapshot {
             .collect();
 
         Self {
-            center: StaticChartCenterView::from_chart(natal),
+            center: StaticChartCenterProjection::from_chart(natal),
             palaces: build_palaces(natal, &overlay_layers),
-            temporal_panel: StaticTemporalPanelView::from_horoscope_chart(chart),
+            temporal_panel: StaticTemporalPanelProjection::from_horoscope_chart(chart),
             selectors: build_selectors(&present, &selected),
             active_scopes: active_scopes(&selected),
             highlights: Vec::new(),
@@ -935,7 +935,7 @@ impl StaticChartViewSnapshot {
     }
 }
 
-impl StaticChartCenterView {
+impl StaticChartCenterProjection {
     fn from_chart(chart: &Chart) -> Self {
         let life_palace_branch = chart.life_palace().map(Palace::branch);
         let body_palace_branch = chart.body_palace_branch();
@@ -955,7 +955,7 @@ impl StaticChartCenterView {
             four_pillars: chart
                 .four_pillars()
                 .copied()
-                .map(StaticFourPillarsView::from_four_pillars),
+                .map(StaticFourPillarsProjection::from_four_pillars),
             five_element_bureau: chart.five_element_bureau(),
             five_element_bureau_zh: chart
                 .five_element_bureau()
@@ -995,12 +995,12 @@ impl StaticChartCenterView {
 
 /// Returns `(birth_lunar_date, western_zodiac)` for a natal chart, mirroring the
 /// string labels from [`natal_date_labels`] as typed, language-neutral facts.
-fn natal_typed_dates(chart: &Chart) -> (Option<LunarDateView>, Option<WesternZodiac>) {
+fn natal_typed_dates(chart: &Chart) -> (Option<LunarDateProjection>, Option<WesternZodiac>) {
     if let Some(facts) = chart.natal_date_facts() {
         let solar = facts.solar();
         let lunar = facts.lunar();
         return (
-            Some(LunarDateView {
+            Some(LunarDateProjection {
                 year: lunar.year(),
                 month: lunar.month(),
                 day: lunar.day(),
@@ -1014,7 +1014,7 @@ fn natal_typed_dates(chart: &Chart) -> (Option<LunarDateView>, Option<WesternZod
     match date.kind() {
         CalendarKind::Solar => (None, western_zodiac(date.month(), date.day())),
         CalendarKind::Lunar => (
-            Some(LunarDateView {
+            Some(LunarDateProjection {
                 year: date.year(),
                 month: date.month(),
                 day: date.day(),
@@ -1094,14 +1094,14 @@ impl PalaceLimits {
         Self { decadal, small }
     }
 
-    fn view_for(&self, branch: EarthlyBranch) -> StaticPalaceLimitView {
+    fn view_for(&self, branch: EarthlyBranch) -> StaticPalaceLimitProjection {
         let ages = self
             .small
             .iter()
             .find(|(palace_branch, _)| *palace_branch == branch)
             .map(|(_, ages)| ages.as_slice())
             .unwrap_or_default();
-        StaticPalaceLimitView {
+        StaticPalaceLimitProjection {
             decadal_age_range_zh: self
                 .decadal
                 .iter()
@@ -1120,7 +1120,7 @@ impl PalaceLimits {
 
 /// Builds the twelve palace cells in fixed [`VISUAL_BRANCH_ORDER`], attaching any
 /// overlays from `overlay_layers`.
-fn build_palaces(chart: &Chart, overlay_layers: &[&TemporalLayer]) -> Vec<StaticPalaceView> {
+fn build_palaces(chart: &Chart, overlay_layers: &[&TemporalLayer]) -> Vec<StaticPalaceProjection> {
     let limits = PalaceLimits::for_chart(chart);
     VISUAL_BRANCH_ORDER
         .into_iter()
@@ -1129,12 +1129,14 @@ fn build_palaces(chart: &Chart, overlay_layers: &[&TemporalLayer]) -> Vec<Static
                 .palaces()
                 .iter()
                 .find(|palace| palace.branch() == branch)
-                .map(|palace| StaticPalaceView::from_palace(chart, palace, overlay_layers, &limits))
+                .map(|palace| {
+                    StaticPalaceProjection::from_palace(chart, palace, overlay_layers, &limits)
+                })
         })
         .collect()
 }
 
-impl StaticPalaceView {
+impl StaticPalaceProjection {
     fn from_palace(
         chart: &Chart,
         palace: &Palace,
@@ -1151,34 +1153,34 @@ impl StaticPalaceView {
         let mut adjective_stars = Vec::new();
         let other_typed_stars = Vec::new();
         for placement in palace.stars() {
-            let star = StaticTypedStarView::from_star_placement(placement);
+            let star = StaticTypedStarProjection::from_star_placement(placement);
             match star.category {
                 StarCategory::Major => major_stars.push(star),
                 StarCategory::Minor => minor_stars.push(star),
                 StarCategory::Adjective => adjective_stars.push(star),
             }
         }
-        major_stars.sort_by_key(StaticTypedStarView::order_key);
-        minor_stars.sort_by_key(StaticTypedStarView::order_key);
-        adjective_stars.sort_by_key(StaticTypedStarView::order_key);
+        major_stars.sort_by_key(StaticTypedStarProjection::order_key);
+        minor_stars.sort_by_key(StaticTypedStarProjection::order_key);
+        adjective_stars.sort_by_key(StaticTypedStarProjection::order_key);
 
-        let mut decorative_stars: Vec<StaticDecorativeStarView> = palace
+        let mut decorative_stars: Vec<StaticDecorativeStarProjection> = palace
             .decorative_stars()
             .iter()
-            .map(StaticDecorativeStarView::from_decorative_star_placement)
+            .map(StaticDecorativeStarProjection::from_decorative_star_placement)
             .collect();
-        decorative_stars.sort_by_key(StaticDecorativeStarView::order_key);
+        decorative_stars.sort_by_key(StaticDecorativeStarProjection::order_key);
 
         let overlays = overlay_layers
             .iter()
-            .map(|layer| StaticTemporalOverlayView::from_layer(layer, palace.branch()))
+            .map(|layer| StaticTemporalOverlayProjection::from_layer(layer, palace.branch()))
             .collect();
 
         Self {
             branch: palace.branch(),
             branch_zh: zh_cn::earthly_branch_zh(palace.branch()).to_owned(),
             grid_position: palace_grid_position(palace.branch()),
-            surround: StaticSurroundPalacesView::for_branch(palace.branch()),
+            surround: StaticSurroundProjection::for_branch(palace.branch()),
             limit: limits.view_for(palace.branch()),
             name: palace.name(),
             name_zh: zh_cn::palace_name_zh(palace.name()).to_owned(),
@@ -1196,35 +1198,37 @@ impl StaticPalaceView {
     }
 }
 
-impl StaticTemporalOverlayView {
+impl StaticTemporalOverlayProjection {
     fn from_layer(layer: &TemporalLayer, branch: EarthlyBranch) -> Self {
         let temporal_palace_name = layer
             .palace_layout()
             .and_then(|layout| layout.name_for_branch(branch));
 
-        let mut typed_stars: Vec<StaticTypedStarView> = layer
+        let mut typed_stars: Vec<StaticTypedStarProjection> = layer
             .placements()
             .iter()
             .filter(|placement| placement.branch() == branch)
-            .map(|placement| StaticTypedStarView::from_star_placement(placement.placement()))
+            .map(|placement| StaticTypedStarProjection::from_star_placement(placement.placement()))
             .collect();
-        typed_stars.sort_by_key(StaticTypedStarView::order_key);
+        typed_stars.sort_by_key(StaticTypedStarProjection::order_key);
 
-        let mut decorative_stars: Vec<StaticDecorativeStarView> = layer
+        let mut decorative_stars: Vec<StaticDecorativeStarProjection> = layer
             .temporal_decorative_stars()
             .iter()
             .filter(|placement| placement.branch() == branch)
             .map(|placement| {
-                StaticDecorativeStarView::from_decorative_star_placement(placement.placement())
+                StaticDecorativeStarProjection::from_decorative_star_placement(
+                    placement.placement(),
+                )
             })
             .collect();
-        decorative_stars.sort_by_key(StaticDecorativeStarView::order_key);
+        decorative_stars.sort_by_key(StaticDecorativeStarProjection::order_key);
 
         let mutagens = layer
             .activations()
             .iter()
             .filter(|activation| activation.target_branch() == branch)
-            .map(StaticOverlayMutagenView::from_activation)
+            .map(StaticOverlayMutagenProjection::from_activation)
             .collect();
 
         // A period's compact badge belongs only on its anchor palace — the branch
@@ -1283,10 +1287,10 @@ fn present_scopes(chart: &HoroscopeChart) -> Vec<Scope> {
 }
 
 /// Builds selector state for every scope in fixed [`SELECTOR_ORDER`].
-fn build_selectors(present: &[Scope], selected: &[Scope]) -> Vec<StaticChartSelectorView> {
+fn build_selectors(present: &[Scope], selected: &[Scope]) -> Vec<StaticChartSelectorProjection> {
     SELECTOR_ORDER
         .into_iter()
-        .map(|scope| StaticChartSelectorView {
+        .map(|scope| StaticChartSelectorProjection {
             scope,
             label_zh: zh_cn::scope_zh(scope).to_owned(),
             enabled: present.contains(&scope),
@@ -1360,13 +1364,13 @@ mod tests {
 
     #[test]
     fn snapshot_has_exactly_twelve_palaces() {
-        let snapshot = StaticChartViewSnapshot::from_chart(&sample_chart());
+        let snapshot = StaticChartProjection::from_chart(&sample_chart());
         assert_eq!(snapshot.palaces.len(), PALACE_COUNT);
     }
 
     #[test]
     fn every_branch_appears_exactly_once() {
-        let snapshot = StaticChartViewSnapshot::from_chart(&sample_chart());
+        let snapshot = StaticChartProjection::from_chart(&sample_chart());
         let branches: HashSet<EarthlyBranch> = snapshot
             .palaces
             .iter()
@@ -1378,7 +1382,7 @@ mod tests {
 
     #[test]
     fn every_grid_position_appears_exactly_once_and_matches_layout() {
-        let snapshot = StaticChartViewSnapshot::from_chart(&sample_chart());
+        let snapshot = StaticChartProjection::from_chart(&sample_chart());
         let positions: HashSet<(u8, u8)> = snapshot
             .palaces
             .iter()
@@ -1393,7 +1397,7 @@ mod tests {
 
     #[test]
     fn every_palace_has_chinese_labels() {
-        let snapshot = StaticChartViewSnapshot::from_chart(&sample_chart());
+        let snapshot = StaticChartProjection::from_chart(&sample_chart());
         for palace in &snapshot.palaces {
             assert!(!palace.branch_zh.is_empty());
             assert!(!palace.name_zh.is_empty());
@@ -1404,7 +1408,7 @@ mod tests {
     #[test]
     fn solar_chart_center_includes_optional_four_pillar_labels() {
         let chart = sample_solar_chart();
-        let snapshot = StaticChartViewSnapshot::from_chart(&chart);
+        let snapshot = StaticChartProjection::from_chart(&chart);
         let center = &snapshot.center;
         let pillars = center
             .four_pillars
@@ -1424,7 +1428,7 @@ mod tests {
 
     #[test]
     fn every_typed_star_has_chinese_labels_and_mutagen_labels_match() {
-        let snapshot = StaticChartViewSnapshot::from_chart(&sample_chart());
+        let snapshot = StaticChartProjection::from_chart(&sample_chart());
         for palace in &snapshot.palaces {
             let typed = palace
                 .major_stars
@@ -1444,7 +1448,7 @@ mod tests {
 
     #[test]
     fn every_decorative_star_has_chinese_labels() {
-        let snapshot = StaticChartViewSnapshot::from_chart(&sample_chart());
+        let snapshot = StaticChartProjection::from_chart(&sample_chart());
         for palace in &snapshot.palaces {
             for star in &palace.decorative_stars {
                 assert!(!star.name_zh.is_empty());
@@ -1456,7 +1460,7 @@ mod tests {
     #[test]
     fn typed_stars_are_grouped_by_category_without_loss() {
         let chart = sample_chart();
-        let snapshot = StaticChartViewSnapshot::from_chart(&chart);
+        let snapshot = StaticChartProjection::from_chart(&chart);
         for palace in &snapshot.palaces {
             for star in &palace.major_stars {
                 assert_eq!(star.category, StarCategory::Major);
@@ -1490,14 +1494,14 @@ mod tests {
 
     #[test]
     fn highlights_are_empty() {
-        let snapshot = StaticChartViewSnapshot::from_chart(&sample_chart());
+        let snapshot = StaticChartProjection::from_chart(&sample_chart());
         assert!(snapshot.highlights.is_empty());
         assert!(snapshot.palaces.iter().all(|p| p.highlights.is_empty()));
     }
 
     #[test]
     fn surround_uses_canonical_offsets() {
-        let snapshot = StaticChartViewSnapshot::from_chart(&sample_chart());
+        let snapshot = StaticChartProjection::from_chart(&sample_chart());
         for palace in &snapshot.palaces {
             // 三方四正 must match the horoscope runtime offsets exactly.
             assert_eq!(palace.surround.opposite, palace.branch.offset(6));
@@ -1518,10 +1522,10 @@ mod tests {
 
     #[test]
     fn surround_roundtrips_through_json() {
-        let snapshot = StaticChartViewSnapshot::from_chart(&sample_chart());
+        let snapshot = StaticChartProjection::from_chart(&sample_chart());
         let palace = &snapshot.palaces[0];
         let encoded = serde_json::to_string(palace).expect("palace serializes");
-        let decoded: StaticPalaceView =
+        let decoded: StaticPalaceProjection =
             serde_json::from_str(&encoded).expect("palace deserializes");
         assert_eq!(decoded.surround, palace.surround);
         assert!(encoded.contains("\"surround\""));
@@ -1533,8 +1537,8 @@ mod tests {
     #[test]
     fn surround_is_a_natal_fact_independent_of_overlays() {
         let chart = sample_horoscope_chart();
-        let natal_only = StaticChartViewSnapshot::from_chart(chart.natal());
-        let with_overlays = StaticChartViewSnapshot::from_horoscope_chart(&chart);
+        let natal_only = StaticChartProjection::from_chart(chart.natal());
+        let with_overlays = StaticChartProjection::from_horoscope_chart(&chart);
         for (a, b) in natal_only.palaces.iter().zip(&with_overlays.palaces) {
             assert_eq!(a.branch, b.branch);
             // 三方四正 is a positional natal fact; overlays never change it.
@@ -1545,9 +1549,9 @@ mod tests {
     #[test]
     fn repeated_construction_serializes_identically() {
         let chart = sample_chart();
-        let first = serde_json::to_string(&StaticChartViewSnapshot::from_chart(&chart))
+        let first = serde_json::to_string(&StaticChartProjection::from_chart(&chart))
             .expect("snapshot should serialize");
-        let second = serde_json::to_string(&StaticChartViewSnapshot::from_chart(&chart))
+        let second = serde_json::to_string(&StaticChartProjection::from_chart(&chart))
             .expect("snapshot should serialize");
         assert_eq!(first, second);
     }
@@ -1556,13 +1560,13 @@ mod tests {
     fn constructing_the_view_does_not_mutate_natal_facts() {
         let chart = sample_chart();
         let before = chart.clone();
-        let _ = StaticChartViewSnapshot::from_chart(&chart);
+        let _ = StaticChartProjection::from_chart(&chart);
         assert_eq!(chart, before);
     }
 
     #[test]
     fn from_chart_enables_and_selects_only_natal() {
-        let snapshot = StaticChartViewSnapshot::from_chart(&sample_chart());
+        let snapshot = StaticChartProjection::from_chart(&sample_chart());
         assert_eq!(snapshot.active_scopes, vec![Scope::Natal]);
         for selector in &snapshot.selectors {
             let is_natal = selector.scope == Scope::Natal;
@@ -1579,7 +1583,7 @@ mod tests {
 
     #[test]
     fn from_chart_produces_no_overlays() {
-        let snapshot = StaticChartViewSnapshot::from_chart(&sample_chart());
+        let snapshot = StaticChartProjection::from_chart(&sample_chart());
         assert!(snapshot.palaces.iter().all(|p| p.overlays.is_empty()));
     }
 
@@ -1636,7 +1640,7 @@ mod tests {
     #[test]
     fn from_horoscope_chart_enables_and_selects_present_scopes() {
         let chart = sample_horoscope_chart();
-        let snapshot = StaticChartViewSnapshot::from_horoscope_chart(&chart);
+        let snapshot = StaticChartProjection::from_horoscope_chart(&chart);
 
         let present = [Scope::Natal, Scope::Decadal, Scope::Yearly];
         for selector in &snapshot.selectors {
@@ -1653,7 +1657,7 @@ mod tests {
 
     #[test]
     fn selector_labels_are_correct() {
-        let snapshot = StaticChartViewSnapshot::from_horoscope_chart(&sample_horoscope_chart());
+        let snapshot = StaticChartProjection::from_horoscope_chart(&sample_horoscope_chart());
         let labels: Vec<(Scope, &str)> = snapshot
             .selectors
             .iter()
@@ -1675,7 +1679,7 @@ mod tests {
 
     #[test]
     fn absent_scopes_are_disabled_deterministically() {
-        let snapshot = StaticChartViewSnapshot::from_horoscope_chart(&sample_horoscope_chart());
+        let snapshot = StaticChartProjection::from_horoscope_chart(&sample_horoscope_chart());
         for scope in [Scope::Age, Scope::Monthly, Scope::Daily, Scope::Hourly] {
             let selector = snapshot
                 .selectors
@@ -1691,10 +1695,10 @@ mod tests {
     fn active_scopes_match_requested_visible_scopes() {
         let chart = sample_horoscope_chart();
         // Request only Natal + Decadal, plus an absent Monthly (must be ignored).
-        let request = StaticChartViewRequest {
+        let request = StaticChartProjectionRequest {
             visible_scopes: vec![Scope::Natal, Scope::Decadal, Scope::Monthly],
         };
-        let snapshot = StaticChartViewSnapshot::from_horoscope_chart_with(&chart, &request);
+        let snapshot = StaticChartProjection::from_horoscope_chart_with(&chart, &request);
         assert_eq!(snapshot.active_scopes, vec![Scope::Natal, Scope::Decadal]);
 
         // Yearly is present but not requested: enabled yet not selected.
@@ -1710,11 +1714,11 @@ mod tests {
     #[test]
     fn natal_is_always_active_for_horoscope_static_views() {
         let chart = sample_horoscope_chart();
-        let request = StaticChartViewRequest {
+        let request = StaticChartProjectionRequest {
             visible_scopes: vec![Scope::Yearly],
         };
 
-        let snapshot = StaticChartViewSnapshot::from_horoscope_chart_with(&chart, &request);
+        let snapshot = StaticChartProjection::from_horoscope_chart_with(&chart, &request);
 
         assert_eq!(snapshot.active_scopes, vec![Scope::Natal, Scope::Yearly]);
 
@@ -1730,7 +1734,7 @@ mod tests {
 
     #[test]
     fn selected_overlays_appear_only_on_the_overlay_branch() {
-        let snapshot = StaticChartViewSnapshot::from_horoscope_chart(&sample_horoscope_chart());
+        let snapshot = StaticChartProjection::from_horoscope_chart(&sample_horoscope_chart());
         for palace in &snapshot.palaces {
             // One overlay per selected non-natal layer (decadal + yearly).
             assert_eq!(palace.overlays.len(), 2, "{:?}", palace.branch);
@@ -1754,8 +1758,8 @@ mod tests {
     #[test]
     fn selecting_scopes_changes_only_overlays_not_natal_facts() {
         let chart = sample_horoscope_chart();
-        let natal_only = StaticChartViewSnapshot::from_chart(chart.natal());
-        let with_overlays = StaticChartViewSnapshot::from_horoscope_chart(&chart);
+        let natal_only = StaticChartProjection::from_chart(chart.natal());
+        let with_overlays = StaticChartProjection::from_horoscope_chart(&chart);
 
         // Center and per-palace natal facts are identical; only overlays differ.
         assert_eq!(natal_only.center, with_overlays.center);
@@ -1775,9 +1779,9 @@ mod tests {
     fn horoscope_snapshot_serializes_deterministically_and_keeps_natal_immutable() {
         let chart = sample_horoscope_chart();
         let before = chart.clone();
-        let first = serde_json::to_string(&StaticChartViewSnapshot::from_horoscope_chart(&chart))
+        let first = serde_json::to_string(&StaticChartProjection::from_horoscope_chart(&chart))
             .expect("serialize");
-        let second = serde_json::to_string(&StaticChartViewSnapshot::from_horoscope_chart(&chart))
+        let second = serde_json::to_string(&StaticChartProjection::from_horoscope_chart(&chart))
             .expect("serialize");
         assert_eq!(first, second);
         assert_eq!(chart, before);

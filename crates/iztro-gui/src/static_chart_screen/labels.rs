@@ -2,7 +2,7 @@ use std::fmt;
 
 use iced::Element;
 use iced::widget::text;
-use iztro::StaticChartCenterView;
+use iztro::StaticChartCenterProjection;
 use iztro::core::Gender;
 use iztro_i18n::{I18n, Locale};
 
@@ -14,7 +14,10 @@ use super::theme::GuiPalette;
 /// The single-row 四柱 label, such as `癸酉 丁巳 戊申 辛酉` / `Gui You Ding Si …`,
 /// built from the typed pillar stem-branches. `None` when the chart carries no
 /// four pillars.
-pub(super) fn four_pillars_line(center: &StaticChartCenterView, i18n: &I18n) -> Option<String> {
+pub(super) fn four_pillars_line(
+    center: &StaticChartCenterProjection,
+    i18n: &I18n,
+) -> Option<String> {
     center.four_pillars.as_ref().map(|pillars| {
         let pillar = |sb| i18n.stem_branch_value(sb);
         format!(
