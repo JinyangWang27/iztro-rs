@@ -223,6 +223,51 @@ pub(super) fn stepper_button_style(_theme: &Theme, _status: button::Status) -> b
     }
 }
 
+/// A compact card row used for inspector rule/pattern lines, so they read as
+/// discrete cards rather than a flat debug list.
+pub(super) fn inspector_row_style(_theme: &Theme) -> container::Style {
+    container::Style {
+        background: Some(P.panel_surface.into()),
+        text_color: Some(P.ink),
+        border: Border {
+            color: P.subtle_border,
+            width: 1.0,
+            radius: RADIUS.md.into(),
+        },
+        ..container::Style::default()
+    }
+}
+
+/// The recessed track behind the inspector's segmented tab control.
+pub(super) fn segmented_track_style(_theme: &Theme) -> container::Style {
+    container::Style {
+        background: Some(P.muted_surface.into()),
+        border: Border {
+            color: P.subtle_border,
+            width: 1.0,
+            radius: RADIUS.md.into(),
+        },
+        ..container::Style::default()
+    }
+}
+
+/// A compact status pill (accent-soft fill, accent ink) for inspector rows.
+pub(super) fn pill_badge(label: String) -> Element<'static, Message> {
+    container(text(label).size(TYPE.badge).color(P.accent))
+        .style(|_theme| container::Style {
+            background: Some(P.accent_soft.into()),
+            text_color: Some(P.accent),
+            border: Border {
+                color: P.accent_border,
+                width: 1.0,
+                radius: RADIUS.sm.into(),
+            },
+            ..container::Style::default()
+        })
+        .padding([1, 5])
+        .into()
+}
+
 pub(super) fn subtle_text_style(_theme: &Theme) -> text::Style {
     text::Style {
         color: Some(P.text_muted),
