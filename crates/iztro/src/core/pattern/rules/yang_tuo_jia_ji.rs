@@ -3,15 +3,17 @@
 //!
 //! Conservative condition: a natal star carries 化忌, and the two palaces
 //! clamping (夹) that star's palace are occupied — one by 擎羊 and the other by
-//! 陀罗. This rule reads only natal facts; the 化忌 is taken from the natal star
-//! placement, never from a temporal overlay.
+//! 陀罗. Natal 化忌 is taken from natal placements; temporal 化忌 is read from
+//! scoped [`MutagenActivation`] facts.
 
 use crate::core::pattern::context::{PatternContext, PatternDetectionRequest};
 use crate::core::pattern::model::{
     PatternAnchor, PatternDetection, PatternEvidence, PatternFamily, PatternId, PatternPolarity,
-    PatternScope, PatternStatus, PatternStrength,
+    PatternStatus, PatternStrength,
 };
-use crate::core::pattern::query::find_star_branch;
+use crate::core::pattern::query::{
+    find_star_branch_for_scope, mutagen_activations_for_scope, pattern_scope_for, scope_is_visible,
+};
 use crate::core::pattern::relation::{PalaceRelation, clamp_branches};
 use crate::core::{Mutagen, Scope, StarName};
 
@@ -20,84 +22,101 @@ const NAME_ZH: &str = "羊陀夹忌";
 /// Detects 羊陀夹忌 and appends any detection to `out`.
 pub fn detect(
     ctx: &PatternContext<'_>,
-    _request: &PatternDetectionRequest,
+    request: &PatternDetectionRequest,
     out: &mut Vec<PatternDetection>,
 ) {
-    let chart = ctx.chart;
-
-    let Some(qing_yang_branch) = find_star_branch(chart, StarName::QingYang) else {
-        return;
-    };
-    let Some(tuo_luo_branch) = find_star_branch(chart, StarName::TuoLuo) else {
-        return;
-    };
-
-    // Inspect every natal star carrying 化忌: a later target may be clamped even
-    // when an earlier one is not.
-    for ji in chart
-        .stars()
-        .into_iter()
-        .filter(|fact| fact.placement().mutagen() == Some(Mutagen::Ji))
-    {
-        let target_star = ji.placement().name();
-        let target_branch = ji.palace().branch();
-
-        let [low, high] = clamp_branches(target_branch);
-
-        // Qing Yang and Tuo Luo must occupy the two distinct clamp palaces.
-        let clamps_target = qing_yang_branch != tuo_luo_branch
-            && (qing_yang_branch == low || qing_yang_branch == high)
-            && (tuo_luo_branch == low || tuo_luo_branch == high);
-        if !clamps_target {
+    for &scope in &request.scopes {
+        if !scope_is_visible(ctx, scope) {
             continue;
         }
 
-        let mut involved_palaces = vec![low, high, target_branch];
-        involved_palaces.sort_by_key(|branch| branch.index());
-        involved_palaces.dedup();
+        let Some((qing_yang, qing_yang_branch)) =
+            find_star_branch_for_scope(ctx, scope, StarName::QingYang)
+        else {
+            continue;
+        };
+        let Some((tuo_luo, tuo_luo_branch)) =
+            find_star_branch_for_scope(ctx, scope, StarName::TuoLuo)
+        else {
+            continue;
+        };
 
-        out.push(PatternDetection {
-            id: PatternId::YangTuoJiaJi,
-            name_zh: NAME_ZH,
-            family: PatternFamily::ShaJi,
-            polarity: PatternPolarity::Inauspicious,
-            status: PatternStatus::Fulfilled,
-            strength: PatternStrength::Medium,
-            scope: PatternScope::Natal,
-            anchor: PatternAnchor::Palace(target_branch),
-            involved_palaces,
-            involved_stars: vec![StarName::QingYang, StarName::TuoLuo, target_star],
-            involved_mutagens: vec![Mutagen::Ji],
-            // `ClampedBy` reads from the target palace to each clamping palace:
-            // the 化忌 palace is the anchor, the clamp palaces are the related.
-            evidence: vec![
-                PatternEvidence::StarInPalace {
-                    star: StarName::QingYang,
-                    branch: qing_yang_branch,
-                },
-                PatternEvidence::StarInPalace {
-                    star: StarName::TuoLuo,
-                    branch: tuo_luo_branch,
-                },
-                PatternEvidence::MutagenOnStar {
-                    star: target_star,
-                    mutagen: Mutagen::Ji,
-                    scope: Scope::Natal,
-                    branch: target_branch,
-                },
-                PatternEvidence::PalaceRelation {
-                    from: target_branch,
-                    to: qing_yang_branch,
-                    relation: PalaceRelation::ClampedBy,
-                },
-                PatternEvidence::PalaceRelation {
-                    from: target_branch,
-                    to: tuo_luo_branch,
-                    relation: PalaceRelation::ClampedBy,
-                },
-            ],
-            weakening_factors: Vec::new(),
-            breaking_factors: Vec::new(),
-        });
+        for (target_star, target_branch) in ji_targets(ctx, scope) {
+            let [low, high] = clamp_branches(target_branch);
+
+            let clamps_target = qing_yang_branch != tuo_luo_branch
+                && (qing_yang_branch == low || qing_yang_branch == high)
+                && (tuo_luo_branch == low || tuo_luo_branch == high);
+            if !clamps_target {
+                continue;
+            }
+
+            let mut involved_palaces = vec![low, high, target_branch];
+            involved_palaces.sort_by_key(|branch| branch.index());
+            involved_palaces.dedup();
+
+            out.push(PatternDetection {
+                id: PatternId::YangTuoJiaJi,
+                name_zh: NAME_ZH,
+                family: PatternFamily::ShaJi,
+                polarity: PatternPolarity::Inauspicious,
+                status: PatternStatus::Fulfilled,
+                strength: PatternStrength::Medium,
+                scope: pattern_scope_for(scope),
+                anchor: PatternAnchor::Palace(target_branch),
+                involved_palaces,
+                involved_stars: vec![qing_yang, tuo_luo, target_star],
+                involved_mutagens: vec![Mutagen::Ji],
+                evidence: vec![
+                    PatternEvidence::StarInPalace {
+                        star: qing_yang,
+                        branch: qing_yang_branch,
+                    },
+                    PatternEvidence::StarInPalace {
+                        star: tuo_luo,
+                        branch: tuo_luo_branch,
+                    },
+                    PatternEvidence::MutagenOnStar {
+                        star: target_star,
+                        mutagen: Mutagen::Ji,
+                        scope,
+                        branch: target_branch,
+                    },
+                    PatternEvidence::PalaceRelation {
+                        from: target_branch,
+                        to: qing_yang_branch,
+                        relation: PalaceRelation::ClampedBy,
+                    },
+                    PatternEvidence::PalaceRelation {
+                        from: target_branch,
+                        to: tuo_luo_branch,
+                        relation: PalaceRelation::ClampedBy,
+                    },
+                ],
+                weakening_factors: Vec::new(),
+                breaking_factors: Vec::new(),
+            });
+        }
     }
+}
+
+fn ji_targets(
+    ctx: &PatternContext<'_>,
+    scope: Scope,
+) -> Vec<(StarName, crate::core::EarthlyBranch)> {
+    if scope == Scope::Natal {
+        return ctx
+            .chart
+            .stars()
+            .into_iter()
+            .filter(|fact| fact.placement().mutagen() == Some(Mutagen::Ji))
+            .map(|fact| (fact.placement().name(), fact.palace().branch()))
+            .collect();
+    }
+
+    mutagen_activations_for_scope(ctx, scope)
+        .into_iter()
+        .filter(|activation| activation.mutagen() == Mutagen::Ji)
+        .map(|activation| (activation.target_star(), activation.target_branch()))
+        .collect()
 }
