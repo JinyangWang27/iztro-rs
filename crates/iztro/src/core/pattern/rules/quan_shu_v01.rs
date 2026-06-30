@@ -8,148 +8,189 @@ use crate::core::pattern::context::{PatternContext, PatternDetectionRequest};
 use crate::core::pattern::metadata::pattern_source_metadata;
 use crate::core::pattern::model::{
     PatternAnchor, PatternDetection, PatternEvidence, PatternFamily, PatternId, PatternPolarity,
-    PatternScope, PatternStatus, PatternStrength,
+    PatternStatus, PatternStrength,
 };
 use crate::core::pattern::query::{
-    branch_of_palace, is_bright, major_star_count_in_palace, modeled_void_star_in_palace,
-    palace_has_all_stars, palace_has_star,
+    branch_of_palace_for_scope, find_star_for_scope, is_bright,
+    major_star_count_in_palace_for_scope, modeled_void_star_in_palace_for_scope,
+    palace_has_all_stars_for_scope, pattern_scope_for,
 };
-use crate::core::{Chart, EarthlyBranch, PalaceName, StarName};
+use crate::core::{EarthlyBranch, PalaceName, Scope, StarName};
 
 /// Detects the supported QuanShu Volume 1 source-backed patterns.
 pub fn detect(
     ctx: &PatternContext<'_>,
-    _request: &PatternDetectionRequest,
+    request: &PatternDetectionRequest,
     out: &mut Vec<PatternDetection>,
 ) {
-    detect_jin_can_guang_hui(ctx.chart, out);
-    detect_ri_chu_fu_sang(ctx.chart, out);
-    detect_yue_luo_hai_gong(ctx.chart, out);
-    detect_yue_sheng_cang_hai(ctx.chart, out);
-    detect_ma_tou_dai_jian(ctx.chart, out);
-    detect_tan_huo_xiang_feng(ctx.chart, out);
-    detect_wu_qu_shou_yuan(ctx.chart, out);
-    detect_cai_yu_qiu_chou(ctx.chart, out);
-    detect_ma_luo_kong_wang(ctx.chart, out);
+    for &scope in &request.scopes {
+        detect_jin_can_guang_hui(ctx, scope, out);
+        detect_ri_chu_fu_sang(ctx, scope, out);
+        detect_yue_luo_hai_gong(ctx, scope, out);
+        detect_yue_sheng_cang_hai(ctx, scope, out);
+        detect_ma_tou_dai_jian(ctx, scope, out);
+        detect_tan_huo_xiang_feng(ctx, scope, out);
+        detect_wu_qu_shou_yuan(ctx, scope, out);
+        detect_cai_yu_qiu_chou(ctx, scope, out);
+        detect_ma_luo_kong_wang(ctx, scope, out);
+    }
 }
 
-fn detect_jin_can_guang_hui(chart: &Chart, out: &mut Vec<PatternDetection>) {
+fn detect_jin_can_guang_hui(
+    ctx: &PatternContext<'_>,
+    scope: Scope,
+    out: &mut Vec<PatternDetection>,
+) {
     let branch = EarthlyBranch::Wu;
-    if branch_of_palace(chart, PalaceName::Life) != Some(branch) {
+    if branch_of_palace_for_scope(ctx, scope, PalaceName::Life) != Some(branch) {
         return;
     }
-    if !palace_has_star(chart, branch, StarName::TaiYang) {
+    let Some(tai_yang) = find_star_for_scope(ctx, scope, StarName::TaiYang) else {
+        return;
+    };
+    if tai_yang.branch() != branch {
         return;
     }
-    if major_star_count_in_palace(chart, branch) != 1 {
+    if major_star_count_in_palace_for_scope(ctx, scope, branch) != 1 {
         return;
     }
 
     push_single_star(
         out,
+        scope,
         PatternId::JinCanGuangHui,
         PatternFamily::MajorStarCombination,
         PatternPolarity::Auspicious,
         branch,
-        StarName::TaiYang,
+        tai_yang.placement().name(),
     );
 }
 
-fn detect_ri_chu_fu_sang(chart: &Chart, out: &mut Vec<PatternDetection>) {
+fn detect_ri_chu_fu_sang(ctx: &PatternContext<'_>, scope: Scope, out: &mut Vec<PatternDetection>) {
     let branch = EarthlyBranch::Mao;
-    if !palace_has_star(chart, branch, StarName::TaiYang) {
+    let Some(tai_yang) = find_star_for_scope(ctx, scope, StarName::TaiYang) else {
+        return;
+    };
+    if tai_yang.branch() != branch {
         return;
     }
 
-    let is_life = branch_of_palace(chart, PalaceName::Life) == Some(branch);
-    let is_career = branch_of_palace(chart, PalaceName::Career) == Some(branch);
+    let is_life = branch_of_palace_for_scope(ctx, scope, PalaceName::Life) == Some(branch);
+    let is_career = branch_of_palace_for_scope(ctx, scope, PalaceName::Career) == Some(branch);
     if !(is_life || is_career) {
         return;
     }
 
     push_single_star(
         out,
+        scope,
         PatternId::RiChuFuSang,
         PatternFamily::MajorStarCombination,
         PatternPolarity::Auspicious,
         branch,
-        StarName::TaiYang,
+        tai_yang.placement().name(),
     );
 }
 
-fn detect_yue_luo_hai_gong(chart: &Chart, out: &mut Vec<PatternDetection>) {
+fn detect_yue_luo_hai_gong(
+    ctx: &PatternContext<'_>,
+    scope: Scope,
+    out: &mut Vec<PatternDetection>,
+) {
     let branch = EarthlyBranch::Hai;
-    if branch_of_palace(chart, PalaceName::Life) != Some(branch) {
+    if branch_of_palace_for_scope(ctx, scope, PalaceName::Life) != Some(branch) {
         return;
     }
-    if !palace_has_star(chart, branch, StarName::TaiYin) {
+    let Some(tai_yin) = find_star_for_scope(ctx, scope, StarName::TaiYin) else {
+        return;
+    };
+    if tai_yin.branch() != branch {
         return;
     }
 
     push_single_star(
         out,
+        scope,
         PatternId::YueLuoHaiGong,
         PatternFamily::MajorStarCombination,
         PatternPolarity::Auspicious,
         branch,
-        StarName::TaiYin,
+        tai_yin.placement().name(),
     );
 }
 
-fn detect_yue_sheng_cang_hai(chart: &Chart, out: &mut Vec<PatternDetection>) {
+fn detect_yue_sheng_cang_hai(
+    ctx: &PatternContext<'_>,
+    scope: Scope,
+    out: &mut Vec<PatternDetection>,
+) {
     let branch = EarthlyBranch::Zi;
-    if branch_of_palace(chart, PalaceName::Property) != Some(branch) {
+    if branch_of_palace_for_scope(ctx, scope, PalaceName::Property) != Some(branch) {
         return;
     }
-    if !palace_has_star(chart, branch, StarName::TaiYin) {
+    let Some(tai_yin) = find_star_for_scope(ctx, scope, StarName::TaiYin) else {
+        return;
+    };
+    if tai_yin.branch() != branch {
         return;
     }
 
     push_single_star(
         out,
+        scope,
         PatternId::YueShengCangHai,
         PatternFamily::MajorStarCombination,
         PatternPolarity::Auspicious,
         branch,
-        StarName::TaiYin,
+        tai_yin.placement().name(),
     );
 }
 
-fn detect_ma_tou_dai_jian(chart: &Chart, out: &mut Vec<PatternDetection>) {
-    let Some(tian_ma) = chart.star(StarName::TianMa) else {
+fn detect_ma_tou_dai_jian(ctx: &PatternContext<'_>, scope: Scope, out: &mut Vec<PatternDetection>) {
+    let Some(tian_ma) = find_star_for_scope(ctx, scope, StarName::TianMa) else {
         return;
     };
-    let branch = tian_ma.palace().branch();
-    if !palace_has_star(chart, branch, StarName::QingYang) {
+    let branch = tian_ma.branch();
+    let Some(qing_yang) = find_star_for_scope(ctx, scope, StarName::QingYang) else {
+        return;
+    };
+    if qing_yang.branch() != branch {
         return;
     }
 
     push_same_palace(
         out,
+        scope,
         PatternId::MaTouDaiJian,
         PatternFamily::ShaJi,
         PatternPolarity::Mixed,
         branch,
-        vec![StarName::TianMa, StarName::QingYang],
+        vec![tian_ma.placement().name(), qing_yang.placement().name()],
     );
 }
 
-fn detect_tan_huo_xiang_feng(chart: &Chart, out: &mut Vec<PatternDetection>) {
-    let Some(life) = chart.life_palace() else {
+fn detect_tan_huo_xiang_feng(
+    ctx: &PatternContext<'_>,
+    scope: Scope,
+    out: &mut Vec<PatternDetection>,
+) {
+    let Some(branch) = branch_of_palace_for_scope(ctx, scope, PalaceName::Life) else {
         return;
     };
-    let branch = life.branch();
-    if !palace_has_all_stars(chart, branch, &[StarName::TanLang, StarName::HuoXing]) {
+    if !palace_has_all_stars_for_scope(ctx, scope, branch, &[StarName::TanLang, StarName::HuoXing])
+    {
         return;
     }
 
-    let Some(tan_lang) = chart.star(StarName::TanLang) else {
+    let Some(tan_lang) = find_star_for_scope(ctx, scope, StarName::TanLang) else {
         return;
     };
-    let Some(huo_xing) = chart.star(StarName::HuoXing) else {
+    let Some(huo_xing) = find_star_for_scope(ctx, scope, StarName::HuoXing) else {
         return;
     };
-    if !is_bright(tan_lang.placement().brightness())
+    if tan_lang.branch() != branch
+        || huo_xing.branch() != branch
+        || !is_bright(tan_lang.placement().brightness())
         || !is_bright(huo_xing.placement().brightness())
     {
         return;
@@ -157,48 +198,57 @@ fn detect_tan_huo_xiang_feng(chart: &Chart, out: &mut Vec<PatternDetection>) {
 
     push_same_palace(
         out,
+        scope,
         PatternId::TanHuoXiangFeng,
         PatternFamily::ShaJi,
         PatternPolarity::Auspicious,
         branch,
-        vec![StarName::TanLang, StarName::HuoXing],
+        vec![tan_lang.placement().name(), huo_xing.placement().name()],
     );
 }
 
-fn detect_wu_qu_shou_yuan(chart: &Chart, out: &mut Vec<PatternDetection>) {
+fn detect_wu_qu_shou_yuan(ctx: &PatternContext<'_>, scope: Scope, out: &mut Vec<PatternDetection>) {
     let branch = EarthlyBranch::Mao;
-    if branch_of_palace(chart, PalaceName::Life) != Some(branch) {
+    if branch_of_palace_for_scope(ctx, scope, PalaceName::Life) != Some(branch) {
         return;
     }
-    if !palace_has_star(chart, branch, StarName::WuQu) {
+    let Some(wu_qu) = find_star_for_scope(ctx, scope, StarName::WuQu) else {
+        return;
+    };
+    if wu_qu.branch() != branch {
         return;
     }
 
     push_single_star(
         out,
+        scope,
         PatternId::WuQuShouYuan,
         PatternFamily::MajorStarCombination,
         PatternPolarity::Auspicious,
         branch,
-        StarName::WuQu,
+        wu_qu.placement().name(),
     );
 }
 
-fn detect_cai_yu_qiu_chou(chart: &Chart, out: &mut Vec<PatternDetection>) {
+fn detect_cai_yu_qiu_chou(ctx: &PatternContext<'_>, scope: Scope, out: &mut Vec<PatternDetection>) {
     let mut branches = Vec::new();
-    if let Some(branch) = branch_of_palace(chart, PalaceName::Life) {
+    if let Some(branch) = branch_of_palace_for_scope(ctx, scope, PalaceName::Life) {
         branches.push(branch);
     }
-    if let Some(branch) = chart.body_palace_branch() {
-        branches.push(branch);
+    if scope == Scope::Natal {
+        if let Some(branch) = ctx.chart.body_palace_branch() {
+            branches.push(branch);
+        }
     }
     branches.sort_by_key(|branch| branch.index());
     branches.dedup();
 
     for branch in branches {
-        if palace_has_all_stars(chart, branch, &[StarName::WuQu, StarName::LianZhen]) {
+        if palace_has_all_stars_for_scope(ctx, scope, branch, &[StarName::WuQu, StarName::LianZhen])
+        {
             push_same_palace(
                 out,
+                scope,
                 PatternId::CaiYuQiuChou,
                 PatternFamily::MajorStarCombination,
                 PatternPolarity::Inauspicious,
@@ -209,27 +259,33 @@ fn detect_cai_yu_qiu_chou(chart: &Chart, out: &mut Vec<PatternDetection>) {
     }
 }
 
-fn detect_ma_luo_kong_wang(chart: &Chart, out: &mut Vec<PatternDetection>) {
-    let Some(tian_ma) = chart.star(StarName::TianMa) else {
+fn detect_ma_luo_kong_wang(
+    ctx: &PatternContext<'_>,
+    scope: Scope,
+    out: &mut Vec<PatternDetection>,
+) {
+    let Some(tian_ma) = find_star_for_scope(ctx, scope, StarName::TianMa) else {
         return;
     };
-    let branch = tian_ma.palace().branch();
-    let Some(void_star) = modeled_void_star_in_palace(chart, branch) else {
+    let branch = tian_ma.branch();
+    let Some(void_star) = modeled_void_star_in_palace_for_scope(ctx, scope, branch) else {
         return;
     };
 
     push_same_palace(
         out,
+        scope,
         PatternId::MaLuoKongWang,
         PatternFamily::ShaJi,
         PatternPolarity::Inauspicious,
         branch,
-        vec![StarName::TianMa, void_star],
+        vec![tian_ma.placement().name(), void_star],
     );
 }
 
 fn push_single_star(
     out: &mut Vec<PatternDetection>,
+    scope: Scope,
     id: PatternId,
     family: PatternFamily,
     polarity: PatternPolarity,
@@ -244,7 +300,7 @@ fn push_single_star(
         polarity,
         status: PatternStatus::Fulfilled,
         strength: PatternStrength::Medium,
-        scope: PatternScope::Natal,
+        scope: pattern_scope_for(scope),
         anchor: PatternAnchor::Palace(branch),
         involved_palaces: vec![branch],
         involved_stars: vec![star],
@@ -257,6 +313,7 @@ fn push_single_star(
 
 fn push_same_palace(
     out: &mut Vec<PatternDetection>,
+    scope: Scope,
     id: PatternId,
     family: PatternFamily,
     polarity: PatternPolarity,
@@ -271,7 +328,7 @@ fn push_same_palace(
         polarity,
         status: PatternStatus::Fulfilled,
         strength: PatternStrength::Medium,
-        scope: PatternScope::Natal,
+        scope: pattern_scope_for(scope),
         anchor: PatternAnchor::Palace(branch),
         involved_palaces: vec![branch],
         involved_stars: stars.clone(),

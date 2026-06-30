@@ -2832,6 +2832,33 @@ mod tests {
     }
 
     #[test]
+    fn regenerating_same_birth_input_keeps_the_analysis_cache() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        app.update(Message::SelectTemporalCell(TemporalCell::Decadal(0)));
+        app.update(Message::SelectTemporalCell(TemporalCell::YearlyAge(0)));
+
+        let decadal = AnalysisLayerKey::Decadal { decadal_index: 0 };
+        let yearly = AnalysisLayerKey::Yearly {
+            decadal_index: 0,
+            year_index: 0,
+        };
+        assert!(app.analysis_cache().contains(&decadal));
+        assert!(app.analysis_cache().contains(&yearly));
+        let cached_layers = app.analysis_cache().len();
+
+        app.generate();
+
+        assert_eq!(
+            app.selected_temporal_selection(),
+            StaticTemporalNavigationSelection::PreDecadal
+        );
+        assert_eq!(app.analysis_cache().len(), cached_layers);
+        assert!(app.analysis_cache().contains(&decadal));
+        assert!(app.analysis_cache().contains(&yearly));
+    }
+
+    #[test]
     fn toggling_the_right_panel_hides_then_restores_compact() {
         let mut app = StaticChartApp::new();
         assert_eq!(app.right_panel_mode(), RightPanelMode::Compact);
@@ -2881,6 +2908,108 @@ mod tests {
         PatternHitExpansionKey { layer, pattern_id }
     }
 
+    fn different_key_same_scope(key: &AnalysisLayerKey) -> AnalysisLayerKey {
+        match key {
+            AnalysisLayerKey::Decadal { decadal_index } => AnalysisLayerKey::Decadal {
+                decadal_index: if *decadal_index == 0 { 1 } else { 0 },
+            },
+            AnalysisLayerKey::Age {
+                decadal_index,
+                year_index,
+            } => AnalysisLayerKey::Age {
+                decadal_index: *decadal_index,
+                year_index: if *year_index == 0 { 1 } else { 0 },
+            },
+            AnalysisLayerKey::Yearly {
+                decadal_index,
+                year_index,
+            } => AnalysisLayerKey::Yearly {
+                decadal_index: *decadal_index,
+                year_index: if *year_index == 0 { 1 } else { 0 },
+            },
+            AnalysisLayerKey::Monthly {
+                decadal_index,
+                year_index,
+                month_index,
+            } => AnalysisLayerKey::Monthly {
+                decadal_index: *decadal_index,
+                year_index: *year_index,
+                month_index: if *month_index == 0 { 1 } else { 0 },
+            },
+            AnalysisLayerKey::Daily {
+                decadal_index,
+                year_index,
+                month_index,
+                day_index,
+            } => AnalysisLayerKey::Daily {
+                decadal_index: *decadal_index,
+                year_index: *year_index,
+                month_index: *month_index,
+                day_index: if *day_index == 0 { 1 } else { 0 },
+            },
+            AnalysisLayerKey::Hourly {
+                decadal_index,
+                year_index,
+                month_index,
+                day_index,
+                hour_index,
+            } => AnalysisLayerKey::Hourly {
+                decadal_index: *decadal_index,
+                year_index: *year_index,
+                month_index: *month_index,
+                day_index: *day_index,
+                hour_index: if *hour_index == 0 { 1 } else { 0 },
+            },
+            AnalysisLayerKey::Natal => AnalysisLayerKey::Decadal { decadal_index: 0 },
+        }
+    }
+
+    fn first_cached_non_natal_pattern_hit(
+        app: &mut StaticChartApp,
+    ) -> (AnalysisLayerKey, iztro::core::PatternId) {
+        app.generate();
+        app.update(Message::SelectTemporalCell(TemporalCell::Decadal(0)));
+
+        for year_index in 0..10 {
+            app.update(Message::SelectTemporalCell(TemporalCell::YearlyAge(
+                year_index,
+            )));
+            let yearly = AnalysisLayerKey::Yearly {
+                decadal_index: 0,
+                year_index,
+            };
+            if let Some(pattern_id) = app
+                .analysis_cache()
+                .get(&yearly)
+                .and_then(|result| result.pattern_hits.first())
+                .map(|hit| hit.id)
+            {
+                return (yearly, pattern_id);
+            }
+
+            for month_index in 0..12 {
+                app.update(Message::SelectTemporalCell(TemporalCell::Month(
+                    month_index,
+                )));
+                let monthly = AnalysisLayerKey::Monthly {
+                    decadal_index: 0,
+                    year_index,
+                    month_index,
+                };
+                if let Some(pattern_id) = app
+                    .analysis_cache()
+                    .get(&monthly)
+                    .and_then(|result| result.pattern_hits.first())
+                    .map(|hit| hit.id)
+                {
+                    return (monthly, pattern_id);
+                }
+            }
+        }
+
+        panic!("expected at least one cached non-natal pattern hit");
+    }
+
     #[test]
     fn clicking_a_rule_hit_sets_the_active_analysis_selection() {
         let mut app = StaticChartApp::new();
@@ -2910,6 +3039,63 @@ mod tests {
             Some(&ActiveAnalysisSelection::Pattern(key.clone()))
         );
         assert!(app.is_pattern_hit_expanded(&key));
+    }
+
+    #[test]
+    fn pattern_expansion_is_keyed_by_layer_and_pattern_id() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        let natal = pattern_key(
+            AnalysisLayerKey::Natal,
+            iztro::core::PatternId::ChangQuJiaMing,
+        );
+        let decadal = pattern_key(
+            AnalysisLayerKey::Decadal { decadal_index: 0 },
+            iztro::core::PatternId::ChangQuJiaMing,
+        );
+
+        app.update(Message::TogglePatternHit(natal.clone()));
+        assert!(app.is_pattern_hit_expanded(&natal));
+        assert!(!app.is_pattern_hit_expanded(&decadal));
+
+        app.update(Message::TogglePatternHit(decadal.clone()));
+        assert!(app.is_pattern_hit_expanded(&natal));
+        assert!(app.is_pattern_hit_expanded(&decadal));
+
+        app.update(Message::TogglePatternHit(natal.clone()));
+        assert!(!app.is_pattern_hit_expanded(&natal));
+        assert!(app.is_pattern_hit_expanded(&decadal));
+    }
+
+    #[test]
+    fn cached_non_natal_pattern_hit_uses_exact_layer_key_for_expansion() {
+        let mut app = StaticChartApp::new();
+        let (layer, pattern_id) = first_cached_non_natal_pattern_hit(&mut app);
+        assert_ne!(layer, AnalysisLayerKey::Natal);
+
+        let result = app
+            .analysis_cache()
+            .get(&layer)
+            .expect("non-natal layer should be cached by exact key");
+        assert_eq!(result.key, layer);
+        assert!(!result.pattern_hits.is_empty());
+        assert!(
+            result
+                .pattern_hits
+                .iter()
+                .all(|hit| hit.scope == layer.pattern_scope())
+        );
+
+        let exact = pattern_key(layer.clone(), pattern_id);
+        let same_scope_other_key = pattern_key(different_key_same_scope(&layer), pattern_id);
+        app.update(Message::TogglePatternHit(exact.clone()));
+
+        assert!(app.is_pattern_hit_expanded(&exact));
+        assert!(!app.is_pattern_hit_expanded(&same_scope_other_key));
+        assert_eq!(
+            app.active_analysis_selection(),
+            Some(&ActiveAnalysisSelection::Pattern(exact))
+        );
     }
 
     #[test]

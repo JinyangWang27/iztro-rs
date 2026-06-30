@@ -12,8 +12,11 @@ explainable facts and never produces narrative prose.
   polarity, status, strength, scope, anchor, involved palaces/stars/mutagens,
   and machine-checkable `evidence` / conditions. It contains no reading text.
 - **Temporal facts stay overlays**: a temporal `PatternScope` never folds
-  temporal placement into natal facts. An empty `PatternScope::Combined(vec![])`
-  is never permitted by the scope guard.
+  temporal placement into natal facts. Scope-aware queries read natal
+  `Chart` facts for `Scope::Natal` and read `TemporalLayer` placements,
+  mutagen activations, and `TemporalPalaceLayout` facts for non-natal scopes.
+  An empty `PatternScope::Combined(vec![])` is never permitted by the scope
+  guard.
 - **Conservative**: a rule emits a detection only when its structural
   conditions are clearly met by modeled chart facts. Rules that depend on
   brightness never emit when a star's brightness is `Unknown`.
@@ -29,6 +32,14 @@ explainable facts and never produces narrative prose.
 deterministically sorts the results by scope, family, id, anchor, and involved
 palaces. `PatternDetectionRequest` controls which scopes, statuses, and families
 are returned.
+
+When a detector is requested for a temporal scope, it reads only that scope's
+visible overlay facts plus the scope's temporal palace labels. Base-star
+conditions for 文昌/文曲/擎羊/陀罗/天马 may match the corresponding runtime
+flow-star identity in that same scope (for example 流昌, 月曲, 日羊), and the
+detection records the actual matched runtime `StarName`. Temporal 四化 are read
+from `MutagenActivation` facts; they are never modeled as fake stars or attached
+to natal `StarPlacement`s.
 
 ## Status model
 
@@ -58,7 +69,7 @@ GUI/pattern panel can choose to show damaged-but-formed patterns.
 | --- | --- | --- | --- | --- |
 | 紫府朝垣 | `ZiFuChaoYuan` | `MajorStarCombination` | Auspicious | 紫微 and 天府 both in the Life 三方四正 (weakened by a 煞星 in an involved palace). |
 | 机月同梁 | `JiYueTongLiang` | `MajorStarCombination` | Auspicious | 天机/太阴/天同/天梁 all gathered through the Life 三方四正. An incomplete set emits nothing. |
-| 羊陀夹忌 | `YangTuoJiaJi` | `ShaJi` | Inauspicious | 擎羊 and 陀罗 clamp (夹) the palace holding a natal 化忌 star. |
+| 羊陀夹忌 | `YangTuoJiaJi` | `ShaJi` | Inauspicious | 擎羊 and 陀罗 clamp (夹) the palace holding 化忌: natal uses a natal star's attached mutagen; temporal scopes use explicit `MutagenActivation`. |
 | 左右夹命 | `ZuoYouJiaMing` | `AuxiliaryStarCombination` | Auspicious | 左辅 and 右弼 occupy the two palaces clamping (夹) the Life palace, one on each side. |
 | 昌曲夹命 | `ChangQuJiaMing` | `AuxiliaryStarCombination` | Auspicious | 文昌 and 文曲 clamp (夹) the Life palace, one on each side. |
 | 日月并明 | `RiYueBingMing` | `MajorStarCombination` | Auspicious | 太阳 and 太阴 are both present and each in a clearly bright state (庙/旺/得/利). |
@@ -113,10 +124,11 @@ source inventory only.
 
 The clamp-based rules (羊陀夹忌, 左右夹命, 昌曲夹命) share the branch-level
 `clamp_branches` relation: the two palaces clamping an anchor are its `-1` and
-`+1` neighbours. The shared `query::clamp_pair_matches` helper checks that both
-clamp palaces are occupied — one by each required star — in either orientation,
-and records each clamp as a `PalaceRelation { relation: ClampedBy }` from the
-anchor palace to the clamping palace.
+`+1` neighbours. The shared scoped clamp helpers check that both clamp palaces
+are occupied — one by each required star or same-scope flow-star equivalent — in
+either orientation, and record each clamp as a
+`PalaceRelation { relation: ClampedBy }` from the anchor palace to the clamping
+palace.
 
 ### Brightness rules
 
@@ -134,5 +146,8 @@ at a time with positive/negative rule tests and source-grounded conditions.
 canonical identity (`PatternId`). The classical rule runtime
 (`rules::classical`) emits claims for project-owned pattern-derived rules only;
 it does not mirror QuanShu pattern catalogue entries as duplicate source-hit/claim
-rules. Narrative readings, scoring beyond the coarse `PatternStrength`, and
-LLM-assisted interpretation remain out of scope here and belong to later layers.
+rules. The existing catalogue can evaluate supported overlay layers through core
+facts, but this is **not** full classical temporal interpretation. QuanShu
+catalogue expansion remains paused; narrative readings, scoring beyond the
+coarse `PatternStrength`, and LLM-assisted interpretation remain out of scope
+here and belong to later layers.

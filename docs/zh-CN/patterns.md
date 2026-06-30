@@ -11,7 +11,9 @@
   strength、scope、anchor，以及涉及的宫位／星曜／四化和可机器校验的 `evidence`／
   条件，不包含任何解读文本。
 - **时间事实保持为叠加层**：时间性 `PatternScope` 绝不把流曜安置折叠进本命事实。
-  空的 `PatternScope::Combined(vec![])` 永远不会通过 scope 守卫。
+  scope-aware 查询在 `Scope::Natal` 读取本命 `Chart` 事实，在非本命 scope 读取
+  `TemporalLayer` 的星曜落点、四化激活与 `TemporalPalaceLayout` 事实。空的
+  `PatternScope::Combined(vec![])` 永远不会通过 scope 守卫。
 - **保守**：只有当结构条件被已建模的命盘事实清晰满足时，规则才会产生检测。依赖亮度
   的规则在星曜亮度为 `Unknown` 时绝不产出。
 - **有出处则显式记录**：《紫微斗数全书》卷一末尾的 `定富局`、`定贵局`、`定贫贱局`、
@@ -23,6 +25,12 @@
 `detect_patterns(ctx, request)` 运行每条已注册规则，然后按 scope、family、id、
 anchor、涉及宫位对结果进行过滤与确定性排序。`PatternDetectionRequest` 控制返回哪些
 scope、status 与 family。
+
+当检测器被请求到某个时间 scope 时，它只读取该 scope 可见的叠加事实与时间宫名。
+文昌／文曲／擎羊／陀罗／天马等基础星曜条件，可以在同一 scope 内匹配对应的 runtime
+流曜身份（例如流昌、月曲、日羊）；检测结果会记录实际命中的 runtime `StarName`。
+时间四化只读取 `MutagenActivation` 事实，不会伪装成星曜，也不会写回本命
+`StarPlacement`。
 
 ## 状态模型
 
@@ -47,7 +55,7 @@ scope、status 与 family。
 | --- | --- | --- | --- | --- |
 | 紫府朝垣 | `ZiFuChaoYuan` | `MajorStarCombination` | 吉 | 紫微与天府同在命宫三方四正（若涉及宫位有煞星则减力）。 |
 | 机月同梁 | `JiYueTongLiang` | `MajorStarCombination` | 吉 | 天机／太阴／天同／天梁四星齐会于命宫三方四正；不齐则不产出。 |
-| 羊陀夹忌 | `YangTuoJiaJi` | `ShaJi` | 凶 | 擎羊与陀罗夹住承载本命化忌之星的宫位。 |
+| 羊陀夹忌 | `YangTuoJiaJi` | `ShaJi` | 凶 | 擎羊与陀罗夹住承载化忌的宫位；本命读取星曜自身四化，时间 scope 读取显式 `MutagenActivation`。 |
 | 左右夹命 | `ZuoYouJiaMing` | `AuxiliaryStarCombination` | 吉 | 左辅与右弼分居命宫两侧夹宫，各占一边。 |
 | 昌曲夹命 | `ChangQuJiaMing` | `AuxiliaryStarCombination` | 吉 | 文昌与文曲夹住命宫，各占一边。 |
 | 日月并明 | `RiYueBingMing` | `MajorStarCombination` | 吉 | 太阳与太阴皆在盘，且各自处于明亮庙旺之位（庙／旺／得／利）。 |
@@ -92,8 +100,8 @@ scope、status 与 family。
 ### 夹宫规则
 
 夹宫类规则（羊陀夹忌、左右夹命、昌曲夹命）共用宫位级的 `clamp_branches` 关系：夹住某
-锚点的两个宫位是其 `-1` 与 `+1` 邻宫。共享的 `query::clamp_pair_matches` 辅助函数检查
-两个夹宫是否各被一颗所需星曜占据（接受任一朝向），并以从锚点宫到夹宫的
+锚点的两个宫位是其 `-1` 与 `+1` 邻宫。共享的 scoped 夹宫辅助函数检查两个夹宫是否
+各被一颗所需星曜或同 scope 的流曜等价星占据（接受任一朝向），并以从锚点宫到夹宫的
 `PalaceRelation { relation: ClampedBy }` 记录每次夹宫。
 
 ### 亮度规则
@@ -108,5 +116,6 @@ scope、status 与 family。
 本层刻意保持狭窄且保守。新格局逐条加入，并配有正例／负例规则测试以及有出处依据的条件。
 `PatternDetection` 只产出结构化事实，且格局具有唯一规范身份（`PatternId`）。classical
 runtime（`rules::classical`）只为项目自有的 pattern 派生规则产出 claim，不把全书格局目录条目
-镜像成重复的 source-hit/claim 规则。叙述性解读、超出粗粒度 `PatternStrength` 的评分，以及
-LLM 辅助解读都不在本层范围内，属于后续层级。
+镜像成重复的 source-hit/claim 规则。现有目录可以通过 core 事实评估已支持的时间叠加层，
+但这**不是**完整的古法限运解读。全书格局扩展仍保持暂停；叙述性解读、超出粗粒度
+`PatternStrength` 的评分，以及 LLM 辅助解读都不在本层范围内，属于后续层级。

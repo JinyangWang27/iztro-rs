@@ -9,9 +9,11 @@ use std::collections::BTreeSet;
 use iztro::core::pattern::query::{find_star_branch, palace_has_star, stars_in_san_fang_si_zheng};
 use iztro::{
     BirthContext, Brightness, CalendarDate, Chart, EarthlyBranch, Gender, HeavenlyStem,
-    MethodProfile, Mutagen, PALACE_NAMES, Palace, PatternAnchor, PatternContext,
-    PatternDetectionRequest, PatternFamily, PatternId, PatternPolarity, PatternStatus,
-    PatternStrength, Scope, StarKind, StarName, StarPlacement, StemBranch,
+    HoroscopeChart, MethodProfile, Mutagen, MutagenActivation, PALACE_NAMES, Palace, PatternAnchor,
+    PatternContext, PatternDetectionRequest, PatternFamily, PatternId, PatternPolarity,
+    PatternScope, PatternStatus, PatternStrength, Scope, ScopedStarPlacement, StarKind, StarName,
+    StarPlacement, StemBranch, TemporalContext, TemporalLayer, TemporalPalaceLayout,
+    TemporalPalaceName,
 };
 use iztro::{PalaceRelation, PatternEvidence};
 use iztro::{PatternSourceGroup, pattern_source_metadata};
@@ -68,6 +70,83 @@ fn major(branch: EarthlyBranch, star: StarName) -> Spec {
 /// A soft/auxiliary (辅佐) star placement, e.g. 左辅/右弼, 文昌/文曲.
 fn soft(branch: EarthlyBranch, star: StarName) -> Spec {
     (branch, star, StarKind::Soft, None)
+}
+
+fn temporal_context(scope: Scope) -> TemporalContext {
+    let stem_branch =
+        StemBranch::try_new(HeavenlyStem::Jia, EarthlyBranch::Zi).expect("valid stem-branch");
+    match scope {
+        Scope::Age => TemporalContext::Age {
+            stem_branch,
+            nominal_age: 37,
+        },
+        Scope::Decadal => TemporalContext::Decadal {
+            stem_branch,
+            start_age: 34,
+        },
+        Scope::Yearly => TemporalContext::Yearly {
+            stem_branch,
+            lunar_year: 2026,
+        },
+        Scope::Monthly => TemporalContext::Monthly {
+            stem_branch,
+            lunar_month: 5,
+        },
+        Scope::Daily => TemporalContext::Daily {
+            stem_branch,
+            lunar_day: 17,
+        },
+        Scope::Hourly => TemporalContext::Hourly { stem_branch },
+        Scope::Natal => panic!("temporal context cannot be natal"),
+    }
+}
+
+fn temporal_palace_layout(scope: Scope, life_branch: EarthlyBranch) -> TemporalPalaceLayout {
+    let names = PALACE_NAMES
+        .iter()
+        .enumerate()
+        .map(|(index, name)| TemporalPalaceName::new(life_branch.offset(index as isize), *name))
+        .collect();
+    TemporalPalaceLayout::try_new(scope, names).expect("valid temporal palace layout")
+}
+
+fn scoped(
+    branch: EarthlyBranch,
+    star: StarName,
+    kind: StarKind,
+    scope: Scope,
+) -> ScopedStarPlacement {
+    ScopedStarPlacement::new(
+        branch,
+        StarPlacement::new(star, kind, Brightness::Unknown, None, scope),
+    )
+}
+
+fn horoscope_with_layer(
+    natal: Chart,
+    scope: Scope,
+    temporal_life_branch: EarthlyBranch,
+    placements: Vec<ScopedStarPlacement>,
+    activations: Vec<MutagenActivation>,
+) -> HoroscopeChart {
+    let layer = TemporalLayer::try_new_with_palace_layout(
+        scope,
+        temporal_context(scope),
+        placements,
+        activations,
+        Some(temporal_palace_layout(scope, temporal_life_branch)),
+    )
+    .expect("valid temporal layer");
+    HoroscopeChart::with_layers(natal, vec![layer])
+}
+
+fn request_for_scope(scope: Scope) -> PatternDetectionRequest {
+    PatternDetectionRequest {
+        scopes: vec![scope],
+        include_weakened: true,
+        include_broken: true,
+        families: Vec::new(),
+    }
 }
 
 /// One synthetic star placement carrying an explicit brightness:
@@ -363,6 +442,75 @@ fn yang_tuo_jia_ji_positive() {
         branch_set(&detection.involved_palaces),
         branch_set(&[EarthlyBranch::Yin, EarthlyBranch::Chen, EarthlyBranch::Mao])
     );
+}
+
+#[test]
+fn decadal_yang_tuo_jia_ji_uses_flow_clamps_and_temporal_ji_activation() {
+    // A decadal 化忌 activation lands on TaiYang@Zi. 运羊/运陀 clamp Zi from Hai
+    // and Chou, so the decadal layer should emit 羊陀夹忌 without requiring natal
+    // QingYang/TuoLuo placements.
+    let natal = build_chart(
+        EarthlyBranch::Zi,
+        &[major(EarthlyBranch::Zi, StarName::TaiYang)],
+    );
+    let horoscope = horoscope_with_layer(
+        natal,
+        Scope::Decadal,
+        EarthlyBranch::Zi,
+        vec![
+            scoped(
+                EarthlyBranch::Hai,
+                StarName::YunYang,
+                StarKind::Tough,
+                Scope::Decadal,
+            ),
+            scoped(
+                EarthlyBranch::Chou,
+                StarName::YunTuo,
+                StarKind::Tough,
+                Scope::Decadal,
+            ),
+        ],
+        vec![MutagenActivation::new(
+            Scope::Decadal,
+            StarName::TaiYang,
+            EarthlyBranch::Zi,
+            Mutagen::Ji,
+        )],
+    );
+
+    let detections = iztro::detect_patterns(
+        &PatternContext::horoscope(&horoscope, vec![Scope::Natal, Scope::Decadal]),
+        &request_for_scope(Scope::Decadal),
+    );
+    let detection = detection(&detections, PatternId::YangTuoJiaJi);
+
+    assert_eq!(detection.scope, PatternScope::Decadal);
+    assert_eq!(
+        star_set(&detection.involved_stars),
+        star_set(&[StarName::YunYang, StarName::YunTuo, StarName::TaiYang])
+    );
+    assert!(evidence_has_star_in_palace(
+        detection,
+        StarName::YunYang,
+        EarthlyBranch::Hai
+    ));
+    assert!(evidence_has_star_in_palace(
+        detection,
+        StarName::YunTuo,
+        EarthlyBranch::Chou
+    ));
+    assert!(detection.evidence.iter().any(|evidence| {
+        matches!(
+            evidence,
+            PatternEvidence::MutagenOnStar {
+                star: StarName::TaiYang,
+                mutagen: Mutagen::Ji,
+                scope: Scope::Decadal,
+                branch: EarthlyBranch::Zi,
+            }
+        )
+    }));
 }
 
 #[test]
@@ -777,6 +925,112 @@ fn chang_qu_jia_ming_negative_when_only_one_clamp_side() {
         &PatternDetectionRequest::default(),
     );
     assert!(detections.iter().all(|d| d.id != PatternId::ChangQuJiaMing));
+}
+
+#[test]
+fn yearly_chang_qu_jia_ming_matches_scope_specific_flow_stars() {
+    // Temporal Life at Zi; clamp(Zi) = {Hai, Chou}. The yearly layer contributes
+    // 流昌/流曲, which should satisfy a 文昌/文曲 same-scope request while the
+    // detection records the actual runtime flow-star names.
+    let natal = build_chart(EarthlyBranch::Zi, &[]);
+    let horoscope = horoscope_with_layer(
+        natal,
+        Scope::Yearly,
+        EarthlyBranch::Zi,
+        vec![
+            scoped(
+                EarthlyBranch::Hai,
+                StarName::LiuChang,
+                StarKind::Soft,
+                Scope::Yearly,
+            ),
+            scoped(
+                EarthlyBranch::Chou,
+                StarName::LiuQu,
+                StarKind::Soft,
+                Scope::Yearly,
+            ),
+        ],
+        Vec::new(),
+    );
+
+    let detections = iztro::detect_patterns(
+        &PatternContext::horoscope(&horoscope, vec![Scope::Natal, Scope::Yearly]),
+        &request_for_scope(Scope::Yearly),
+    );
+    let detection = detection(&detections, PatternId::ChangQuJiaMing);
+
+    assert_eq!(detection.scope, PatternScope::Yearly);
+    assert_eq!(
+        star_set(&detection.involved_stars),
+        star_set(&[StarName::LiuChang, StarName::LiuQu])
+    );
+    assert!(evidence_has_star_in_palace(
+        detection,
+        StarName::LiuChang,
+        EarthlyBranch::Hai
+    ));
+    assert!(evidence_has_star_in_palace(
+        detection,
+        StarName::LiuQu,
+        EarthlyBranch::Chou
+    ));
+}
+
+#[test]
+fn monthly_chang_qu_jia_ming_does_not_leak_into_yearly_result() {
+    let natal = build_chart(EarthlyBranch::Zi, &[]);
+    let monthly = TemporalLayer::try_new_with_palace_layout(
+        Scope::Monthly,
+        temporal_context(Scope::Monthly),
+        vec![
+            scoped(
+                EarthlyBranch::Hai,
+                StarName::YueChang,
+                StarKind::Soft,
+                Scope::Monthly,
+            ),
+            scoped(
+                EarthlyBranch::Chou,
+                StarName::YueQu,
+                StarKind::Soft,
+                Scope::Monthly,
+            ),
+        ],
+        Vec::new(),
+        Some(temporal_palace_layout(Scope::Monthly, EarthlyBranch::Zi)),
+    )
+    .expect("valid monthly layer");
+    let horoscope = HoroscopeChart::with_layers(natal, vec![monthly]);
+
+    let yearly = iztro::detect_patterns(
+        &PatternContext::horoscope(
+            &horoscope,
+            vec![Scope::Natal, Scope::Decadal, Scope::Age, Scope::Yearly],
+        ),
+        &request_for_scope(Scope::Yearly),
+    );
+    assert!(yearly.iter().all(|d| d.id != PatternId::ChangQuJiaMing));
+
+    let monthly = iztro::detect_patterns(
+        &PatternContext::horoscope(
+            &horoscope,
+            vec![
+                Scope::Natal,
+                Scope::Decadal,
+                Scope::Age,
+                Scope::Yearly,
+                Scope::Monthly,
+            ],
+        ),
+        &request_for_scope(Scope::Monthly),
+    );
+    let detection = detection(&monthly, PatternId::ChangQuJiaMing);
+    assert_eq!(detection.scope, PatternScope::Monthly);
+    assert_eq!(
+        star_set(&detection.involved_stars),
+        star_set(&[StarName::YueChang, StarName::YueQu])
+    );
 }
 
 // ---- 日月并明 -------------------------------------------------------------

@@ -166,10 +166,13 @@ Key types:
   overrides only the **scope** of the underlying classical/pattern requests to
   `key` (every other filter — notably `works` — is preserved from the caller's
   request) and returns compact `rule_hits: Vec<ClassicalRuleHitRef>` plus
-  `pattern_hits: Vec<PatternDetection>`. The `TemporalAnalysisContext` must
-  correspond to `key`: the key drives cache identity and scope assignment and is
-  **not** currently validated against the horoscope's selected overlays, so
-  keeping context and key in sync is the caller's responsibility.
+  `pattern_hits: Vec<PatternDetection>`. Pattern hits are produced by
+  `core::pattern` and may come from supported temporal overlay facts; classical
+  rule hits remain conservative and current executable QuanShu rules are still
+  natal-only. The `TemporalAnalysisContext` must correspond to `key`: the key
+  drives cache identity and scope assignment and is **not** currently validated
+  against the horoscope's selected overlays, so keeping context and key in sync
+  is the caller's responsibility.
 - `AnalysisLayerRequest::user_facing()` restricts the classical rule stream to
   `ClassicalWork::ZiWeiDouShuQuanShu`. Because the GUI shows 全书规则 and 格局 in
   **separate** tabs, the analysis rule-hit stream must not include project
@@ -206,6 +209,13 @@ invalidates the cached yearly result, and changing day/hour within the same
 month never invalidates the cached monthly result. The GUI groups cached results
 by `AnalysisLayerKey::scope()` and hides empty groups; no rendering lives in
 `iztro`.
+
+The selected-view batch facade,
+`detect_static_temporal_analysis_layers_from_chart`, builds the selected
+horoscope context once, validates requested keys against the exact visible
+`AnalysisLayerKey`s, and detects each key with its own truncated active-scope
+chain. Consumers should cache results by the full `AnalysisLayerKey`, not by
+scope alone.
 
 ## Rule statuses
 

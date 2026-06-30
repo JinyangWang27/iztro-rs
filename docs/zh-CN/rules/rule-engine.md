@@ -144,9 +144,10 @@ evaluate_classical_in_context(&ClassicalRuleContext, &request) -> ClaimEvaluatio
   `TemporalAnalysisContext { natal, horoscope }` 上分析恰好一层。它只把底层
   全书/格局请求的**作用范围**改写为 `key`（其余过滤条件——尤其是 `works`——
   均沿用调用方的请求），返回紧凑的 `rule_hits: Vec<ClassicalRuleHitRef>`
-  与 `pattern_hits: Vec<PatternDetection>`。`TemporalAnalysisContext` 必须与
-  `key` 对应：`key` 用于缓存标识与作用范围归属，当前**不会**针对横盘已选叠加做
-  校验，因此保持上下文与 `key` 一致是调用方的责任。
+  与 `pattern_hits: Vec<PatternDetection>`。格局命中由 `core::pattern` 产出，
+  可以来自已支持的运限叠加事实；全书规则命中仍保持保守，当前可执行全书规则仍只匹配
+  本命事实。`TemporalAnalysisContext` 必须与 `key` 对应：`key` 用于缓存标识与作用范围
+  归属，当前**不会**针对横盘已选叠加做校验，因此保持上下文与 `key` 一致是调用方的责任。
 - `AnalysisLayerRequest::user_facing()` 把全书规则流限制为
   `ClassicalWork::ZiWeiDouShuQuanShu`。由于 GUI 将全书规则与格局放在**分开**的
   标签页，分析的规则命中流不得包含项目格局目录规则
@@ -175,6 +176,11 @@ evaluate_classical_in_context(&ClassicalRuleContext, &request) -> ClaimEvaluatio
 这让缓存天然有效：同一年内切换月/日/时不会使已缓存的流年结果失效，同一月内
 切换日/时也不会使已缓存的流月结果失效。GUI 按 `AnalysisLayerKey::scope()` 对
 缓存结果分组并隐藏空分组；`iztro` 中不含任何渲染逻辑。
+
+所选视图的整批门面 `detect_static_temporal_analysis_layers_from_chart` 会构建一次所选
+horoscope 上下文，校验请求键是否精确属于当前可见的 `AnalysisLayerKey`，并让每个键使用
+自己的截断 active-scope 链执行检测。消费方应按完整 `AnalysisLayerKey` 缓存结果，而不是
+只按 scope 缓存。
 
 ## 规则状态
 
