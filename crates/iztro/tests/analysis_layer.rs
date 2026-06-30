@@ -9,10 +9,12 @@ use iztro::rules::classical::{ClaimScope, ClassicalRuleId, classical_rule_metada
 use iztro::{
     AnalysisLayerKey, AnalysisLayerRequest, BirthContext, Brightness, CalendarDate, Chart,
     ClaimEvaluationRequest, ClassicalRuleContext, EarthlyBranch, Gender, HeavenlyStem,
-    MethodProfile, Mutagen, PALACE_NAMES, Palace, PatternScope, Scope, StarKind, StarName,
-    StarPlacement, StaticTemporalNavigationSelection, StemBranch, TemporalAnalysisContext,
-    analysis_layers_for_selection, analysis_scopes_for_layer_key, detect_analysis_layer,
-    evaluate_classical, evaluate_classical_in_context,
+    MethodProfile, Mutagen, PALACE_NAMES, Palace, PatternScope, Scope, SolarChartRequest,
+    SolarDay, SolarMonth, StarKind, StarName, StarPlacement, StaticTemporalNavigationSelection,
+    StemBranch, TemporalAnalysisContext, analysis_layers_for_selection,
+    analysis_scopes_for_layer_key, by_solar, detect_analysis_layer,
+    detect_static_temporal_analysis_layers_from_chart, evaluate_classical,
+    evaluate_classical_in_context,
 };
 
 // ---- synthetic chart builders --------------------------------------------
@@ -119,6 +121,19 @@ fn rich_natal_chart() -> Chart {
             ),
         ],
     )
+}
+
+fn sample_solar_chart() -> Chart {
+    let request = SolarChartRequest::builder()
+        .solar_year(1990)
+        .solar_month(SolarMonth::new(5).expect("valid month"))
+        .solar_day(SolarDay::new(17).expect("valid day"))
+        .birth_time(EarthlyBranch::Chen)
+        .gender(Gender::Female)
+        .method_profile(MethodProfile::placeholder("analysis_layer_temporal_test"))
+        .build()
+        .expect("valid request");
+    by_solar(request).expect("sample chart should build")
 }
 
 // ---- analysis_layers_for_selection ---------------------------------------
@@ -551,6 +566,51 @@ fn pattern_hits_are_returned_under_requested_scope() {
         &request,
     );
     assert!(yearly.pattern_hits.is_empty());
+}
+
+#[test]
+fn selected_view_facade_returns_monthly_pattern_hits_under_requested_key() {
+    let chart = sample_solar_chart();
+    let request = AnalysisLayerRequest::user_facing();
+
+    for year_index in 0..10 {
+        for month_index in 0..12 {
+            let selection = StaticTemporalNavigationSelection::Monthly {
+                decadal_index: 0,
+                year_index,
+                month_index,
+            };
+            let requested = AnalysisLayerKey::Monthly {
+                decadal_index: 0,
+                year_index: year_index as usize,
+                month_index: month_index as usize,
+            };
+
+            let results = detect_static_temporal_analysis_layers_from_chart(
+                chart.clone(),
+                selection,
+                &[requested.clone()],
+                &request,
+            )
+            .expect("selected monthly analysis should build");
+            assert_eq!(results.len(), 1);
+            let result = &results[0];
+            assert_eq!(result.key, requested);
+
+            if !result.pattern_hits.is_empty() {
+                assert!(
+                    result
+                        .pattern_hits
+                        .iter()
+                        .all(|hit| hit.scope == PatternScope::Monthly),
+                    "monthly selected-view pattern hits must carry monthly scope"
+                );
+                return;
+            }
+        }
+    }
+
+    panic!("expected at least one monthly selected-view pattern hit");
 }
 
 #[test]
