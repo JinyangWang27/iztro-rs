@@ -290,13 +290,14 @@ fn source_backed_pattern_catalogues_do_not_create_classical_rules() {
 #[test]
 fn canonical_pattern_metadata_references_source_inventory() {
     use iztro::core::pattern::metadata::pattern_source_metadata;
-    use iztro::core::pattern::rules::quan_shu_v01::QUAN_SHU_V01_SOURCE_BACKED_PATTERN_IDS;
+    use iztro::core::pattern::model::PatternId;
 
-    // Guard exactly the ids the QuanShu v01 detector can emit: each is passed to
-    // `pattern_source_metadata(id).expect(..)` at runtime, so missing metadata is
-    // a panic, not a skip. Tying the check to the emitted list (rather than
-    // filtering `PatternId::ALL` for ids that happen to have metadata) means a
-    // newly emitted pattern without metadata fails here instead of in production.
+    // Validates inventory-reference correctness for every source-backed pattern
+    // (a `PatternId` carrying source metadata). This test owns the test-only
+    // inventory loader. The runtime panic guard — that every id the detector
+    // *emits* has metadata — lives in a unit test next to the detector
+    // (`core::pattern::rules::quan_shu_v01`), so that detector detail stays
+    // private rather than being made `pub` just for this test.
     let inventory = source_inventory();
     let inventory_by_id: HashMap<&str, _> = inventory
         .source_item
@@ -304,13 +305,10 @@ fn canonical_pattern_metadata_references_source_inventory() {
         .map(|item| (item.source_id.as_str(), item))
         .collect();
 
-    for pattern in QUAN_SHU_V01_SOURCE_BACKED_PATTERN_IDS {
-        let metadata = pattern_source_metadata(pattern).unwrap_or_else(|| {
-            panic!(
-                "emitted pattern {pattern:?} has no source metadata; \
-                 detection would panic at runtime"
-            )
-        });
+    for pattern in PatternId::ALL {
+        let Some(metadata) = pattern_source_metadata(pattern) else {
+            continue;
+        };
         assert_eq!(metadata.work, QUAN_SHU_WORK);
         assert!(
             metadata.source_id.starts_with("quan_shu.v01."),

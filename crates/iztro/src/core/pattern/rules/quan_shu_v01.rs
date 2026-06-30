@@ -16,25 +16,6 @@ use crate::core::pattern::query::{
 };
 use crate::core::{Chart, EarthlyBranch, PalaceName, StarName};
 
-/// The `PatternId`s this detector can emit through [`push_single_star`] /
-/// [`push_same_palace`]. Every one of these calls
-/// `pattern_source_metadata(id).expect(..)`, so each id here must have source
-/// metadata or detection panics at runtime. Kept in sync with the [`detect`]
-/// call order; `classical_source_inventory.rs` guards metadata completeness for
-/// exactly this list. It is `pub` so that test (an integration test in `tests/`)
-/// can read it.
-pub const QUAN_SHU_V01_SOURCE_BACKED_PATTERN_IDS: [PatternId; 9] = [
-    PatternId::JinCanGuangHui,
-    PatternId::RiChuFuSang,
-    PatternId::YueLuoHaiGong,
-    PatternId::YueShengCangHai,
-    PatternId::MaTouDaiJian,
-    PatternId::TanHuoXiangFeng,
-    PatternId::WuQuShouYuan,
-    PatternId::CaiYuQiuChou,
-    PatternId::MaLuoKongWang,
-];
-
 /// Detects the supported QuanShu Volume 1 source-backed patterns.
 pub fn detect(
     ctx: &PatternContext<'_>,
@@ -299,4 +280,41 @@ fn push_same_palace(
         weakening_factors: Vec::new(),
         breaking_factors: Vec::new(),
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The `PatternId`s [`detect`] can emit via [`push_single_star`] /
+    /// [`push_same_palace`]. Each is passed to
+    /// `pattern_source_metadata(id).expect(..)`, so a missing entry panics at
+    /// runtime. Keep in sync with the [`detect`] call order. Test-only and private
+    /// so this detector detail stays out of the public API.
+    const EMITTED_SOURCE_BACKED_PATTERN_IDS: [PatternId; 9] = [
+        PatternId::JinCanGuangHui,
+        PatternId::RiChuFuSang,
+        PatternId::YueLuoHaiGong,
+        PatternId::YueShengCangHai,
+        PatternId::MaTouDaiJian,
+        PatternId::TanHuoXiangFeng,
+        PatternId::WuQuShouYuan,
+        PatternId::CaiYuQiuChou,
+        PatternId::MaLuoKongWang,
+    ];
+
+    /// Guards the `.expect("source-backed pattern metadata")` calls in
+    /// [`push_single_star`] / [`push_same_palace`]: every emitted id must resolve
+    /// to source metadata. (Inventory-reference correctness for source-backed
+    /// patterns is checked separately in `tests/classical_source_inventory.rs`,
+    /// which owns the test-only inventory loader.)
+    #[test]
+    fn every_emitted_pattern_has_source_metadata() {
+        for id in EMITTED_SOURCE_BACKED_PATTERN_IDS {
+            assert!(
+                pattern_source_metadata(id).is_some(),
+                "emitted pattern {id:?} has no source metadata; detection would panic",
+            );
+        }
+    }
 }
