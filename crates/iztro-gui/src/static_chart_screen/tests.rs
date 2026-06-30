@@ -372,8 +372,9 @@ fn palace_footer_anchors_name_left_and_stem_branch_right() {
     let source = include_str!("palace.rs");
 
     // The footer renders the localized palace name (left) and stem-branch (right)
-    // from typed fields, not pre-rendered Chinese strings.
-    assert!(source.contains("i18n.palace_name(palace.natal_identity.palace_name)"));
+    // from typed fields, not pre-rendered Chinese strings. The title follows the
+    // active palace frame (selected chart ring); the 干支 stem is a natal fact.
+    assert!(source.contains("i18n.palace_name(palace.active_frame.palace_name)"));
     // The palace name uses the active palette's primary accent tone.
     assert!(source.contains("color(palette.accent)"));
     assert!(source.contains("i18n.stem_branch(palace.natal_identity.stem, palace.branch)"));

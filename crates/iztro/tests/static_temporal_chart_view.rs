@@ -365,13 +365,16 @@ fn out_of_range_decadal_index_is_an_error() {
 }
 
 #[test]
-fn temporal_selection_changes_overlays_only_not_natal_facts() {
+fn temporal_selection_keeps_natal_immutable_but_changes_active_frame_and_overlays() {
+    // Corrected invariant: a branch is the stable palace-cell coordinate; palace
+    // names are frame-relative. A temporal selection keeps natal facts immutable,
+    // re-titles the branch ring via the active frame, and changes the overlays.
     let natal =
         static_temporal_chart_view(sample_request(), StaticTemporalNavigationSelection::Natal)
             .unwrap();
     let decadal = static_temporal_chart_view(
         sample_request(),
-        StaticTemporalNavigationSelection::Decadal { decadal_index: 0 },
+        StaticTemporalNavigationSelection::Decadal { decadal_index: 1 },
     )
     .unwrap();
 
@@ -389,15 +392,58 @@ fn temporal_selection_changes_overlays_only_not_natal_facts() {
     };
     assert_eq!(stable(&natal.center), stable(&decadal.center));
 
-    // Natal palace identity, surround (三方四正) and natal star lists are
-    // byte-identical; only overlays may differ.
     assert_eq!(natal.palaces.len(), decadal.palaces.len());
     for (n, d) in natal.palaces.iter().zip(decadal.palaces.iter()) {
+        // Immutable natal facts: branch, natal identity, 三方四正, natal star lists.
         assert_eq!(n.branch, d.branch);
+        assert_eq!(n.natal_identity, d.natal_identity);
         assert_eq!(n.surround, d.surround);
         assert_eq!(n.major_stars, d.major_stars);
         assert_eq!(n.minor_stars, d.minor_stars);
+
+        // The active palace frame changes with the selected scope.
+        assert_eq!(n.active_frame.frame_scope, Scope::Natal);
+        assert_eq!(d.active_frame.frame_scope, Scope::Decadal);
+
+        // Overlays change with the selected scope: natal carries none, the
+        // decadal slice attaches a 大限 overlay.
+        assert!(n.overlays.is_empty());
+        assert!(d.overlays.iter().any(|o| o.scope == Scope::Decadal));
     }
+
+    // The active frame relabels 命宫: the natal Life branch and the decadal Life
+    // branch are different cells, while the natal identity Life branch is shared.
+    let natal_life = |snapshot: &iztro::StaticChartProjection| {
+        snapshot
+            .palaces
+            .iter()
+            .find(|p| p.natal_identity.palace_name == iztro::core::PalaceName::Life)
+            .map(|p| p.branch)
+            .unwrap()
+    };
+    let active_life = |snapshot: &iztro::StaticChartProjection| {
+        snapshot
+            .palaces
+            .iter()
+            .find(|p| p.active_frame.is_life_palace)
+            .map(|p| p.branch)
+            .unwrap()
+    };
+    assert_eq!(
+        natal_life(&natal),
+        natal_life(&decadal),
+        "natal 命宫 immutable"
+    );
+    assert_eq!(
+        active_life(&natal),
+        natal_life(&natal),
+        "natal frame 命宫 == natal"
+    );
+    assert_ne!(
+        active_life(&decadal),
+        natal_life(&decadal),
+        "the 大限 active frame relabels 命宫 onto a different branch than natal",
+    );
 }
 
 #[test]

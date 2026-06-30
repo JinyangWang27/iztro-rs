@@ -477,7 +477,11 @@ fn palace_identity<'a>(
 ) -> Element<'a, Message> {
     let left = column![
         container(decorative_column(gods_left, palette.decorative_olive, i18n)).width(Length::Fill),
-        text(i18n.palace_name(palace.natal_identity.palace_name))
+        // The main palace title is the active palace frame (the selected chart
+        // ring), not the natal identity: selecting a temporal scope re-titles
+        // each branch with that frame's 宫名. The GUI consumes the projection's
+        // active frame and never computes temporal 命宫 itself.
+        text(i18n.palace_name(palace.active_frame.palace_name))
             .size(TYPE.heading)
             .color(palette.accent),
     ]
