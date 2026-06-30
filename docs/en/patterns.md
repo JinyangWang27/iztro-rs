@@ -11,6 +11,11 @@ explainable facts and never produces narrative prose.
 - **Structured, not narrative**: a `PatternDetection` carries an id, family,
   polarity, status, strength, scope, anchor, involved palaces/stars/mutagens,
   and machine-checkable `evidence` / conditions. It contains no reading text.
+- **Metadata is separated by purpose**: `PatternSourceMetadata` is verified
+  source provenance only. `PatternDisplayMetadata` is runtime/display metadata:
+  display name, aliases, condition note, source note, and interpretation note.
+  Display notes may explain a normalized runtime convention, but they are not
+  evidence and they do not create claims.
 - **Temporal facts stay overlays**: a temporal `PatternScope` never folds
   temporal placement into natal facts. Scope-aware queries read natal
   `Chart` facts for `Scope::Natal` and read `TemporalLayer` placements,
@@ -25,6 +30,25 @@ explainable facts and never produces narrative prose.
   inventory. Only structurally clear entries become executable
   `PatternDetection`s; the rest remain source inventory until their conditions
   are modeled.
+
+## Metadata convention
+
+When adding or maintaining a pattern, keep three lines separate:
+
+1. **Condition** -> detector logic and structured `PatternEvidence`.
+2. **Source** -> verified provenance in `PatternSourceMetadata`, or a display
+   source note when the cited line is only an explanatory note and not verified
+   provenance for the runtime id.
+3. **Claim** -> display/docs only until a rule-engine claim is explicitly
+   accepted. `PatternDetection` itself does not carry narrative claims.
+
+In pattern docs and display metadata, `加会` means present in the anchor
+palace's `三方四正`: the anchor palace, opposite palace, and two trine palaces.
+
+`RiChuFuSang` remains the stable public `PatternId` for compatibility with the
+source inventory. Its runtime display name is `日照雷门`, with `日出扶桑格` as a
+display alias. The verified QuanShu source provenance remains source-facing as
+`日出扶桑 日在卯守命是也，守官禄宫亦然`.
 
 ## Detection flow
 
@@ -75,7 +99,7 @@ GUI/pattern panel can choose to show damaged-but-formed patterns.
 | 日月并明 | `RiYueBingMing` | `MajorStarCombination` | Auspicious | 太阳 and 太阴 are both present and each in a clearly bright state (庙/旺/得/利). |
 | 日月反背 | `RiYueFanBei` | `MajorStarCombination` | Inauspicious | 太阳 and 太阴 are both present and each in a clearly dim/fallen state (不/陷). |
 | 金灿光辉 | `JinCanGuangHui` | `MajorStarCombination` | Auspicious | Life palace is Wu, 太阳 is there, and 太阳 is the only major star in that palace. |
-| 日出扶桑 | `RiChuFuSang` | `MajorStarCombination` | Auspicious | 太阳 is in Mao, and Mao is the Life or Career palace. |
+| 日照雷门 | `RiChuFuSang` | `MajorStarCombination` | Auspicious | Natal-only: birth time is Mao through Wei, Life palace is Mao, 太阳 and 天梁 both occupy Mao Life, and Life 三方四正 has explicit 禄存／左右／曲昌／魁钺 or 禄/权/科 support. Public id retained from `RiChuFuSang`; display alias `日出扶桑格`. Display source note: `日出扶桑 日在卯守命是也，守官禄宫亦然（紫微斗数全书）`. |
 | 月落亥宫 | `YueLuoHaiGong` | `MajorStarCombination` | Auspicious | 太阴 is in Hai, and Hai is the Life palace. |
 | 月生沧海 | `YueShengCangHai` | `MajorStarCombination` | Auspicious | 太阴 is in Zi, and Zi is the Property palace. |
 | 马头带剑 | `MaTouDaiJian` | `ShaJi` | Mixed | 天马 and 擎羊 share one palace. This does not impose a Wu-only interpretation. |
@@ -83,6 +107,15 @@ GUI/pattern panel can choose to show damaged-but-formed patterns.
 | 武曲守垣 | `WuQuShouYuan` | `MajorStarCombination` | Auspicious | 武曲 is in the Life palace and the Life palace branch is Mao. |
 | 财与囚仇 | `CaiYuQiuChou` | `MajorStarCombination` | Inauspicious | 武曲 and 廉贞 share the Life or Body palace. |
 | 马落空亡 | `MaLuoKongWang` | `ShaJi` | Inauspicious | 天马 shares a palace with a modeled 空亡-family star (旬空、空亡、截路、截空). |
+| 命里逢空 | `MingLiFengKong` | `ShaJi` | Inauspicious | 地空 (DiKong) and/or 地劫 (DiJie) occupy the Life palace. The modeled 空亡-family stars (旬空/空亡/截路/截空) are **not** this pattern. |
+| 禄逢冲破 | `LuFengChongPo` | `ShaJi` | Inauspicious | 禄存 or 化禄 sits in the Life palace itself, and that 禄 base is broken (冲破) by 地空 or 地劫 in the Life 三方四正. Status is `Broken`. |
+| 文星拱命 | `WenXingGongMing` | `AuxiliaryStarCombination` | Auspicious | 文昌 and 文曲 both appear in Life 三方四正. |
+| 天机巳亥 | `TianJiSiHai` | `MajorStarCombination` | Inauspicious | Life palace branch is Si or Hai, and 天机 occupies the Life palace itself (not merely the Life 三方四正). |
+| 左右同宫 | `ZuoYouTongGong` | `AuxiliaryStarCombination` | Auspicious | Natal-only: the Life or Body palace branch is Chou or Wei, 左辅 and 右弼 share that anchor palace, and there is additional 禄存／左右／曲昌／魁钺 or 禄/权/科 support in the anchor 三方四正 beyond the base 左右 pair (`更于吉星`). |
+| 明珠出海 | `MingZhuChuHai` | `MajorStarCombination` | Auspicious | Life palace is Wei with no major star, 太阳 and 天梁 both sit in Mao, 太阴 sits bright in Hai, and the Life 三方四正 carries explicit 禄存／左右／曲昌／魁钺 or 禄/权/科 support. May coexist with 命无正曜. Display source note: `三合明珠生旺地稳步蟾宫（斗数骨髓赋）`. |
+| 命无正曜 | `MingWuZhengYao` | `MajorStarCombination` | Neutral | Life palace has no major star. |
+| 极向离明 | `JiXiangLiMing` | `MajorStarCombination` | Auspicious | Life is Wu and 紫微 is in Life. Fulfilled when Life 三方四正 has no tough star; broken when a tough star appears. |
+| 府相朝垣 | `FuXiangChaoYuan` | `MajorStarCombination` | Auspicious | Either 天府 and 天相 occupy the Wealth and Career palaces (one in each), or 天府 sits in the Life palace with 天相 in the Life 三方四正; additionally the Life 三方四正 carries explicit 禄存／左右／曲昌／魁钺 or 禄/权/科 support. Display source note: `府相朝垣 见前批注（紫微斗数全书）`. |
 
 ### QuanShu source-backed catalogues
 
@@ -151,3 +184,17 @@ facts, but this is **not** full classical temporal interpretation. QuanShu
 catalogue expansion remains paused; narrative readings, scoring beyond the
 coarse `PatternStrength`, and LLM-assisted interpretation remain out of scope
 here and belong to later layers.
+
+## Developer checklist
+
+When adding one pattern:
+
+- [ ] Add the `PatternId` variant and update `PatternId::ALL` plus its exhaustive
+  test.
+- [ ] Add `PatternDisplayMetadata` with display name, aliases, and notes; add
+  `PatternSourceMetadata` only for verified source provenance.
+- [ ] Add a focused detector that populates `involved_palaces`,
+  `involved_stars`, `involved_mutagens`, and structured evidence.
+- [ ] Add positive and negative integration tests, including status/evidence
+  assertions for weakened or broken cases.
+- [ ] Update English and Chinese pattern docs when the public catalog changes.

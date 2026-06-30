@@ -10,6 +10,9 @@
 - **结构化、非叙述**：一个 `PatternDetection` 携带 id、family、polarity、status、
   strength、scope、anchor，以及涉及的宫位／星曜／四化和可机器校验的 `evidence`／
   条件，不包含任何解读文本。
+- **元数据按用途分离**：`PatternSourceMetadata` 只放已核验的出处来源。
+  `PatternDisplayMetadata` 是运行时／展示元数据：显示名、别名、条件说明、出处说明与
+  解读说明。展示说明可以解释归一化口径，但不是证据，也不会创造判断。
 - **时间事实保持为叠加层**：时间性 `PatternScope` 绝不把流曜安置折叠进本命事实。
   scope-aware 查询在 `Scope::Natal` 读取本命 `Chart` 事实，在非本命 scope 读取
   `TemporalLayer` 的星曜落点、四化激活与 `TemporalPalaceLayout` 事实。空的
@@ -19,6 +22,22 @@
 - **有出处则显式记录**：《紫微斗数全书》卷一末尾的 `定富局`、`定贵局`、`定贫贱局`、
   `定杂局` 已作为 `pattern_rule` source inventory 登记。只有结构条件清晰且已建模的条目
   会成为可执行 `PatternDetection`；其余条目先保留为出处清单。
+
+## 元数据约定
+
+新增或维护格局时，三条线必须分开：
+
+1. **条件** -> 检测器逻辑与结构化 `PatternEvidence`。
+2. **出处** -> 已核验出处放入 `PatternSourceMetadata`；若只是解释运行时口径、而不是
+   runtime id 的已核验出处，则放入展示用 source note。
+3. **判断** -> 只放在展示／文档中；除非 rule-engine claim 被明确接受，否则不进入
+   `PatternDetection`。
+
+在格局文档和展示元数据中，`加会` 指出现在锚点宫位的 `三方四正`：本宫、对宫与两组三合宫。
+
+`RiChuFuSang` 保留为稳定公开 `PatternId`，以兼容既有出处清单。运行时显示名为
+`日照雷门`，展示别名为 `日出扶桑格`。已核验的全书出处仍按 source-facing 名称保留为
+`日出扶桑 日在卯守命是也，守官禄宫亦然`。
 
 ## 检测流程
 
@@ -61,7 +80,7 @@ scope、status 与 family。
 | 日月并明 | `RiYueBingMing` | `MajorStarCombination` | 吉 | 太阳与太阴皆在盘，且各自处于明亮庙旺之位（庙／旺／得／利）。 |
 | 日月反背 | `RiYueFanBei` | `MajorStarCombination` | 凶 | 太阳与太阴皆在盘，且各自处于失辉落陷之位（不／陷）。 |
 | 金灿光辉 | `JinCanGuangHui` | `MajorStarCombination` | 吉 | 命宫在午，太阳在命宫，且太阳是该宫唯一主星。 |
-| 日出扶桑 | `RiChuFuSang` | `MajorStarCombination` | 吉 | 太阳在卯，且卯宫是命宫或官禄宫。 |
+| 日照雷门 | `RiChuFuSang` | `MajorStarCombination` | 吉 | 仅本命：出生时辰为卯至未，命宫在卯，太阳与天梁同在卯宫命宫，且命宫三方四正有禄存／左右／曲昌／魁钺或禄／权／科加会。公开 id 继续使用 `RiChuFuSang`；展示别名为 `日出扶桑格`。展示出处说明：`日出扶桑 日在卯守命是也，守官禄宫亦然（紫微斗数全书）`。 |
 | 月落亥宫 | `YueLuoHaiGong` | `MajorStarCombination` | 吉 | 太阴在亥，且亥宫是命宫。 |
 | 月生沧海 | `YueShengCangHai` | `MajorStarCombination` | 吉 | 太阴在子，且子宫是田宅宫。 |
 | 马头带剑 | `MaTouDaiJian` | `ShaJi` | 吉凶参半 | 天马与擎羊同宫；不采用午宫限定口径。 |
@@ -69,6 +88,15 @@ scope、status 与 family。
 | 武曲守垣 | `WuQuShouYuan` | `MajorStarCombination` | 吉 | 武曲在命宫，且命宫地支为卯。 |
 | 财与囚仇 | `CaiYuQiuChou` | `MajorStarCombination` | 凶 | 武曲与廉贞同宫，且该宫为命宫或身宫。 |
 | 马落空亡 | `MaLuoKongWang` | `ShaJi` | 凶 | 天马与已建模空亡族星（旬空、空亡、截路、截空）同宫。 |
+| 命里逢空 | `MingLiFengKong` | `ShaJi` | 凶 | 地空（DiKong）与／或地劫（DiJie）守命。已建模空亡族星（旬空/空亡/截路/截空）**不**属本格。 |
+| 禄逢冲破 | `LuFengChongPo` | `ShaJi` | 凶 | 禄存或化禄坐命（命宫本宫），且该禄被命宫三方四正中的地空或地劫冲破。状态为 `Broken`。 |
+| 文星拱命 | `WenXingGongMing` | `AuxiliaryStarCombination` | 吉 | 文昌与文曲皆在命宫三方四正。 |
+| 天机巳亥 | `TianJiSiHai` | `MajorStarCombination` | 凶 | 命宫地支为巳或亥，且天机坐守命宫本宫（而非仅在命宫三方四正）。 |
+| 左右同宫 | `ZuoYouTongGong` | `AuxiliaryStarCombination` | 吉 | 仅本命：命宫或身宫地支为丑或未，左辅与右弼同在该锚点宫，且锚点三方四正另有禄存／左右／曲昌／魁钺或禄／权／科加会（更于吉星，超出左右同宫本身）。 |
+| 明珠出海 | `MingZhuChuHai` | `MajorStarCombination` | 吉 | 命宫在未且无主星，太阳与天梁同在卯，太阴入庙旺于亥，命宫三方四正有禄存／左右／曲昌／魁钺或禄／权／科加会。可与命无正曜并存。展示出处说明：`三合明珠生旺地稳步蟾宫（斗数骨髓赋）`。 |
+| 命无正曜 | `MingWuZhengYao` | `MajorStarCombination` | 平 | 命宫无主星。 |
+| 极向离明 | `JiXiangLiMing` | `MajorStarCombination` | 吉 | 命宫在午且紫微在命宫；命宫三方四正无煞星则成格，有煞星则以破格产出。 |
+| 府相朝垣 | `FuXiangChaoYuan` | `MajorStarCombination` | 吉 | 天府与天相分居财帛宫与官禄宫（各占一宫），或天府坐命且天相在命宫三方四正；另需命宫三方四正有禄存／左右／曲昌／魁钺或禄／权／科加会。展示出处说明：`府相朝垣 见前批注（紫微斗数全书）`。 |
 
 ### 全书出处格局目录
 
@@ -119,3 +147,15 @@ runtime（`rules::classical`）只为项目自有的 pattern 派生规则产出 
 镜像成重复的 source-hit/claim 规则。现有目录可以通过 core 事实评估已支持的时间叠加层，
 但这**不是**完整的古法限运解读。全书格局扩展仍保持暂停；叙述性解读、超出粗粒度
 `PatternStrength` 的评分，以及 LLM 辅助解读都不在本层范围内，属于后续层级。
+
+## 开发者清单
+
+新增一个格局时：
+
+- [ ] 新增 `PatternId` 变体，并更新 `PatternId::ALL` 与穷尽性测试。
+- [ ] 新增 `PatternDisplayMetadata`（显示名、别名、说明）；只有已核验出处才新增
+  `PatternSourceMetadata`。
+- [ ] 新增聚焦检测器，并填充 `involved_palaces`、`involved_stars`、
+  `involved_mutagens` 与结构化 evidence。
+- [ ] 新增正例和反例集成测试；若有减力或破格，断言 status 与 evidence。
+- [ ] 公开目录变化时同步更新中英文格局文档。

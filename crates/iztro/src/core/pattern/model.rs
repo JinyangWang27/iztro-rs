@@ -53,6 +53,24 @@ pub enum PatternId {
     CaiYuQiuChou,
     /// 马落空亡.
     MaLuoKongWang,
+    /// 命里逢空.
+    MingLiFengKong,
+    /// 禄逢冲破.
+    LuFengChongPo,
+    /// 文星拱命.
+    WenXingGongMing,
+    /// 天机巳亥.
+    TianJiSiHai,
+    /// 左右同宫.
+    ZuoYouTongGong,
+    /// 明珠出海.
+    MingZhuChuHai,
+    /// 命无正曜.
+    MingWuZhengYao,
+    /// 极向离明.
+    JiXiangLiMing,
+    /// 府相朝垣.
+    FuXiangChaoYuan,
 }
 
 impl PatternId {
@@ -61,7 +79,7 @@ impl PatternId {
     /// Kept complete by `pattern_id_all_is_exhaustive` (adding a variant without
     /// updating this list is a compile error there), so tests can iterate the
     /// whole closed set instead of maintaining ad-hoc lists.
-    pub const ALL: [PatternId; 17] = [
+    pub const ALL: [PatternId; 26] = [
         PatternId::ZiFuChaoYuan,
         PatternId::JiYueTongLiang,
         PatternId::YangTuoJiaJi,
@@ -79,6 +97,15 @@ impl PatternId {
         PatternId::WuQuShouYuan,
         PatternId::CaiYuQiuChou,
         PatternId::MaLuoKongWang,
+        PatternId::MingLiFengKong,
+        PatternId::LuFengChongPo,
+        PatternId::WenXingGongMing,
+        PatternId::TianJiSiHai,
+        PatternId::ZuoYouTongGong,
+        PatternId::MingZhuChuHai,
+        PatternId::MingWuZhengYao,
+        PatternId::JiXiangLiMing,
+        PatternId::FuXiangChaoYuan,
     ];
 }
 
@@ -254,6 +281,11 @@ pub enum PatternEvidence {
         /// The relation of `to` to `from`.
         relation: PalaceRelation,
     },
+    /// A palace contains no major star.
+    NoMajorStarInPalace {
+        /// The palace branch with no major star.
+        branch: EarthlyBranch,
+    },
 }
 
 /// A weakening or breaking condition damaging an existing base formation.
@@ -346,10 +378,19 @@ mod tests {
                 | PatternId::TanHuoXiangFeng
                 | PatternId::WuQuShouYuan
                 | PatternId::CaiYuQiuChou
-                | PatternId::MaLuoKongWang => {}
+                | PatternId::MaLuoKongWang
+                | PatternId::MingLiFengKong
+                | PatternId::LuFengChongPo
+                | PatternId::WenXingGongMing
+                | PatternId::TianJiSiHai
+                | PatternId::ZuoYouTongGong
+                | PatternId::MingZhuChuHai
+                | PatternId::MingWuZhengYao
+                | PatternId::JiXiangLiMing
+                | PatternId::FuXiangChaoYuan => {}
             }
         }
-        assert_eq!(PatternId::ALL.len(), 17);
+        assert_eq!(PatternId::ALL.len(), 26);
     }
 
     #[test]

@@ -84,10 +84,10 @@ pub use core::{
     validate_chart_algorithm_plane, western_zodiac, zi_wei_branch,
 };
 pub use core::{
-    PalaceRelation, PatternAnchor, PatternContext, PatternDetection, PatternDetectionRequest,
-    PatternEvidence, PatternFamily, PatternId, PatternPolarity, PatternScope, PatternSourceGroup,
-    PatternSourceMetadata, PatternStatus, PatternStrength, detect_patterns,
-    pattern_source_metadata,
+    PalaceRelation, PatternAnchor, PatternCondition, PatternContext, PatternDetection,
+    PatternDetectionRequest, PatternDisplayMetadata, PatternEvidence, PatternFamily, PatternId,
+    PatternPolarity, PatternScope, PatternSourceGroup, PatternSourceMetadata, PatternStatus,
+    PatternStrength, detect_patterns, pattern_display_metadata, pattern_source_metadata,
 };
 // Input calculation policy layer: clock-time birth input and apparent solar
 // time. These are a separate axis from `ChartAlgorithmKind` and `ChartPlane`.
