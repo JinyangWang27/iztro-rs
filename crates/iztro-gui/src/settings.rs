@@ -54,6 +54,10 @@ pub enum GuiThemeId {
     /// Warm paper background, ivory palace cards, deep-purple primary accents.
     #[default]
     InkPaper,
+    /// Soft jade/green accents on ivory-pale surfaces. High-readability light theme.
+    JadeLight,
+    /// Deep navy background with soft purple/jade accents. Premium dark theme.
+    DeepInk,
 }
 
 /// Which inspector tab is active. Defaults to [`RightPanelTab::QuanShuRules`].
@@ -284,5 +288,24 @@ mod tests {
         assert_eq!(settings.right_panel_mode, RightPanelMode::Compact);
         assert_eq!(settings.right_panel_tab, RightPanelTab::QuanShuRules);
         assert_eq!(settings.theme, GuiThemeId::InkPaper);
+    }
+
+    #[test]
+    fn jade_light_and_deep_ink_round_trip_through_the_store() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        for theme in [GuiThemeId::JadeLight, GuiThemeId::DeepInk] {
+            let store = SettingsStore::new(dir.path().join("settings.json"));
+            let settings = AppSettings {
+                theme,
+                ..AppSettings::default()
+            };
+            store.save(&settings).expect("save");
+            assert_eq!(store.load().theme, theme);
+        }
+    }
+
+    #[test]
+    fn default_settings_still_use_ink_paper_after_new_variants_added() {
+        assert_eq!(AppSettings::default().theme, GuiThemeId::InkPaper);
     }
 }
