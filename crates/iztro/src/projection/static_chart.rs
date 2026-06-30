@@ -1,14 +1,20 @@
-//! A renderer-neutral static 12-palace chart view model.
+//! A renderer-neutral static 12-palace chart projection.
 //!
-//! [`StaticChartProjection`] is the GUI-facing read model that backs a future static chart.
-//! It is one selected chart slice: a center panel,
-//! twelve perimeter palaces laid out on the conventional 4x4 grid, scope-selector
-//! state (本命/大限/小限/流年/流月/流日/流时), optional temporal overlays, and a
-//! reserved (currently always empty) set of highlight annotations.
+//! [`StaticChartProjection`] is the GUI-facing read model that backs a static
+//! chart. It is one selected chart slice: a center panel, twelve perimeter
+//! palaces laid out on the conventional 4x4 grid, scope-selector state
+//! (本命/大限/小限/流年/流月/流日/流时), optional temporal overlays, and a reserved
+//! (currently always empty) set of highlight annotations.
 //!
-//! The model is owned, serializable, and deterministic. It reuses the existing
-//! grid layout ([`palace_grid_position`]) and the deterministic facade star
-//! ordering so a renderer never has to depend on accidental `Vec` order.
+//! A branch is the stable palace-cell coordinate; a palace name is
+//! frame-relative. Each palace therefore carries both its immutable natal
+//! identity and the selected frame's identity (see [`StaticPalaceProjection`]),
+//! so a temporal selection keeps natal facts immutable while re-titling the
+//! branch ring and changing the visible overlays.
+//!
+//! The projection is owned, serializable, and deterministic. It reuses the
+//! existing grid layout ([`palace_grid_position`]) and the deterministic facade
+//! star ordering so a renderer never has to depend on accidental `Vec` order.
 
 use crate::core::calendar::lunar_month_has_thirtieth;
 use crate::core::error::ChartError;
@@ -65,7 +71,7 @@ const HOUR_LABELS: [&str; PALACE_COUNT] = [
     "子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥",
 ];
 
-/// A renderer-neutral static 12-palace chart view model for one selected slice.
+/// A renderer-neutral static 12-palace chart projection for one selected slice.
 #[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub struct StaticChartProjection {
     /// Center panel facts (gender, birth-year pillar, bureau, life/body palaces).
@@ -989,7 +995,9 @@ impl StaticChartProjection {
         let natal = chart.natal();
         let present = present_scopes(chart);
         // Natal is always the base layer of a static chart, so it is always
-        // selected/active; `visible_scopes` only controls temporal overlays.
+        // visible; `visible_scopes` controls which temporal layers are attached
+        // as overlays. The active palace-name frame is selected separately by
+        // `request.active_frame_scope`.
         let selected: Vec<Scope> = SELECTOR_ORDER
             .into_iter()
             .filter(|scope| {

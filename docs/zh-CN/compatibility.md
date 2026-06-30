@@ -58,7 +58,7 @@ npm ci --prefix tools/iztro-reference
 - `build_full_horoscope_chart`：将大限、小限、流年、流月、流日、流时 layers 组装为一个 `HoroscopeChart`；
 - 流年层的 yearly `yearlyDecStar`（岁前/将前十二神）作为 yearly-scope temporal decorative facts；
 - `HoroscopeSupportedFieldsSnapshot`、`HoroscopeRuntime` 与 `HoroscopeFacadeSnapshot`，分别以 `horoscope.json`、`horoscope_runtime.json`、`horoscope_facade.json` fixture 校验已实现事实面；
-- renderer-neutral `ChartStackSnapshot`、GUI-facing `StaticChartViewSnapshot` 与 deterministic plain text renderer demo。
+- renderer-neutral `ChartStackSnapshot`、GUI-facing `StaticChartProjection` 与 deterministic plain text renderer demo。
 
 项目现在提供一个 upstream-like horoscope facade snapshot，基于 `HoroscopeChart`、`HoroscopeSupportedFieldsSnapshot`、`NatalFacadeSnapshot` 与 `HoroscopeRuntime` 组合而成。它更接近 TS `FunctionalAstrolabe#horoscope` payload shape，但仍**不是**完整 package parity：内嵌 `astrolabe` 有意保持最小，只包含已建模的本命事实；完整上游 astrolabe helper/query 方法、本地化标签、八字字符串、大限 ranges、ages 数组、bindings、renderers、rules 与 narrative 仍延期。
 

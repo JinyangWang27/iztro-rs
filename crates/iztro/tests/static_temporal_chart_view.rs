@@ -3,8 +3,8 @@
 //! These verify that all temporal-overlay derivation stays inside core: a GUI
 //! passes a [`SolarChartRequest`] plus a renderer-neutral
 //! [`StaticTemporalNavigationSelection`] and gets back a prepared
-//! [`StaticChartProjection`]. Selecting a temporal cell changes overlays only,
-//! never natal facts.
+//! [`StaticChartProjection`]. Selecting a temporal cell keeps natal facts
+//! immutable while changing the active palace frame and the visible overlays.
 
 use iztro::core::{
     BirthTime, ChartAlgorithmKind, ChartError, Gender, MethodProfile, Scope, SolarChartRequest,

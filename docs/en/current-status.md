@@ -1,6 +1,6 @@
 # Current Project Status
 
-This document summarizes the current implemented surface after the `lunar-lite` calendar-adapter, fixture, facade snapshot, full horoscope stack, static-chart view model, chart-plane, diagnostic, i18n, pattern, and local GUI prototype work.
+This document summarizes the current implemented surface after the `lunar-lite` calendar-adapter, fixture, facade snapshot, full horoscope stack, static-chart projection, chart-plane, diagnostic, i18n, pattern, and local GUI prototype work.
 
 ## Compatibility target
 
@@ -110,7 +110,7 @@ It preserves:
 solar input -> by_solar -> ChartStackSnapshot -> render module plain text output
 ```
 
-`StaticChartViewSnapshot` is the GUI-facing static-chart read model. It supports a 文墨天机-style 12-palace chart, selected natal/temporal overlays, prepared palace relationships for 三方四正 highlighting, mutagen display facts, and reserved highlight annotations. The local `iztro-gui` crate is an Iced desktop prototype that consumes this read model, persists saved chart inputs locally, regenerates charts deterministically through core facades, and drives temporal selection through `static_temporal_chart_view` rather than mutating the natal chart.
+`StaticChartProjection` is the GUI-facing static-chart read model. It supports a 文墨天机-style 12-palace chart, selected natal/temporal overlays, prepared palace relationships for 三方四正 highlighting, mutagen display facts, and reserved highlight annotations. The local `iztro-gui` crate is an Iced desktop prototype that consumes this read model, persists saved chart inputs locally, regenerates charts deterministically through core facades, and drives temporal selection through `static_temporal_chart_view` rather than mutating the natal chart.
 
 The GUI renderer derives nothing: it performs no star placement, temporal derivation, mutagen calculation, 三方四正 branch arithmetic, 成格 detection, BaZi interpretation, rule evaluation, pattern detection, or narrative generation in UI code. It only displays prepared values. Rule and pattern data shown in the right inspector is not computed in the GUI either — app state *requests* structured, per-layer analysis through the core selected-view batch facade (`detect_static_temporal_analysis_layers_from_chart`) and caches the results; the derivation itself lives in core (see the right inspector section below).
 
@@ -153,11 +153,11 @@ Future i18n work should broaden coverage only at presentation/export boundaries:
 
 Application surfaces should be ordered by reuse value and architectural risk:
 
-1. **Renderer-neutral facts and view models**: already the foundation for demos and GUI.
-2. **Static GUI**: primary near-term frontend target, because it validates the static 12-palace view model and temporal controls visually.
+1. **Renderer-neutral facts and projections**: already the foundation for demos and GUI.
+2. **Static GUI**: primary near-term frontend target, because it validates the static 12-palace projection and temporal controls visually.
 3. **TUI**: useful as a lightweight terminal renderer/debugger over the same snapshots, without introducing GUI layout complexity.
 4. **MCP / coding-agent tooling**: useful after the public query/export surface is stable, so agents can request chart facts, view snapshots, pattern hits, and evidence without scraping prose.
-5. **Timeline and 3D views**: later consumers of reusable `StaticChartViewSnapshot` frames and structured highlights, not separate chart engines.
+5. **Timeline and 3D views**: later consumers of reusable `StaticChartProjection` frames and structured highlights, not separate chart engines.
 
 ## Deferred work
 
@@ -184,8 +184,8 @@ The next implementation work should stay incremental:
 
 1. Keep compatibility fixture-backed and avoid broad rewrites of chart placement logic.
 2. Expand `crates/iztro-i18n` coverage with additional locales, more shared UI strings, and stricter UI string audits.
-3. Continue improving the Iced static chart GUI on top of `StaticChartViewSnapshot`, especially saved charts, temporal navigation, layout consistency, and localized UI text.
-4. Add a small TUI or CLI renderer only as a consumer of existing snapshots/view models.
+3. Continue improving the Iced static chart GUI on top of `StaticChartProjection`, especially saved charts, temporal navigation, layout consistency, and localized UI text.
+4. Add a small TUI or CLI renderer only as a consumer of existing snapshots/projections.
 5. Design MCP after the typed facade/query surface is stable enough to expose to coding agents.
 6. Build timeline/3D experiments only after static chart frames and highlight annotations are stable.
 7. Expand feature extraction, pattern/rule output, and narrative only after the fact and rendering surfaces remain stable.

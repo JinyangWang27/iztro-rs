@@ -313,9 +313,10 @@ and narrative.
 
 `static_chart_view_1990_05_17_chen_female.json` is **not** an upstream-reference
 fixture: it is a self-generated golden capturing the serialized
-`StaticChartViewSnapshot::from_chart` for the lunar canonical case
-(`1990_05_17_chen_female`). It records the renderer-neutral GUI view model —
-center panel, twelve perimeter palaces with grid positions, zh-CN labels,
+`StaticChartProjection::from_chart` for the lunar canonical case
+(`1990_05_17_chen_female`). It records the renderer-neutral GUI projection —
+center panel, twelve perimeter palaces with grid positions (each carrying both
+natal identity and active-frame identity), zh-CN labels,
 category-grouped stars, scope selectors, and the (currently always empty)
 highlight list. It carries no top-level `input` block, so the fixture-case
 registry drift check skips it, and no upstream `iztro` data.

@@ -36,7 +36,7 @@ current-directory fallback: if no local data directory is available, the GUI
 starts without persistence and surfaces a non-fatal notice rather than scattering
 saved charts.
 
-A generated chart renders from `StaticChartViewSnapshot` using the bundled
+A generated chart renders from `StaticChartProjection` using the bundled
 Source Han Serif SC font for Chinese text and Iced's GPU renderer. On WSL, the
 binary prefers WSLg's stable XWayland endpoint when `DISPLAY` is available,
 avoiding the unstable `wgpu 0.19` Wayland surface path while retaining
@@ -52,7 +52,7 @@ inline immediately after each star name. Color and position carry the category,
 so the cells no longer show 主星/辅星/杂曜/神煞 group labels. The "twelve gods"
 decorative stars (神煞) sit along the bottom: 长生/博士 to the lower-left, 将前/岁前
 to the lower-right. A compact legend explains the tone colors. This is purely a
-renderer-side display of prepared core view models — the tone of each star is
+renderer-side display of prepared core projections — the tone of each star is
 classified from its prepared `kind`/`family`; the GUI computes no stars, four
 pillars, decadal periods, temporal overlays, mutagens, 三方四正, readings, rules,
 成格, BaZi interpretation, or narrative.
@@ -73,7 +73,7 @@ Its first row carries the **本命** (natal) and **限前** (pre-decadal) cells 
 the normal **大限** decadal row. Generated and reopened charts default to
 **限前**, showing the natal base with no overlay. Navigation then unlocks
 hierarchically: **大限 → 流年/小限 → 流月 → 流日 → 流时**. Each enabled click asks
-core for a freshly prepared `StaticChartViewSnapshot`, and selecting a parent
+core for a freshly prepared `StaticChartProjection`, and selecting a parent
 clears deeper selections.
 
 The bottom panel keeps lunar labels: 流月 uses **正月 through 腊月**, and 流日 uses

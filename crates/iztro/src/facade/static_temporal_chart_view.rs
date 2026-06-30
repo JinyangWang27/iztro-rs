@@ -11,8 +11,10 @@
 //! [`HoroscopeChart`](crate::core::HoroscopeChart) or
 //! [`TemporalLayer`](crate::core::TemporalLayer) itself.
 //!
-//! Natal facts are identical across every selection: only the attached temporal
-//! overlays and the bottom-panel enable/selected flags differ.
+//! Natal facts are immutable across every selection. What changes with the
+//! selection is the active palace-name frame (the primary 宫名 ring), the
+//! attached temporal overlays, and the bottom-panel enable/selected flags. The
+//! active frame is the selection's own scope (流年 → Yearly, never Age).
 //!
 //! [`TemporalLayer`]: crate::core::model::chart::TemporalLayer
 
