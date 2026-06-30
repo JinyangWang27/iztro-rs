@@ -199,8 +199,11 @@ mod tests {
         let path = dir.path().join("settings.json");
         // A settings file written before the theme field existed must still load,
         // filling the theme in from its serde default.
-        fs::write(&path, r#"{ "locale": "zh-Hans", "right_panel_mode": "Expanded" }"#)
-            .expect("write file");
+        fs::write(
+            &path,
+            r#"{ "locale": "zh-Hans", "right_panel_mode": "Expanded" }"#,
+        )
+        .expect("write file");
         let store = SettingsStore::new(path);
         let loaded = store.load();
         assert_eq!(loaded.theme, GuiThemeId::InkPaper);

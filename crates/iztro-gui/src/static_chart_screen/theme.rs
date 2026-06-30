@@ -297,9 +297,8 @@ mod tests {
 
     #[test]
     fn every_theme_id_resolves_to_a_palette() {
-        // Exhaustive over the (currently single) theme id: resolution is total.
-        for id in [GuiThemeId::InkPaper] {
-            let _ = iced_theme(id);
-        }
+        // Resolution is total over every theme id (currently just InkPaper).
+        let _ = iced_theme(GuiThemeId::InkPaper);
+        let _ = GuiTheme::resolve(GuiThemeId::InkPaper);
     }
 }

@@ -117,8 +117,8 @@ fn rules_tab<'a>(app: &'a StaticChartApp, i18n: &I18n) -> Element<'a, Message> {
         }
         any = true;
         let scope_label = i18n.analysis_scope_label(key.scope());
-        let mut group =
-            column![text(scope_label).size(TYPE.body).style(section_title_style)].spacing(SPACING.md);
+        let mut group = column![text(scope_label).size(TYPE.body).style(section_title_style)]
+            .spacing(SPACING.md);
         for hit in &result.rule_hits {
             group = group.push(rule_hit_line(app, &key, hit, i18n));
         }
@@ -204,8 +204,8 @@ fn patterns_tab<'a>(app: &'a StaticChartApp, i18n: &I18n) -> Element<'a, Message
         }
         any = true;
         let scope_label = i18n.analysis_scope_label(key.scope());
-        let mut group =
-            column![text(scope_label).size(TYPE.body).style(section_title_style)].spacing(SPACING.md);
+        let mut group = column![text(scope_label).size(TYPE.body).style(section_title_style)]
+            .spacing(SPACING.md);
         for detection in &result.pattern_hits {
             group = group.push(pattern_hit_line(app, &key, detection, i18n));
         }

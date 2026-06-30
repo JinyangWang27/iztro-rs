@@ -17,8 +17,8 @@ use super::style::{
     center_panel_style, mutagen_inline_badge, palace_cell_style, secondary_text_style,
     section_title_style,
 };
-use super::theme::TYPE;
 use super::temporal::{period_badge, temporal_controls};
+use super::theme::TYPE;
 
 // Palace grid
 pub(super) fn palace_grid<'a>(
@@ -263,7 +263,11 @@ fn star_line(star: &StaticTypedStarView, major: bool, i18n: &I18n) -> Element<'s
     // font ships a single (Regular) weight; requesting Bold makes cosmic-text
     // fall back to a non-CJK face and render the names as tofu, so no bold here.
     let color = star_color(star_tone(star));
-    let size = if major { TYPE.star_major } else { TYPE.star_minor };
+    let size = if major {
+        TYPE.star_major
+    } else {
+        TYPE.star_minor
+    };
     let name = text(i18n.star_name(star.name)).size(size).color(color);
     let mut line = row![name].spacing(1).align_y(Alignment::Center);
     let brightness = i18n.brightness(star.brightness);
@@ -378,7 +382,11 @@ fn decorative_column(
 ) -> Element<'static, Message> {
     let mut col = column![].spacing(1);
     for star in stars {
-        col = col.push(text(i18n.star_name(star.name)).size(TYPE.caption).color(color));
+        col = col.push(
+            text(i18n.star_name(star.name))
+                .size(TYPE.caption)
+                .color(color),
+        );
     }
     col.into()
 }
