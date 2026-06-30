@@ -2832,6 +2832,33 @@ mod tests {
     }
 
     #[test]
+    fn regenerating_same_birth_input_keeps_the_analysis_cache() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        app.update(Message::SelectTemporalCell(TemporalCell::Decadal(0)));
+        app.update(Message::SelectTemporalCell(TemporalCell::YearlyAge(0)));
+
+        let decadal = AnalysisLayerKey::Decadal { decadal_index: 0 };
+        let yearly = AnalysisLayerKey::Yearly {
+            decadal_index: 0,
+            year_index: 0,
+        };
+        assert!(app.analysis_cache().contains(&decadal));
+        assert!(app.analysis_cache().contains(&yearly));
+        let cached_layers = app.analysis_cache().len();
+
+        app.generate();
+
+        assert_eq!(
+            app.selected_temporal_selection(),
+            StaticTemporalNavigationSelection::PreDecadal
+        );
+        assert_eq!(app.analysis_cache().len(), cached_layers);
+        assert!(app.analysis_cache().contains(&decadal));
+        assert!(app.analysis_cache().contains(&yearly));
+    }
+
+    #[test]
     fn toggling_the_right_panel_hides_then_restores_compact() {
         let mut app = StaticChartApp::new();
         assert_eq!(app.right_panel_mode(), RightPanelMode::Compact);
@@ -2910,6 +2937,32 @@ mod tests {
             Some(&ActiveAnalysisSelection::Pattern(key.clone()))
         );
         assert!(app.is_pattern_hit_expanded(&key));
+    }
+
+    #[test]
+    fn pattern_expansion_is_keyed_by_layer_and_pattern_id() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        let natal = pattern_key(
+            AnalysisLayerKey::Natal,
+            iztro::core::PatternId::ChangQuJiaMing,
+        );
+        let decadal = pattern_key(
+            AnalysisLayerKey::Decadal { decadal_index: 0 },
+            iztro::core::PatternId::ChangQuJiaMing,
+        );
+
+        app.update(Message::TogglePatternHit(natal.clone()));
+        assert!(app.is_pattern_hit_expanded(&natal));
+        assert!(!app.is_pattern_hit_expanded(&decadal));
+
+        app.update(Message::TogglePatternHit(decadal.clone()));
+        assert!(app.is_pattern_hit_expanded(&natal));
+        assert!(app.is_pattern_hit_expanded(&decadal));
+
+        app.update(Message::TogglePatternHit(natal.clone()));
+        assert!(!app.is_pattern_hit_expanded(&natal));
+        assert!(app.is_pattern_hit_expanded(&decadal));
     }
 
     #[test]
