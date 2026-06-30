@@ -572,44 +572,42 @@ fn selected_view_facade_returns_monthly_pattern_hits_under_requested_key() {
     let chart = sample_solar_chart();
     let request = AnalysisLayerRequest::user_facing();
 
-    for year_index in 0..10 {
-        for month_index in 0..12 {
-            let selection = StaticTemporalNavigationSelection::Monthly {
-                decadal_index: 0,
-                year_index,
-                month_index,
-            };
-            let requested = AnalysisLayerKey::Monthly {
-                decadal_index: 0,
-                year_index: year_index as usize,
-                month_index: month_index as usize,
-            };
+    // This decadal/year/month coordinate is a known producer of a monthly
+    // pattern hit for `sample_solar_chart()`, so the facade can be exercised
+    // deterministically rather than by scanning every visible month.
+    let selection = StaticTemporalNavigationSelection::Monthly {
+        decadal_index: 0,
+        year_index: 0,
+        month_index: 7,
+    };
+    let requested = AnalysisLayerKey::Monthly {
+        decadal_index: 0,
+        year_index: 0,
+        month_index: 7,
+    };
 
-            let results = detect_static_temporal_analysis_layers_from_chart(
-                chart.clone(),
-                selection,
-                std::slice::from_ref(&requested),
-                &request,
-            )
-            .expect("selected monthly analysis should build");
-            assert_eq!(results.len(), 1);
-            let result = &results[0];
-            assert_eq!(result.key, requested);
+    let results = detect_static_temporal_analysis_layers_from_chart(
+        chart,
+        selection,
+        std::slice::from_ref(&requested),
+        &request,
+    )
+    .expect("selected monthly analysis should build");
+    assert_eq!(results.len(), 1);
+    let result = &results[0];
+    assert_eq!(result.key, requested);
 
-            if !result.pattern_hits.is_empty() {
-                assert!(
-                    result
-                        .pattern_hits
-                        .iter()
-                        .all(|hit| hit.scope == PatternScope::Monthly),
-                    "monthly selected-view pattern hits must carry monthly scope"
-                );
-                return;
-            }
-        }
-    }
-
-    panic!("expected at least one monthly selected-view pattern hit");
+    assert!(
+        !result.pattern_hits.is_empty(),
+        "the known-producing month must yield a monthly pattern hit"
+    );
+    assert!(
+        result
+            .pattern_hits
+            .iter()
+            .all(|hit| hit.scope == PatternScope::Monthly),
+        "monthly selected-view pattern hits must carry monthly scope"
+    );
 }
 
 #[test]
