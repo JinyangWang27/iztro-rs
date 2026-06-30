@@ -63,6 +63,15 @@ mod tests {
              Install git-lfs and run `git lfs pull` (CI must use `lfs: true`)."
         );
 
+        // A real OTF is far larger than 1 KiB; this catches an LFS pointer (~133
+        // bytes) as well as an obviously truncated or corrupt asset.
+        assert!(
+            CJK_FONT_BYTES.len() > 1024,
+            "CJK_FONT_BYTES is only {} bytes — the font asset looks truncated or \
+             is an un-smudged LFS pointer.",
+            CJK_FONT_BYTES.len(),
+        );
+
         // sfnt magic for the supported font containers. Source Han Serif SC is a
         // CFF-flavoured OpenType font, so its magic is `OTTO`; the others are
         // accepted so a future TrueType/collection swap still validates.

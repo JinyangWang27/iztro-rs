@@ -16,6 +16,25 @@ use crate::core::pattern::query::{
 };
 use crate::core::{Chart, EarthlyBranch, PalaceName, StarName};
 
+/// The `PatternId`s this detector can emit through [`push_single_star`] /
+/// [`push_same_palace`]. Every one of these calls
+/// `pattern_source_metadata(id).expect(..)`, so each id here must have source
+/// metadata or detection panics at runtime. Kept in sync with the [`detect`]
+/// call order; `classical_source_inventory.rs` guards metadata completeness for
+/// exactly this list. It is `pub` so that test (an integration test in `tests/`)
+/// can read it.
+pub const QUAN_SHU_V01_SOURCE_BACKED_PATTERN_IDS: [PatternId; 9] = [
+    PatternId::JinCanGuangHui,
+    PatternId::RiChuFuSang,
+    PatternId::YueLuoHaiGong,
+    PatternId::YueShengCangHai,
+    PatternId::MaTouDaiJian,
+    PatternId::TanHuoXiangFeng,
+    PatternId::WuQuShouYuan,
+    PatternId::CaiYuQiuChou,
+    PatternId::MaLuoKongWang,
+];
+
 /// Detects the supported QuanShu Volume 1 source-backed patterns.
 pub fn detect(
     ctx: &PatternContext<'_>,

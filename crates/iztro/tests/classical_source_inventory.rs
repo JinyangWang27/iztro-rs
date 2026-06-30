@@ -290,15 +290,13 @@ fn source_backed_pattern_catalogues_do_not_create_classical_rules() {
 #[test]
 fn canonical_pattern_metadata_references_source_inventory() {
     use iztro::core::pattern::metadata::pattern_source_metadata;
-    use iztro::core::pattern::model::PatternId;
+    use iztro::core::pattern::rules::quan_shu_v01::QUAN_SHU_V01_SOURCE_BACKED_PATTERN_IDS;
 
-    // The source-backed pattern set is derived from `PatternId::ALL` (filtered to
-    // variants that carry source metadata) rather than a hand-maintained list, so
-    // a newly source-backed pattern is validated automatically. The count below is
-    // a tripwire: bump it when intentionally adding/removing a source-backed
-    // pattern, which also confirms none silently lost its metadata.
-    const EXPECTED_SOURCE_BACKED: usize = 9;
-
+    // Guard exactly the ids the QuanShu v01 detector can emit: each is passed to
+    // `pattern_source_metadata(id).expect(..)` at runtime, so missing metadata is
+    // a panic, not a skip. Tying the check to the emitted list (rather than
+    // filtering `PatternId::ALL` for ids that happen to have metadata) means a
+    // newly emitted pattern without metadata fails here instead of in production.
     let inventory = source_inventory();
     let inventory_by_id: HashMap<&str, _> = inventory
         .source_item
@@ -306,12 +304,13 @@ fn canonical_pattern_metadata_references_source_inventory() {
         .map(|item| (item.source_id.as_str(), item))
         .collect();
 
-    let mut source_backed = 0usize;
-    for pattern in PatternId::ALL {
-        let Some(metadata) = pattern_source_metadata(pattern) else {
-            continue;
-        };
-        source_backed += 1;
+    for pattern in QUAN_SHU_V01_SOURCE_BACKED_PATTERN_IDS {
+        let metadata = pattern_source_metadata(pattern).unwrap_or_else(|| {
+            panic!(
+                "emitted pattern {pattern:?} has no source metadata; \
+                 detection would panic at runtime"
+            )
+        });
         assert_eq!(metadata.work, QUAN_SHU_WORK);
         assert!(
             metadata.source_id.starts_with("quan_shu.v01."),
@@ -338,12 +337,6 @@ fn canonical_pattern_metadata_references_source_inventory() {
             item.source_id
         );
     }
-
-    assert_eq!(
-        source_backed, EXPECTED_SOURCE_BACKED,
-        "expected {EXPECTED_SOURCE_BACKED} source-backed patterns, found {source_backed}; \
-         update EXPECTED_SOURCE_BACKED when intentionally changing the set",
-    );
 }
 
 // ---- E. Linked ids by status ---------------------------------------------

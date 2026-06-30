@@ -274,7 +274,10 @@ fn evaluate_shan_fu_ju_kong(rule: &ClassicalRule, chart: &Chart) -> RuleOutcome 
 mod tests {
     use super::*;
 
-    use crate::core::EarthlyBranch;
+    use crate::core::{
+        BirthContext, CalendarDate, EarthlyBranch, Gender, HeavenlyStem, MethodProfile, StemBranch,
+        build_empty_chart,
+    };
     use crate::rules::classical::rule::{ClassicalRuleId, RuleStatus};
     use crate::rules::classical::source::ClassicalWork;
 
@@ -346,6 +349,32 @@ mod tests {
                 crate::rules::classical::corpus::rule_by_id(id).is_some(),
                 "handled rule id {id} is not in the corpus (renamed or deleted?)",
             );
+        }
+    }
+
+    /// Proves every `HANDLED_RULE_IDS` entry has a *live dispatch arm*, not just a
+    /// listing. If a listed id fell through to the `_` arm of [`evaluate`], the
+    /// `debug_assert!` there fires; this test exercises `evaluate` once per id
+    /// (debug assertions are enabled under `cargo test`), so removing an arm while
+    /// leaving the id in the list is caught here.
+    #[test]
+    fn every_handled_id_reaches_a_live_dispatch_arm() {
+        let chart = build_empty_chart(
+            BirthContext::new(
+                CalendarDate::solar(1990, 5, 17),
+                EarthlyBranch::Chen,
+                Gender::Female,
+            ),
+            StemBranch::try_new(HeavenlyStem::Geng, EarthlyBranch::Wu).expect("valid stem-branch"),
+            MethodProfile::placeholder("dispatch_guardrail"),
+        )
+        .expect("empty chart should build");
+
+        for id in HANDLED_RULE_IDS {
+            let rule = crate::rules::classical::corpus::rule_by_id(id)
+                .unwrap_or_else(|| panic!("handled rule id {id} is not in the corpus"));
+            // Reaching the default arm for a handled id trips the debug_assert!.
+            let _ = evaluate(rule, &chart);
         }
     }
 }
