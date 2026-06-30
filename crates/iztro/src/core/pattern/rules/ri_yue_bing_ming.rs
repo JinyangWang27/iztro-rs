@@ -4,7 +4,8 @@
 //! clearly bright/auspicious brightness state (庙/旺/得/利) per the existing
 //! [`Brightness`] model. If either star's brightness is `Unknown` (or merely
 //! `Flat`/dim), nothing is emitted — the rule never guesses an uncalculated
-//! brightness. This reads only natal facts and never mutates them.
+//! brightness. Scope-aware reads keep natal facts and temporal overlays separate
+//! and never mutate them.
 //!
 //! [`Brightness`]: crate::core::Brightness
 

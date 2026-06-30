@@ -3,8 +3,9 @@
 //! Conservative condition: both 太阳 and 太阴 are present and each sits in a
 //! clearly dim/fallen brightness state (不/陷) per the existing [`Brightness`]
 //! model. If either star's brightness is `Unknown` (or merely `Flat`/bright),
-//! nothing is emitted — the rule never guesses an uncalculated brightness. This
-//! reads only natal facts and never mutates them.
+//! nothing is emitted — the rule never guesses an uncalculated brightness.
+//! Scope-aware reads keep natal facts and temporal overlays separate and never
+//! mutate them.
 //!
 //! [`Brightness`]: crate::core::Brightness
 
