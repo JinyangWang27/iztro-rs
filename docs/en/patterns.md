@@ -99,7 +99,7 @@ GUI/pattern panel can choose to show damaged-but-formed patterns.
 | 日月并明 | `RiYueBingMing` | `MajorStarCombination` | Auspicious | 太阳 and 太阴 are both present and each in a clearly bright state (庙/旺/得/利). |
 | 日月反背 | `RiYueFanBei` | `MajorStarCombination` | Inauspicious | 太阳 and 太阴 are both present and each in a clearly dim/fallen state (不/陷). |
 | 金灿光辉 | `JinCanGuangHui` | `MajorStarCombination` | Auspicious | Life palace is Wu, 太阳 is there, and 太阳 is the only major star in that palace. |
-| 日照雷门 | `RiChuFuSang` | `MajorStarCombination` | Auspicious | Natal-only: birth time is Mao through Wei, Life palace is Mao, 太阳 and 天梁 both occupy Mao Life, and Life 三方四正 has modeled support by star or mutagen. Public id retained from `RiChuFuSang`; display alias `日出扶桑格`. |
+| 日照雷门 | `RiChuFuSang` | `MajorStarCombination` | Auspicious | Natal-only: birth time is Mao through Wei, Life palace is Mao, 太阳 and 天梁 both occupy Mao Life, and Life 三方四正 has explicit 禄存／左右／曲昌／魁钺 or 禄/权/科 support. Public id retained from `RiChuFuSang`; display alias `日出扶桑格`. Display source note: `日出扶桑 日在卯守命是也，守官禄宫亦然（紫微斗数全书）`. |
 | 月落亥宫 | `YueLuoHaiGong` | `MajorStarCombination` | Auspicious | 太阴 is in Hai, and Hai is the Life palace. |
 | 月生沧海 | `YueShengCangHai` | `MajorStarCombination` | Auspicious | 太阴 is in Zi, and Zi is the Property palace. |
 | 马头带剑 | `MaTouDaiJian` | `ShaJi` | Mixed | 天马 and 擎羊 share one palace. This does not impose a Wu-only interpretation. |
@@ -107,15 +107,15 @@ GUI/pattern panel can choose to show damaged-but-formed patterns.
 | 武曲守垣 | `WuQuShouYuan` | `MajorStarCombination` | Auspicious | 武曲 is in the Life palace and the Life palace branch is Mao. |
 | 财与囚仇 | `CaiYuQiuChou` | `MajorStarCombination` | Inauspicious | 武曲 and 廉贞 share the Life or Body palace. |
 | 马落空亡 | `MaLuoKongWang` | `ShaJi` | Inauspicious | 天马 shares a palace with a modeled 空亡-family star (旬空、空亡、截路、截空). |
-| 命里逢空 | `MingLiFengKong` | `ShaJi` | Inauspicious | Life palace contains a modeled 空亡-family star. |
-| 禄逢冲破 | `LuFengChongPo` | `ShaJi` | Inauspicious | Life 三方四正 contains 禄存 or 化禄 support, and that support is modeled as broken by a tough star or 空亡-family star in the same or opposite palace. |
+| 命里逢空 | `MingLiFengKong` | `ShaJi` | Inauspicious | 地空 (DiKong) and/or 地劫 (DiJie) occupy the Life palace. The modeled 空亡-family stars (旬空/空亡/截路/截空) are **not** this pattern. |
+| 禄逢冲破 | `LuFengChongPo` | `ShaJi` | Inauspicious | 禄存 or 化禄 sits in the Life palace itself, and that 禄 base is broken (冲破) by 地空 or 地劫 in the Life 三方四正. Status is `Broken`. |
 | 文星拱命 | `WenXingGongMing` | `AuxiliaryStarCombination` | Auspicious | 文昌 and 文曲 both appear in Life 三方四正. |
-| 天机巳亥 | `TianJiSiHai` | `MajorStarCombination` | Auspicious | 天机 is in Si or Hai and that palace is Life or in Life 三方四正. |
-| 左右同宫 | `ZuoYouTongGong` | `AuxiliaryStarCombination` | Auspicious | Natal-only: 左辅 and 右弼 share the Body Palace. |
-| 明珠出海 | `MingZhuChuHai` | `MajorStarCombination` | Auspicious | 太阳 and 太阴 both appear in Life 三方四正 and both have clearly bright states. Display source note: `三合明珠生旺地稳步蟾宫（斗数骨髓赋）`. |
+| 天机巳亥 | `TianJiSiHai` | `MajorStarCombination` | Inauspicious | Life palace branch is Si or Hai, and 天机 occupies the Life palace itself (not merely the Life 三方四正). |
+| 左右同宫 | `ZuoYouTongGong` | `AuxiliaryStarCombination` | Auspicious | Natal-only: the Life or Body palace branch is Chou or Wei, 左辅 and 右弼 share that anchor palace, and there is additional 禄存／左右／曲昌／魁钺 or 禄/权/科 support in the anchor 三方四正 beyond the base 左右 pair (`更于吉星`). |
+| 明珠出海 | `MingZhuChuHai` | `MajorStarCombination` | Auspicious | Life palace is Wei with no major star, 太阳 and 天梁 both sit in Mao, 太阴 sits bright in Hai, and the Life 三方四正 carries explicit 禄存／左右／曲昌／魁钺 or 禄/权/科 support. May coexist with 命无正曜. Display source note: `三合明珠生旺地稳步蟾宫（斗数骨髓赋）`. |
 | 命无正曜 | `MingWuZhengYao` | `MajorStarCombination` | Neutral | Life palace has no major star. |
 | 极向离明 | `JiXiangLiMing` | `MajorStarCombination` | Auspicious | Life is Wu and 紫微 is in Life. Fulfilled when Life 三方四正 has no tough star; broken when a tough star appears. |
-| 府相朝垣 | `FuXiangChaoYuan` | `MajorStarCombination` | Auspicious | 天府 and 天相 support Life, either by both appearing in Life 三方四正, by 天府 in Life with 天相 supporting, or by a Wealth/Career split. Display source note: `府相朝垣命必荣（女命骨髓赋）`. |
+| 府相朝垣 | `FuXiangChaoYuan` | `MajorStarCombination` | Auspicious | Either 天府 and 天相 occupy the Wealth and Career palaces (one in each), or 天府 sits in the Life palace with 天相 in the Life 三方四正; additionally the Life 三方四正 carries explicit 禄存／左右／曲昌／魁钺 or 禄/权/科 support. Display source note: `府相朝垣 见前批注（紫微斗数全书）`. |
 
 ### QuanShu source-backed catalogues
 

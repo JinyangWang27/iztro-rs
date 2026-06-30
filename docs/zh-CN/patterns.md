@@ -80,7 +80,7 @@ scope、status 与 family。
 | 日月并明 | `RiYueBingMing` | `MajorStarCombination` | 吉 | 太阳与太阴皆在盘，且各自处于明亮庙旺之位（庙／旺／得／利）。 |
 | 日月反背 | `RiYueFanBei` | `MajorStarCombination` | 凶 | 太阳与太阴皆在盘，且各自处于失辉落陷之位（不／陷）。 |
 | 金灿光辉 | `JinCanGuangHui` | `MajorStarCombination` | 吉 | 命宫在午，太阳在命宫，且太阳是该宫唯一主星。 |
-| 日照雷门 | `RiChuFuSang` | `MajorStarCombination` | 吉 | 仅本命：出生时辰为卯至未，命宫在卯，太阳与天梁同在卯宫命宫，且命宫三方四正有已建模的星曜或四化支持。公开 id 继续使用 `RiChuFuSang`；展示别名为 `日出扶桑格`。 |
+| 日照雷门 | `RiChuFuSang` | `MajorStarCombination` | 吉 | 仅本命：出生时辰为卯至未，命宫在卯，太阳与天梁同在卯宫命宫，且命宫三方四正有禄存／左右／曲昌／魁钺或禄／权／科加会。公开 id 继续使用 `RiChuFuSang`；展示别名为 `日出扶桑格`。展示出处说明：`日出扶桑 日在卯守命是也，守官禄宫亦然（紫微斗数全书）`。 |
 | 月落亥宫 | `YueLuoHaiGong` | `MajorStarCombination` | 吉 | 太阴在亥，且亥宫是命宫。 |
 | 月生沧海 | `YueShengCangHai` | `MajorStarCombination` | 吉 | 太阴在子，且子宫是田宅宫。 |
 | 马头带剑 | `MaTouDaiJian` | `ShaJi` | 吉凶参半 | 天马与擎羊同宫；不采用午宫限定口径。 |
@@ -88,15 +88,15 @@ scope、status 与 family。
 | 武曲守垣 | `WuQuShouYuan` | `MajorStarCombination` | 吉 | 武曲在命宫，且命宫地支为卯。 |
 | 财与囚仇 | `CaiYuQiuChou` | `MajorStarCombination` | 凶 | 武曲与廉贞同宫，且该宫为命宫或身宫。 |
 | 马落空亡 | `MaLuoKongWang` | `ShaJi` | 凶 | 天马与已建模空亡族星（旬空、空亡、截路、截空）同宫。 |
-| 命里逢空 | `MingLiFengKong` | `ShaJi` | 凶 | 命宫有已建模空亡族星。 |
-| 禄逢冲破 | `LuFengChongPo` | `ShaJi` | 凶 | 命宫三方四正有禄存或化禄支持，且该支持被同宫或对宫的煞星／空亡族星冲破。 |
+| 命里逢空 | `MingLiFengKong` | `ShaJi` | 凶 | 地空（DiKong）与／或地劫（DiJie）守命。已建模空亡族星（旬空/空亡/截路/截空）**不**属本格。 |
+| 禄逢冲破 | `LuFengChongPo` | `ShaJi` | 凶 | 禄存或化禄坐命（命宫本宫），且该禄被命宫三方四正中的地空或地劫冲破。状态为 `Broken`。 |
 | 文星拱命 | `WenXingGongMing` | `AuxiliaryStarCombination` | 吉 | 文昌与文曲皆在命宫三方四正。 |
-| 天机巳亥 | `TianJiSiHai` | `MajorStarCombination` | 吉 | 天机在巳或亥，且该宫为命宫或在命宫三方四正。 |
-| 左右同宫 | `ZuoYouTongGong` | `AuxiliaryStarCombination` | 吉 | 仅本命：左辅与右弼同在身宫。 |
-| 明珠出海 | `MingZhuChuHai` | `MajorStarCombination` | 吉 | 太阳与太阴皆在命宫三方四正，且二者均为已建模明亮状态。展示出处说明：`三合明珠生旺地稳步蟾宫（斗数骨髓赋）`。 |
+| 天机巳亥 | `TianJiSiHai` | `MajorStarCombination` | 凶 | 命宫地支为巳或亥，且天机坐守命宫本宫（而非仅在命宫三方四正）。 |
+| 左右同宫 | `ZuoYouTongGong` | `AuxiliaryStarCombination` | 吉 | 仅本命：命宫或身宫地支为丑或未，左辅与右弼同在该锚点宫，且锚点三方四正另有禄存／左右／曲昌／魁钺或禄／权／科加会（更于吉星，超出左右同宫本身）。 |
+| 明珠出海 | `MingZhuChuHai` | `MajorStarCombination` | 吉 | 命宫在未且无主星，太阳与天梁同在卯，太阴入庙旺于亥，命宫三方四正有禄存／左右／曲昌／魁钺或禄／权／科加会。可与命无正曜并存。展示出处说明：`三合明珠生旺地稳步蟾宫（斗数骨髓赋）`。 |
 | 命无正曜 | `MingWuZhengYao` | `MajorStarCombination` | 平 | 命宫无主星。 |
 | 极向离明 | `JiXiangLiMing` | `MajorStarCombination` | 吉 | 命宫在午且紫微在命宫；命宫三方四正无煞星则成格，有煞星则以破格产出。 |
-| 府相朝垣 | `FuXiangChaoYuan` | `MajorStarCombination` | 吉 | 天府与天相朝拱命宫：可为二星同在命宫三方四正、天府在命且天相会照，或天府／天相分居财帛与官禄。展示出处说明：`府相朝垣命必荣（女命骨髓赋）`。 |
+| 府相朝垣 | `FuXiangChaoYuan` | `MajorStarCombination` | 吉 | 天府与天相分居财帛宫与官禄宫（各占一宫），或天府坐命且天相在命宫三方四正；另需命宫三方四正有禄存／左右／曲昌／魁钺或禄／权／科加会。展示出处说明：`府相朝垣 见前批注（紫微斗数全书）`。 |
 
 ### 全书出处格局目录
 
