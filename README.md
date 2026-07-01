@@ -118,14 +118,17 @@ Early versions will not attempt to be:
 
 ## Initial architecture
 
-The project is designed around four layers:
+The project is designed around layered boundaries:
 
 1. **Core Chart Layer** — deterministic chart facts and domain models.
-2. **Feature Extraction Layer** — structured semantic features derived from a chart.
-3. **Rule Engine Layer** — rules map features into structured claims with evidence.
-4. **Narrative Layer** — claims are rendered into human-readable reports.
+2. **Snapshot / Read Model Layer** — renderer-neutral chart and GUI/API read models.
+3. **Runtime Localization Layer** — presentation-boundary i18n for labels and UI text.
+4. **Render / Application Layer** — text, GUI, future TUI/MCP/3D consumers.
+5. **Feature / Rule / Narrative Layers** — interpretation-facing layers that consume structured facts rather than parsing rendered text.
 
-See [docs/en/architecture.md](docs/en/architecture.md) for details.
+See [docs/en/architecture.md](docs/en/architecture.md) for the layer model and
+[ADR 0009](docs/en/adr/0009-domain-model-first-principles.md) for the domain
+model first principles.
 
 ## Compatibility with iztro
 
@@ -139,11 +142,13 @@ English documentation is canonical for engineering specifications. Chinese docum
 
 - [Project specification](docs/en/project-spec.md)
 - [Architecture](docs/en/architecture.md)
+- [Domain model first principles](docs/en/adr/0009-domain-model-first-principles.md)
 - [Core chart generation architecture](docs/architecture/core-chart-generation.md)
 - [Roadmap](docs/en/roadmap.md)
 - [Compatibility](docs/en/compatibility.md)
 - [Terminology](docs/en/terminology.md)
-- [Rule engine](docs/en/rule-engine.md)
+- [Rule engine overview](docs/en/rule-engine.md)
+- [Classical rule engine](docs/en/rules/rule-engine.md)
 - [Multilingual documentation](docs/en/i18n.md)
 
 ## Acknowledgements
