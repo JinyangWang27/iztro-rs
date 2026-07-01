@@ -20,6 +20,7 @@ pub mod labels;
 pub mod model;
 pub mod pattern;
 pub mod placement;
+pub mod rule_context;
 
 // Internal calendar-conversion and normalization adapters. Calendar-backend
 // types are isolated here and never exposed in the public API; public callers
@@ -28,6 +29,8 @@ pub mod placement;
 pub(crate) mod calendar;
 
 pub use error::{ChartError, validate_chart_algorithm_plane};
+
+pub use rule_context::RuleEvaluationContext;
 
 pub use calculation::{
     ApparentSolarTimeConfig, BirthInputCalendarKind, BirthTimeResolutionSnapshot,
