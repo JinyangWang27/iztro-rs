@@ -15,13 +15,14 @@
 //! catalogue entries as separate classical runtime rules; it only references a
 //! `PatternId` as corroborating evidence for project-owned pattern rules.
 
-use crate::core::{Chart, EarthlyBranch, StarName, StarTag};
+use crate::core::{Chart, EarthlyBranch, Scope, StarName, StarTag};
 use crate::rules::classical::claim::{Claim, ClaimId, ClaimScope, ClaimStrength};
+use crate::rules::classical::context::ClassicalRuleContext;
 use crate::rules::classical::evidence::{Evidence, EvidenceKind};
 use crate::rules::classical::outcome::{RuleOutcome, UnsupportedReason};
 use crate::rules::classical::predicates::{
-    star_affected_by_void, star_in_branches, star_meets_tag_same_palace, stars_clamp_life,
-    sun_and_moon_dim, tian_ma_affected_by_void,
+    LifeClamp, selected_stars_clamp_life, star_affected_by_void, star_in_branches,
+    star_meets_tag_same_palace, stars_clamp_life, sun_and_moon_dim, tian_ma_affected_by_void,
 };
 use crate::rules::classical::rule::{ClaimSpec, ClassicalRule};
 use crate::rules::classical::source_hit::ClassicalSourceHit;
@@ -89,9 +90,30 @@ pub fn evaluate(rule: &ClassicalRule, chart: &Chart) -> RuleOutcome {
     }
 }
 
-/// Builds a natal claim from rule metadata and the given evidence.
-fn build_claim(rule: &ClassicalRule, spec: &ClaimSpec, evidence: Vec<Evidence>) -> Claim {
-    let scope = ClaimScope::Natal;
+/// Evaluates `rule` against a full classical context.
+///
+/// Existing executable rules keep natal semantics. 昌曲夹命 is the first
+/// selected-state vertical slice, so it can match against the selected frame's
+/// effective chart state.
+pub fn evaluate_in_context(rule: &ClassicalRule, ctx: &ClassicalRuleContext<'_>) -> RuleOutcome {
+    match rule.id.as_str() {
+        CHANG_QU_CLAMP_LIFE => evaluate_clamp_life_in_context(
+            rule,
+            ctx,
+            StarName::WenChang,
+            StarName::WenQu,
+            Some(PatternId::ChangQuJiaMing),
+        ),
+        _ => evaluate(rule, ctx.chart()),
+    }
+}
+
+fn build_claim(
+    rule: &ClassicalRule,
+    spec: &ClaimSpec,
+    scope: ClaimScope,
+    evidence: Vec<Evidence>,
+) -> Claim {
     Claim {
         id: ClaimId::new(&rule.id, scope),
         rule_id: rule.id.clone(),
@@ -108,12 +130,19 @@ fn build_claim(rule: &ClassicalRule, spec: &ClaimSpec, evidence: Vec<Evidence>) 
 }
 
 fn matched(rule: &ClassicalRule, evidence: Vec<Evidence>) -> RuleOutcome {
-    let scope = ClaimScope::Natal;
+    matched_with_scope(rule, ClaimScope::Natal, evidence)
+}
+
+fn matched_with_scope(
+    rule: &ClassicalRule,
+    scope: ClaimScope,
+    evidence: Vec<Evidence>,
+) -> RuleOutcome {
     let source_hit = ClassicalSourceHit::from_rule(rule, scope, evidence.clone());
     let claim = rule
         .claim
         .as_ref()
-        .map(|spec| Box::new(build_claim(rule, spec, evidence)));
+        .map(|spec| Box::new(build_claim(rule, spec, scope, evidence)));
 
     RuleOutcome::Matched {
         source_hit: Box::new(source_hit),
@@ -146,6 +175,34 @@ fn evaluate_clamp_life(
         return RuleOutcome::NotApplicable;
     };
 
+    matched(rule, clamp_life_evidence(clamp, corroborating_pattern))
+}
+
+fn evaluate_clamp_life_in_context(
+    rule: &ClassicalRule,
+    ctx: &ClassicalRuleContext<'_>,
+    star_a: StarName,
+    star_b: StarName,
+    corroborating_pattern: Option<PatternId>,
+) -> RuleOutcome {
+    let Some(scope) = ctx.selected_frame_scope().map(claim_scope_for_frame_scope) else {
+        return RuleOutcome::NotApplicable;
+    };
+    let Some(clamp) = selected_stars_clamp_life(ctx.as_rule_context(), star_a, star_b) else {
+        return RuleOutcome::NotApplicable;
+    };
+
+    matched_with_scope(
+        rule,
+        scope,
+        clamp_life_evidence(clamp, corroborating_pattern),
+    )
+}
+
+fn clamp_life_evidence(
+    clamp: LifeClamp,
+    corroborating_pattern: Option<PatternId>,
+) -> Vec<Evidence> {
     let mut evidence = vec![
         Evidence::new(EvidenceKind::StarClampsPalace {
             star: clamp.low.0,
@@ -172,7 +229,19 @@ fn evaluate_clamp_life(
         evidence.push(Evidence::new(EvidenceKind::PatternShapeMatched { pattern }));
     }
 
-    matched(rule, evidence)
+    evidence
+}
+
+fn claim_scope_for_frame_scope(scope: Scope) -> ClaimScope {
+    match scope {
+        Scope::Natal => ClaimScope::Natal,
+        Scope::Decadal => ClaimScope::Decadal,
+        Scope::Age => ClaimScope::Age,
+        Scope::Yearly => ClaimScope::Yearly,
+        Scope::Monthly => ClaimScope::Monthly,
+        Scope::Daily => ClaimScope::Daily,
+        Scope::Hourly => ClaimScope::Hourly,
+    }
 }
 
 fn evaluate_ri_yue_fan_bei(rule: &ClassicalRule, chart: &Chart) -> RuleOutcome {

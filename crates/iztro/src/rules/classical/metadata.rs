@@ -18,16 +18,32 @@ use std::sync::OnceLock;
 
 use crate::rules::classical::claim::ClaimScope;
 use crate::rules::classical::corpus::classical_rules;
-use crate::rules::classical::rule::ClassicalRuleId;
+use crate::rules::classical::rule::{ClassicalRule, ClassicalRuleId};
 use crate::rules::classical::source::ClassicalWork;
 
 /// Default applicable scope set for current executable rules.
 ///
-/// Current 《紫微斗数全书》 / 太微赋 executable rules carry no explicit temporal
-/// semantics, so they default to natal-only. Temporal rules are not auto-applied
-/// to every scope; a rule must declare wider scopes explicitly before it appears
-/// outside [`ClaimScope::Natal`].
+/// Most current executable rules remain natal-only. Overlay-aware rules must
+/// opt into wider applicable scopes explicitly. No rule is promoted to every
+/// temporal scope automatically.
 const NATAL_ONLY_SCOPES: &[ClaimScope] = &[ClaimScope::Natal];
+
+const ALL_SELECTED_SCOPES: &[ClaimScope] = &[
+    ClaimScope::Natal,
+    ClaimScope::Decadal,
+    ClaimScope::Age,
+    ClaimScope::Yearly,
+    ClaimScope::Monthly,
+    ClaimScope::Daily,
+    ClaimScope::Hourly,
+];
+
+fn applicable_scopes_for_rule(rule: &ClassicalRule) -> &'static [ClaimScope] {
+    match rule.id.as_str() {
+        "life.chang_qu_clamp_life.literary_reputation" => ALL_SELECTED_SCOPES,
+        _ => NATAL_ONLY_SCOPES,
+    }
+}
 
 /// Static, display-facing metadata for one classical rule.
 ///
@@ -56,8 +72,9 @@ pub struct ClassicalRuleMetadata {
     pub claim_key: Option<&'static str>,
     /// The scopes this rule may be asserted within.
     ///
-    /// Current executable rules are natal-only (`NATAL_ONLY_SCOPES`); this does
-    /// not promote QuanShu rules to every temporal scope automatically.
+    /// Most current executable rules remain natal-only. Overlay-aware rules
+    /// must opt into wider applicable scopes explicitly. No rule is promoted to
+    /// every temporal scope automatically.
     pub applicable_scopes: &'static [ClaimScope],
 }
 
@@ -76,7 +93,7 @@ fn metadata_table() -> &'static [ClassicalRuleMetadata] {
                     source_text_zh_hans: rule.source_text_zh_hans.as_str(),
                     normalized_note_zh_hans: rule.normalized_note_zh_hans.as_deref(),
                     claim_key: rule.claim.as_ref().map(|claim| claim.claim_key.as_str()),
-                    applicable_scopes: NATAL_ONLY_SCOPES,
+                    applicable_scopes: applicable_scopes_for_rule(rule),
                 })
                 .collect()
         })

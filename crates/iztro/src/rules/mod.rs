@@ -6,6 +6,7 @@
 
 pub mod classical;
 pub mod pattern;
+pub mod query;
 
 pub use classical::{
     Claim, ClaimDomain, ClaimEvaluation, ClaimEvaluationRequest, ClaimId, ClaimPolarity,

@@ -26,13 +26,13 @@
 //! effective-state model and remain for natal rules.
 
 use crate::core::{
-    Brightness, Chart, EarthlyBranch, EffectiveChartState, EffectiveStarRef, FlowStarBase,
-    FlowStarScope, Mutagen, MutagenActivation, PalaceName, Scope, StarKind, StarName,
-    StarPlacement, flow_star_name, try_flow_star_parts,
+    Brightness, Chart, EarthlyBranch, EffectiveChartState, EffectiveStarRef, Mutagen,
+    MutagenActivation, PalaceName, Scope, StarKind, StarName, StarPlacement,
 };
 use crate::rules::pattern::context::PatternContext;
 use crate::rules::pattern::model::PatternScope;
 use crate::rules::pattern::relation::{clamp_branches, san_fang_si_zheng};
+use crate::rules::query as rule_query;
 
 /// A pattern-facing star read with its spatial branch.
 #[derive(Clone, Copy, Debug)]
@@ -81,12 +81,7 @@ pub fn scope_is_visible(ctx: &PatternContext<'_>, scope: Scope) -> bool {
 
 /// Returns the typed star placements in the palace at `branch`.
 pub fn stars_in_palace(chart: &Chart, branch: EarthlyBranch) -> Vec<&StarPlacement> {
-    chart
-        .palaces()
-        .iter()
-        .filter(|palace| palace.branch() == branch)
-        .flat_map(|palace| palace.stars().iter())
-        .collect()
+    rule_query::stars_in_palace(chart, branch)
 }
 
 /// Returns typed star placements in `branch` for the requested scope.
@@ -143,9 +138,7 @@ pub fn source_stars_in_palace<'a>(
 
 /// Returns whether `star` occupies the palace at `branch`.
 pub fn palace_has_star(chart: &Chart, branch: EarthlyBranch, star: StarName) -> bool {
-    stars_in_palace(chart, branch)
-        .iter()
-        .any(|placement| placement.name() == star)
+    rule_query::palace_has_star(chart, branch, star)
 }
 
 /// Returns whether `star` occupies `branch` in `scope`.
@@ -185,7 +178,7 @@ pub fn source_star_in_palace<'a>(
 
 /// Returns the branch occupied by a named palace, if present.
 pub fn branch_of_palace(chart: &Chart, palace: PalaceName) -> Option<EarthlyBranch> {
-    chart.branch_of_palace(palace)
+    rule_query::branch_of_palace(chart, palace)
 }
 
 /// Returns the branch occupied by a named palace in `scope`, if present.
@@ -233,7 +226,7 @@ pub fn effective_branch_of_palace(
     match_scope: Scope,
     palace: PalaceName,
 ) -> Option<EarthlyBranch> {
-    effective_state_for_match_scope(ctx, match_scope)?.branch_of_palace(palace)
+    rule_query::effective_branch_of_palace(ctx.as_rule_context(), match_scope, palace)
 }
 
 /// Returns the scope supplying the selected palace-name frame.
@@ -241,7 +234,7 @@ pub fn effective_branch_of_palace(
 /// Thin free-function wrapper over [`PatternContext::selected_frame_scope`] for
 /// call sites that read it alongside other query helpers.
 pub fn selected_frame_scope(ctx: &PatternContext<'_>) -> Option<Scope> {
-    ctx.selected_frame_scope()
+    rule_query::selected_frame_scope(ctx.as_rule_context())
 }
 
 /// Returns the branch occupied by a named palace in the selected frame.
@@ -252,7 +245,7 @@ pub fn selected_branch_of_palace(
     ctx: &PatternContext<'_>,
     palace: PalaceName,
 ) -> Option<EarthlyBranch> {
-    ctx.effective()?.branch_of_palace(palace)
+    rule_query::selected_branch_of_palace(ctx.as_rule_context(), palace)
 }
 
 fn effective_state_for_match_scope<'a, 'ctx>(
@@ -265,9 +258,7 @@ fn effective_state_for_match_scope<'a, 'ctx>(
 
 /// Returns whether `stars` all occupy the palace at `branch`.
 pub fn palace_has_all_stars(chart: &Chart, branch: EarthlyBranch, stars: &[StarName]) -> bool {
-    stars
-        .iter()
-        .all(|star| palace_has_star(chart, branch, *star))
+    rule_query::palace_has_all_stars(chart, branch, stars)
 }
 
 /// Returns whether every requested star occupies `branch` in `scope`.
@@ -287,9 +278,7 @@ pub fn effective_stars_in_palace<'a>(
     ctx: &PatternContext<'a>,
     branch: EarthlyBranch,
 ) -> Vec<EffectiveStarRef<'a>> {
-    ctx.effective()
-        .map(|state| state.stars_in_palace(branch))
-        .unwrap_or_default()
+    rule_query::effective_stars_in_palace(ctx.as_rule_context(), branch)
 }
 
 /// Returns effective typed star placements in `branch` for the selected frame.
@@ -300,9 +289,7 @@ pub fn selected_stars_in_palace<'a>(
     ctx: &PatternContext<'a>,
     branch: EarthlyBranch,
 ) -> Vec<EffectiveStarRef<'a>> {
-    ctx.effective()
-        .map(|state| state.stars_in_palace(branch))
-        .unwrap_or_default()
+    rule_query::selected_stars_in_palace(ctx.as_rule_context(), branch)
 }
 
 /// Returns the actual effective star matching `star` in `branch`.
@@ -312,10 +299,7 @@ pub fn effective_star_in_palace<'a>(
     branch: EarthlyBranch,
     star: StarName,
 ) -> Option<EffectiveStarRef<'a>> {
-    effective_state_for_match_scope(ctx, match_scope)?
-        .stars_in_palace(branch)
-        .into_iter()
-        .find(|placement| star_matches_for_scope(match_scope, star, placement.placement().name()))
+    rule_query::effective_star_in_palace(ctx.as_rule_context(), match_scope, branch, star)
 }
 
 /// Returns the actual effective star matching `star` in `branch` for the
@@ -328,12 +312,7 @@ pub fn selected_star_in_palace<'a>(
     branch: EarthlyBranch,
     star: StarName,
 ) -> Option<EffectiveStarRef<'a>> {
-    let state = ctx.effective()?;
-    let frame_scope = state.palace_frame_scope();
-    state
-        .stars_in_palace(branch)
-        .into_iter()
-        .find(|placement| star_matches_for_scope(frame_scope, star, placement.placement().name()))
+    rule_query::selected_star_in_palace(ctx.as_rule_context(), branch, star)
 }
 
 /// Returns whether `star` occupies `branch` in the effective state.
@@ -343,7 +322,7 @@ pub fn effective_palace_has_star(
     branch: EarthlyBranch,
     star: StarName,
 ) -> bool {
-    effective_star_in_palace(ctx, match_scope, branch, star).is_some()
+    rule_query::effective_palace_has_star(ctx.as_rule_context(), match_scope, branch, star)
 }
 
 /// Returns whether `star` occupies `branch` in the selected frame.
@@ -354,7 +333,7 @@ pub fn selected_palace_has_star(
     branch: EarthlyBranch,
     star: StarName,
 ) -> bool {
-    selected_star_in_palace(ctx, branch, star).is_some()
+    rule_query::selected_palace_has_star(ctx.as_rule_context(), branch, star)
 }
 
 /// Returns whether every requested star occupies `branch` in the effective state.
@@ -364,9 +343,7 @@ pub fn effective_palace_has_all_stars(
     branch: EarthlyBranch,
     stars: &[StarName],
 ) -> bool {
-    stars
-        .iter()
-        .all(|star| effective_palace_has_star(ctx, match_scope, branch, *star))
+    rule_query::effective_palace_has_all_stars(ctx.as_rule_context(), match_scope, branch, stars)
 }
 
 /// Returns whether every requested star occupies `branch` in the selected frame.
@@ -377,9 +354,7 @@ pub fn selected_palace_has_all_stars(
     branch: EarthlyBranch,
     stars: &[StarName],
 ) -> bool {
-    stars
-        .iter()
-        .all(|star| selected_palace_has_star(ctx, branch, *star))
+    rule_query::selected_palace_has_all_stars(ctx.as_rule_context(), branch, stars)
 }
 
 /// Returns the number of major stars in the palace at `branch`.
@@ -417,7 +392,7 @@ pub fn selected_major_star_count_in_palace(
 
 /// Returns the branch of the palace containing `star`, if present.
 pub fn find_star_branch(chart: &Chart, star: StarName) -> Option<EarthlyBranch> {
-    chart.star(star).map(|fact| fact.palace().branch())
+    rule_query::find_star_branch(chart, star)
 }
 
 /// Returns the first actual star and branch matching `star` in `scope`.
@@ -577,15 +552,7 @@ pub fn clamp_pair_matches(
     left_star: StarName,
     right_star: StarName,
 ) -> Option<[(StarName, EarthlyBranch); 2]> {
-    let [low, high] = clamp_branches(anchor);
-
-    if palace_has_star(chart, low, left_star) && palace_has_star(chart, high, right_star) {
-        Some([(left_star, low), (right_star, high)])
-    } else if palace_has_star(chart, low, right_star) && palace_has_star(chart, high, left_star) {
-        Some([(right_star, low), (left_star, high)])
-    } else {
-        None
-    }
+    rule_query::clamp_pair_matches(chart, anchor, left_star, right_star)
 }
 
 /// Returns a same-scope clamp match, preserving actual matched star names.
@@ -641,27 +608,13 @@ pub fn effective_clamp_pair_matches(
     left_star: StarName,
     right_star: StarName,
 ) -> Option<[(StarName, EarthlyBranch); 2]> {
-    let [low, high] = clamp_branches(anchor);
-
-    let low_left = effective_star_in_palace(ctx, match_scope, low, left_star);
-    let high_right = effective_star_in_palace(ctx, match_scope, high, right_star);
-    if let (Some(low_left), Some(high_right)) = (low_left, high_right) {
-        return Some([
-            (low_left.placement().name(), low),
-            (high_right.placement().name(), high),
-        ]);
-    }
-
-    let low_right = effective_star_in_palace(ctx, match_scope, low, right_star);
-    let high_left = effective_star_in_palace(ctx, match_scope, high, left_star);
-    if let (Some(low_right), Some(high_left)) = (low_right, high_left) {
-        return Some([
-            (low_right.placement().name(), low),
-            (high_left.placement().name(), high),
-        ]);
-    }
-
-    None
+    rule_query::effective_clamp_pair_matches(
+        ctx.as_rule_context(),
+        match_scope,
+        anchor,
+        left_star,
+        right_star,
+    )
 }
 
 /// Returns a selected-frame clamp match, preserving actual matched star names.
@@ -674,27 +627,7 @@ pub fn selected_clamp_pair_matches(
     left_star: StarName,
     right_star: StarName,
 ) -> Option<[(StarName, EarthlyBranch); 2]> {
-    let [low, high] = clamp_branches(anchor);
-
-    let low_left = selected_star_in_palace(ctx, low, left_star);
-    let high_right = selected_star_in_palace(ctx, high, right_star);
-    if let (Some(low_left), Some(high_right)) = (low_left, high_right) {
-        return Some([
-            (low_left.placement().name(), low),
-            (high_right.placement().name(), high),
-        ]);
-    }
-
-    let low_right = selected_star_in_palace(ctx, low, right_star);
-    let high_left = selected_star_in_palace(ctx, high, left_star);
-    if let (Some(low_right), Some(high_left)) = (low_right, high_left) {
-        return Some([
-            (low_right.placement().name(), low),
-            (high_left.placement().name(), high),
-        ]);
-    }
-
-    None
+    rule_query::selected_clamp_pair_matches(ctx.as_rule_context(), anchor, left_star, right_star)
 }
 
 /// Returns whether `brightness` is a clearly bright/auspicious state
@@ -705,13 +638,7 @@ pub fn selected_clamp_pair_matches(
 /// must not emit when brightness is `Unknown`; this helper returning `false`
 /// for `Unknown` enforces that for the bright case.
 pub fn is_bright(brightness: Brightness) -> bool {
-    matches!(
-        brightness,
-        Brightness::Temple
-            | Brightness::Prosperous
-            | Brightness::Advantage
-            | Brightness::Favourable
-    )
+    rule_query::is_bright(brightness)
 }
 
 /// Returns whether `brightness` is a clearly dim/fallen state (不/陷).
@@ -720,7 +647,7 @@ pub fn is_bright(brightness: Brightness) -> bool {
 /// (平) is neutral, and `Unknown` is never dim, so a rule gated on this helper
 /// never emits on an uncalculated brightness.
 pub fn is_dim(brightness: Brightness) -> bool {
-    matches!(brightness, Brightness::Weak | Brightness::Trapped)
+    rule_query::is_dim(brightness)
 }
 
 /// Returns whether any adverse "煞星" (sha star) sits in the palace at `branch`.
@@ -826,39 +753,5 @@ pub fn star_has_mutagen_activation_for_scope(
 }
 
 fn star_matches_for_scope(scope: Scope, requested: StarName, actual: StarName) -> bool {
-    if requested == actual {
-        return true;
-    }
-
-    let Some(flow_scope) = flow_scope_for_scope(scope) else {
-        return false;
-    };
-    let Some(base) = base_flow_match(requested) else {
-        return false;
-    };
-
-    actual == flow_star_name(flow_scope, base)
-        || try_flow_star_parts(actual) == Some((flow_scope, base))
-}
-
-fn flow_scope_for_scope(scope: Scope) -> Option<FlowStarScope> {
-    match scope {
-        Scope::Decadal => Some(FlowStarScope::Decadal),
-        Scope::Yearly => Some(FlowStarScope::Yearly),
-        Scope::Monthly => Some(FlowStarScope::Monthly),
-        Scope::Daily => Some(FlowStarScope::Daily),
-        Scope::Hourly => Some(FlowStarScope::Hourly),
-        Scope::Natal | Scope::Age => None,
-    }
-}
-
-fn base_flow_match(star: StarName) -> Option<FlowStarBase> {
-    match star {
-        StarName::WenChang => Some(FlowStarBase::Chang),
-        StarName::WenQu => Some(FlowStarBase::Qu),
-        StarName::QingYang => Some(FlowStarBase::Yang),
-        StarName::TuoLuo => Some(FlowStarBase::Tuo),
-        StarName::TianMa => Some(FlowStarBase::Ma),
-        _ => None,
-    }
+    rule_query::star_matches_for_scope(scope, requested, actual)
 }
