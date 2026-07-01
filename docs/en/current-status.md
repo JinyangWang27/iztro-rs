@@ -123,7 +123,7 @@ Analysis stays lightweight and per-layer. The GUI calls the core `analysis_layer
 The inspector requests selected-view analysis through the core batch analysis facade (`detect_static_temporal_analysis_layers_from_chart`): the GUI passes the natal chart, the current temporal selection, and the missing layer keys, and core builds the temporal/horoscope context once and returns compact per-layer results; the GUI caches and renders them. The GUI never constructs a `HoroscopeChart` or temporal overlays itself. Each requested layer is detected with its own truncated active-scope chain (`analysis_scopes_for_layer_key`), so a layer may inspect its ancestors and itself but never a descendant — changing 流月 / 流日 / 流时 cannot change a previously cached 流年 result.
 
 Pattern display in the inspector is wired through core layer analysis. The
-existing `core::pattern` catalogue can now evaluate supported overlay layers by
+existing `rules::pattern` catalogue can now evaluate supported overlay layers by
 reading `TemporalLayer` placements, temporal palace layouts, and explicit
 `MutagenActivation` facts; same-scope flow-star equivalents are reported with
 their actual runtime names. This remains a conservative structural pattern

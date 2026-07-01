@@ -73,7 +73,7 @@ test `user_facing_analysis_request_is_quan_shu_only` pins this.
 
 ## Pattern metadata boundaries
 
-`core::pattern` has two metadata surfaces with different purposes:
+`rules::pattern` has two metadata surfaces with different purposes:
 
 - `PatternSourceMetadata` is verified source provenance only. It should quote
   the source-facing name and verbatim source text, and it must not carry
@@ -100,7 +100,7 @@ entry, while runtime display metadata may show `日照雷门` and alias
 - [ ] Add `PatternDisplayMetadata` for display/runtime names and notes.
 - [ ] Add `PatternSourceMetadata` only when the exact source-facing name and
   verbatim source text are verified against the inventory.
-- [ ] Add a focused detector in `core::pattern::rules` and register it in
+- [ ] Add a focused detector in `rules::pattern::rules` and register it in
   `detector.rs`.
 - [ ] Populate `involved_palaces`, `involved_stars`, `involved_mutagens`, and
   `PatternEvidence` from structured query results.

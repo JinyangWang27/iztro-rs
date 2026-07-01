@@ -7,10 +7,10 @@
 # - project-owned `source_id = "pattern.*"`.
 #
 # A 格局/pattern has exactly one canonical runtime identity: `PatternId`, detected
-# by `core::pattern`. QuanShu Volume 1 pattern catalogue entries are ancient
+# by `rules::pattern`. QuanShu Volume 1 pattern catalogue entries are ancient
 # source provenance for those canonical patterns; they are tracked separately as
 # source inventory (`rule-corpus/quan-shu/source/volume-01.toml`) and can be
-# attached to a canonical `PatternId` via `core::pattern::metadata`. They do NOT
+# attached to a canonical `PatternId` via `rules::pattern::metadata`. They do NOT
 # create separate classical runtime rules here.
 #
 # This file is loaded at runtime alongside `rule-corpus/quan-shu/rules.toml`

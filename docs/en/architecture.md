@@ -148,17 +148,16 @@ Important feature dimensions include:
 - star placement and star semantics;
 - mutagen flows;
 - palace relations such as opposite palace and triads;
-- patterns and combinations;
 - temporal activation from decadal/yearly/monthly/daily/hourly scopes;
 - strength scores and counter-evidence.
 
 The goal is not to write prose, but to expose features that a rule engine can evaluate.
 
-A first read-only slice of this layer is `core::pattern`, which recognizes classical patterns (格局) as structured, explainable facts over chart facts without mutating them and without producing prose. See [`patterns.md`](patterns.md) for the rule catalog and guarantees.
+Pattern (格局) recognition is rule-engine code rather than core chart state. The executable pattern engine lives under `rules::pattern`, where it can read core facts without making `core` depend on rules. See [`patterns.md`](patterns.md) for the rule catalog and guarantees.
 
 ## 7. Rule Engine Layer
 
-The Rule Engine Layer maps features into structured claims.
+The Rule Engine Layer maps chart facts and extracted features into structured rule outputs.
 
 Rules should not directly emit final narrative text. A rule should emit:
 
@@ -172,9 +171,14 @@ Rules should not directly emit final narrative text. A rule should emit:
 
 This makes rule matching testable and allows multiple rules to be aggregated before generating a report.
 
+`rules::pattern` recognizes classical pattern structures as `PatternDetection`
+facts. `rules::classical` evaluates classical source rules into source hits,
+claims, and diagnostics. Both engines consume chart facts; neither owns chart
+generation or placement.
+
 ### Layer-level analysis coordination
 
-The `analysis` module is a thin coordinator that composes the Feature Extraction Layer's `core::pattern` detection and the Rule Engine Layer's `rules::classical` evaluation for **cacheable, per-layer** detection. It lives outside `core` precisely because `core` must not depend on `rules`, while a layer-level API needs both. It adds no new interpretation: `detect_analysis_layer` returns compact `ClassicalRuleHitRef`s (resolved back to verbatim source text by `classical_rule_metadata`) plus structured `PatternDetection`s for one `AnalysisLayerKey`, leaving grouping, caching, and rendering to the consumer. See [`rules/rule-engine.md`](rules/rule-engine.md) for the API and the deepest-layer cross-layer assignment policy.
+The `analysis` module is a thin coordinator that composes `rules::pattern` detection and `rules::classical` evaluation for **cacheable, per-layer** detection. It lives outside `core` precisely because `core` must not depend on `rules`, while a layer-level API needs both. It adds no new interpretation: `detect_analysis_layer` returns compact `ClassicalRuleHitRef`s (resolved back to verbatim source text by `classical_rule_metadata`) plus structured `PatternDetection`s for one `AnalysisLayerKey`, leaving grouping, caching, and rendering to the consumer. See [`rules/rule-engine.md`](rules/rule-engine.md) for the API and the deepest-layer cross-layer assignment policy.
 
 ## 8. Narrative Layer
 

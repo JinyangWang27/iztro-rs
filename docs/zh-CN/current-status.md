@@ -65,7 +65,7 @@
 
 检视面板通过核心的整批分析门面（`detect_static_temporal_analysis_layers_from_chart`）请求所选视图的分析：GUI 传入本命命盘、当前运限选择与缺失的层键，核心在内部构建一次运限/horoscope 上下文，并返回精简的逐层结果；GUI 负责缓存与渲染。GUI 自身绝不构造 `HoroscopeChart` 或运限叠加。每个被请求的层都使用截断到该层的活动 scope 链（`analysis_scopes_for_layer_key`）进行检测，因此一个层可以检视其祖先与自身，但绝不检视后代——切换流月 / 流日 / 流时不会改变此前已缓存的流年结果。
 
-检视面板中的格局展示已经接入 core 的逐层分析。现有 `core::pattern` 目录可以通过
+检视面板中的格局展示已经接入 core 的逐层分析。现有 `rules::pattern` 目录可以通过
 `TemporalLayer` 星曜落点、时间宫名布局与显式 `MutagenActivation` 事实评估已支持的
 运限叠加层；同 scope 的流曜等价星会以实际 runtime 名称记录。这仍是保守的结构化格局
 事实面，不是完整的古法限运解读。全书格局扩展仍保持暂停。

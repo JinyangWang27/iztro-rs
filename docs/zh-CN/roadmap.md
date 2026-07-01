@@ -144,7 +144,7 @@ TUI 与 MCP 是 tooling/application consumers。它们不能复制 placement log
 - [x] 提取 star features。
 - [x] 提取 natal mutagen flows。
 - [x] 提取 palace relations、triads 与 oppositions。
-- [x] 添加第一个 read-only `core::pattern` 切片，用结构化 facts 表示 classical pattern detection。
+- [x] 添加第一个 read-only `rules::pattern` 切片，用结构化 facts 表示 classical pattern detection。
 - [ ] 添加 strength-score placeholders。
 - [ ] 添加 temporal activation interfaces。
 - [ ] 添加适合后续成格和 highlight annotations 的 pattern-hit interfaces。

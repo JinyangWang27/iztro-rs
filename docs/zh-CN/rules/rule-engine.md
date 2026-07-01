@@ -113,7 +113,7 @@
 evaluate_classical_in_context(&ClassicalRuleContext, &request) -> ClaimEvaluation
 ```
 
-`ClassicalRuleContext` 对应 `core::pattern::PatternContext`：携带本命 `chart`、
+`ClassicalRuleContext` 对应 `rules::pattern::PatternContext`：携带本命 `chart`、
 可选的 `&HoroscopeChart` 以及规则可检视的 `active_scopes`；构造函数为
 `ClassicalRuleContext::natal(chart)` 与
 `ClassicalRuleContext::horoscope(chart, active_scopes)`。
@@ -144,7 +144,7 @@ evaluate_classical_in_context(&ClassicalRuleContext, &request) -> ClaimEvaluatio
   `TemporalAnalysisContext { natal, horoscope }` 上分析恰好一层。它只把底层
   全书/格局请求的**作用范围**改写为 `key`（其余过滤条件——尤其是 `works`——
   均沿用调用方的请求），返回紧凑的 `rule_hits: Vec<ClassicalRuleHitRef>`
-  与 `pattern_hits: Vec<PatternDetection>`。格局命中由 `core::pattern` 产出，
+  与 `pattern_hits: Vec<PatternDetection>`。格局命中由 `rules::pattern` 产出，
   可以来自已支持的运限叠加事实；全书规则命中仍保持保守，当前可执行全书规则仍只匹配
   本命事实。`TemporalAnalysisContext` 必须与 `key` 对应：`key` 用于缓存标识与作用范围
   归属，当前**不会**针对横盘已选叠加做校验，因此保持上下文与 `key` 一致是调用方的责任。
@@ -209,7 +209,7 @@ horoscope 上下文，校验请求键是否精确属于当前可见的 `Analysis
 
 ## PatternDetection 与 Claim 的区别
 
-`iztro` 已有 `core::pattern` 的**格局识别**。二者不同：
+`iztro` 已有 `rules::pattern` 的**格局识别**。二者不同：
 
 - **`PatternDetection`** 是“某已知格局形态存在”的结构化陈述（状态、家族、涉及的
   星曜/宫位、证据），是关于**排布的图盘事实**。
@@ -218,7 +218,7 @@ horoscope 上下文，校验请求键是否精确属于当前可见的 `Analysis
 
 经典规则可以匹配与某已知格局相同的结构形态（昌曲夹命的判断会记录
 `EvidenceKind::PatternShapeMatched { pattern: ChangQuJiaMing }`），但这不表示已经运行
-`core::pattern::detect_patterns`。判断仍携带格局识别所没有的领域/主题/吉凶/出处语义。
+`rules::pattern::detect_patterns`。判断仍携带格局识别所没有的领域/主题/吉凶/出处语义。
 
 ## 示例：马遇空亡，终身奔走
 
