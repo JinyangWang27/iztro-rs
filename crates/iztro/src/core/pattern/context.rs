@@ -12,10 +12,11 @@ use crate::core::{Chart, EffectiveChartState, HoroscopeChart, Scope};
 ///
 /// Fields are private so detector and query code cannot bypass the
 /// selected-state model or fabricate ambiguous contexts. Read through the
-/// accessors ([`chart`](Self::chart), [`horoscope`](Self::horoscope),
-/// [`active_scopes`](Self::active_scopes), [`effective`](Self::effective),
-/// [`selected_frame_scope`](Self::selected_frame_scope)) and construct through
-/// the named constructors so the effective selected state is always built by
+/// [`horoscope_chart`](Self::horoscope_chart),
+/// [`active_scopes`](Self::active_scopes),
+/// [`effective`](Self::effective),
+/// [`selected_frame_scope`](Self::selected_frame_scope))
+/// and construct through the named constructors so the effective selected state is always built by
 /// one of the sanctioned paths.
 #[derive(Clone, Debug)]
 pub struct PatternContext<'a> {
