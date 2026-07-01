@@ -8,6 +8,7 @@
 //! - [`facade`] — public iztro-compatible entry points;
 //! - [`feature`] — boundary for future derived-fact extraction helpers;
 //! - [`error`] — the cross-cutting crate error type.
+//! - [`rule_context`] — shared selected-state context for rule evaluation;
 //!
 //! The flat re-exports below preserve the stable public API regardless of where
 //! a type or function lives internally.
@@ -20,6 +21,7 @@ pub mod labels;
 pub mod model;
 pub mod pattern;
 pub mod placement;
+pub mod rule_context;
 
 // Internal calendar-conversion and normalization adapters. Calendar-backend
 // types are isolated here and never exposed in the public API; public callers
@@ -28,6 +30,8 @@ pub mod placement;
 pub(crate) mod calendar;
 
 pub use error::{ChartError, validate_chart_algorithm_plane};
+
+pub use rule_context::RuleEvaluationContext;
 
 pub use calculation::{
     ApparentSolarTimeConfig, BirthInputCalendarKind, BirthTimeResolutionSnapshot,

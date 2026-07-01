@@ -181,9 +181,11 @@ fn detect_rule_hits(
     classical.scopes = vec![key.claim_scope()];
 
     let rule_ctx = match ctx.horoscope {
-        Some(horoscope) => {
-            ClassicalRuleContext::horoscope(horoscope, analysis_scopes_for_layer_key(key))
-        }
+        Some(horoscope) => ClassicalRuleContext::horoscope_with_frame(
+            horoscope,
+            key.scope(),
+            analysis_scopes_for_layer_key(key),
+        ),
         None => ClassicalRuleContext::natal(ctx.natal),
     };
 

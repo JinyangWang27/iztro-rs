@@ -1,33 +1,28 @@
 //! Read-only context and request types for pattern detection.
 
 use crate::core::pattern::model::PatternFamily;
-use crate::core::{Chart, EffectiveChartState, HoroscopeChart, Scope};
+use crate::core::{Chart, EffectiveChartState, HoroscopeChart, RuleEvaluationContext, Scope};
 
 /// A read-only query wrapper over a chart for pattern detection.
+///
+/// `PatternContext` is a pattern-engine wrapper over
+/// [`RuleEvaluationContext`]. It exists for pattern-specific request/query APIs,
+/// not because patterns have a different chart-state context: patterns are a
+/// subset of rules, so the chart state they evaluate against is the shared one.
 ///
 /// The context borrows chart facts and never mutates them. When a
 /// [`HoroscopeChart`] is supplied, its natal chart is used as the underlying
 /// [`Chart`]; temporal layers remain overlays and are never folded into natal
 /// facts.
 ///
-/// Fields are private so detector and query code cannot bypass the
+/// The inner context is private so detector and query code cannot bypass the
 /// selected-state model or fabricate ambiguous contexts. Read through the
-/// [`horoscope_chart`](Self::horoscope_chart),
-/// [`active_scopes`](Self::active_scopes),
-/// [`effective`](Self::effective),
-/// [`selected_frame_scope`](Self::selected_frame_scope))
-/// and construct through the named constructors so the effective selected state is always built by
-/// one of the sanctioned paths.
+/// accessors and construct through the named constructors so the effective
+/// selected state is always built by one of the sanctioned paths.
 #[derive(Clone, Debug)]
 pub struct PatternContext<'a> {
-    /// The natal chart facts being analyzed.
-    chart: &'a Chart,
-    /// The horoscope chart, when temporal scopes are in play.
-    horoscope: Option<&'a HoroscopeChart>,
-    /// The temporal scopes currently active for detection.
-    active_scopes: Vec<Scope>,
-    /// The selected effective chart state, when strict construction succeeds.
-    effective: Option<EffectiveChartState<'a>>,
+    /// The shared rule-evaluation context this pattern context wraps.
+    inner: RuleEvaluationContext<'a>,
 }
 
 impl<'a> PatternContext<'a> {
@@ -39,13 +34,7 @@ impl<'a> PatternContext<'a> {
     /// [`Scope::Natal`].
     pub fn natal(chart: &'a Chart) -> Self {
         Self {
-            chart,
-            horoscope: None,
-            active_scopes: vec![Scope::Natal],
-            effective: Some(
-                EffectiveChartState::from_chart(chart, Scope::Natal, vec![Scope::Natal])
-                    .expect("natal effective state is valid"),
-            ),
+            inner: RuleEvaluationContext::natal(chart),
         }
     }
 
@@ -62,14 +51,8 @@ impl<'a> PatternContext<'a> {
     /// [`PatternContext::horoscope_with_frame`] so the frame scope is explicit
     /// and construction is strict.
     pub fn horoscope(chart: &'a HoroscopeChart, active_scopes: Vec<Scope>) -> Self {
-        let frame_scope = active_scopes.last().copied().unwrap_or(Scope::Natal);
-        let effective =
-            EffectiveChartState::from_horoscope(chart, frame_scope, active_scopes.clone()).ok();
         Self {
-            chart: chart.natal(),
-            horoscope: Some(chart),
-            active_scopes,
-            effective,
+            inner: RuleEvaluationContext::horoscope(chart, active_scopes),
         }
     }
 
@@ -84,20 +67,23 @@ impl<'a> PatternContext<'a> {
         palace_frame_scope: Scope,
         active_scopes: Vec<Scope>,
     ) -> Self {
-        let effective =
-            EffectiveChartState::from_horoscope(chart, palace_frame_scope, active_scopes.clone())
-                .expect("pattern context requires a valid effective chart state");
         Self {
-            chart: chart.natal(),
-            horoscope: Some(chart),
-            active_scopes,
-            effective: Some(effective),
+            inner: RuleEvaluationContext::horoscope_with_frame(
+                chart,
+                palace_frame_scope,
+                active_scopes,
+            ),
         }
+    }
+
+    /// Returns the shared rule-evaluation context this pattern context wraps.
+    pub fn as_rule_context(&self) -> &RuleEvaluationContext<'a> {
+        &self.inner
     }
 
     /// Returns the natal chart facts being analyzed.
     pub fn chart(&self) -> &'a Chart {
-        self.chart
+        self.inner.chart()
     }
 
     /// Returns the horoscope chart, when temporal scopes are in play.
@@ -105,12 +91,12 @@ impl<'a> PatternContext<'a> {
     /// Named `horoscope_chart` rather than `horoscope` because the
     /// [`horoscope`](Self::horoscope) constructor already owns that name.
     pub fn horoscope_chart(&self) -> Option<&'a HoroscopeChart> {
-        self.horoscope
+        self.inner.horoscope_chart()
     }
 
     /// Returns the temporal scopes currently active for detection.
     pub fn active_scopes(&self) -> &[Scope] {
-        &self.active_scopes
+        self.inner.active_scopes()
     }
 
     /// Returns the selected effective chart state, when one was constructed.
@@ -120,7 +106,7 @@ impl<'a> PatternContext<'a> {
     /// [`natal`](Self::natal) and [`horoscope_with_frame`](Self::horoscope_with_frame)
     /// constructors always populate it.
     pub fn effective(&self) -> Option<&EffectiveChartState<'a>> {
-        self.effective.as_ref()
+        self.inner.effective()
     }
 
     /// Returns the scope supplying the selected palace-name frame, if an
@@ -130,9 +116,7 @@ impl<'a> PatternContext<'a> {
     /// [`Scope::Natal`] for a natal context and the explicit frame scope for a
     /// [`horoscope_with_frame`](Self::horoscope_with_frame) context.
     pub fn selected_frame_scope(&self) -> Option<Scope> {
-        self.effective
-            .as_ref()
-            .map(EffectiveChartState::palace_frame_scope)
+        self.inner.selected_frame_scope()
     }
 }
 

@@ -88,7 +88,8 @@ pub use core::{
     PalaceRelation, PatternAnchor, PatternCondition, PatternContext, PatternDetection,
     PatternDetectionRequest, PatternDisplayMetadata, PatternEvidence, PatternFamily, PatternId,
     PatternPolarity, PatternScope, PatternSourceGroup, PatternSourceMetadata, PatternStatus,
-    PatternStrength, detect_patterns, pattern_display_metadata, pattern_source_metadata,
+    PatternStrength, RuleEvaluationContext, detect_patterns, pattern_display_metadata,
+    pattern_source_metadata,
 };
 pub use facade::static_temporal_chart_view::{
     static_temporal_chart_view, static_temporal_chart_view_from_chart,
