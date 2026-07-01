@@ -6,7 +6,10 @@
 
 use std::collections::BTreeSet;
 
-use iztro::core::pattern::query::{find_star_branch, palace_has_star, stars_in_san_fang_si_zheng};
+use iztro::core::pattern::query::{
+    effective_branch_of_palace, effective_star_in_palace, effective_stars_in_san_fang_si_zheng,
+    find_star_branch, palace_has_star, stars_in_san_fang_si_zheng,
+};
 use iztro::{
     BirthContext, Brightness, CalendarDate, Chart, EarthlyBranch, Gender, HeavenlyStem,
     HoroscopeChart, MethodProfile, Mutagen, MutagenActivation, PALACE_NAMES, Palace, PatternAnchor,
@@ -1081,6 +1084,39 @@ fn yearly_chang_qu_jia_ming_effective_match_can_mix_natal_and_active_overlay_sta
         StarName::LiuQu,
         EarthlyBranch::Chou
     ));
+}
+
+#[test]
+fn effective_helpers_require_the_selected_palace_frame_scope() {
+    // Active scope does not imply selected frame. The yearly frame relabels Hai
+    // as Life while natal Life stays Zi; asking an effective helper for Natal
+    // must not return the yearly Life branch just because Natal is active.
+    let yearly_life = EarthlyBranch::Hai;
+    let natal = build_chart(EarthlyBranch::Zi, &[major(yearly_life, StarName::TaiYang)]);
+    let horoscope = horoscope_with_layer(natal, Scope::Yearly, yearly_life, vec![], vec![]);
+    let ctx = PatternContext::horoscope_with_frame(
+        &horoscope,
+        Scope::Yearly,
+        vec![Scope::Natal, Scope::Yearly],
+    );
+
+    assert_ne!(
+        horoscope.natal().branch_of_palace(iztro::PalaceName::Life),
+        Some(yearly_life)
+    );
+    assert_eq!(
+        effective_branch_of_palace(&ctx, Scope::Yearly, iztro::PalaceName::Life),
+        Some(yearly_life)
+    );
+    assert_eq!(
+        effective_branch_of_palace(&ctx, Scope::Natal, iztro::PalaceName::Life),
+        None
+    );
+    assert!(effective_star_in_palace(&ctx, Scope::Natal, yearly_life, StarName::TaiYang).is_none());
+    assert!(
+        effective_stars_in_san_fang_si_zheng(&ctx, Scope::Natal, yearly_life, &[StarName::TaiYang])
+            .is_empty()
+    );
 }
 
 #[test]

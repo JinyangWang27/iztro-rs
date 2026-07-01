@@ -876,9 +876,9 @@ impl StaticChartApp {
     /// Whether `branch` is in the active palace's prepared 三方四正 set.
     ///
     /// The active palace is the hovered one, falling back to the sticky
-    /// selection (which defaults to the natal 命宫 after generating). Reads the
-    /// prepared [`surround`] field; performs no branch arithmetic. 三方四正 is
-    /// always shown, matching the original iztro chart.
+    /// selection (which defaults to the active-frame 命宫 after generating).
+    /// Reads the prepared [`surround`] field; performs no branch arithmetic.
+    /// 三方四正 is always shown, matching the original iztro chart.
     ///
     /// [`surround`]: iztro::StaticPalaceProjection::surround
     pub fn is_in_san_fang(&self, branch: EarthlyBranch) -> bool {
@@ -984,8 +984,7 @@ impl StaticChartApp {
 
         match self.cache.get_or_build(&input) {
             Ok((snapshot, hit)) => {
-                // Default the active 三方四正 source to the natal 命宫, matching
-                // the original iztro chart's initial state.
+                // Default the active 三方四正 source to the active-frame 命宫.
                 self.selected = PalaceSelection::DefaultActiveLife;
                 self.snapshot = Some(snapshot);
                 // A new birth input invalidates the analysis cache and the natal

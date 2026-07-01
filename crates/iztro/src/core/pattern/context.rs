@@ -37,10 +37,12 @@ impl<'a> PatternContext<'a> {
 
     /// Creates a context over a horoscope chart with the given active scopes.
     ///
-    /// This convenience constructor uses the deepest active scope as the palace
-    /// frame when a strict effective state can be formed. Production analysis
-    /// should use [`PatternContext::horoscope_with_frame`] so the frame scope is
-    /// explicit.
+    /// This compatibility/convenience constructor uses the deepest active scope
+    /// as the palace frame when a strict effective state can be formed.
+    /// Production selected-view analysis should use
+    /// [`PatternContext::horoscope_with_frame`] so the frame scope is explicit.
+    /// If strict effective-state construction fails, effective helpers fail
+    /// closed while source/layer-specific helpers remain available.
     pub fn horoscope(chart: &'a HoroscopeChart, active_scopes: Vec<Scope>) -> Self {
         let frame_scope = active_scopes.last().copied().unwrap_or(Scope::Natal);
         let effective =

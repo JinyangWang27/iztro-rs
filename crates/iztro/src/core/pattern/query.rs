@@ -7,9 +7,9 @@ use crate::core::pattern::context::PatternContext;
 use crate::core::pattern::model::PatternScope;
 use crate::core::pattern::relation::{clamp_branches, san_fang_si_zheng};
 use crate::core::{
-    Brightness, Chart, EarthlyBranch, EffectiveStarRef, FlowStarBase, FlowStarScope, Mutagen,
-    MutagenActivation, PalaceName, Scope, StarKind, StarName, StarPlacement, flow_star_name,
-    try_flow_star_parts,
+    Brightness, Chart, EarthlyBranch, EffectiveChartState, EffectiveStarRef, FlowStarBase,
+    FlowStarScope, Mutagen, MutagenActivation, PalaceName, Scope, StarKind, StarName,
+    StarPlacement, flow_star_name, try_flow_star_parts,
 };
 
 /// A pattern-facing star read with its spatial branch.
@@ -168,12 +168,15 @@ pub fn effective_branch_of_palace(
     match_scope: Scope,
     palace: PalaceName,
 ) -> Option<EarthlyBranch> {
+    effective_state_for_match_scope(ctx, match_scope)?.branch_of_palace(palace)
+}
+
+fn effective_state_for_match_scope<'a, 'ctx>(
+    ctx: &'ctx PatternContext<'a>,
+    match_scope: Scope,
+) -> Option<&'ctx EffectiveChartState<'a>> {
     let state = ctx.effective.as_ref()?;
-    state
-        .active_scopes()
-        .contains(&match_scope)
-        .then(|| state.branch_of_palace(palace))
-        .flatten()
+    (state.palace_frame_scope() == match_scope).then_some(state)
 }
 
 /// Returns whether `stars` all occupy the palace at `branch`.
@@ -213,14 +216,8 @@ pub fn effective_star_in_palace<'a>(
     branch: EarthlyBranch,
     star: StarName,
 ) -> Option<EffectiveStarRef<'a>> {
-    if !ctx
-        .effective
-        .as_ref()
-        .is_some_and(|state| state.active_scopes().contains(&match_scope))
-    {
-        return None;
-    }
-    effective_stars_in_palace(ctx, branch)
+    effective_state_for_match_scope(ctx, match_scope)?
+        .stars_in_palace(branch)
         .into_iter()
         .find(|placement| star_matches_for_scope(match_scope, star, placement.placement().name()))
 }
@@ -355,16 +352,12 @@ pub fn effective_stars_in_san_fang_si_zheng(
     anchor: EarthlyBranch,
     stars: &[StarName],
 ) -> Vec<(StarName, EarthlyBranch)> {
-    if !ctx
-        .effective
-        .as_ref()
-        .is_some_and(|state| state.active_scopes().contains(&match_scope))
-    {
+    let Some(state) = effective_state_for_match_scope(ctx, match_scope) else {
         return Vec::new();
-    }
+    };
     let mut found = Vec::new();
     for branch in san_fang_si_zheng(anchor) {
-        for placement in effective_stars_in_palace(ctx, branch) {
+        for placement in state.stars_in_palace(branch) {
             if stars.iter().any(|star| {
                 star_matches_for_scope(match_scope, *star, placement.placement().name())
             }) {
