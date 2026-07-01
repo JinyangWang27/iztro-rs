@@ -1,12 +1,15 @@
 # 规则引擎
 
-规则引擎把提取后的特征转换成结构化判断。它不应该直接生成最终文章。
+规则引擎把提取后的特征转换成结构化判断与检测结果。它不应该直接生成最终文章。
 
-> **当前启用的具体实现是经典规则引擎**（中文优先的《紫微斗数全书》）。它位于
-> `rules::classical`，是唯一的规则引擎。其实现设计、语料格式与流水线参见
+> 当前已实现的具体规则引擎命名空间是 `rules::pattern` 与 `rules::classical`。
+> `rules::pattern` 把结构性格局识别为 `PatternDetection`；`rules::classical`
+> 是当前启用的出处/判断规则引擎，把古籍或项目自有规则元数据评估为 source hits、
+> 可选 claims 与 diagnostics。其实现设计、语料格式与领域边界参见
 > [`rules/rule-engine.md`](./rules/rule-engine.md)、
-> [`rules/quan-shu-corpus.md`](./rules/quan-shu-corpus.md) 与
-> [ADR 0008](./adr/0008-classical-rule-engine.md)。
+> [`rules/quan-shu-corpus.md`](./rules/quan-shu-corpus.md)、
+> [ADR 0008](./adr/0008-classical-rule-engine.md) 与
+> [ADR 0009](./adr/0009-domain-model-first-principles.md)。
 >
 > 本文余下部分是“特征 → 判断”愿景的**概念性设计词汇**，并非第二套已实现的引擎；
 > 下面的通用条件/效果草案仅为示意——经典引擎刻意采用数据驱动元数据加手写谓词，
