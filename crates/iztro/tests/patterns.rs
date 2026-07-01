@@ -419,6 +419,45 @@ fn ji_yue_tong_liang_incomplete_formation_emits_nothing() {
     assert!(detections.iter().all(|d| d.id != PatternId::JiYueTongLiang));
 }
 
+#[test]
+fn yearly_ji_yue_tong_liang_uses_effective_life_frame_and_natal_stars() {
+    // Natal Life is Zi, but the selected yearly frame relabels Yin as Life.
+    // The four natal stars sit in SFSZ(Yin), so a selected-state detector should
+    // emit for the yearly layer even though there are no yearly flow stars.
+    let natal = build_chart(
+        EarthlyBranch::Zi,
+        &[
+            major(EarthlyBranch::Yin, StarName::TianJi),
+            major(EarthlyBranch::Shen, StarName::TaiYin),
+            major(EarthlyBranch::Wu, StarName::TianTong),
+            major(EarthlyBranch::Xu, StarName::TianLiang),
+        ],
+    );
+    let horoscope = horoscope_with_layer(natal, Scope::Yearly, EarthlyBranch::Yin, vec![], vec![]);
+
+    let detections = iztro::detect_patterns(
+        &PatternContext::horoscope_with_frame(
+            &horoscope,
+            Scope::Yearly,
+            vec![Scope::Natal, Scope::Yearly],
+        ),
+        &request_for_scope(Scope::Yearly),
+    );
+    let detection = detection(&detections, PatternId::JiYueTongLiang);
+
+    assert_eq!(detection.scope, PatternScope::Yearly);
+    assert_eq!(detection.anchor, PatternAnchor::Palace(EarthlyBranch::Yin));
+    assert_eq!(
+        branch_set(&detection.involved_palaces),
+        branch_set(&[
+            EarthlyBranch::Yin,
+            EarthlyBranch::Shen,
+            EarthlyBranch::Wu,
+            EarthlyBranch::Xu,
+        ])
+    );
+}
+
 // ---- 羊陀夹忌 -------------------------------------------------------------
 
 #[test]
@@ -996,6 +1035,55 @@ fn yearly_chang_qu_jia_ming_matches_scope_specific_flow_stars() {
 }
 
 #[test]
+fn yearly_chang_qu_jia_ming_effective_match_can_mix_natal_and_active_overlay_stars() {
+    // The selected yearly Life palace is Zi. Natal WenChang clamps it from Hai,
+    // while the active yearly flow WenQu clamps it from Chou. This is selected
+    // chart-state matching, not same-source matching.
+    let natal = build_chart(
+        EarthlyBranch::Zi,
+        &[soft(EarthlyBranch::Hai, StarName::WenChang)],
+    );
+    let horoscope = horoscope_with_layer(
+        natal,
+        Scope::Yearly,
+        EarthlyBranch::Zi,
+        vec![scoped(
+            EarthlyBranch::Chou,
+            StarName::LiuQu,
+            StarKind::Soft,
+            Scope::Yearly,
+        )],
+        Vec::new(),
+    );
+
+    let detections = iztro::detect_patterns(
+        &PatternContext::horoscope_with_frame(
+            &horoscope,
+            Scope::Yearly,
+            vec![Scope::Natal, Scope::Yearly],
+        ),
+        &request_for_scope(Scope::Yearly),
+    );
+    let detection = detection(&detections, PatternId::ChangQuJiaMing);
+
+    assert_eq!(detection.scope, PatternScope::Yearly);
+    assert_eq!(
+        star_set(&detection.involved_stars),
+        star_set(&[StarName::WenChang, StarName::LiuQu])
+    );
+    assert!(evidence_has_star_in_palace(
+        detection,
+        StarName::WenChang,
+        EarthlyBranch::Hai
+    ));
+    assert!(evidence_has_star_in_palace(
+        detection,
+        StarName::LiuQu,
+        EarthlyBranch::Chou
+    ));
+}
+
+#[test]
 fn monthly_chang_qu_jia_ming_does_not_leak_into_yearly_result() {
     let natal = build_chart(EarthlyBranch::Zi, &[]);
     let monthly = TemporalLayer::try_new_with_palace_layout(
@@ -1031,15 +1119,10 @@ fn monthly_chang_qu_jia_ming_does_not_leak_into_yearly_result() {
     assert!(yearly.iter().all(|d| d.id != PatternId::ChangQuJiaMing));
 
     let monthly = iztro::detect_patterns(
-        &PatternContext::horoscope(
+        &PatternContext::horoscope_with_frame(
             &horoscope,
-            vec![
-                Scope::Natal,
-                Scope::Decadal,
-                Scope::Age,
-                Scope::Yearly,
-                Scope::Monthly,
-            ],
+            Scope::Monthly,
+            vec![Scope::Natal, Scope::Monthly],
         ),
         &request_for_scope(Scope::Monthly),
     );

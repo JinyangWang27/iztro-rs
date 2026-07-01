@@ -7,8 +7,9 @@ use crate::core::pattern::context::PatternContext;
 use crate::core::pattern::model::PatternScope;
 use crate::core::pattern::relation::{clamp_branches, san_fang_si_zheng};
 use crate::core::{
-    Brightness, Chart, EarthlyBranch, FlowStarBase, FlowStarScope, Mutagen, MutagenActivation,
-    PalaceName, Scope, StarKind, StarName, StarPlacement, flow_star_name, try_flow_star_parts,
+    Brightness, Chart, EarthlyBranch, EffectiveStarRef, FlowStarBase, FlowStarScope, Mutagen,
+    MutagenActivation, PalaceName, Scope, StarKind, StarName, StarPlacement, flow_star_name,
+    try_flow_star_parts,
 };
 
 /// A pattern-facing star read with its spatial branch.
@@ -161,6 +162,20 @@ pub fn branch_of_palace_for_scope(
     })
 }
 
+/// Returns the branch occupied by a named palace in the effective palace frame.
+pub fn effective_branch_of_palace(
+    ctx: &PatternContext<'_>,
+    match_scope: Scope,
+    palace: PalaceName,
+) -> Option<EarthlyBranch> {
+    let state = ctx.effective.as_ref()?;
+    state
+        .active_scopes()
+        .contains(&match_scope)
+        .then(|| state.branch_of_palace(palace))
+        .flatten()
+}
+
 /// Returns whether `stars` all occupy the palace at `branch`.
 pub fn palace_has_all_stars(chart: &Chart, branch: EarthlyBranch, stars: &[StarName]) -> bool {
     stars
@@ -178,6 +193,58 @@ pub fn palace_has_all_stars_for_scope(
     stars
         .iter()
         .all(|star| palace_has_star_for_scope(ctx, scope, branch, *star))
+}
+
+/// Returns effective typed star placements in `branch`.
+pub fn effective_stars_in_palace<'a>(
+    ctx: &PatternContext<'a>,
+    branch: EarthlyBranch,
+) -> Vec<EffectiveStarRef<'a>> {
+    ctx.effective
+        .as_ref()
+        .map(|state| state.stars_in_palace(branch))
+        .unwrap_or_default()
+}
+
+/// Returns the actual effective star matching `star` in `branch`.
+pub fn effective_star_in_palace<'a>(
+    ctx: &PatternContext<'a>,
+    match_scope: Scope,
+    branch: EarthlyBranch,
+    star: StarName,
+) -> Option<EffectiveStarRef<'a>> {
+    if !ctx
+        .effective
+        .as_ref()
+        .is_some_and(|state| state.active_scopes().contains(&match_scope))
+    {
+        return None;
+    }
+    effective_stars_in_palace(ctx, branch)
+        .into_iter()
+        .find(|placement| star_matches_for_scope(match_scope, star, placement.placement().name()))
+}
+
+/// Returns whether `star` occupies `branch` in the effective state.
+pub fn effective_palace_has_star(
+    ctx: &PatternContext<'_>,
+    match_scope: Scope,
+    branch: EarthlyBranch,
+    star: StarName,
+) -> bool {
+    effective_star_in_palace(ctx, match_scope, branch, star).is_some()
+}
+
+/// Returns whether every requested star occupies `branch` in the effective state.
+pub fn effective_palace_has_all_stars(
+    ctx: &PatternContext<'_>,
+    match_scope: Scope,
+    branch: EarthlyBranch,
+    stars: &[StarName],
+) -> bool {
+    stars
+        .iter()
+        .all(|star| effective_palace_has_star(ctx, match_scope, branch, *star))
 }
 
 /// Returns the number of major stars in the palace at `branch`.
@@ -281,6 +348,33 @@ pub fn stars_in_san_fang_si_zheng_for_scope(
     found
 }
 
+/// Returns requested stars found within the effective 三方四正 of `anchor`.
+pub fn effective_stars_in_san_fang_si_zheng(
+    ctx: &PatternContext<'_>,
+    match_scope: Scope,
+    anchor: EarthlyBranch,
+    stars: &[StarName],
+) -> Vec<(StarName, EarthlyBranch)> {
+    if !ctx
+        .effective
+        .as_ref()
+        .is_some_and(|state| state.active_scopes().contains(&match_scope))
+    {
+        return Vec::new();
+    }
+    let mut found = Vec::new();
+    for branch in san_fang_si_zheng(anchor) {
+        for placement in effective_stars_in_palace(ctx, branch) {
+            if stars.iter().any(|star| {
+                star_matches_for_scope(match_scope, *star, placement.placement().name())
+            }) {
+                found.push((placement.placement().name(), branch));
+            }
+        }
+    }
+    found
+}
+
 /// Returns the two stars clamping (夹) the palace at `anchor` when `left_star`
 /// and `right_star` occupy its two clamp palaces, one on each side.
 ///
@@ -329,6 +423,37 @@ pub fn clamp_pair_matches_for_scope(
 
     let low_right = star_in_palace_for_scope(ctx, scope, low, right_star);
     let high_left = star_in_palace_for_scope(ctx, scope, high, left_star);
+    if let (Some(low_right), Some(high_left)) = (low_right, high_left) {
+        return Some([
+            (low_right.placement().name(), low),
+            (high_left.placement().name(), high),
+        ]);
+    }
+
+    None
+}
+
+/// Returns a clamp match over the effective state, preserving actual star names.
+pub fn effective_clamp_pair_matches(
+    ctx: &PatternContext<'_>,
+    match_scope: Scope,
+    anchor: EarthlyBranch,
+    left_star: StarName,
+    right_star: StarName,
+) -> Option<[(StarName, EarthlyBranch); 2]> {
+    let [low, high] = clamp_branches(anchor);
+
+    let low_left = effective_star_in_palace(ctx, match_scope, low, left_star);
+    let high_right = effective_star_in_palace(ctx, match_scope, high, right_star);
+    if let (Some(low_left), Some(high_right)) = (low_left, high_right) {
+        return Some([
+            (low_left.placement().name(), low),
+            (high_right.placement().name(), high),
+        ]);
+    }
+
+    let low_right = effective_star_in_palace(ctx, match_scope, low, right_star);
+    let high_left = effective_star_in_palace(ctx, match_scope, high, left_star);
     if let (Some(low_right), Some(high_left)) = (low_right, high_left) {
         return Some([
             (low_right.placement().name(), low),

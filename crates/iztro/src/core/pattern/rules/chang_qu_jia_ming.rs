@@ -10,7 +10,7 @@ use crate::core::pattern::model::{
     PatternStatus, PatternStrength,
 };
 use crate::core::pattern::query::{
-    branch_of_palace_for_scope, clamp_pair_matches_for_scope, pattern_scope_for,
+    effective_branch_of_palace, effective_clamp_pair_matches, pattern_scope_for,
 };
 use crate::core::pattern::relation::PalaceRelation;
 use crate::core::{PalaceName, StarName};
@@ -24,12 +24,12 @@ pub fn detect(
     out: &mut Vec<PatternDetection>,
 ) {
     for &scope in &request.scopes {
-        let Some(anchor) = branch_of_palace_for_scope(ctx, scope, PalaceName::Life) else {
+        let Some(anchor) = effective_branch_of_palace(ctx, scope, PalaceName::Life) else {
             continue;
         };
 
         let Some([(low_star, low_branch), (high_star, high_branch)]) =
-            clamp_pair_matches_for_scope(ctx, scope, anchor, StarName::WenChang, StarName::WenQu)
+            effective_clamp_pair_matches(ctx, scope, anchor, StarName::WenChang, StarName::WenQu)
         else {
             continue;
         };

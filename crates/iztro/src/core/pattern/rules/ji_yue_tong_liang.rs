@@ -12,7 +12,7 @@ use crate::core::pattern::model::{
     PatternStatus, PatternStrength,
 };
 use crate::core::pattern::query::{
-    branch_of_palace_for_scope, pattern_scope_for, stars_in_san_fang_si_zheng_for_scope,
+    effective_branch_of_palace, effective_stars_in_san_fang_si_zheng, pattern_scope_for,
 };
 use crate::core::{EarthlyBranch, PalaceName, StarName};
 
@@ -31,11 +31,11 @@ pub fn detect(
     out: &mut Vec<PatternDetection>,
 ) {
     for &scope in &request.scopes {
-        let Some(anchor) = branch_of_palace_for_scope(ctx, scope, PalaceName::Life) else {
+        let Some(anchor) = effective_branch_of_palace(ctx, scope, PalaceName::Life) else {
             continue;
         };
 
-        let found = stars_in_san_fang_si_zheng_for_scope(ctx, scope, anchor, &REQUIRED);
+        let found = effective_stars_in_san_fang_si_zheng(ctx, scope, anchor, &REQUIRED);
 
         let all_present = REQUIRED
             .iter()
