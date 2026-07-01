@@ -28,6 +28,55 @@ The crate keeps clear internal domain boundaries as modules — `core`,
 `features`, `rules`, `reading`, and `render` — while the stable user-facing
 core API is also re-exported from the crate root.
 
+## Desktop GUI downloads and install
+
+GitHub Releases can provide downloadable builds of the current `iztro-gui`
+desktop prototype. This is a GUI artifact for local chart exploration, not a
+claim that the application surface is production-stable.
+
+GUI release artifacts are published only for tags named `iztro-v*`, for example
+`iztro-v0.9.0`. Merging PRs does not create a GitHub Release, and generic crate
+or library tags such as `v0.9.0` do not publish GUI artifacts.
+
+For normal use, download the archive matching your platform from the latest
+`iztro-v*` GUI GitHub Release:
+
+- `iztro-gui-x86_64-pc-windows-msvc.zip`
+- `iztro-gui-aarch64-apple-darwin.tar.gz`
+- `iztro-gui-x86_64-apple-darwin.tar.gz`
+- `iztro-gui-x86_64-unknown-linux-gnu.tar.gz`
+
+Each archive includes the `iztro-gui` binary, `README.md`, license files, and a
+SHA-256 checksum file next to the archive. These early artifacts contain raw GUI
+executables rather than native installers.
+
+Terminal users can install the Unix/macOS build with the small installer script:
+
+```bash
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/JinyangWang27/iztro-rs/releases/latest/download/iztro-gui-installer.sh | sh
+```
+
+The one-line command executes the downloaded installer directly. For an auditable
+install, download the installer and its `.sha256` file first, verify the checksum,
+then run the script:
+
+```bash
+curl --proto '=https' --tlsv1.2 -LsSfO https://github.com/JinyangWang27/iztro-rs/releases/latest/download/iztro-gui-installer.sh
+curl --proto '=https' --tlsv1.2 -LsSfO https://github.com/JinyangWang27/iztro-rs/releases/latest/download/iztro-gui-installer.sh.sha256
+if command -v sha256sum >/dev/null 2>&1; then
+  sha256sum -c iztro-gui-installer.sh.sha256
+else
+  shasum -a 256 -c iztro-gui-installer.sh.sha256
+fi
+sh iztro-gui-installer.sh
+```
+
+The Unix installer uses `${XDG_BIN_HOME:-$HOME/.local/bin}`.
+
+Command-line/JSON export, package manager distribution, MCP, bindings, signed
+native installers, `.dmg`, `.msi`, Windows installer scripts, and AppImage
+packages are future work and are not included in this release-artifact step.
+
 ## Quick demo
 
 The current supported natal chart fact surface can flow from a typed solar input through `by_solar` into a

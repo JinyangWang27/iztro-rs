@@ -27,6 +27,44 @@ use iztro::{by_solar, Gender, SolarChartRequest};
 
 该 crate 在内部保留清晰的领域边界，并以模块形式实现——`core`、`features`、`rules`、`reading`、`render`——同时把稳定的对外核心 API 也从 crate 根部 re-export。
 
+## 桌面 GUI 下载和安装
+
+GitHub Releases 可以提供当前 `iztro-gui` 桌面原型的可下载构建产物。这是用于本地排盘探索的 GUI artifact，不代表应用层已经达到生产稳定状态。
+
+GUI release artifact 只会在推送 `iztro-v*` 形式的 tag 时发布，例如 `iztro-v0.9.0`。合并 PR 本身不会创建 GitHub Release，普通 crate/library tag（例如 `v0.9.0`）也不会发布 GUI artifact。
+
+普通用户可以优先从最新 `iztro-v*` GUI GitHub Release 直接下载对应平台的压缩包：
+
+- `iztro-gui-x86_64-pc-windows-msvc.zip`
+- `iztro-gui-aarch64-apple-darwin.tar.gz`
+- `iztro-gui-x86_64-apple-darwin.tar.gz`
+- `iztro-gui-x86_64-unknown-linux-gnu.tar.gz`
+
+每个压缩包包含 `iztro-gui` binary、`README.md`、license 文件，并在压缩包旁提供 SHA-256 checksum 文件。这些早期 artifact 包含原始 GUI 可执行文件，而不是原生安装器。
+
+终端用户可以用小型安装脚本安装 Unix/macOS 构建：
+
+```bash
+curl --proto '=https' --tlsv1.2 -LsSf https://github.com/JinyangWang27/iztro-rs/releases/latest/download/iztro-gui-installer.sh | sh
+```
+
+上面的 one-line 命令会直接执行下载的安装脚本。若希望先审计和校验脚本，可以先下载 installer 和对应的 `.sha256` 文件，验证 checksum 后再执行。
+
+```bash
+curl --proto '=https' --tlsv1.2 -LsSfO https://github.com/JinyangWang27/iztro-rs/releases/latest/download/iztro-gui-installer.sh
+curl --proto '=https' --tlsv1.2 -LsSfO https://github.com/JinyangWang27/iztro-rs/releases/latest/download/iztro-gui-installer.sh.sha256
+if command -v sha256sum >/dev/null 2>&1; then
+  sha256sum -c iztro-gui-installer.sh.sha256
+else
+  shasum -a 256 -c iztro-gui-installer.sh.sha256
+fi
+sh iztro-gui-installer.sh
+```
+
+Unix installer 使用 `${XDG_BIN_HOME:-$HOME/.local/bin}`。
+
+命令行/JSON export、包管理器分发、MCP、bindings、签名原生安装器、`.dmg`、`.msi`、Windows installer script 和 AppImage 都是后续工作，不包含在本次 release artifact 步骤中。
+
 ## 快速演示
 
 可运行的纯文本排盘演示：
