@@ -6,7 +6,7 @@
 //!
 //! ```text
 //! Chart facts
-//!   -> predicates (reuse core/pattern query helpers)
+//!   -> predicates (reuse rules::pattern query helpers)
 //!   -> classical rule evaluation
 //!   -> structured Claim[]
 //!   -> [optional] localized rendering via iztro-i18n (claim_key)

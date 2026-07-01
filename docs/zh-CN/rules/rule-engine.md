@@ -12,7 +12,7 @@
 
 ```
 图盘事实
-  -> 特征/查询谓词        （复用 core/pattern 查询助手）
+  -> 特征/查询谓词        （复用 rules::pattern 查询助手）
   -> 经典规则评估          （语料元数据 + 手写谓词）
   -> ClassicalSourceHit[]  （命中的出处/来源记录）
   -> Claim[]               （仅当 rule.claim 存在时产出）
@@ -42,7 +42,7 @@
 
 1. **规则出处/谓词元数据数据驱动**，来自语料 TOML（id、出处、状态、典籍、流派）。
    可选 `[rule.claim]` 保存解释性判断字段（领域、主题、吉凶、基础强度、claim 键）。
-2. **规则谓词手写**于 `predicates.rs`，复用 `core/pattern/` 中只读的图盘查询
+2. **规则谓词手写**于 `predicates.rs`，复用 `rules::pattern::query` 中只读的图盘查询
    助手（夹宫匹配、亮度判定、星曜查找），不重复该逻辑。
 3. 评估器将每条规则的元数据与谓词配对，先构建 `ClassicalSourceHit`；只有
    `rule.claim` 存在时才进一步构建 `Claim`。

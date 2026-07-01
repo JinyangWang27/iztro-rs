@@ -22,16 +22,16 @@
 
 - **元数据数据驱动**，来自中文优先的语料 TOML（`rule-corpus/quan-shu/rules.toml`），
   以 `include_str!` 嵌入。
-- **谓词手写**于 Rust，复用既有 `core/pattern` 查询助手。暂不构建通用规则 DSL。
+- **谓词手写**于 Rust，复用 `rules::pattern::query` 的只读查询助手。暂不构建通用规则 DSL。
 - 规则产出类型化 `Claim`（领域、主题、吉凶、强度、证据、反证、出处引用、稳定的
   `claim_key`）。中文字符串绝不作逻辑键。
 - **保守触发：** 仅在条件于已建模事实上匹配时产出判断。不支持的条件返回类型化的
   `RuleOutcome::Unsupported`，并以可见的 `RuleDiagnostic` 呈现。
 - `iztro` 保持独立于 `iztro-i18n`。本地化标签与判断文案位于 Fluent 资源，按稳定的
   枚举标识取键。
-- 经典引擎是**当前启用的规则引擎**。（更新：当初与之并存的占位 `rules/` 脚手架
-  已被移除；`rules::classical` 现为唯一的规则引擎，`rules::*` 再导出指向经典
-  类型/函数。）
+- 经典引擎是当前启用的出处/判断规则引擎。（更新：当初与之并存的占位 `rules/`
+  脚手架已被移除；格局检测也属于规则引擎代码，现位于 `rules::pattern`；
+  `rules::classical` 仍是 classical claim/source-hit 引擎。）
 
 语料中的枚举值采用 crate 全局统一的 `snake_case` serde 约定（与 `iztro` 其余所有
 枚举一致），使编写的 TOML 与导出的 JSON 共享同一种大小写。

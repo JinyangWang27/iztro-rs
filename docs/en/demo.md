@@ -87,9 +87,10 @@ selected flags, overlays, and palace names. Natal facts remain immutable across
 selections, and disabled cells stay inert.
 
 A collapsible right-side inspector **displays** structured analysis — 全书规则
-(QuanShu classical rules) and 格局 (patterns) — that it requests from core's
-per-layer analysis facade and caches; the GUI itself computes no rule evaluation
-or pattern detection (see [`current-status.md`](current-status.md) for the
+(QuanShu classical rules) and 格局 (patterns) — that it requests from the
+per-layer `analysis` facade and caches; the GUI itself computes no rule
+evaluation or pattern detection. Pattern detection lives in `rules::pattern` as
+rule-engine code (see [`current-status.md`](current-status.md) for the
 inspector's caching model). Beyond surfacing those structured hits and their
 evidence, this GUI remains a prototype chart-fact viewer: it does not generate
 deterministic readings, BaZi interpretation, or narrative output.

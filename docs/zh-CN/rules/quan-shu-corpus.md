@@ -158,7 +158,7 @@ ClaimSpec 的规则只产出 `ClassicalSourceHit` 与结构化证据，用来扩
 
 1. 在 `rules.toml` 中新增 `[[rule]]`，填好上述字段（中文原文必填）。
 2. 若该规则要产出解释性判断，新增 `[rule.claim]`；若只是先记录来源命中，可暂不加。
-3. 若可执行：在 `predicates.rs` 写谓词（尽量复用 `core/pattern` 助手），在评估器中
+3. 若可执行：在 `predicates.rs` 写谓词（尽量复用 `rules::pattern::query` 助手），在评估器中
    接线产出 `ClassicalSourceHit`，并在有 `[rule.claim]` 时产出 `Claim`。
 4. 若新增了 `claim_key`，在 `iztro-i18n` 的 `claims.ftl`（en-US 与 zh-Hans）中补齐
    连字符形式的键及任何新主题/领域键。

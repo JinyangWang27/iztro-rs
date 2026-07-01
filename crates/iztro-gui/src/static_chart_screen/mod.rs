@@ -8,10 +8,11 @@
 //! iztro-style center information block with a compact temporal stepper, 大限/小限
 //! limits and 流年/流月/流日/流时 badges in each palace, and a transparent canvas
 //! overlay drawing the 三方四正 connecting lines. The right inspector renders
-//! cached, structured analysis results (全书规则 / 格局) prepared by the core
-//! analysis API. This module derives nothing: it only reads prepared snapshot
-//! view models and already-computed analysis results — no astrology placement,
-//! 三方四正, mutagen, rule evaluation, pattern detection, or 成格 derivation.
+//! cached, structured analysis results (全书规则 / 格局) prepared by
+//! `iztro::analysis` from `rules::pattern` and `rules::classical`. This module
+//! derives nothing: it only reads prepared snapshot view models and
+//! already-computed analysis results — no astrology placement, 三方四正, mutagen,
+//! rule evaluation, pattern detection, or 成格 derivation.
 //!
 //! [`StaticChartProjection`]: iztro::StaticChartProjection
 

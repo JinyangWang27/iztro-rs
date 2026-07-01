@@ -25,8 +25,8 @@ with a hybrid design:
 
 - **Metadata is data-driven** from a Chinese-first corpus TOML
   (`rule-corpus/quan-shu/rules.toml`), embedded via `include_str!`.
-- **Predicates are hand-coded** in Rust, reusing the existing `core/pattern`
-  query helpers. No generic rule DSL is built yet.
+- **Predicates are hand-coded** in Rust, reusing shared read-only query helpers
+  from `rules::pattern::query`. No generic rule DSL is built yet.
 - Rules emit typed `Claim`s (domain, themes, polarity, strength, evidence,
   counter-evidence, source refs, stable `claim_key`). Chinese strings are never
   used as logic keys.
@@ -35,10 +35,11 @@ with a hybrid design:
   `RuleOutcome::Unsupported`, surfaced as a visible `RuleDiagnostic`.
 - `iztro` stays independent of `iztro-i18n`. Localized labels and claim text live
   in Fluent resources, keyed off stable enum identity.
-- The classical engine is the **active rule engine**. (Update: the placeholder
-  `rules/` scaffold it originally coexisted with has since been removed.
-  `rules::classical` is now the sole rule engine, and the `rules::*` re-exports
-  point at the classical types/functions.)
+- The classical engine is the active source/claim rule engine. (Update: the
+  placeholder `rules/` scaffold it originally coexisted with has since been
+  removed. Pattern detection is also rule-engine code and now lives under
+  `rules::pattern`; `rules::classical` remains the classical claim/source-hit
+  engine.)
 
 Corpus enum values use the crate-wide `snake_case` serde convention (consistent
 with every other enum in `iztro`), so authored TOML and exported JSON share one

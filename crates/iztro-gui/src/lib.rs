@@ -2,9 +2,10 @@
 //! snapshot. The crate consumes [`StaticChartProjection`] read models and
 //! renders them; it derives no astrology facts itself — no star placement, rule
 //! evaluation, pattern detection, or 成格 logic. The right inspector's rule and
-//! pattern data comes from the core analysis API ([`iztro::analysis`]): app
-//! state *requests* structured, per-layer [`AnalysisLayerResult`]s and caches
-//! them, while the renderer only displays already-computed values.
+//! pattern data comes from the layer analysis API ([`iztro::analysis`]), which
+//! composes `rules::pattern` and `rules::classical`: app state *requests*
+//! structured, per-layer [`AnalysisLayerResult`]s and caches them, while the
+//! renderer only displays already-computed values.
 //!
 //! [`StaticChartProjection`]: iztro::StaticChartProjection
 //! [`AnalysisLayerResult`]: iztro::analysis::AnalysisLayerResult
