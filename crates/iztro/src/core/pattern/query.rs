@@ -2,6 +2,28 @@
 //!
 //! These helpers borrow chart facts and never mutate them. They centralize
 //! common lookups so individual rules stay small and consistent.
+//!
+//! # Two helper families
+//!
+//! The helpers split into two intentionally distinct families. Picking the
+//! wrong one is the class of mistake that PR #145 fixed, so the distinction is
+//! load-bearing:
+//!
+//! - **Selected-state helpers** (`selected_*`) read the selected
+//!   [`EffectiveChartState`]: the selected palace frame plus the active fact
+//!   stack (natal facts under the active temporal overlays). These are the
+//!   **default** for ordinary formation rules — a natal support star that falls
+//!   inside a temporal frame's 三方四正 is visible here.
+//! - **Source/layer-specific helpers** (`*_for_scope`, and their `source_*`
+//!   aliases) read facts from **one** source scope/layer only. They are for
+//!   explicitly source-bound flow-star, mutagen, or cross-scope rules — never a
+//!   substitute for a selected-state query. A `Scope::Yearly` query sees only
+//!   Yearly-layer facts, not natal support stars projected into the Yearly
+//!   frame.
+//!
+//! The natal-only free functions (e.g. [`stars_in_palace`], [`palace_has_star`])
+//! take a bare [`Chart`] and read natal facts directly; they predate the
+//! effective-state model and remain for natal rules.
 
 use crate::core::pattern::context::PatternContext;
 use crate::core::pattern::model::PatternScope;
@@ -68,6 +90,10 @@ pub fn stars_in_palace(chart: &Chart, branch: EarthlyBranch) -> Vec<&StarPlaceme
 }
 
 /// Returns typed star placements in `branch` for the requested scope.
+///
+/// Source/layer-specific: reads facts from `scope`'s layer only (or natal facts
+/// for [`Scope::Natal`]). This is **not** a selected-state query — use
+/// [`selected_stars_in_palace`] for ordinary formation rules.
 pub fn stars_in_palace_for_scope<'a>(
     ctx: &PatternContext<'a>,
     scope: Scope,
@@ -103,6 +129,18 @@ pub fn stars_in_palace_for_scope<'a>(
         .collect()
 }
 
+/// Source/layer-specific alias for [`stars_in_palace_for_scope`].
+///
+/// Reads facts from `scope`'s layer only. Prefer this `source_*` name in new
+/// source-bound rules to make the single-layer intent explicit.
+pub fn source_stars_in_palace<'a>(
+    ctx: &PatternContext<'a>,
+    scope: Scope,
+    branch: EarthlyBranch,
+) -> Vec<ScopedPatternStarRef<'a>> {
+    stars_in_palace_for_scope(ctx, scope, branch)
+}
+
 /// Returns whether `star` occupies the palace at `branch`.
 pub fn palace_has_star(chart: &Chart, branch: EarthlyBranch, star: StarName) -> bool {
     stars_in_palace(chart, branch)
@@ -121,6 +159,9 @@ pub fn palace_has_star_for_scope(
 }
 
 /// Returns the actual placement matching `star` in `branch` and `scope`.
+///
+/// Source/layer-specific: reads `scope`'s layer only, not the selected effective
+/// state. Use [`selected_star_in_palace`] for ordinary formation rules.
 pub fn star_in_palace_for_scope<'a>(
     ctx: &PatternContext<'a>,
     scope: Scope,
@@ -132,12 +173,25 @@ pub fn star_in_palace_for_scope<'a>(
         .find(|placement| star_matches_for_scope(scope, star, placement.placement().name()))
 }
 
+/// Source/layer-specific alias for [`star_in_palace_for_scope`].
+pub fn source_star_in_palace<'a>(
+    ctx: &PatternContext<'a>,
+    scope: Scope,
+    branch: EarthlyBranch,
+    star: StarName,
+) -> Option<ScopedPatternStarRef<'a>> {
+    star_in_palace_for_scope(ctx, scope, branch, star)
+}
+
 /// Returns the branch occupied by a named palace, if present.
 pub fn branch_of_palace(chart: &Chart, palace: PalaceName) -> Option<EarthlyBranch> {
     chart.branch_of_palace(palace)
 }
 
 /// Returns the branch occupied by a named palace in `scope`, if present.
+///
+/// Source/layer-specific: resolves the palace name against `scope`'s own frame
+/// only. For the selected palace frame use [`selected_branch_of_palace`].
 pub fn branch_of_palace_for_scope(
     ctx: &PatternContext<'_>,
     scope: Scope,
@@ -164,6 +218,15 @@ pub fn branch_of_palace_for_scope(
         })
 }
 
+/// Source/layer-specific alias for [`branch_of_palace_for_scope`].
+pub fn source_branch_of_palace(
+    ctx: &PatternContext<'_>,
+    scope: Scope,
+    palace: PalaceName,
+) -> Option<EarthlyBranch> {
+    branch_of_palace_for_scope(ctx, scope, palace)
+}
+
 /// Returns the branch occupied by a named palace in the effective palace frame.
 pub fn effective_branch_of_palace(
     ctx: &PatternContext<'_>,
@@ -182,6 +245,9 @@ pub fn selected_frame_scope(ctx: &PatternContext<'_>) -> Option<Scope> {
 }
 
 /// Returns the branch occupied by a named palace in the selected frame.
+///
+/// Selected-state: reads the selected [`EffectiveChartState`] (selected palace
+/// frame + active fact stack). Default for ordinary formation rules.
 pub fn selected_branch_of_palace(
     ctx: &PatternContext<'_>,
     palace: PalaceName,
@@ -227,6 +293,9 @@ pub fn effective_stars_in_palace<'a>(
 }
 
 /// Returns effective typed star placements in `branch` for the selected frame.
+///
+/// Selected-state: reads the selected [`EffectiveChartState`]. Default for
+/// ordinary formation rules.
 pub fn selected_stars_in_palace<'a>(
     ctx: &PatternContext<'a>,
     branch: EarthlyBranch,
@@ -251,6 +320,9 @@ pub fn effective_star_in_palace<'a>(
 
 /// Returns the actual effective star matching `star` in `branch` for the
 /// selected frame.
+///
+/// Selected-state: reads the selected [`EffectiveChartState`]. Default for
+/// ordinary formation rules.
 pub fn selected_star_in_palace<'a>(
     ctx: &PatternContext<'a>,
     branch: EarthlyBranch,
@@ -275,6 +347,8 @@ pub fn effective_palace_has_star(
 }
 
 /// Returns whether `star` occupies `branch` in the selected frame.
+///
+/// Selected-state: reads the selected [`EffectiveChartState`].
 pub fn selected_palace_has_star(
     ctx: &PatternContext<'_>,
     branch: EarthlyBranch,
@@ -296,6 +370,8 @@ pub fn effective_palace_has_all_stars(
 }
 
 /// Returns whether every requested star occupies `branch` in the selected frame.
+///
+/// Selected-state: reads the selected [`EffectiveChartState`].
 pub fn selected_palace_has_all_stars(
     ctx: &PatternContext<'_>,
     branch: EarthlyBranch,
@@ -327,6 +403,8 @@ pub fn major_star_count_in_palace_for_scope(
 }
 
 /// Returns the number of major stars in `branch` for the selected frame.
+///
+/// Selected-state: reads the selected [`EffectiveChartState`].
 pub fn selected_major_star_count_in_palace(
     ctx: &PatternContext<'_>,
     branch: EarthlyBranch,
@@ -398,6 +476,11 @@ pub fn stars_in_san_fang_si_zheng(
 }
 
 /// Returns requested stars found within the 三方四正 of `anchor` in `scope`.
+///
+/// Source/layer-specific: only stars in `scope`'s layer are considered. A natal
+/// support star projected into a temporal frame's 三方四正 is **not** seen here —
+/// use [`selected_stars_in_san_fang_si_zheng`] for that. This mismatch is the
+/// exact distinction that PR #145 fixed.
 pub fn stars_in_san_fang_si_zheng_for_scope(
     ctx: &PatternContext<'_>,
     scope: Scope,
@@ -416,6 +499,16 @@ pub fn stars_in_san_fang_si_zheng_for_scope(
         }
     }
     found
+}
+
+/// Source/layer-specific alias for [`stars_in_san_fang_si_zheng_for_scope`].
+pub fn source_stars_in_san_fang_si_zheng(
+    ctx: &PatternContext<'_>,
+    scope: Scope,
+    anchor: EarthlyBranch,
+    stars: &[StarName],
+) -> Vec<(StarName, EarthlyBranch)> {
+    stars_in_san_fang_si_zheng_for_scope(ctx, scope, anchor, stars)
 }
 
 /// Returns requested stars found within the effective 三方四正 of `anchor`.
@@ -442,6 +535,10 @@ pub fn effective_stars_in_san_fang_si_zheng(
 }
 
 /// Returns requested stars found within the selected 三方四正 of `anchor`.
+///
+/// Selected-state: reads the selected [`EffectiveChartState`], so natal support
+/// stars projected into the selected frame's 三方四正 are visible. Default for
+/// ordinary formation rules.
 pub fn selected_stars_in_san_fang_si_zheng(
     ctx: &PatternContext<'_>,
     anchor: EarthlyBranch,
@@ -492,6 +589,9 @@ pub fn clamp_pair_matches(
 }
 
 /// Returns a same-scope clamp match, preserving actual matched star names.
+///
+/// Source/layer-specific: both clamp palaces are read from `scope`'s layer only.
+/// For the selected frame use [`selected_clamp_pair_matches`].
 pub fn clamp_pair_matches_for_scope(
     ctx: &PatternContext<'_>,
     scope: Scope,
@@ -520,6 +620,17 @@ pub fn clamp_pair_matches_for_scope(
     }
 
     None
+}
+
+/// Source/layer-specific alias for [`clamp_pair_matches_for_scope`].
+pub fn source_clamp_pair_matches(
+    ctx: &PatternContext<'_>,
+    scope: Scope,
+    anchor: EarthlyBranch,
+    left_star: StarName,
+    right_star: StarName,
+) -> Option<[(StarName, EarthlyBranch); 2]> {
+    clamp_pair_matches_for_scope(ctx, scope, anchor, left_star, right_star)
 }
 
 /// Returns a clamp match over the effective state, preserving actual star names.
@@ -554,6 +665,9 @@ pub fn effective_clamp_pair_matches(
 }
 
 /// Returns a selected-frame clamp match, preserving actual matched star names.
+///
+/// Selected-state: both clamp palaces are read from the selected
+/// [`EffectiveChartState`]. Default for ordinary formation rules.
 pub fn selected_clamp_pair_matches(
     ctx: &PatternContext<'_>,
     anchor: EarthlyBranch,
@@ -665,6 +779,11 @@ pub fn modeled_void_star_in_palace_for_scope(
 }
 
 /// Returns temporal mutagen activations for `scope`.
+///
+/// Source/layer-specific: returns activations from `scope`'s layer only (empty
+/// for [`Scope::Natal`], which carries no temporal mutagen layer). This is a
+/// source-bound helper, not a selected-state query; selected-state mutagen
+/// support is read from the effective state's activation stack.
 pub fn mutagen_activations_for_scope<'a>(
     ctx: &PatternContext<'a>,
     scope: Scope,
@@ -679,6 +798,14 @@ pub fn mutagen_activations_for_scope<'a>(
         .layers_in_scope(scope)
         .flat_map(|layer| layer.activations())
         .collect()
+}
+
+/// Source/layer-specific alias for [`mutagen_activations_for_scope`].
+pub fn source_mutagen_activations<'a>(
+    ctx: &PatternContext<'a>,
+    scope: Scope,
+) -> Vec<&'a MutagenActivation> {
+    mutagen_activations_for_scope(ctx, scope)
 }
 
 /// Returns whether `scope` activates `mutagen` on `star` at `branch`.
