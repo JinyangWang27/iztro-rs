@@ -133,13 +133,12 @@ pub fn evaluate_classical_in_context(
     ctx: &ClassicalRuleContext<'_>,
     request: &ClaimEvaluationRequest,
 ) -> ClaimEvaluation {
-    let chart = ctx.chart();
     let mut claims = Vec::new();
     let mut source_hits = Vec::new();
     let mut diagnostics = Vec::new();
 
     for rule in classical_rules() {
-        match evaluator::evaluate(rule, chart) {
+        match evaluator::evaluate_in_context(rule, ctx) {
             RuleOutcome::Matched { source_hit, claim } => {
                 source_hits.push(*source_hit);
                 if let Some(claim) = claim {

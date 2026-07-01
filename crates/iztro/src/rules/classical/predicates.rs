@@ -1,16 +1,20 @@
 //! Hand-coded predicates for the pilot classical rules.
 //!
-//! These reuse the read-only chart query helpers from [`crate::rules::pattern`]
+//! These reuse the read-only chart query helpers from [`crate::rules::query`]
 //! (clamp matching, brightness classification, star lookup) so the classical rule
 //! engine introduces no second copy of that logic. Each predicate returns the
 //! typed facts a rule needs to build machine-readable evidence; it never builds a
 //! claim or any prose.
 
 use crate::core::{
-    Brightness, Chart, EarthlyBranch, StarName, StarTag, StarTagStrength, star_tag_strength,
+    Brightness, Chart, EarthlyBranch, PalaceName, RuleEvaluationContext, StarName, StarTag,
+    StarTagStrength, star_tag_strength,
 };
 use crate::rules::classical::void::{VoidKind, VoidPolicy};
-use crate::rules::pattern::query::{clamp_pair_matches, find_star_branch, is_dim, stars_in_palace};
+use crate::rules::query::{
+    clamp_pair_matches, find_star_branch, is_dim, selected_branch_of_palace,
+    selected_clamp_pair_matches, stars_in_palace,
+};
 
 /// 天马 sharing a palace with a modeled 空亡-family star.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -82,6 +86,21 @@ pub struct LifeClamp {
 pub fn stars_clamp_life(chart: &Chart, a: StarName, b: StarName) -> Option<LifeClamp> {
     let life_branch = chart.life_palace()?.branch();
     let [low, high] = clamp_pair_matches(chart, life_branch, a, b)?;
+    Some(LifeClamp {
+        life_branch,
+        low,
+        high,
+    })
+}
+
+/// Returns the selected-state clamp fact for the Life palace, if present.
+pub fn selected_stars_clamp_life(
+    ctx: &RuleEvaluationContext<'_>,
+    a: StarName,
+    b: StarName,
+) -> Option<LifeClamp> {
+    let life_branch = selected_branch_of_palace(ctx, PalaceName::Life)?;
+    let [low, high] = selected_clamp_pair_matches(ctx, life_branch, a, b)?;
     Some(LifeClamp {
         life_branch,
         low,

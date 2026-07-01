@@ -6,13 +6,16 @@
 
 use iztro::rules::classical::{
     Claim, ClaimDomain, ClaimEvaluationRequest, ClaimId, ClaimPolarity, ClaimScope, ClaimSpec,
-    ClaimTheme, ClassicalRule, ClassicalRuleId, ClassicalSourceHit, ClassicalWork, DiagnosticMode,
-    Evidence, EvidenceKind, RuleStatus, UnsupportedReason, VoidKind, VoidPolicy, classical_rules,
-    evaluate_classical, evaluate_classical_claims, pattern_rules, quan_shu_rules, rule_by_id,
+    ClaimTheme, ClassicalRule, ClassicalRuleContext, ClassicalRuleId, ClassicalSourceHit,
+    ClassicalWork, DiagnosticMode, Evidence, EvidenceKind, RuleStatus, UnsupportedReason, VoidKind,
+    VoidPolicy, classical_rules, evaluate_classical, evaluate_classical_claims,
+    evaluate_classical_in_context, pattern_rules, quan_shu_rules, rule_by_id,
 };
 use iztro::{
-    BirthContext, Brightness, CalendarDate, Chart, EarthlyBranch, Gender, HeavenlyStem, Mutagen,
-    PALACE_NAMES, Palace, Scope, StarKind, StarName, StarPlacement, StemBranch,
+    BirthContext, Brightness, CalendarDate, Chart, EarthlyBranch, Gender, HeavenlyStem,
+    HoroscopeChart, Mutagen, PALACE_NAMES, Palace, Scope, ScopedStarPlacement, StarKind, StarName,
+    StarPlacement, StemBranch, TemporalContext, TemporalLayer, TemporalPalaceLayout,
+    TemporalPalaceName,
 };
 
 // ---- synthetic chart builders --------------------------------------------
@@ -112,6 +115,83 @@ fn adj(branch: EarthlyBranch, star: StarName) -> Spec {
 
 fn tian_ma(branch: EarthlyBranch) -> Spec {
     (branch, StarName::TianMa, StarKind::TianMa, None)
+}
+
+fn temporal_context(scope: Scope) -> TemporalContext {
+    let stem_branch =
+        StemBranch::try_new(HeavenlyStem::Jia, EarthlyBranch::Zi).expect("valid stem-branch");
+    match scope {
+        Scope::Age => TemporalContext::Age {
+            stem_branch,
+            nominal_age: 37,
+        },
+        Scope::Decadal => TemporalContext::Decadal {
+            stem_branch,
+            start_age: 34,
+        },
+        Scope::Yearly => TemporalContext::Yearly {
+            stem_branch,
+            lunar_year: 2026,
+        },
+        Scope::Monthly => TemporalContext::Monthly {
+            stem_branch,
+            lunar_month: 5,
+        },
+        Scope::Daily => TemporalContext::Daily {
+            stem_branch,
+            lunar_day: 17,
+        },
+        Scope::Hourly => TemporalContext::Hourly { stem_branch },
+        Scope::Natal => panic!("temporal context cannot be natal"),
+    }
+}
+
+fn temporal_palace_layout(scope: Scope, life_branch: EarthlyBranch) -> TemporalPalaceLayout {
+    let names = PALACE_NAMES
+        .iter()
+        .enumerate()
+        .map(|(index, name)| TemporalPalaceName::new(life_branch.offset(index as isize), *name))
+        .collect();
+    TemporalPalaceLayout::try_new(scope, names).expect("valid temporal palace layout")
+}
+
+fn scoped(
+    branch: EarthlyBranch,
+    star: StarName,
+    kind: StarKind,
+    scope: Scope,
+) -> ScopedStarPlacement {
+    ScopedStarPlacement::new(
+        branch,
+        StarPlacement::new(star, kind, Brightness::Unknown, None, scope),
+    )
+}
+
+fn temporal_layer(
+    scope: Scope,
+    life_branch: EarthlyBranch,
+    placements: Vec<ScopedStarPlacement>,
+) -> TemporalLayer {
+    TemporalLayer::try_new_with_palace_layout(
+        scope,
+        temporal_context(scope),
+        placements,
+        Vec::new(),
+        Some(temporal_palace_layout(scope, life_branch)),
+    )
+    .expect("valid temporal layer")
+}
+
+fn horoscope_with_layer(
+    natal: Chart,
+    scope: Scope,
+    temporal_life_branch: EarthlyBranch,
+    placements: Vec<ScopedStarPlacement>,
+) -> HoroscopeChart {
+    HoroscopeChart::with_layers(
+        natal,
+        vec![temporal_layer(scope, temporal_life_branch, placements)],
+    )
 }
 
 fn claim_ids(claims: &[Claim]) -> Vec<String> {
@@ -624,6 +704,174 @@ fn chang_qu_clamp_life_positive_emits_claim_with_pattern_shape_evidence() {
             pattern: iztro::PatternId::ChangQuJiaMing
         }
     )));
+}
+
+#[test]
+fn chang_qu_clamp_life_natal_context_matches_legacy_natal_evaluation() {
+    let chart = build_chart(
+        EarthlyBranch::Zi,
+        &[
+            soft(EarthlyBranch::Hai, StarName::WenChang),
+            soft(EarthlyBranch::Chou, StarName::WenQu),
+        ],
+    );
+    let request = ClaimEvaluationRequest {
+        rule_ids: vec![ClassicalRuleId::new(CHANG_QU)],
+        ..Default::default()
+    };
+
+    let legacy = evaluate_classical(&chart, &request);
+    let contextual = evaluate_classical_in_context(&ClassicalRuleContext::natal(&chart), &request);
+
+    assert_eq!(contextual.claims, legacy.claims);
+    assert_eq!(contextual.source_hits, legacy.source_hits);
+    let source_hit = contextual
+        .source_hits
+        .iter()
+        .find(|hit| hit.rule_id.as_str() == CHANG_QU)
+        .expect("expected natal 昌曲夹命 source hit");
+    assert_eq!(source_hit.scope, ClaimScope::Natal);
+}
+
+#[test]
+fn chang_qu_clamp_life_yearly_context_emits_yearly_source_hit() {
+    let natal = build_chart(
+        EarthlyBranch::Zi,
+        &[soft(EarthlyBranch::Hai, StarName::WenChang)],
+    );
+    let horoscope = horoscope_with_layer(
+        natal,
+        Scope::Yearly,
+        EarthlyBranch::Zi,
+        vec![scoped(
+            EarthlyBranch::Chou,
+            StarName::LiuQu,
+            StarKind::Soft,
+            Scope::Yearly,
+        )],
+    );
+    let ctx = ClassicalRuleContext::horoscope_with_frame(
+        &horoscope,
+        Scope::Yearly,
+        vec![Scope::Natal, Scope::Yearly],
+    );
+    let request = ClaimEvaluationRequest {
+        rule_ids: vec![ClassicalRuleId::new(CHANG_QU)],
+        scopes: vec![ClaimScope::Yearly],
+        ..Default::default()
+    };
+
+    let evaluation = evaluate_classical_in_context(&ctx, &request);
+    let source_hit = evaluation
+        .source_hits
+        .iter()
+        .find(|hit| hit.rule_id.as_str() == CHANG_QU)
+        .expect("expected yearly 昌曲夹命 source hit");
+
+    assert_eq!(source_hit.scope, ClaimScope::Yearly);
+    assert_eq!(source_hit.work, ClassicalWork::IztroPatternCatalog);
+    assert_eq!(source_hit.source_id, "pattern.chang_qu_jia_ming");
+    assert_eq!(source_hit.source_text_zh_hans, "昌曲夹命，主贵显");
+    assert!(source_hit.evidence.iter().any(|e| matches!(
+        e.kind(),
+        EvidenceKind::StarClampsPalace {
+            star: StarName::WenChang,
+            clamp_branch: EarthlyBranch::Hai,
+            target_branch: EarthlyBranch::Zi
+        }
+    )));
+    assert!(source_hit.evidence.iter().any(|e| matches!(
+        e.kind(),
+        EvidenceKind::StarClampsPalace {
+            star: StarName::LiuQu,
+            clamp_branch: EarthlyBranch::Chou,
+            target_branch: EarthlyBranch::Zi
+        }
+    )));
+}
+
+#[test]
+fn chang_qu_clamp_life_yearly_context_fails_closed_without_selected_clamp() {
+    let natal = build_chart(
+        EarthlyBranch::Zi,
+        &[soft(EarthlyBranch::Hai, StarName::WenChang)],
+    );
+    let horoscope = horoscope_with_layer(
+        natal,
+        Scope::Yearly,
+        EarthlyBranch::Zi,
+        vec![scoped(
+            EarthlyBranch::Wu,
+            StarName::LiuQu,
+            StarKind::Soft,
+            Scope::Yearly,
+        )],
+    );
+    let ctx = ClassicalRuleContext::horoscope_with_frame(
+        &horoscope,
+        Scope::Yearly,
+        vec![Scope::Natal, Scope::Yearly],
+    );
+    let request = ClaimEvaluationRequest {
+        rule_ids: vec![ClassicalRuleId::new(CHANG_QU)],
+        scopes: vec![ClaimScope::Yearly],
+        ..Default::default()
+    };
+
+    let evaluation = evaluate_classical_in_context(&ctx, &request);
+
+    assert!(
+        evaluation
+            .source_hits
+            .iter()
+            .all(|hit| hit.rule_id.as_str() != CHANG_QU)
+    );
+}
+
+#[test]
+fn chang_qu_clamp_life_yearly_context_does_not_see_monthly_descendant_facts() {
+    let natal = build_chart(EarthlyBranch::Zi, &[]);
+    let yearly = temporal_layer(Scope::Yearly, EarthlyBranch::Zi, Vec::new());
+    let monthly = temporal_layer(
+        Scope::Monthly,
+        EarthlyBranch::Zi,
+        vec![
+            scoped(
+                EarthlyBranch::Hai,
+                StarName::YueChang,
+                StarKind::Soft,
+                Scope::Monthly,
+            ),
+            scoped(
+                EarthlyBranch::Chou,
+                StarName::YueQu,
+                StarKind::Soft,
+                Scope::Monthly,
+            ),
+        ],
+    );
+    let horoscope = HoroscopeChart::with_layers(natal, vec![yearly, monthly]);
+    let active_scopes = vec![Scope::Natal, Scope::Yearly];
+    let ctx = ClassicalRuleContext::horoscope_with_frame(
+        &horoscope,
+        Scope::Yearly,
+        active_scopes.clone(),
+    );
+    let request = ClaimEvaluationRequest {
+        rule_ids: vec![ClassicalRuleId::new(CHANG_QU)],
+        scopes: vec![ClaimScope::Yearly],
+        ..Default::default()
+    };
+
+    assert!(!active_scopes.contains(&Scope::Monthly));
+    assert!(!active_scopes.contains(&Scope::Daily));
+    let evaluation = evaluate_classical_in_context(&ctx, &request);
+    assert!(
+        evaluation
+            .source_hits
+            .iter()
+            .all(|hit| hit.rule_id.as_str() != CHANG_QU)
+    );
 }
 
 #[test]

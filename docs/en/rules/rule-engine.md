@@ -14,7 +14,7 @@ the classical claim model.
 
 ```
 Chart facts
-  -> feature/query predicates        (reuse rules::pattern query helpers)
+  -> feature/query predicates        (reuse shared rules::query helpers)
   -> classical rule evaluation       (corpus metadata + hand-coded predicates)
   -> ClassicalSourceHit[]            (matched source/provenance)
   -> Claim[]                         (only when rule.claim exists)
@@ -47,8 +47,9 @@ This is intentionally **not** a generic rule DSL yet:
    Optional `[rule.claim]` metadata holds interpretation fields (domain, themes,
    polarity, base strength, claim key).
 2. **Rule predicates are hand-coded** in `predicates.rs`, reusing read-only
-   chart query helpers from `rules::pattern::query` (clamp matching, brightness
-   classification, star lookup) — no second copy of that logic.
+   chart query helpers from `rules::query` (clamp matching, brightness
+   classification, star lookup). Pattern-specific query wrappers remain under
+   `rules::pattern::query`.
 3. The evaluator module pairs each rule’s metadata with its predicate and
    build a `ClassicalSourceHit`; they build a `Claim` only when `rule.claim`
    exists.
