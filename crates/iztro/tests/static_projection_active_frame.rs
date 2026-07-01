@@ -86,6 +86,43 @@ fn active_life_branch(projection: &StaticChartProjection) -> EarthlyBranch {
     life[0].branch
 }
 
+#[test]
+fn projection_exposes_active_life_branch_helper() {
+    let natal = by_solar(spec_request()).unwrap();
+    let natal_projection = StaticChartProjection::from_chart(&natal);
+    assert_eq!(
+        natal_projection.active_life_branch(),
+        natal_life_branch(),
+        "natal projection helper returns the natal Life palace"
+    );
+
+    let pre_decadal = static_temporal_chart_view(
+        spec_request(),
+        StaticTemporalNavigationSelection::PreDecadal,
+    )
+    .unwrap();
+    assert_eq!(
+        pre_decadal.active_life_branch(),
+        natal_life_branch(),
+        "pre-decadal projection still uses the natal frame"
+    );
+
+    for scope in [
+        Scope::Decadal,
+        Scope::Yearly,
+        Scope::Monthly,
+        Scope::Daily,
+        Scope::Hourly,
+    ] {
+        let projection = static_temporal_chart_view(spec_request(), selection_for(scope)).unwrap();
+        assert_eq!(
+            projection.active_life_branch(),
+            active_life_branch(&projection),
+            "{scope:?} projection helper returns the active-frame Life palace"
+        );
+    }
+}
+
 /// The single natal-identity Life-palace branch in a projection.
 fn natal_identity_life_branch(projection: &StaticChartProjection) -> EarthlyBranch {
     let life: Vec<&_> = projection
