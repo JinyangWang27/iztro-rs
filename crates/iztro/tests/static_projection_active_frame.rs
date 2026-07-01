@@ -8,10 +8,10 @@
 use iztro::core::pattern::query::branch_of_palace_for_scope;
 use iztro::core::{EarthlyBranch, PalaceName, Scope};
 use iztro::{
-    BirthTime, ChartAlgorithmKind, DecadalHoroscopeInput, Gender, MethodProfile, PatternContext,
-    SolarChartRequest, SolarDay, SolarMonth, StaticChartProjection, StaticChartProjectionRequest,
-    StaticTemporalNavigationSelection, build_decadal_horoscope_chart, by_solar,
-    static_temporal_chart_view,
+    BirthTime, ChartAlgorithmKind, ChartError, DecadalHoroscopeInput, Gender, HoroscopeChart,
+    MethodProfile, PatternContext, SolarChartRequest, SolarDay, SolarMonth, StaticChartProjection,
+    StaticChartProjectionRequest, StaticTemporalNavigationSelection, build_decadal_horoscope_chart,
+    by_solar, static_temporal_chart_view,
 };
 
 /// The spec reference birth data: solar 1993-05-27, 酉 hour (timeIndex 9), male.
@@ -231,10 +231,33 @@ fn projection_active_life_matches_scope_aware_query_not_natal_lookup() {
 
 #[test]
 fn missing_active_frame_layer_fails_loudly() {
-    // A natal chart with no temporal layers cannot satisfy a non-natal active
-    // frame: resolution must error rather than fall back to natal names.
+    // A visible non-natal active frame with no matching temporal layer must error
+    // rather than fall back to natal names.
     let natal = by_solar(spec_request()).unwrap();
-    let horoscope = iztro::HoroscopeChart::new(natal);
+    let horoscope = HoroscopeChart::new(natal);
+    let result = StaticChartProjection::from_horoscope_chart_with(
+        &horoscope,
+        &StaticChartProjectionRequest {
+            visible_scopes: vec![Scope::Natal, Scope::Decadal],
+            active_frame_scope: Scope::Decadal,
+        },
+    );
+    assert_eq!(
+        result,
+        Err(ChartError::MissingHoroscopeLayer {
+            scope: Scope::Decadal,
+        }),
+    );
+}
+
+#[test]
+fn active_frame_scope_must_be_visible() {
+    // A non-natal active frame that is not requested as visible is rejected: the
+    // projection refuses to title palaces from a frame the request does not also
+    // mark visible, rather than silently adding the scope.
+    let natal = by_solar(spec_request()).unwrap();
+    let horoscope =
+        build_decadal_horoscope_chart(natal, DecadalHoroscopeInput { period_index: 1 }).unwrap();
     let result = StaticChartProjection::from_horoscope_chart_with(
         &horoscope,
         &StaticChartProjectionRequest {
@@ -242,8 +265,44 @@ fn missing_active_frame_layer_fails_loudly() {
             active_frame_scope: Scope::Decadal,
         },
     );
-    assert!(
-        result.is_err(),
-        "a non-natal active frame with no matching layer must fail loudly",
+    assert_eq!(
+        result,
+        Err(ChartError::ActiveFrameScopeNotVisible {
+            scope: Scope::Decadal,
+        }),
+    );
+}
+
+#[test]
+fn duplicate_active_frame_layers_fail_loudly() {
+    // Two temporal layers of the same active scope make the active frame
+    // ambiguous, so resolution fails loudly instead of picking the first.
+    let natal = by_solar(spec_request()).unwrap();
+    let decadal =
+        build_decadal_horoscope_chart(natal.clone(), DecadalHoroscopeInput { period_index: 1 })
+            .unwrap();
+    let decadal_layer = decadal
+        .layers()
+        .iter()
+        .find(|layer| layer.scope() == Scope::Decadal)
+        .expect("decadal horoscope carries a decadal layer")
+        .clone();
+
+    let mut horoscope = HoroscopeChart::new(natal);
+    horoscope.push_layer(decadal_layer.clone());
+    horoscope.push_layer(decadal_layer);
+
+    let result = StaticChartProjection::from_horoscope_chart_with(
+        &horoscope,
+        &StaticChartProjectionRequest {
+            visible_scopes: vec![Scope::Natal, Scope::Decadal],
+            active_frame_scope: Scope::Decadal,
+        },
+    );
+    assert_eq!(
+        result,
+        Err(ChartError::DuplicateHoroscopeLayer {
+            scope: Scope::Decadal,
+        }),
     );
 }

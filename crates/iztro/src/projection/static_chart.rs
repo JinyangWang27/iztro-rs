@@ -992,6 +992,17 @@ impl StaticChartProjection {
         chart: &HoroscopeChart,
         request: &StaticChartProjectionRequest,
     ) -> Result<Self, ChartError> {
+        // The active palace-name frame must be part of the visible temporal view:
+        // a non-natal active frame that is not requested as visible is rejected
+        // rather than silently added or rendered behind an unselected selector.
+        if request.active_frame_scope != Scope::Natal
+            && !request.visible_scopes.contains(&request.active_frame_scope)
+        {
+            return Err(ChartError::ActiveFrameScopeNotVisible {
+                scope: request.active_frame_scope,
+            });
+        }
+
         let natal = chart.natal();
         let present = present_scopes(chart);
         // Natal is always the base layer of a static chart, so it is always
@@ -1051,23 +1062,28 @@ impl<'a> ActiveFrame<'a> {
     /// Resolves the active frame for `active_frame_scope` against a horoscope
     /// chart's layers.
     ///
-    /// A natal frame needs no layer. A non-natal active frame requires the
-    /// matching [`TemporalLayer`] to be present and to carry a
-    /// [`TemporalPalaceLayout`]; otherwise it fails loudly
-    /// ([`ChartError::MissingHoroscopeLayer`] /
-    /// [`ChartError::MissingHoroscopePalaceLayout`]) rather than silently falling
-    /// back to natal names.
+    /// A natal frame needs no layer. A non-natal active frame requires *exactly
+    /// one* matching [`TemporalLayer`] carrying a [`TemporalPalaceLayout`];
+    /// otherwise it fails loudly ([`ChartError::MissingHoroscopeLayer`] /
+    /// [`ChartError::DuplicateHoroscopeLayer`] /
+    /// [`ChartError::MissingHoroscopePalaceLayout`]) rather than silently picking
+    /// the first duplicate or falling back to natal names.
     fn resolve(chart: &'a HoroscopeChart, active_frame_scope: Scope) -> Result<Self, ChartError> {
         if active_frame_scope == Scope::Natal {
             return Ok(Self::natal());
         }
-        let layer = chart
+        let mut layers = chart
             .layers()
             .iter()
-            .find(|layer| layer.scope() == active_frame_scope)
-            .ok_or(ChartError::MissingHoroscopeLayer {
+            .filter(|layer| layer.scope() == active_frame_scope);
+        let layer = layers.next().ok_or(ChartError::MissingHoroscopeLayer {
+            scope: active_frame_scope,
+        })?;
+        if layers.next().is_some() {
+            return Err(ChartError::DuplicateHoroscopeLayer {
                 scope: active_frame_scope,
-            })?;
+            });
+        }
         let layout = layer
             .palace_layout()
             .ok_or(ChartError::MissingHoroscopePalaceLayout {
