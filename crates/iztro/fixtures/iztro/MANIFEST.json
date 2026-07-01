@@ -204,7 +204,7 @@
       "category": "natal",
       "birth_cases": ["1990_05_17_chen_female"],
       "algorithms": ["default"],
-      "covers": ["self-generated golden: serialized StaticChartViewSnapshot::from_chart (natal-only renderer-neutral view model with zh-CN labels, grid positions, grouped stars, scope selectors, empty highlights)"]
+      "covers": ["self-generated golden: serialized StaticChartProjection::from_chart (natal-only renderer-neutral projection with natal-identity/active-frame palace identities, zh-CN labels, grid positions, grouped stars, scope selectors, empty highlights)"]
     }
   ]
 }

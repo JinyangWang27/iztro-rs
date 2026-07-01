@@ -23,8 +23,7 @@ use crate::core::calendar::{LunarConversion, solar_to_lunar_with_resolved_dateti
 use crate::core::error::ChartError;
 use crate::core::facade::by_lunar::{LunarChartRequest, by_lunar};
 use crate::core::facade::by_solar::{SolarChartRequest, by_solar_with_conversion};
-use crate::core::facade::static_temporal_chart_view::time_index_for_hour;
-use crate::core::model::calendar::{BirthTime, Gender, SolarDate};
+use crate::core::model::calendar::{BirthTime, Gender, SolarDate, time_index_for_hour};
 use crate::core::model::chart::Chart;
 use crate::core::model::profile::{ChartPlane, MethodProfile};
 use crate::core::placement::natal::life_body::{LunarDay, LunarMonth};

@@ -12,7 +12,7 @@
 //!   temporal placement into natal facts.
 //!
 //! The output is intended for downstream consumers (e.g. the GUI's
-//! `HighlightView` or a future static pattern view), which render the structured
+//! `HighlightProjection` or a future static pattern view), which render the structured
 //! data without parsing prose.
 //!
 //! [`Chart`]: crate::core::Chart

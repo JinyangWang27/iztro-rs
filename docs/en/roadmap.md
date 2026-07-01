@@ -14,7 +14,7 @@ This roadmap is intentionally conservative. The project should first keep chart 
 - [x] Current-status document.
 - [x] Runnable plain text chart demo.
 - [x] Document static-chart-first GUI direction.
-- [x] Document TUI, MCP, and 3D as downstream consumers of typed facts/view models.
+- [x] Document TUI, MCP, and 3D as downstream consumers of typed facts/projections.
 - [x] Document core chart-generation architecture, chart planes, diagnostics, and invariants.
 
 ## Phase 1: Rust workspace scaffolding
@@ -30,7 +30,7 @@ This roadmap is intentionally conservative. The project should first keep chart 
 - [x] Add basic CI for formatting, clippy, and tests.
 - [x] Add serialization and fixture-based test infrastructure.
 
-`core` organizes its source tree into domain modules: `model` (value objects, star facts, immutable chart facts, and renderer-neutral snapshots), `placement` (deterministic 安星 placement and overlay activation builders), `facade` (public iztro-compatible entry points), and `view` (renderer-neutral static chart view models). Rendering, localization, and application frontends live outside placement logic.
+`core` organizes its source tree into domain modules: `model` (value objects, star facts, immutable chart facts, and renderer-neutral snapshots), `placement` (deterministic 安星 placement and overlay activation builders), and `facade` (public iztro-compatible chart-generation entry points). GUI-facing read models live outside `core` in the top-level `projection` module (the static chart projections), with the top-level `facade` module orchestrating them; the dependency direction is `core <- {analysis, projection} <- facade`. Rendering, localization, and application frontends live outside placement logic.
 
 ## Phase 2: Core chart models
 
@@ -98,19 +98,19 @@ Calculation diagnostics are exposed as generation reports and preview/resolution
 - [x] Add `render` crate.
 - [x] Add deterministic plain text chart-stack renderer.
 - [x] Add runnable plain text demo from real `by_solar` input.
-- [x] Add GUI-ready static chart view model for one selected natal/temporal projection (`StaticChartViewSnapshot` in `core::view`).
-- [x] Add renderer-neutral highlight annotation DTOs, initially empty/reserved until feature/rule layers can populate them (`HighlightView`).
-- [x] Add local Iced static chart GUI prototype consuming `StaticChartViewSnapshot`.
+- [x] Add GUI-ready static chart projection for one selected natal/temporal projection (`StaticChartProjection` in `projection`).
+- [x] Add renderer-neutral highlight annotation DTOs, initially empty/reserved until feature/rule layers can populate them (`HighlightProjection`).
+- [x] Add local Iced static chart GUI prototype consuming `StaticChartProjection`.
 - [x] Add saved-chart startup flow for the GUI.
 - [x] Add GUI temporal controls backed by `static_temporal_chart_view`.
 - [x] Add renderer-side 三方四正 hover/click highlighting from prepared palace relationship fields.
 - [x] Add renderer-side mutagen badges from prepared mutagen facts.
 - [ ] Finish first-pass GUI polish: temporal control layout, cross-period navigation edge cases, palace label alignment, saved-chart edit/delete naming flow.
 - [ ] Add richer non-GUI 2D palace-grid renderer if it remains useful after GUI work.
-- [ ] Add timeline frame builder that treats static chart view models as reusable time slices.
+- [ ] Add timeline frame builder that treats static chart projections as reusable time slices.
 - [ ] Add optional 3D stacked temporal view.
 
-The render layer consumes snapshots and view models; it must not generate chart facts, derive temporal periods, evaluate rules, or produce interpretation. The static GUI is the primary near-term frontend because it validates the chart view model visually. Timeline and 3D views should be later consumers of the same frame model, not new chart engines.
+The render layer consumes snapshots and projections; it must not generate chart facts, derive temporal periods, evaluate rules, or produce interpretation. The static GUI is the primary near-term frontend because it validates the chart projection visually. Timeline and 3D views should be later consumers of the same frame model, not new chart engines.
 
 ## Phase 5: Runtime i18n
 
@@ -130,7 +130,7 @@ The i18n crate is separate from chart generation. Facade snapshots may keep addi
 ## Phase 6: TUI and MCP tooling
 
 - [ ] Add CLI integration for selected render/view outputs.
-- [ ] Add a TUI frontend over `ChartStackSnapshot` / `StaticChartViewSnapshot`.
+- [ ] Add a TUI frontend over `ChartStackSnapshot` / `StaticChartProjection`.
 - [ ] Define stable machine-readable query outputs for coding agents.
 - [ ] Add MCP server/tooling only after the typed facade/query surface is stable.
 - [ ] Expose chart facts, view snapshots, pattern hits, claims, and evidence as structured outputs.
@@ -183,7 +183,7 @@ Pattern and 成格 highlighting should flow from features and rules into structu
 - [ ] GUI/WASM application.
 - [ ] Optional LLM-assisted narrative polishing.
 
-Application frontends remain consumers of typed facts, snapshots, view models, features, claims, evidence, annotations, and reports. They should not parse narrative text to recover domain facts or embed chart-generation/rule logic in UI code.
+Application frontends remain consumers of typed facts, snapshots, projections, features, claims, evidence, annotations, and reports. They should not parse narrative text to recover domain facts or embed chart-generation/rule logic in UI code.
 
 ## Release policy
 

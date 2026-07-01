@@ -17,6 +17,7 @@ pub mod palace;
 pub mod runtime;
 pub mod snapshot;
 pub mod supported_fields;
+pub mod temporal_selection;
 pub mod yearly;
 
 mod temporal_layout;
@@ -66,4 +67,5 @@ pub use supported_fields::{
     HoroscopeYearlyDecorativeStarSupportedField, HoroscopeYearlyDecorativeSupportedFields,
     HoroscopeYearlySupportedFields,
 };
+pub use temporal_selection::StaticTemporalNavigationSelection;
 pub use yearly::{YearlyPeriod, build_yearly_period};

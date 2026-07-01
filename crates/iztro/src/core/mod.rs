@@ -20,12 +20,12 @@ pub mod labels;
 pub mod model;
 pub mod pattern;
 pub mod placement;
-pub mod view;
 
 // Internal calendar-conversion and normalization adapters. Calendar-backend
 // types are isolated here and never exposed in the public API; public callers
-// use the facade request types and chart facts instead.
-mod calendar;
+// use the facade request types and chart facts instead. `pub(crate)` so the
+// projection/facade modules (siblings of `core`) can reuse the conversions.
+pub(crate) mod calendar;
 
 pub use error::{ChartError, validate_chart_algorithm_plane};
 
@@ -64,10 +64,11 @@ pub use model::chart::{
     NatalFacadePalaceSnapshot, NatalFacadeSnapshot, NatalFacadeTypedStarSnapshot, PALACE_COUNT,
     PALACE_NAMES, Palace, PalaceDiagnosticSnapshot, PalaceGridPosition, PalaceLayerCellSnapshot,
     PalaceName, PalaceRoleKind, PalaceRoleSnapshot, ScopedDecorativeStarPlacement,
-    ScopedStarPlacement, ScopedStarSnapshot, StarPlacement, StarPlacementRef, TemporalContext,
-    TemporalLayer, TemporalPalaceLayout, TemporalPalaceName, TypedStarSnapshot,
-    VISUAL_BRANCH_ORDER, YearlyPeriod, build_age_period, build_daily_period, build_decadal_frame,
-    build_hourly_period, build_monthly_period, build_yearly_period, palace_grid_position,
+    ScopedStarPlacement, ScopedStarSnapshot, StarPlacement, StarPlacementRef,
+    StaticTemporalNavigationSelection, TemporalContext, TemporalLayer, TemporalPalaceLayout,
+    TemporalPalaceName, TypedStarSnapshot, VISUAL_BRANCH_ORDER, YearlyPeriod, build_age_period,
+    build_daily_period, build_decadal_frame, build_hourly_period, build_monthly_period,
+    build_yearly_period, palace_grid_position,
 };
 pub use model::master::{body_master, soul_master};
 pub use model::nayin::{NaYinElement, nayin_element};
@@ -151,17 +152,4 @@ pub use facade::options::{
     LunarBirthInput, LunarDate, NatalChartGenerationReport, NatalChartOptions, SolarBirthInput,
     by_lunar_with_options, by_lunar_with_options_report, by_solar_with_options,
     by_solar_with_options_report, resolve_lunar_birth_input, resolve_solar_birth_input,
-};
-pub use facade::static_temporal_chart_view::{
-    static_temporal_chart_view, static_temporal_chart_view_from_chart,
-    temporal_selection_for_local_moment, temporal_selection_for_solar_moment,
-};
-
-pub use view::static_chart::{
-    HighlightView, LunarDateView, StaticChartCenterView, StaticChartSelectorView,
-    StaticChartViewRequest, StaticChartViewSnapshot, StaticDecadalCellView,
-    StaticDecorativeStarView, StaticFourPillarsView, StaticNavigationCellView,
-    StaticOverlayMutagenView, StaticPalaceRole, StaticPalaceView, StaticPreDecadalCellView,
-    StaticSurroundPalacesView, StaticTemporalNavigationSelection, StaticTemporalOverlayView,
-    StaticTemporalPanelView, StaticTypedStarView, StaticYearlyAgeCellView,
 };

@@ -14,6 +14,7 @@ pub mod horoscope_stack;
 pub mod hourly_horoscope;
 pub mod monthly_horoscope;
 pub mod partial_horoscope;
+pub mod selected_temporal;
 pub mod yearly;
 pub mod yearly_decorative;
 pub mod yearly_horoscope;

@@ -107,5 +107,5 @@ Core 模型保持语言中立。Facade/export DTO 可以保留附加 zh-CN `*_zh
 1. 保持 compatibility fixture-backed，避免大范围改写安星逻辑。
 2. 扩展 `iztro-i18n` 覆盖面和 UI 字符串审计。
 3. 继续改善 Iced static chart GUI 的保存、时间导航、布局和本地化体验。
-4. 将 TUI / CLI / MCP 作为现有 snapshots 和 view models 的消费者，而不是新 chart engine。
+4. 将 TUI / CLI / MCP 作为现有 snapshots 和 projections 的消费者，而不是新 chart engine。
 5. 在事实面稳定后再扩展 feature extraction、pattern/rule output 和 narrative。

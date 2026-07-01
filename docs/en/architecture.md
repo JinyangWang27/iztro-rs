@@ -54,32 +54,46 @@ It represents the conventional 12-palace grid as x/y coordinates and the selecte
 
 A renderer should consume `ChartStackSnapshot` rather than walking `Chart` directly. A future GUI should change the selected temporal view request and re-render from a snapshot; it should not mutate the natal chart.
 
-### Facade snapshots and GUI view models
+### Facade snapshots and GUI projections
 
 `HoroscopeFacadeSnapshot` and related facade DTOs are compatibility/export payloads. They should preserve stable machine-readable fields, deterministic ordering, and additive conventional Chinese labels where useful for compatibility, but they should not become UI layout code or runtime localization infrastructure.
 
-A 文墨天机-style static chart is instead backed by a dedicated GUI-facing read model, `StaticChartViewSnapshot` (implemented in `core::view`). It is derived from existing chart/facade facts via `StaticChartViewSnapshot::from_chart` (natal-only) or `from_horoscope_chart` (natal plus selected temporal overlays), and includes:
+GUI-facing read models live in their own top-level modules rather than in `core`, so `core` owns domain facts and transformations only:
+
+- `projection` owns the serializable static chart read models (the projections);
+- `facade` orchestrates them — it builds or receives core charts, resolves the selected temporal layers, and assembles a projection.
+
+The dependency direction is `core <- {analysis, projection} <- facade`: `core` never depends on projections, GUI DTOs, panel state, selectors, or highlights.
+
+A 文墨天机-style static chart is backed by `StaticChartProjection` (in `projection::static_chart`). It is derived from existing chart/facade facts via `StaticChartProjection::from_chart` (natal-only) or `from_horoscope_chart_with` (natal plus selected temporal overlays), and includes:
 
 - the conventional 4x4 palace-grid position for each palace (reusing `palace_grid_position`);
 - display-ready labels for branches, stems, palace names, stars, brightness, mutagens, decorative-star families, star categories, and scopes;
 - star lists grouped by `StarCategory` (major / minor / adjective, with a reserved `other_typed_stars`) plus decorative stars, all in deterministic facade star order;
 - scope-selector state (本命/大限/小限/流年/流月/流日/流时) and the active scopes, so a frontend can render selector controls without owning that logic;
-- selected natal/temporal overlays for the current view, kept separate from natal facts;
-- reserved highlight annotations (`HighlightView`), currently empty unless populated by feature/rule layers.
+- selected temporal overlays for the current view, kept separate from natal facts;
+- reserved highlight annotations (`HighlightProjection`), currently empty unless populated by feature/rule layers.
 
-The view model remains renderer-neutral. It may describe that a palace or star should be highlighted, but it does not choose CSS classes, colors, canvas coordinates, camera position, animation, or 3D geometry.
+**Frame-relative palace identity.** A branch is the stable palace-cell coordinate; a palace *name* is assigned by a palace frame. The natal chart and each temporal layer are different palace-name frames over the same branch ring, so each `StaticPalaceProjection` carries both:
 
-`StaticChartViewSnapshot` remains language-neutral enough for frontends to localize at presentation boundaries. The desktop GUI uses `crates/iztro-i18n` to render the current surface in English or Simplified Chinese without making localized strings the internal model identity.
+- `natal_identity` (`StaticNatalPalaceIdentity`) — the immutable natal meaning of the branch (natal 宫名, 宫干, natal roles);
+- `active_frame` (`StaticPalaceFrameIdentity`) — the selected frame's meaning (`frame_scope`, `palace_name`, `is_life_palace`), the ring a GUI renders as the main palace title.
+
+`StaticChartProjectionRequest` makes the two concepts explicit and separate: `visible_scopes` controls which temporal layers are visible as overlays, while `active_frame_scope` selects the primary palace-name frame. A 流年 view has `visible_scopes = [Natal, Decadal, Age, Yearly]` but `active_frame_scope = Yearly` — 小限 (Age) stays visible as auxiliary data yet never becomes the active frame. The facade derives `active_frame_scope` from the navigation selection via the single canonical mapping `StaticTemporalNavigationSelection::active_frame_scope`. A non-natal active frame is built from the selected layer's `TemporalPalaceLayout`; a missing layer/layout fails loudly rather than silently falling back to natal names. Selecting a temporal scope therefore keeps natal facts immutable while changing the active palace frame and the visible overlays — the GUI consumes the projection and never computes temporal 命宫 itself.
+
+The projection remains renderer-neutral. It may describe that a palace or star should be highlighted, but it does not choose CSS classes, colors, canvas coordinates, camera position, animation, or 3D geometry.
+
+`StaticChartProjection` remains language-neutral enough for frontends to localize at presentation boundaries. The desktop GUI uses `crates/iztro-i18n` to render the current surface in English or Simplified Chinese without making localized strings the internal model identity.
 
 ### Static chart slices before timeline and 3D
 
-The first GUI target is a static palace-grid chart. The same static chart view model should later be reusable as one frame in a temporal sequence:
+The first GUI target is a static palace-grid chart. The same static chart projection should later be reusable as one frame in a temporal sequence:
 
 ```text
 TimelineFrame
   -> target_context
-  -> StaticChartViewSnapshot
-  -> HighlightView[]
+  -> StaticChartProjection
+  -> HighlightProjection[]
 ```
 
 A future 3D view can stack these frames along a time axis. The core should therefore expose facts, selected-scope overlays, and highlight annotations; the frontend decides whether to draw them as a static chart, animation, or 3D scene.

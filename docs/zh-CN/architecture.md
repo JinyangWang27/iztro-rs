@@ -54,20 +54,34 @@ Chart / HoroscopeChart
 
 Renderer 应消费 `ChartStackSnapshot`，而不是直接遍历 `Chart`。GUI 应通过选择不同时间视图并重新生成 snapshot 来更新显示，而不是修改本命盘。
 
-### Facade snapshots 与 GUI view models
+### Facade snapshots 与 GUI projections
 
 `HoroscopeFacadeSnapshot` 及相关 facade DTO 是兼容性/导出 payload。它们应保留稳定的 machine-readable fields、确定性顺序，以及为兼容和可读性提供的附加中文标签，但不应变成 UI layout code 或 runtime localization infrastructure。
 
-文墨天机风格静态盘由专门面向 GUI 的 read model `StaticChartViewSnapshot` 支撑。它由既有 chart/facade facts 派生，支持本命-only 或选定 temporal overlays，并包含：
+面向 GUI 的 read model 不再放在 `core`，而是放在各自的顶层模块，使 `core` 只拥有领域事实与变换：
+
+- `projection` 拥有可序列化的静态盘 read model（即 projections）；
+- `facade` 负责编排——构建或接收 core charts、解析选定的 temporal layers，并组装 projection。
+
+依赖方向为 `core <- {analysis, projection} <- facade`：`core` 绝不依赖 projection、GUI DTO、面板状态、选择器或高亮。
+
+文墨天机风格静态盘由 `StaticChartProjection`（位于 `projection::static_chart`）支撑。它由既有 chart/facade facts 派生（`from_chart` 本命-only 或 `from_horoscope_chart_with` 本命加选定 temporal overlays），并包含：
 
 - 每宫的传统 4x4 宫格位置；
 - 地支、天干、宫名、星曜、亮度、四化、装饰星家族、星曜类别和 scope 的 display-ready labels；
 - 以 `StarCategory` 分组的星曜列表；
 - 本命/大限/小限/流年/流月/流日/流时 scope selector 状态；
-- 当前视图选定的本命/时间叠加层，且与本命事实分离；
-- 预留的 `HighlightView` annotations，供未来 feature/rule layers 填充。
+- 当前视图选定的时间叠加层，且与本命事实分离；
+- 预留的 `HighlightProjection` annotations，供未来 feature/rule layers 填充。
 
-该 view model 保持 renderer-neutral。它可以描述某宫或某星需要高亮，但不选择 CSS class、颜色、canvas 坐标、相机位置、动画或 3D geometry。
+**宫名相对于宫位框架（frame-relative）。** 地支是稳定的宫位坐标；宫名由「宫位框架」指派。本命盘与每个 temporal layer 是同一地支环上的不同宫名框架，因此每个 `StaticPalaceProjection` 同时携带两种身份：
+
+- `natal_identity`（`StaticNatalPalaceIdentity`）——该地支不可变的本命含义（本命宫名、宫干、本命角色）；
+- `active_frame`（`StaticPalaceFrameIdentity`）——选定框架的含义（`frame_scope`、`palace_name`、`is_life_palace`），即 GUI 渲染为主标题的宫名环。
+
+`StaticChartProjectionRequest` 将两个概念明确分开：`visible_scopes` 控制哪些 temporal layers 作为叠加层可见，`active_frame_scope` 选择主宫名框架。流年视图的 `visible_scopes = [Natal, Decadal, Age, Yearly]`，但 `active_frame_scope = Yearly`——小限（Age）仍作为辅助数据可见，却绝不成为主框架。facade 通过唯一的规范映射 `StaticTemporalNavigationSelection::active_frame_scope` 从导航选择推导 `active_frame_scope`。非本命主框架由选定 layer 的 `TemporalPalaceLayout` 构建；若缺少对应 layer/layout 则显式报错，而不是悄悄回退到本命宫名。因此选择一个 temporal scope 会保持本命事实不变，同时改变主宫位框架与可见叠加层——GUI 消费 projection，绝不自行计算流运命宫。
+
+该 projection 保持 renderer-neutral。它可以描述某宫或某星需要高亮，但不选择 CSS class、颜色、canvas 坐标、相机位置、动画或 3D geometry。
 
 桌面 GUI 通过 `crates/iztro-i18n` 把当前 surface 渲染为英文或简体中文；本地化字符串不成为内部模型 identity。
 

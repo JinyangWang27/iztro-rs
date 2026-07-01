@@ -1,16 +1,17 @@
 //! Fixture-backed golden test for the renderer-neutral static chart view model.
 //!
 //! Unlike the upstream-reference fixtures, this fixture is a self-generated
-//! golden: it captures the serialized [`StaticChartViewSnapshot`] for the
+//! golden: it captures the serialized [`StaticChartProjection`] for the
 //! canonical natal case (lunar 1990-05-17, Chen hour, female). It carries no
 //! top-level `input` block, so the fixture-case registry drift check skips it.
 //!
 //! Regenerate with:
 //! `cargo test -p iztro --test static_chart_view -- --ignored regenerate_fixture`
 
+use iztro::StaticChartProjection;
 use iztro::core::{
     Chart, ChartAlgorithmKind, Gender, LunarChartRequest, LunarDay, LunarMonth, MethodProfile,
-    StaticChartViewSnapshot, StemBranch, by_lunar,
+    StemBranch, by_lunar,
 };
 use serde_json::Value;
 
@@ -46,11 +47,11 @@ fn canonical_chart() -> Chart {
 
 #[test]
 fn static_chart_view_matches_committed_fixture() {
-    let snapshot = StaticChartViewSnapshot::from_chart(&canonical_chart());
+    let snapshot = StaticChartProjection::from_chart(&canonical_chart());
 
     let fixture: Value =
         serde_json::from_str(FIXTURE).expect("fixture should be valid JSON; regenerate if stale");
-    let expected: StaticChartViewSnapshot = serde_json::from_value(fixture["snapshot"].clone())
+    let expected: StaticChartProjection = serde_json::from_value(fixture["snapshot"].clone())
         .expect("fixture `snapshot` should deserialize; regenerate if stale");
 
     assert_eq!(snapshot, expected);
@@ -63,11 +64,11 @@ fn static_chart_view_matches_committed_fixture() {
 #[test]
 #[ignore]
 fn regenerate_fixture() {
-    let snapshot = StaticChartViewSnapshot::from_chart(&canonical_chart());
+    let snapshot = StaticChartProjection::from_chart(&canonical_chart());
     let document = serde_json::json!({
         "case_id": CASE_ID,
-        "view_model": "StaticChartViewSnapshot",
-        "note": "Self-generated golden: serialized StaticChartViewSnapshot::from_chart for the canonical natal case. No upstream iztro data.",
+        "view_model": "StaticChartProjection",
+        "note": "Self-generated golden: serialized StaticChartProjection::from_chart for the canonical natal case. No upstream iztro data.",
         "snapshot": snapshot,
     });
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))

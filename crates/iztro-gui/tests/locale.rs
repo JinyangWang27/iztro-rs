@@ -7,7 +7,8 @@
 //! through `iztro-i18n`) and additionally build the full view under both locales
 //! to prove the render path never panics or yields a missing-key placeholder.
 
-use iztro::core::{PalaceName, Scope, StaticChartCenterView, StaticPalaceView};
+use iztro::core::{PalaceName, Scope};
+use iztro::{StaticChartCenterProjection, StaticPalaceProjection};
 use iztro_gui::app::{FormError, Message, StaticChartApp, TemporalCell};
 use iztro_i18n::{I18n, Locale};
 
@@ -88,10 +89,11 @@ fn chart_app() -> StaticChartApp {
 }
 
 /// Every user-facing label the renderer derives for a palace, via `iztro-i18n`.
-fn palace_labels(palace: &StaticPalaceView, i18n: &I18n) -> Vec<String> {
+fn palace_labels(palace: &StaticPalaceProjection, i18n: &I18n) -> Vec<String> {
     let mut labels = vec![
-        i18n.palace_name(palace.name),
-        i18n.stem(palace.stem),
+        i18n.palace_name(palace.natal_identity.palace_name),
+        i18n.palace_name(palace.active_frame.palace_name),
+        i18n.stem(palace.natal_identity.stem),
         i18n.branch(palace.branch),
     ];
     for star in palace
@@ -122,7 +124,7 @@ fn palace_labels(palace: &StaticPalaceView, i18n: &I18n) -> Vec<String> {
 }
 
 /// Every user-facing value label the renderer derives for the center panel.
-fn center_labels(center: &StaticChartCenterView, i18n: &I18n) -> Vec<String> {
+fn center_labels(center: &StaticChartCenterProjection, i18n: &I18n) -> Vec<String> {
     let mut labels = Vec::new();
     if let Some(bureau) = center.five_element_bureau {
         labels.push(i18n.bureau(bureau));

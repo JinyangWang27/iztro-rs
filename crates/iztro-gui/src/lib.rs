@@ -1,12 +1,12 @@
 //! Local Iced desktop GUI prototype for rendering one `iztro` static chart
-//! snapshot. The crate consumes [`StaticChartViewSnapshot`] read models and
+//! snapshot. The crate consumes [`StaticChartProjection`] read models and
 //! renders them; it derives no astrology facts itself — no star placement, rule
 //! evaluation, pattern detection, or 成格 logic. The right inspector's rule and
 //! pattern data comes from the core analysis API ([`iztro::analysis`]): app
 //! state *requests* structured, per-layer [`AnalysisLayerResult`]s and caches
 //! them, while the renderer only displays already-computed values.
 //!
-//! [`StaticChartViewSnapshot`]: iztro::core::StaticChartViewSnapshot
+//! [`StaticChartProjection`]: iztro::StaticChartProjection
 //! [`AnalysisLayerResult`]: iztro::analysis::AnalysisLayerResult
 
 pub mod analysis;
@@ -134,7 +134,7 @@ mod tests {
         assert_eq!(reads, 1);
         assert!(matches!(
             app.selected_temporal_selection(),
-            iztro::core::StaticTemporalNavigationSelection::Hourly { hour_index: 12, .. }
+            iztro::StaticTemporalNavigationSelection::Hourly { hour_index: 12, .. }
         ));
     }
 

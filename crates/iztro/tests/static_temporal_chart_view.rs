@@ -3,12 +3,15 @@
 //! These verify that all temporal-overlay derivation stays inside core: a GUI
 //! passes a [`SolarChartRequest`] plus a renderer-neutral
 //! [`StaticTemporalNavigationSelection`] and gets back a prepared
-//! [`StaticChartViewSnapshot`]. Selecting a temporal cell changes overlays only,
-//! never natal facts.
+//! [`StaticChartProjection`]. Selecting a temporal cell keeps natal facts
+//! immutable while changing the active palace frame and the visible overlays.
 
 use iztro::core::{
     BirthTime, ChartAlgorithmKind, ChartError, Gender, MethodProfile, Scope, SolarChartRequest,
-    SolarDay, SolarMonth, StaticTemporalNavigationSelection, by_solar, static_temporal_chart_view,
+    SolarDay, SolarMonth, by_solar,
+};
+use iztro::{
+    StaticTemporalNavigationSelection, static_temporal_chart_view,
     static_temporal_chart_view_from_chart, temporal_selection_for_local_moment,
 };
 
@@ -65,7 +68,7 @@ fn center_carries_prepared_iztro_style_natal_labels() {
     // presentation layer can render them in any locale.
     assert_eq!(
         center.birth_lunar_date,
-        Some(iztro::core::LunarDateView {
+        Some(iztro::LunarDateProjection {
             year: 1993,
             month: 4,
             day: 7,
@@ -186,7 +189,7 @@ fn every_palace_carries_a_decadal_age_range() {
 
 /// Counts, across all palaces, the overlays of `scope` whose `period_label_zh`
 /// marks the palace as that scope's period anchor.
-fn marker_count(snapshot: &iztro::core::StaticChartViewSnapshot, scope: Scope) -> usize {
+fn marker_count(snapshot: &iztro::StaticChartProjection, scope: Scope) -> usize {
     snapshot
         .palaces
         .iter()
@@ -362,19 +365,22 @@ fn out_of_range_decadal_index_is_an_error() {
 }
 
 #[test]
-fn temporal_selection_changes_overlays_only_not_natal_facts() {
+fn temporal_selection_keeps_natal_immutable_but_changes_active_frame_and_overlays() {
+    // Corrected invariant: a branch is the stable palace-cell coordinate; palace
+    // names are frame-relative. A temporal selection keeps natal facts immutable,
+    // re-titles the branch ring via the active frame, and changes the overlays.
     let natal =
         static_temporal_chart_view(sample_request(), StaticTemporalNavigationSelection::Natal)
             .unwrap();
     let decadal = static_temporal_chart_view(
         sample_request(),
-        StaticTemporalNavigationSelection::Decadal { decadal_index: 0 },
+        StaticTemporalNavigationSelection::Decadal { decadal_index: 1 },
     )
     .unwrap();
 
     // Natal center facts are identical regardless of temporal selection; only
     // the navigation-dependent labels (年龄(虚岁), 运限农历/阳历) may differ.
-    let stable = |center: &iztro::core::StaticChartCenterView| {
+    let stable = |center: &iztro::StaticChartCenterProjection| {
         let mut center = center.clone();
         center.nominal_age_label = None;
         center.temporal_lunar_label = None;
@@ -386,15 +392,58 @@ fn temporal_selection_changes_overlays_only_not_natal_facts() {
     };
     assert_eq!(stable(&natal.center), stable(&decadal.center));
 
-    // Natal palace identity, surround (三方四正) and natal star lists are
-    // byte-identical; only overlays may differ.
     assert_eq!(natal.palaces.len(), decadal.palaces.len());
     for (n, d) in natal.palaces.iter().zip(decadal.palaces.iter()) {
+        // Immutable natal facts: branch, natal identity, 三方四正, natal star lists.
         assert_eq!(n.branch, d.branch);
+        assert_eq!(n.natal_identity, d.natal_identity);
         assert_eq!(n.surround, d.surround);
         assert_eq!(n.major_stars, d.major_stars);
         assert_eq!(n.minor_stars, d.minor_stars);
+
+        // The active palace frame changes with the selected scope.
+        assert_eq!(n.active_frame.frame_scope, Scope::Natal);
+        assert_eq!(d.active_frame.frame_scope, Scope::Decadal);
+
+        // Overlays change with the selected scope: natal carries none, the
+        // decadal slice attaches a 大限 overlay.
+        assert!(n.overlays.is_empty());
+        assert!(d.overlays.iter().any(|o| o.scope == Scope::Decadal));
     }
+
+    // The active frame relabels 命宫: the natal Life branch and the decadal Life
+    // branch are different cells, while the natal identity Life branch is shared.
+    let natal_life = |snapshot: &iztro::StaticChartProjection| {
+        snapshot
+            .palaces
+            .iter()
+            .find(|p| p.natal_identity.palace_name == iztro::core::PalaceName::Life)
+            .map(|p| p.branch)
+            .unwrap()
+    };
+    let active_life = |snapshot: &iztro::StaticChartProjection| {
+        snapshot
+            .palaces
+            .iter()
+            .find(|p| p.active_frame.is_life_palace)
+            .map(|p| p.branch)
+            .unwrap()
+    };
+    assert_eq!(
+        natal_life(&natal),
+        natal_life(&decadal),
+        "natal 命宫 immutable"
+    );
+    assert_eq!(
+        active_life(&natal),
+        natal_life(&natal),
+        "natal frame 命宫 == natal"
+    );
+    assert_ne!(
+        active_life(&decadal),
+        natal_life(&decadal),
+        "the 大限 active frame relabels 命宫 onto a different branch than natal",
+    );
 }
 
 #[test]
@@ -628,8 +677,7 @@ fn snapshot_with_selection_flags_serializes_round_trip() {
     )
     .unwrap();
     let json = serde_json::to_string(&snapshot).expect("serialize");
-    let back: iztro::core::StaticChartViewSnapshot =
-        serde_json::from_str(&json).expect("deserialize");
+    let back: iztro::StaticChartProjection = serde_json::from_str(&json).expect("deserialize");
     assert_eq!(snapshot, back);
 }
 
@@ -738,7 +786,7 @@ fn hourly_selection_rejects_out_of_range_hour_index() {
 /// The branch of the single palace carrying the 流年 (`Scope::Yearly`) period
 /// marker for `snapshot`, if any.
 fn yearly_marker_branch(
-    snapshot: &iztro::core::StaticChartViewSnapshot,
+    snapshot: &iztro::StaticChartProjection,
 ) -> Option<iztro::core::EarthlyBranch> {
     snapshot
         .palaces
@@ -902,7 +950,7 @@ fn snapshot_without_small_limit_fields_still_deserializes() {
         limit.remove("is_active_small_limit");
         limit.remove("active_small_limit_age");
     }
-    let restored: iztro::core::StaticChartViewSnapshot =
+    let restored: iztro::StaticChartProjection =
         serde_json::from_value(value).expect("legacy snapshot without 小限 fields deserializes");
     assert!(restored.center.small_limit_age.is_none());
     assert!(

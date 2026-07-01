@@ -261,6 +261,17 @@ pub enum ChartError {
         /// Scope of the requested-but-not-visible analysis layer.
         scope: Scope,
     },
+    /// A static chart projection request selects a non-natal active palace frame
+    /// whose scope is not in the request's visible scopes.
+    ///
+    /// The active frame must be part of the visible temporal view: the projection
+    /// refuses to render palace titles from a frame the request does not also
+    /// mark visible, rather than silently adding the scope.
+    #[error("active frame scope {scope:?} is not visible in the static chart projection request")]
+    ActiveFrameScopeNotVisible {
+        /// Scope selected as the active frame but absent from `visible_scopes`.
+        scope: Scope,
+    },
     /// A nominal age has no covering period in the derived decadal frame.
     #[error("nominal age {nominal_age} is outside the derived decadal frame")]
     NominalAgeOutsideDecadalFrame {
