@@ -132,17 +132,25 @@ exposes a context-oriented entry point:
 evaluate_classical_in_context(&ClassicalRuleContext, &request) -> ClaimEvaluation
 ```
 
-`ClassicalRuleContext` mirrors `rules::pattern::PatternContext`: it carries the
-natal `chart`, an optional `&HoroscopeChart`, and the `active_scopes` a rule may
-inspect. `ClassicalRuleContext::natal(chart)` and
-`ClassicalRuleContext::horoscope(chart, active_scopes)` are the constructors.
+`ClassicalRuleContext` and `rules::pattern::PatternContext` are both thin
+wrappers over `RuleEvaluationContext`, the shared selected-state context. It
+carries the natal chart, an optional `&HoroscopeChart`, active scopes, and the
+selected `EffectiveChartState` when construction succeeds.
+
+Use `ClassicalRuleContext::natal(chart)` for natal-only evaluation.
+`ClassicalRuleContext::horoscope(chart, active_scopes)` is a
+compatibility/fail-closed constructor. Production selected-view analysis should
+use `ClassicalRuleContext::horoscope_with_frame(chart, palace_frame_scope,
+active_scopes)` so the selected palace frame is explicit.
 `evaluate_classical(chart, &request)` is a thin natal-only wrapper over the
 context API, and `classical_rule_panel_view` likewise wraps
 `classical_rule_panel_view_in_context`, so existing call sites are unchanged.
 
-Current executable rules still match natal facts only, so a horoscope context
-produces the same result as a natal one today. The context exists so future
-temporal rules can inspect ancestor overlays without an API change.
+Most current executable rules remain natal-only. 昌曲夹命 is the first
+selected-state vertical slice: when evaluated through
+`ClassicalRuleContext::horoscope_with_frame`, it may emit a source hit and claim
+in the selected frame scope. QuanShu rules remain conservative and are not
+promoted to temporal scopes automatically.
 
 ## Layer-level analysis (`analysis`)
 
@@ -187,9 +195,10 @@ Key types:
   resolves verbatim source text once per rule via
   `classical_rule_metadata(rule_id) -> Option<&'static ClassicalRuleMetadata>`.
   `ClassicalRuleMetadata::source_text_zh_hans` is the verbatim source clause and
-  never carries an interpretation or claim text. Current executable rules carry
-  `applicable_scopes = &[ClaimScope::Natal]`; QuanShu / 太微赋 rules are not
-  promoted to every temporal scope automatically.
+  never carries an interpretation or claim text. Most current executable rules
+  carry `applicable_scopes = &[ClaimScope::Natal]`. Overlay-aware rules,
+  currently 昌曲夹命, explicitly advertise wider applicable scopes; QuanShu /
+  太微赋 rules are not promoted to temporal scopes automatically.
 
 **Layer assignment and caching.** Detection of a layer may *inspect* ancestor
 overlays, but the returned hits always belong to the requested layer.

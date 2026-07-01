@@ -8,8 +8,9 @@ use iztro::rules::classical::{
     Claim, ClaimDomain, ClaimEvaluationRequest, ClaimId, ClaimPolarity, ClaimScope, ClaimSpec,
     ClaimTheme, ClassicalRule, ClassicalRuleContext, ClassicalRuleId, ClassicalSourceHit,
     ClassicalWork, DiagnosticMode, Evidence, EvidenceKind, RuleStatus, UnsupportedReason, VoidKind,
-    VoidPolicy, classical_rules, evaluate_classical, evaluate_classical_claims,
-    evaluate_classical_in_context, pattern_rules, quan_shu_rules, rule_by_id,
+    VoidPolicy, classical_rule_metadata, classical_rules, evaluate_classical,
+    evaluate_classical_claims, evaluate_classical_in_context, pattern_rules, quan_shu_rules,
+    rule_by_id,
 };
 use iztro::{
     BirthContext, Brightness, CalendarDate, Chart, EarthlyBranch, Gender, HeavenlyStem,
@@ -277,6 +278,24 @@ fn corpus_deserializes_all_pilot_rules() {
         assert_eq!(rule.work, ClassicalWork::IztroPatternCatalog);
         assert!(rule.source_id.starts_with("pattern."));
     }
+}
+
+#[test]
+fn metadata_marks_only_overlay_aware_rule_as_temporal() {
+    let chang_qu =
+        classical_rule_metadata(ClassicalRuleId::new(CHANG_QU)).expect("chang-qu metadata");
+    assert!(
+        chang_qu.applicable_scopes.contains(&ClaimScope::Natal),
+        "昌曲夹命 remains applicable to natal evaluation"
+    );
+    assert!(
+        chang_qu.applicable_scopes.contains(&ClaimScope::Yearly),
+        "昌曲夹命 should advertise selected-frame temporal evaluation"
+    );
+
+    let tian_ma =
+        classical_rule_metadata(ClassicalRuleId::new(TIAN_MA_VOID)).expect("tian-ma metadata");
+    assert_eq!(tian_ma.applicable_scopes, &[ClaimScope::Natal]);
 }
 
 /// The 太微赋 normalization map adds many non-executable, claimless rules to the
@@ -762,6 +781,12 @@ fn chang_qu_clamp_life_yearly_context_emits_yearly_source_hit() {
     };
 
     let evaluation = evaluate_classical_in_context(&ctx, &request);
+    let claim = evaluation
+        .claims
+        .iter()
+        .find(|claim| claim.rule_id.as_str() == CHANG_QU)
+        .expect("expected yearly 昌曲夹命 claim");
+    assert_eq!(claim.scope, ClaimScope::Yearly);
     let source_hit = evaluation
         .source_hits
         .iter()
