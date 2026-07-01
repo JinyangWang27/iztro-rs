@@ -4,6 +4,8 @@
 
 The current implementation separates chart facts, renderer-friendly read models, rendering, feature extraction, rules, localization, application frontends, and narrative. This separation is intentional: chart generation should stay deterministic and fixture-backed, while renderers, GUIs, TUIs, MCP tools, and future 3D views consume read models instead of re-deriving chart layout from core aggregates.
 
+This document describes the layer model. The first-principles domain boundaries behind these layers are recorded in [ADR 0009](adr/0009-domain-model-first-principles.md).
+
 ## 1. Core Chart Layer
 
 The Core Chart Layer contains deterministic chart facts. It should not contain interpretation prose, report formatting, CLI output formatting, GUI assumptions, renderer geometry, or runtime language selection.

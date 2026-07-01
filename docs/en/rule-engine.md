@@ -1,12 +1,15 @@
 # Rule Engine
 
-The rule engine converts extracted features into structured claims. It should not directly generate final prose.
+The rule engine converts extracted features into structured claims and detections. It should not directly generate final prose.
 
-> The **active, concrete implementation is the classical rule engine**
-> (Chinese-first 《紫微斗数全书》). It lives under `rules::classical` and is the
-> sole rule engine. See [`rules/rule-engine.md`](./rules/rule-engine.md) and
-> [ADR 0008](./adr/0008-classical-rule-engine.md) for the implemented design,
-> corpus format, and pipeline.
+> The concrete implemented rule-engine namespaces are `rules::pattern` and
+> `rules::classical`. `rules::pattern` recognizes structural pattern/格局 facts
+> as `PatternDetection`s. `rules::classical` is the active source/claim engine:
+> it evaluates classical or project-owned rule metadata into source hits,
+> optional claims, and diagnostics. See [`rules/rule-engine.md`](./rules/rule-engine.md),
+> [ADR 0008](./adr/0008-classical-rule-engine.md), and
+> [ADR 0009](./adr/0009-domain-model-first-principles.md) for the implemented
+> design, corpus format, and domain boundaries.
 >
 > The rest of this document is **conceptual design vocabulary** for the
 > feature → claim vision. It is not a second implemented engine, and the
