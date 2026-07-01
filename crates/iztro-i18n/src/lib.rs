@@ -22,13 +22,13 @@ mod localizer;
 #[cfg(test)]
 mod star_table;
 
-use iztro::LunarDateProjection;
 use iztro::core::labels::chinese_date;
 use iztro::core::{
-    Brightness, EarthlyBranch, FiveElementBureau, Gender, HeavenlyStem, Mutagen, PalaceName,
-    PatternPolarity, PatternStatus, Scope, StarName, StemBranch, WesternZodiac,
+    Brightness, EarthlyBranch, FiveElementBureau, Gender, HeavenlyStem, Mutagen, PalaceName, Scope,
+    StarName, StemBranch, WesternZodiac,
 };
 use iztro::rules::classical::{Claim, ClaimDomain, ClaimPolarity, ClaimTheme};
+use iztro::{LunarDateProjection, PatternPolarity, PatternStatus};
 
 pub use fluent_bundle::FluentArgs;
 pub use locale::{Locale, UnsupportedLocale};
@@ -521,7 +521,7 @@ mod tests {
     /// `cargo test -p iztro-i18n -- --ignored generate_star_ftl`.
     #[test]
     fn pattern_polarity_label_maps_all_variants_in_both_locales() {
-        use iztro::core::PatternPolarity;
+        use iztro::PatternPolarity;
         let en = I18n::new(Locale::EnUs);
         let zh = I18n::new(Locale::ZhHans);
 

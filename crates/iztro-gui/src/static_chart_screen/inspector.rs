@@ -12,8 +12,8 @@
 use iced::widget::{button, column, container, row, scrollable, text};
 use iced::{Alignment, Element, Length};
 
+use iztro::PatternStrength;
 use iztro::analysis::AnalysisLayerKey;
-use iztro::core::PatternStrength;
 use iztro::rules::classical::classical_rule_metadata;
 use iztro_i18n::I18n;
 
@@ -234,7 +234,7 @@ fn patterns_tab<'a>(
 fn pattern_hit_line<'a>(
     app: &StaticChartApp,
     key: &AnalysisLayerKey,
-    detection: &iztro::core::PatternDetection,
+    detection: &iztro::PatternDetection,
     palette: GuiPalette,
     i18n: &I18n,
 ) -> Element<'a, Message> {
@@ -278,7 +278,7 @@ fn pattern_hit_line<'a>(
 /// Basic structured detail rows for an expanded pattern: strength plus the
 /// involved stars / palaces / mutagens. No narrative prose is added.
 fn pattern_details<'a>(
-    detection: &iztro::core::PatternDetection,
+    detection: &iztro::PatternDetection,
     palette: GuiPalette,
     i18n: &I18n,
 ) -> Element<'a, Message> {

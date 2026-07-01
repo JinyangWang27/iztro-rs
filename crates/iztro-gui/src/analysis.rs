@@ -20,8 +20,9 @@
 use std::collections::BTreeMap;
 
 use iztro::analysis::{AnalysisLayerKey, AnalysisLayerResult};
-use iztro::core::{EarthlyBranch, Mutagen, PatternDetection, PatternId, StarName};
+use iztro::core::{EarthlyBranch, Mutagen, StarName};
 use iztro::rules::classical::{ClassicalRuleHitRef, ClassicalRuleId, Evidence, EvidenceKind};
+use iztro::{PatternDetection, PatternId};
 
 /// In-memory, per-layer cache of [`AnalysisLayerResult`]s.
 ///
@@ -317,12 +318,12 @@ mod tests {
         let detection = PatternDetection {
             id: PatternId::ZiFuChaoYuan,
             name_zh: "紫府朝垣",
-            family: iztro::core::PatternFamily::MajorStarCombination,
-            polarity: iztro::core::PatternPolarity::Auspicious,
-            status: iztro::core::PatternStatus::Fulfilled,
-            strength: iztro::core::PatternStrength::Strong,
-            scope: iztro::core::PatternScope::Natal,
-            anchor: iztro::core::PatternAnchor::Chart,
+            family: iztro::PatternFamily::MajorStarCombination,
+            polarity: iztro::PatternPolarity::Auspicious,
+            status: iztro::PatternStatus::Fulfilled,
+            strength: iztro::PatternStrength::Strong,
+            scope: iztro::PatternScope::Natal,
+            anchor: iztro::PatternAnchor::Chart,
             involved_palaces: vec![EarthlyBranch::Yin, EarthlyBranch::Shen],
             involved_stars: vec![StarName::ZiWei, StarName::TianFu],
             involved_mutagens: vec![Mutagen::Lu],
@@ -343,12 +344,12 @@ mod tests {
         let detection = PatternDetection {
             id: PatternId::ZiFuChaoYuan,
             name_zh: "紫府朝垣",
-            family: iztro::core::PatternFamily::MajorStarCombination,
-            polarity: iztro::core::PatternPolarity::Auspicious,
-            status: iztro::core::PatternStatus::Fulfilled,
-            strength: iztro::core::PatternStrength::Weak,
-            scope: iztro::core::PatternScope::Natal,
-            anchor: iztro::core::PatternAnchor::Chart,
+            family: iztro::PatternFamily::MajorStarCombination,
+            polarity: iztro::PatternPolarity::Auspicious,
+            status: iztro::PatternStatus::Fulfilled,
+            strength: iztro::PatternStrength::Weak,
+            scope: iztro::PatternScope::Natal,
+            anchor: iztro::PatternAnchor::Chart,
             involved_palaces: Vec::new(),
             involved_stars: Vec::new(),
             involved_mutagens: Vec::new(),

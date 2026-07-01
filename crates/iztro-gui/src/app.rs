@@ -2986,7 +2986,7 @@ mod tests {
 
     fn pattern_key(
         layer: AnalysisLayerKey,
-        pattern_id: iztro::core::PatternId,
+        pattern_id: iztro::PatternId,
     ) -> PatternHitExpansionKey {
         PatternHitExpansionKey { layer, pattern_id }
     }
@@ -3049,7 +3049,7 @@ mod tests {
 
     fn first_cached_non_natal_pattern_hit(
         app: &mut StaticChartApp,
-    ) -> (AnalysisLayerKey, iztro::core::PatternId) {
+    ) -> (AnalysisLayerKey, iztro::PatternId) {
         app.generate();
         app.update(Message::SelectTemporalCell(TemporalCell::Decadal(0)));
 
@@ -3112,10 +3112,7 @@ mod tests {
     fn clicking_a_pattern_hit_sets_the_active_analysis_selection() {
         let mut app = StaticChartApp::new();
         app.generate();
-        let key = pattern_key(
-            AnalysisLayerKey::Natal,
-            iztro::core::PatternId::ZiFuChaoYuan,
-        );
+        let key = pattern_key(AnalysisLayerKey::Natal, iztro::PatternId::ZiFuChaoYuan);
         app.update(Message::TogglePatternHit(key.clone()));
         assert_eq!(
             app.active_analysis_selection(),
@@ -3128,13 +3125,10 @@ mod tests {
     fn pattern_expansion_is_keyed_by_layer_and_pattern_id() {
         let mut app = StaticChartApp::new();
         app.generate();
-        let natal = pattern_key(
-            AnalysisLayerKey::Natal,
-            iztro::core::PatternId::ChangQuJiaMing,
-        );
+        let natal = pattern_key(AnalysisLayerKey::Natal, iztro::PatternId::ChangQuJiaMing);
         let decadal = pattern_key(
             AnalysisLayerKey::Decadal { decadal_index: 0 },
-            iztro::core::PatternId::ChangQuJiaMing,
+            iztro::PatternId::ChangQuJiaMing,
         );
 
         app.update(Message::TogglePatternHit(natal.clone()));
