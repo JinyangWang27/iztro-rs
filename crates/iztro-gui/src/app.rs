@@ -66,6 +66,15 @@ pub enum Screen {
     Chart,
 }
 
+/// Palace selection mode for 三方四正 highlighting.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+enum PalaceSelection {
+    /// Follow the current projection's active-frame Life palace.
+    DefaultActiveLife,
+    /// User-clicked palace branch, sticky across temporal navigation.
+    UserSelectedBranch(EarthlyBranch),
+}
+
 /// A clickable bottom temporal-navigation cell, identified by row and index.
 ///
 /// This is the renderer-side identity of a navigation cell. Each cell maps to a
@@ -569,7 +578,7 @@ pub struct StaticChartApp {
     form: BirthForm,
     input: Option<BirthInput>,
     snapshot: Option<StaticChartProjection>,
-    selected: Option<EarthlyBranch>,
+    selected: PalaceSelection,
     hovered_palace: Option<EarthlyBranch>,
     selected_temporal_selection: StaticTemporalNavigationSelection,
     error: Option<FormError>,
@@ -611,7 +620,7 @@ impl StaticChartApp {
             form: BirthForm::default(),
             input: None,
             snapshot: None,
-            selected: None,
+            selected: PalaceSelection::DefaultActiveLife,
             hovered_palace: None,
             selected_temporal_selection: StaticTemporalNavigationSelection::PreDecadal,
             error: None,
@@ -824,12 +833,21 @@ impl StaticChartApp {
 
     /// Returns the branch of the currently selected palace, if any.
     pub fn selected_branch(&self) -> Option<EarthlyBranch> {
-        self.selected
+        if self.screen != Screen::Chart {
+            return None;
+        }
+        match self.selected {
+            PalaceSelection::DefaultActiveLife => self
+                .snapshot
+                .as_ref()
+                .map(StaticChartProjection::active_life_branch),
+            PalaceSelection::UserSelectedBranch(branch) => Some(branch),
+        }
     }
 
     /// Returns the currently selected palace, if any.
     pub fn selected_palace(&self) -> Option<&StaticPalaceProjection> {
-        let branch = self.selected?;
+        let branch = self.selected_branch()?;
         self.palaces().iter().find(|palace| palace.branch == branch)
     }
 
@@ -841,7 +859,7 @@ impl StaticChartApp {
     /// The branch driving 三方四正 highlighting: hover takes priority over the
     /// sticky selection while the pointer is over a palace.
     pub fn active_branch(&self) -> Option<EarthlyBranch> {
-        self.hovered_palace.or(self.selected)
+        self.hovered_palace.or_else(|| self.selected_branch())
     }
 
     /// Returns the palace driving highlighting (hovered, else selected), if any.
@@ -868,14 +886,11 @@ impl StaticChartApp {
             .is_some_and(|palace| palace.surround.involves(branch))
     }
 
-    /// Whether the active 三方四正 source is the natal 命宫 default (passive
-    /// lines) rather than a user-clicked palace or 流 badge (active lines).
+    /// Whether the active 三方四正 source is the active-frame 命宫 default
+    /// (passive lines) rather than another user-clicked/hovered palace.
     pub fn san_fang_is_default(&self) -> bool {
-        match (
-            self.active_branch(),
-            self.center().and_then(|c| c.life_palace_branch),
-        ) {
-            (Some(active), Some(life)) => active == life,
+        match (self.active_branch(), self.snapshot.as_ref()) {
+            (Some(active), Some(snapshot)) => active == snapshot.active_life_branch(),
             // No active palace yet behaves like the default state.
             (None, _) => true,
             _ => false,
@@ -971,7 +986,7 @@ impl StaticChartApp {
             Ok((snapshot, hit)) => {
                 // Default the active 三方四正 source to the natal 命宫, matching
                 // the original iztro chart's initial state.
-                self.selected = snapshot.center.life_palace_branch;
+                self.selected = PalaceSelection::DefaultActiveLife;
                 self.snapshot = Some(snapshot);
                 // A new birth input invalidates the analysis cache and the natal
                 // chart it was built from; the same input reuses them.
@@ -1293,7 +1308,9 @@ impl StaticChartApp {
     /// Applies a message to the state.
     pub fn update(&mut self, message: Message) {
         match message {
-            Message::SelectPalace(branch) => self.selected = Some(branch),
+            Message::SelectPalace(branch) => {
+                self.selected = PalaceSelection::UserSelectedBranch(branch)
+            }
             Message::YearChanged(value) => self.form.year = value,
             Message::MonthChanged(value) => self.form.month = value,
             Message::DayChanged(value) => self.form.day = value,
@@ -1376,7 +1393,7 @@ impl StaticChartApp {
             }
             Message::BackToStartup => {
                 self.screen = Screen::Startup;
-                self.selected = None;
+                self.selected = PalaceSelection::DefaultActiveLife;
                 self.hovered_palace = None;
                 self.selected_temporal_selection = StaticTemporalNavigationSelection::PreDecadal;
                 self.clear_stale_active_selection();
@@ -1888,14 +1905,52 @@ mod tests {
     fn generated_chart_defaults_active_branch_to_natal_life_palace() {
         let mut app = StaticChartApp::new();
         app.generate();
-        let life = app
-            .center()
-            .and_then(|center| center.life_palace_branch)
-            .expect("life palace branch");
-        // The sticky selection defaults to 命宫 so 三方四正 draws from it.
+        let life = app.snapshot().expect("snapshot").active_life_branch();
+        // The default selection resolves through the active frame's 命宫.
         assert_eq!(app.selected_branch(), Some(life));
         assert_eq!(app.active_branch(), Some(life));
         assert!(app.san_fang_is_default());
+    }
+
+    #[test]
+    fn default_selection_follows_temporal_active_life_palace() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        let generated_default = app.selected_branch();
+
+        app.update(Message::SelectTemporalCell(TemporalCell::Decadal(1)));
+
+        let decadal_life = app
+            .snapshot()
+            .expect("decadal snapshot")
+            .active_life_branch();
+        assert_eq!(app.selected_branch(), Some(decadal_life));
+        assert_eq!(app.active_branch(), Some(decadal_life));
+        assert!(app.san_fang_is_default());
+        assert_ne!(
+            Some(decadal_life),
+            generated_default,
+            "sample decadal frame should move the active Life palace"
+        );
+    }
+
+    #[test]
+    fn user_selected_branch_stays_sticky_across_temporal_navigation() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        let clicked = app
+            .palaces()
+            .iter()
+            .map(|palace| palace.branch)
+            .find(|branch| Some(*branch) != app.selected_branch())
+            .expect("a non-default branch");
+
+        app.update(Message::SelectPalace(clicked));
+        app.update(Message::SelectTemporalCell(TemporalCell::Decadal(1)));
+
+        assert_eq!(app.selected_branch(), Some(clicked));
+        assert_eq!(app.active_branch(), Some(clicked));
+        assert!(!app.san_fang_is_default());
     }
 
     #[test]
@@ -1957,6 +2012,26 @@ mod tests {
         app.update(Message::ClearHoveredPalace(hovered));
         assert_eq!(app.hovered_palace(), None);
         assert_eq!(app.active_branch(), Some(selected));
+    }
+
+    #[test]
+    fn hover_still_wins_over_default_active_life_selection() {
+        let mut app = StaticChartApp::new();
+        app.generate();
+        app.update(Message::SelectTemporalCell(TemporalCell::Decadal(1)));
+        let default = app.selected_branch().expect("default branch");
+        let hovered = app
+            .palaces()
+            .iter()
+            .map(|palace| palace.branch)
+            .find(|branch| *branch != default)
+            .expect("non-default branch");
+
+        app.update(Message::HoverPalace(hovered));
+        assert_eq!(app.active_branch(), Some(hovered));
+
+        app.update(Message::ClearHoveredPalace(hovered));
+        assert_eq!(app.active_branch(), Some(default));
     }
 
     #[test]
