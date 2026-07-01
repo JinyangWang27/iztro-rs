@@ -171,6 +171,21 @@ pub fn effective_branch_of_palace(
     effective_state_for_match_scope(ctx, match_scope)?.branch_of_palace(palace)
 }
 
+/// Returns the scope supplying the selected palace-name frame.
+pub fn selected_frame_scope(ctx: &PatternContext<'_>) -> Option<Scope> {
+    ctx.effective
+        .as_ref()
+        .map(EffectiveChartState::palace_frame_scope)
+}
+
+/// Returns the branch occupied by a named palace in the selected frame.
+pub fn selected_branch_of_palace(
+    ctx: &PatternContext<'_>,
+    palace: PalaceName,
+) -> Option<EarthlyBranch> {
+    ctx.effective.as_ref()?.branch_of_palace(palace)
+}
+
 fn effective_state_for_match_scope<'a, 'ctx>(
     ctx: &'ctx PatternContext<'a>,
     match_scope: Scope,
@@ -209,6 +224,17 @@ pub fn effective_stars_in_palace<'a>(
         .unwrap_or_default()
 }
 
+/// Returns effective typed star placements in `branch` for the selected frame.
+pub fn selected_stars_in_palace<'a>(
+    ctx: &PatternContext<'a>,
+    branch: EarthlyBranch,
+) -> Vec<EffectiveStarRef<'a>> {
+    ctx.effective
+        .as_ref()
+        .map(|state| state.stars_in_palace(branch))
+        .unwrap_or_default()
+}
+
 /// Returns the actual effective star matching `star` in `branch`.
 pub fn effective_star_in_palace<'a>(
     ctx: &PatternContext<'a>,
@@ -222,6 +248,21 @@ pub fn effective_star_in_palace<'a>(
         .find(|placement| star_matches_for_scope(match_scope, star, placement.placement().name()))
 }
 
+/// Returns the actual effective star matching `star` in `branch` for the
+/// selected frame.
+pub fn selected_star_in_palace<'a>(
+    ctx: &PatternContext<'a>,
+    branch: EarthlyBranch,
+    star: StarName,
+) -> Option<EffectiveStarRef<'a>> {
+    let state = ctx.effective.as_ref()?;
+    let frame_scope = state.palace_frame_scope();
+    state
+        .stars_in_palace(branch)
+        .into_iter()
+        .find(|placement| star_matches_for_scope(frame_scope, star, placement.placement().name()))
+}
+
 /// Returns whether `star` occupies `branch` in the effective state.
 pub fn effective_palace_has_star(
     ctx: &PatternContext<'_>,
@@ -230,6 +271,15 @@ pub fn effective_palace_has_star(
     star: StarName,
 ) -> bool {
     effective_star_in_palace(ctx, match_scope, branch, star).is_some()
+}
+
+/// Returns whether `star` occupies `branch` in the selected frame.
+pub fn selected_palace_has_star(
+    ctx: &PatternContext<'_>,
+    branch: EarthlyBranch,
+    star: StarName,
+) -> bool {
+    selected_star_in_palace(ctx, branch, star).is_some()
 }
 
 /// Returns whether every requested star occupies `branch` in the effective state.
@@ -242,6 +292,17 @@ pub fn effective_palace_has_all_stars(
     stars
         .iter()
         .all(|star| effective_palace_has_star(ctx, match_scope, branch, *star))
+}
+
+/// Returns whether every requested star occupies `branch` in the selected frame.
+pub fn selected_palace_has_all_stars(
+    ctx: &PatternContext<'_>,
+    branch: EarthlyBranch,
+    stars: &[StarName],
+) -> bool {
+    stars
+        .iter()
+        .all(|star| selected_palace_has_star(ctx, branch, *star))
 }
 
 /// Returns the number of major stars in the palace at `branch`.
@@ -259,6 +320,17 @@ pub fn major_star_count_in_palace_for_scope(
     branch: EarthlyBranch,
 ) -> usize {
     stars_in_palace_for_scope(ctx, scope, branch)
+        .iter()
+        .filter(|placement| placement.placement().kind() == StarKind::Major)
+        .count()
+}
+
+/// Returns the number of major stars in `branch` for the selected frame.
+pub fn selected_major_star_count_in_palace(
+    ctx: &PatternContext<'_>,
+    branch: EarthlyBranch,
+) -> usize {
+    selected_stars_in_palace(ctx, branch)
         .iter()
         .filter(|placement| placement.placement().kind() == StarKind::Major)
         .count()
@@ -368,6 +440,29 @@ pub fn effective_stars_in_san_fang_si_zheng(
     found
 }
 
+/// Returns requested stars found within the selected 三方四正 of `anchor`.
+pub fn selected_stars_in_san_fang_si_zheng(
+    ctx: &PatternContext<'_>,
+    anchor: EarthlyBranch,
+    stars: &[StarName],
+) -> Vec<(StarName, EarthlyBranch)> {
+    let Some(state) = ctx.effective.as_ref() else {
+        return Vec::new();
+    };
+    let frame_scope = state.palace_frame_scope();
+    let mut found = Vec::new();
+    for branch in san_fang_si_zheng(anchor) {
+        for placement in state.stars_in_palace(branch) {
+            if stars.iter().any(|star| {
+                star_matches_for_scope(frame_scope, *star, placement.placement().name())
+            }) {
+                found.push((placement.placement().name(), branch));
+            }
+        }
+    }
+    found
+}
+
 /// Returns the two stars clamping (夹) the palace at `anchor` when `left_star`
 /// and `right_star` occupy its two clamp palaces, one on each side.
 ///
@@ -447,6 +542,36 @@ pub fn effective_clamp_pair_matches(
 
     let low_right = effective_star_in_palace(ctx, match_scope, low, right_star);
     let high_left = effective_star_in_palace(ctx, match_scope, high, left_star);
+    if let (Some(low_right), Some(high_left)) = (low_right, high_left) {
+        return Some([
+            (low_right.placement().name(), low),
+            (high_left.placement().name(), high),
+        ]);
+    }
+
+    None
+}
+
+/// Returns a selected-frame clamp match, preserving actual matched star names.
+pub fn selected_clamp_pair_matches(
+    ctx: &PatternContext<'_>,
+    anchor: EarthlyBranch,
+    left_star: StarName,
+    right_star: StarName,
+) -> Option<[(StarName, EarthlyBranch); 2]> {
+    let [low, high] = clamp_branches(anchor);
+
+    let low_left = selected_star_in_palace(ctx, low, left_star);
+    let high_right = selected_star_in_palace(ctx, high, right_star);
+    if let (Some(low_left), Some(high_right)) = (low_left, high_right) {
+        return Some([
+            (low_left.placement().name(), low),
+            (high_right.placement().name(), high),
+        ]);
+    }
+
+    let low_right = selected_star_in_palace(ctx, low, right_star);
+    let high_left = selected_star_in_palace(ctx, high, left_star);
     if let (Some(low_right), Some(high_left)) = (low_right, high_left) {
         return Some([
             (low_right.placement().name(), low),

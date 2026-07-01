@@ -2269,6 +2269,54 @@ fn wen_xing_gong_ming_requires_chang_qu_in_life_san_fang_si_zheng() {
 }
 
 #[test]
+fn decadal_wen_xing_gong_ming_uses_effective_selected_state() {
+    // Natal Life is Zi, but the selected decadal frame relabels Yin as Life.
+    // Natal WenChang/WenQu sit in SFSZ(Yin), so ordinary selected-state
+    // detection should emit for Decadal even without decadal flow Chang/Qu.
+    let decadal_life = EarthlyBranch::Yin;
+    let natal = build_chart(
+        EarthlyBranch::Zi,
+        &[
+            soft(EarthlyBranch::Shen, StarName::WenChang),
+            soft(EarthlyBranch::Wu, StarName::WenQu),
+        ],
+    );
+    let horoscope = horoscope_with_layer(natal, Scope::Decadal, decadal_life, vec![], vec![]);
+
+    assert_ne!(
+        horoscope.natal().branch_of_palace(iztro::PalaceName::Life),
+        Some(decadal_life)
+    );
+
+    let detections = iztro::detect_patterns(
+        &PatternContext::horoscope_with_frame(
+            &horoscope,
+            Scope::Decadal,
+            vec![Scope::Natal, Scope::Decadal],
+        ),
+        &request_for_scope(Scope::Decadal),
+    );
+    let detection = detection(&detections, PatternId::WenXingGongMing);
+
+    assert_eq!(detection.scope, PatternScope::Decadal);
+    assert_eq!(detection.anchor, PatternAnchor::Palace(decadal_life));
+    assert_eq!(
+        star_set(&detection.involved_stars),
+        star_set(&[StarName::WenChang, StarName::WenQu])
+    );
+    assert!(detection.evidence.iter().any(|evidence| {
+        matches!(
+            evidence,
+            PatternEvidence::StarsInSanFangSiZheng { stars, anchor, branches }
+                if star_set(stars) == star_set(&[StarName::WenChang, StarName::WenQu])
+                    && *anchor == decadal_life
+                    && branch_set(branches)
+                        == branch_set(&[EarthlyBranch::Shen, EarthlyBranch::Wu])
+        )
+    }));
+}
+
+#[test]
 fn tian_ji_si_hai_requires_tian_ji_seated_in_si_or_hai_life() {
     // 天机在巳坐命.
     let si = build_chart(
@@ -2425,6 +2473,50 @@ fn zuo_you_tong_gong_requires_chou_wei_anchor_same_palace_and_support() {
         &PatternDetectionRequest::default(),
     );
     assert!(detections.iter().all(|d| d.id != PatternId::ZuoYouTongGong));
+}
+
+#[test]
+fn yearly_zuo_you_tong_gong_uses_selected_life_not_natal_only() {
+    // Natal Life is Zi, but the selected yearly frame relabels Chou as Life.
+    // The 左右 pair and extra support are natal facts in the effective yearly
+    // state, so the yearly selected-state detector should emit.
+    let yearly_life = EarthlyBranch::Chou;
+    let natal = build_chart(
+        EarthlyBranch::Zi,
+        &[
+            soft(yearly_life, StarName::ZuoFu),
+            soft(yearly_life, StarName::YouBi),
+            (EarthlyBranch::Si, StarName::LuCun, StarKind::LuCun, None),
+        ],
+    );
+    let horoscope = horoscope_with_layer(natal, Scope::Yearly, yearly_life, vec![], vec![]);
+
+    assert_ne!(
+        horoscope.natal().branch_of_palace(iztro::PalaceName::Life),
+        Some(yearly_life)
+    );
+
+    let detections = iztro::detect_patterns(
+        &PatternContext::horoscope_with_frame(
+            &horoscope,
+            Scope::Yearly,
+            vec![Scope::Natal, Scope::Yearly],
+        ),
+        &request_for_scope(Scope::Yearly),
+    );
+    let detection = detection(&detections, PatternId::ZuoYouTongGong);
+
+    assert_eq!(detection.scope, PatternScope::Yearly);
+    assert_eq!(detection.anchor, PatternAnchor::Palace(yearly_life));
+    assert_eq!(
+        star_set(&detection.involved_stars),
+        star_set(&[StarName::ZuoFu, StarName::YouBi, StarName::LuCun])
+    );
+    assert!(evidence_has_star_in_palace(
+        detection,
+        StarName::LuCun,
+        EarthlyBranch::Si
+    ));
 }
 
 /// The exact 明珠出海 structure: 命宫在未无正曜，卯宫太阳天梁，亥宫太阴入庙旺，
