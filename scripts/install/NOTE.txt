@@ -1,0 +1,1 @@
+Windows one-line installer is deferred. Use the Windows ZIP artifact for now.
