@@ -204,8 +204,68 @@ impl<'a> HoroscopeRuntime<'a> {
         })
     }
 
-    /// Returns true when all queried horoscope stars are present.
+    /// Returns true when all queried horoscope stars are present at the
+    /// projected palace branch.
+    ///
+    /// This mirrors upstream-style runtime helper behaviour: it checks the union
+    /// of **Decadal + Yearly** horoscope stars at the projected palace branch. It
+    /// is **not** an [`EffectiveChartState`] selected-state query — it never
+    /// considers natal support stars or other temporal layers. For selected-state
+    /// analysis use `EffectiveChartState` / the pattern `selected_*` helpers.
+    ///
+    /// Prefer [`has_decadal_yearly_horoscope_stars`](Self::has_decadal_yearly_horoscope_stars),
+    /// whose name states the Decadal+Yearly scope; this method is kept as a
+    /// compatibility wrapper.
+    ///
+    /// [`EffectiveChartState`]: crate::core::EffectiveChartState
     pub fn has_horoscope_stars(
+        &self,
+        scope: Scope,
+        palace: PalaceName,
+        stars: &[StarName],
+    ) -> Result<bool, ChartError> {
+        self.has_decadal_yearly_horoscope_stars(scope, palace, stars)
+    }
+
+    /// Returns true when all queried horoscope stars are absent at the projected
+    /// palace branch.
+    ///
+    /// Same Decadal+Yearly, non-selected-state semantics as
+    /// [`has_horoscope_stars`](Self::has_horoscope_stars). Prefer
+    /// [`not_have_decadal_yearly_horoscope_stars`](Self::not_have_decadal_yearly_horoscope_stars);
+    /// this method is kept as a compatibility wrapper.
+    pub fn not_have_horoscope_stars(
+        &self,
+        scope: Scope,
+        palace: PalaceName,
+        stars: &[StarName],
+    ) -> Result<bool, ChartError> {
+        self.not_have_decadal_yearly_horoscope_stars(scope, palace, stars)
+    }
+
+    /// Returns true when at least one queried horoscope star is present at the
+    /// projected palace branch.
+    ///
+    /// Same Decadal+Yearly, non-selected-state semantics as
+    /// [`has_horoscope_stars`](Self::has_horoscope_stars). Prefer
+    /// [`has_one_of_decadal_yearly_horoscope_stars`](Self::has_one_of_decadal_yearly_horoscope_stars);
+    /// this method is kept as a compatibility wrapper.
+    pub fn has_one_of_horoscope_stars(
+        &self,
+        scope: Scope,
+        palace: PalaceName,
+        stars: &[StarName],
+    ) -> Result<bool, ChartError> {
+        self.has_one_of_decadal_yearly_horoscope_stars(scope, palace, stars)
+    }
+
+    /// Returns true when all queried Decadal+Yearly horoscope stars are present
+    /// at the projected palace branch.
+    ///
+    /// The scope-explicit name for [`has_horoscope_stars`](Self::has_horoscope_stars).
+    /// It checks the union of Decadal and Yearly horoscope stars at the branch
+    /// projected for `palace` in `scope`; it is not a selected-state query.
+    pub fn has_decadal_yearly_horoscope_stars(
         &self,
         scope: Scope,
         palace: PalaceName,
@@ -215,8 +275,11 @@ impl<'a> HoroscopeRuntime<'a> {
         Ok(stars.iter().all(|star| present.contains(star)))
     }
 
-    /// Returns true when all queried horoscope stars are absent.
-    pub fn not_have_horoscope_stars(
+    /// Returns true when all queried Decadal+Yearly horoscope stars are absent at
+    /// the projected palace branch.
+    ///
+    /// The scope-explicit name for [`not_have_horoscope_stars`](Self::not_have_horoscope_stars).
+    pub fn not_have_decadal_yearly_horoscope_stars(
         &self,
         scope: Scope,
         palace: PalaceName,
@@ -226,8 +289,11 @@ impl<'a> HoroscopeRuntime<'a> {
         Ok(stars.iter().all(|star| !present.contains(star)))
     }
 
-    /// Returns true when at least one queried horoscope star is present.
-    pub fn has_one_of_horoscope_stars(
+    /// Returns true when at least one queried Decadal+Yearly horoscope star is
+    /// present at the projected palace branch.
+    ///
+    /// The scope-explicit name for [`has_one_of_horoscope_stars`](Self::has_one_of_horoscope_stars).
+    pub fn has_one_of_decadal_yearly_horoscope_stars(
         &self,
         scope: Scope,
         palace: PalaceName,
@@ -255,6 +321,11 @@ impl<'a> HoroscopeRuntime<'a> {
         }))
     }
 
+    /// Collects the union of Decadal and Yearly horoscope star names at the
+    /// branch projected for `palace` in `scope`.
+    ///
+    /// This is the sole source of the horoscope-star helpers' semantics: it is
+    /// deliberately Decadal+Yearly only and never a selected-state read.
     fn decadal_yearly_stars_for_projected_palace(
         &self,
         scope: Scope,

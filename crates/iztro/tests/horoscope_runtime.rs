@@ -109,6 +109,42 @@ fn runtime_query_helpers_match_upstream_fixture() {
 }
 
 #[test]
+fn runtime_decadal_yearly_aliases_match_compatibility_names() {
+    for case in horoscope_runtime_fixture_cases() {
+        let case_id = case["id"].as_str().expect("case id");
+        let chart = build_chart_from_horoscope_fixture_case(&case);
+        let horoscope = build_full_horoscope_chart(chart, stack_input(&case))
+            .expect("full horoscope stack should build");
+        let runtime = HoroscopeRuntime::new(&horoscope).expect("runtime should validate");
+
+        for query in case["runtime"]["star_queries"]
+            .as_array()
+            .expect("star queries")
+        {
+            let scope = parse_runtime_scope(query["scope"].as_str().expect("scope"));
+            let palace = parse_key::<PalaceName>(query["palace_name"].as_str().expect("palace"));
+            let stars = parse_star_list(&query["stars"]);
+
+            assert_eq!(
+                runtime.has_horoscope_stars(scope, palace, &stars),
+                runtime.has_decadal_yearly_horoscope_stars(scope, palace, &stars),
+                "{case_id}: has_* alias diverged"
+            );
+            assert_eq!(
+                runtime.not_have_horoscope_stars(scope, palace, &stars),
+                runtime.not_have_decadal_yearly_horoscope_stars(scope, palace, &stars),
+                "{case_id}: not_have_* alias diverged"
+            );
+            assert_eq!(
+                runtime.has_one_of_horoscope_stars(scope, palace, &stars),
+                runtime.has_one_of_decadal_yearly_horoscope_stars(scope, palace, &stars),
+                "{case_id}: has_one_of_* alias diverged"
+            );
+        }
+    }
+}
+
+#[test]
 fn runtime_boundary_errors_are_clean() {
     let case = horoscope_runtime_fixture_cases()
         .into_iter()
