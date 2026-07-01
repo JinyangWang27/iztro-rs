@@ -1,22 +1,22 @@
-# ADR 0008: Classical Rule Engine (Chinese-first, hybrid)
+# ADR 0008: Classical Rule Engine
 
-## Status
-
-Accepted.
+Status: Accepted
 
 ## Context
 
-`iztro-rs` needs to encode rules from classical sources (e.g. 《紫微斗数全书》)
-and turn chart facts into structured claims. A placeholder `rules/` scaffold
-already exists, but its `Claim`/`Evidence` shapes are prose-oriented and do not
-match the requirements for machine-readable, evidence-backed claims with stable
-typed identity, Chinese source preservation, and localized rendering.
+`iztro-rs` needs a rule engine that can encode Chinese classical rules without
+turning source text into opaque prose, and without coupling the core crate to
+runtime localization or report writing.
 
-Two tensions had to be resolved:
+The first concrete source family is 《紫微斗数全书》. Early rule work also revealed
+that some classical clauses are not immediately executable because their
+conditions require a school-specific policy, a missing chart fact, or a more
+precise relation model.
 
-1. How rules are authored vs. how they are matched.
-2. How to introduce a richer claim model without breaking the existing scaffold
-   and its tests.
+A purely data-driven DSL would be premature: the rule corpus is still being
+segmented and normalized, while the Rust chart facts and query helpers are still
+evolving. But storing all rule knowledge directly in Rust would make source
+coverage and auditability poor.
 
 ## Decision
 
@@ -26,7 +26,7 @@ with a hybrid design:
 - **Metadata is data-driven** from a Chinese-first corpus TOML
   (`rule-corpus/quan-shu/rules.toml`), embedded via `include_str!`.
 - **Predicates are hand-coded** in Rust, reusing shared read-only query helpers
-  from `rules::pattern::query`. No generic rule DSL is built yet.
+  from `rules::query`. No generic rule DSL is built yet.
 - Rules emit typed `Claim`s (domain, themes, polarity, strength, evidence,
   counter-evidence, source refs, stable `claim_key`). Chinese strings are never
   used as logic keys.
@@ -50,7 +50,7 @@ casing.
 - Classical rules can be authored as Chinese-first data, separate from matching
   code.
 - Claims are testable, filterable, serializable, and localizable.
-- Unsupported rules are explicit and visible rather than silently non-firing.
-- The classical `Claim` is now the sole claim type; the earlier placeholder
-  scaffold `Claim` has been removed.
-- A generic condition DSL is deferred until enough rules justify it.
+- Unsupported rules are explicitly visible instead of silently absent.
+- The old placeholder `Claim` scaffold has been removed; classical `Claim` is the
+  only claim type.
+- A generic condition DSL is deferred until rule volume proves the need.
