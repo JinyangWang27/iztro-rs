@@ -5,15 +5,15 @@
 //! [`PatternStatus::Weakened`] (成而减力) when an adverse [`StarKind::Tough`] star
 //! also sits in one of the involved palaces.
 
-use crate::core::pattern::context::{PatternContext, PatternDetectionRequest};
-use crate::core::pattern::model::{
+use crate::core::{EarthlyBranch, PalaceName, StarKind, StarName};
+use crate::rules::pattern::context::{PatternContext, PatternDetectionRequest};
+use crate::rules::pattern::model::{
     PatternAnchor, PatternCondition, PatternDetection, PatternEvidence, PatternFamily, PatternId,
     PatternPolarity, PatternStatus, PatternStrength,
 };
-use crate::core::pattern::query::{
+use crate::rules::pattern::query::{
     branch_of_palace_for_scope, pattern_scope_for, stars_in_palace_for_scope,
 };
-use crate::core::{EarthlyBranch, PalaceName, StarKind, StarName};
 
 const NAME_ZH: &str = "紫府朝垣";
 const REQUIRED: [StarName; 2] = [StarName::ZiWei, StarName::TianFu];
@@ -29,7 +29,7 @@ pub fn detect(
             continue;
         };
 
-        let found = crate::core::pattern::query::stars_in_san_fang_si_zheng_for_scope(
+        let found = crate::rules::pattern::query::stars_in_san_fang_si_zheng_for_scope(
             ctx, scope, anchor, &REQUIRED,
         );
         let has_ziwei = found.iter().any(|(star, _)| *star == StarName::ZiWei);

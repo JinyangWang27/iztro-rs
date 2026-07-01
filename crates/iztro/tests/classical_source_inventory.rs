@@ -289,14 +289,14 @@ fn source_backed_pattern_catalogues_do_not_create_classical_rules() {
 /// is no separate classical runtime rule for these patterns.
 #[test]
 fn canonical_pattern_metadata_references_source_inventory() {
-    use iztro::core::pattern::metadata::pattern_source_metadata;
-    use iztro::core::pattern::model::PatternId;
+    use iztro::rules::pattern::metadata::pattern_source_metadata;
+    use iztro::rules::pattern::model::PatternId;
 
     // Validates inventory-reference correctness for every source-backed pattern
     // (a `PatternId` carrying source metadata). This test owns the test-only
     // inventory loader. The runtime panic guard — that every id the detector
     // *emits* has metadata — lives in a unit test next to the detector
-    // (`core::pattern::rules::quan_shu_v01`), so that detector detail stays
+    // (`rules::pattern::rules::quan_shu_v01`), so that detector detail stays
     // private rather than being made `pub` just for this test.
     let inventory = source_inventory();
     let inventory_by_id: HashMap<&str, _> = inventory

@@ -6,15 +6,15 @@
 //! incomplete formation is not a near-pattern and produces no detection. No
 //! weakening/breaker policy is modeled yet, so only `Fulfilled` is ever emitted.
 
-use crate::core::pattern::context::{PatternContext, PatternDetectionRequest};
-use crate::core::pattern::model::{
+use crate::core::{EarthlyBranch, PalaceName, StarName};
+use crate::rules::pattern::context::{PatternContext, PatternDetectionRequest};
+use crate::rules::pattern::model::{
     PatternAnchor, PatternDetection, PatternEvidence, PatternFamily, PatternId, PatternPolarity,
     PatternStatus, PatternStrength,
 };
-use crate::core::pattern::query::{
+use crate::rules::pattern::query::{
     effective_branch_of_palace, effective_stars_in_san_fang_si_zheng, pattern_scope_for,
 };
-use crate::core::{EarthlyBranch, PalaceName, StarName};
 
 const NAME_ZH: &str = "机月同梁";
 const REQUIRED: [StarName; 4] = [

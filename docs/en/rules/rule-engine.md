@@ -14,7 +14,7 @@ the classical claim model.
 
 ```
 Chart facts
-  -> feature/query predicates        (reuse core/pattern query helpers)
+  -> feature/query predicates        (reuse rules::pattern query helpers)
   -> classical rule evaluation       (corpus metadata + hand-coded predicates)
   -> ClassicalSourceHit[]            (matched source/provenance)
   -> Claim[]                         (only when rule.claim exists)
@@ -46,8 +46,8 @@ This is intentionally **not** a generic rule DSL yet:
    source, status, work, school).
    Optional `[rule.claim]` metadata holds interpretation fields (domain, themes,
    polarity, base strength, claim key).
-2. **Rule predicates are hand-coded** in `predicates.rs`, reusing the read-only
-   chart query helpers in `core/pattern/` (clamp matching, brightness
+2. **Rule predicates are hand-coded** in `predicates.rs`, reusing read-only
+   chart query helpers from `rules::pattern::query` (clamp matching, brightness
    classification, star lookup) — no second copy of that logic.
 3. The evaluator module pairs each rule’s metadata with its predicate and
    build a `ClassicalSourceHit`; they build a `Claim` only when `rule.claim`
@@ -131,7 +131,7 @@ exposes a context-oriented entry point:
 evaluate_classical_in_context(&ClassicalRuleContext, &request) -> ClaimEvaluation
 ```
 
-`ClassicalRuleContext` mirrors `core::pattern::PatternContext`: it carries the
+`ClassicalRuleContext` mirrors `rules::pattern::PatternContext`: it carries the
 natal `chart`, an optional `&HoroscopeChart`, and the `active_scopes` a rule may
 inspect. `ClassicalRuleContext::natal(chart)` and
 `ClassicalRuleContext::horoscope(chart, active_scopes)` are the constructors.
@@ -167,7 +167,7 @@ Key types:
   `key` (every other filter — notably `works` — is preserved from the caller's
   request) and returns compact `rule_hits: Vec<ClassicalRuleHitRef>` plus
   `pattern_hits: Vec<PatternDetection>`. Pattern hits are produced by
-  `core::pattern` and may come from supported temporal overlay facts; classical
+  `rules::pattern` and may come from supported temporal overlay facts; classical
   rule hits remain conservative and current executable QuanShu rules are still
   natal-only. The `TemporalAnalysisContext` must correspond to `key`: the key
   drives cache identity and scope assignment and is **not** currently validated
@@ -247,7 +247,7 @@ rule must carry a `normalized_note_zh_hans`, enforced by
 
 ## PatternDetection vs Claim
 
-`iztro` already has `core::pattern` **pattern detection** (格局). The two are
+`iztro` already has `rules::pattern` **pattern detection** (格局). The two are
 distinct:
 
 - A **`PatternDetection`** is a structured statement that a known 格局 shape is
@@ -260,7 +260,7 @@ distinct:
 A classical rule may match the same structural shape as a known pattern (the
 昌曲夹命 claim records `EvidenceKind::PatternShapeMatched {
 pattern: ChangQuJiaMing }`), but this does not claim that
-`core::pattern::detect_patterns` was run. The claim still carries domain /
+`rules::pattern::detect_patterns` was run. The claim still carries domain /
 theme / polarity / source semantics a pattern detection does not.
 
 ## Worked example: 马遇空亡，终身奔走

@@ -1,6 +1,6 @@
 use iztro::core::EarthlyBranch;
 use iztro::core::EarthlyBranch::{Chen, Mao, Shen, Si, Wei, Yin, You, Zi};
-use iztro::core::pattern::relation::{
+use iztro::rules::pattern::relation::{
     clamp_branches, is_in_san_fang_si_zheng, is_in_trine_group, opposite, san_fang_si_zheng,
     trine_branches,
 };

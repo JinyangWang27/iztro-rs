@@ -4,8 +4,8 @@ use serde::{Deserialize, Serialize};
 
 use crate::core::Scope;
 use crate::core::StaticTemporalNavigationSelection;
-use crate::core::pattern::PatternScope;
 use crate::rules::classical::ClaimScope;
+use crate::rules::pattern::PatternScope;
 
 /// A key identifying one cacheable analysis layer.
 ///

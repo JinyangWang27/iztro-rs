@@ -6,11 +6,11 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::core::pattern::model::PatternId;
-use crate::core::pattern::relation::PalaceRelation;
 use crate::core::{Brightness, EarthlyBranch, Mutagen, StarName};
 use crate::rules::classical::outcome::UnsupportedReason;
 use crate::rules::classical::void::VoidKind;
+use crate::rules::pattern::model::PatternId;
+use crate::rules::pattern::relation::PalaceRelation;
 
 /// A concrete, machine-checkable reason a classical rule matched.
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
@@ -72,7 +72,7 @@ pub enum EvidenceKind {
     },
     /// A structural shape matched a known 格局 pattern id.
     ///
-    /// This does not imply [`crate::core::pattern::detect_patterns`] was run; it
+    /// This does not imply [`crate::rules::pattern::detect_patterns`] was run; it
     /// records that the rule's own predicate matched the same chart shape.
     PatternShapeMatched {
         /// The corresponding pattern id.

@@ -2,7 +2,7 @@
 //!
 //! This module is a thin coordinator over two existing engines:
 //!
-//! - [`core::pattern`](crate::core::pattern) — pattern (格局) detection;
+//! - [`rules::pattern`](crate::rules::pattern) — pattern (格局) detection;
 //! - [`rules::classical`](crate::rules::classical) — classical rule (全书规则)
 //!   evaluation.
 //!

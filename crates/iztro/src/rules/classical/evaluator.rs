@@ -10,13 +10,11 @@
 //! source rules and project pattern/格局 rules). It is intentionally named for the
 //! evaluation role rather than for any one source corpus.
 //!
-//! Canonical 格局/pattern identity lives in `core::pattern` (`PatternId` →
+//! Canonical 格局/pattern identity lives in `rules::pattern` (`PatternId` →
 //! `PatternDetection`). This evaluator does not re-derive QuanShu pattern
 //! catalogue entries as separate classical runtime rules; it only references a
 //! `PatternId` as corroborating evidence for project-owned pattern rules.
 
-use crate::core::pattern::model::PatternId;
-use crate::core::pattern::relation::PalaceRelation;
 use crate::core::{Chart, EarthlyBranch, StarName, StarTag};
 use crate::rules::classical::claim::{Claim, ClaimId, ClaimScope, ClaimStrength};
 use crate::rules::classical::evidence::{Evidence, EvidenceKind};
@@ -28,6 +26,8 @@ use crate::rules::classical::predicates::{
 use crate::rules::classical::rule::{ClaimSpec, ClassicalRule};
 use crate::rules::classical::source_hit::ClassicalSourceHit;
 use crate::rules::classical::void::VoidPolicy;
+use crate::rules::pattern::model::PatternId;
+use crate::rules::pattern::relation::PalaceRelation;
 
 // Stable rule ids handled by this module.
 const TIAN_MA_VOID: &str = "migration.tian_ma_void.restless_movement";

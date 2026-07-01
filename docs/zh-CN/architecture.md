@@ -133,17 +133,16 @@ Feature Extraction Layer 把星盘转换成语义特征图。
 - 星曜落点和星曜语义；
 - 四化流向；
 - 对宫、三方四正等宫位关系；
-- 格局与组合；
 - 大限、流年、流月、流日、流时等时间激活；
 - 强弱评分和反证。
 
 这一层的目标不是写文章，而是暴露可供规则引擎评估的特征。
 
-本层第一个只读切片是 `core::pattern`：它把传统格局识别为基于命盘事实的结构化、可解释事实，既不修改命盘，也不产生文字。规则目录与保证见 [`patterns.md`](patterns.md)。
+格局识别属于规则引擎代码，而不是 core 命盘状态。可执行格局引擎位于 `rules::pattern`，它读取 core facts，但不让 `core` 依赖 `rules`。规则目录与保证见 [`patterns.md`](patterns.md)。
 
 ## 7. Rule Engine Layer
 
-Rule Engine Layer 把特征映射成结构化判断。
+Rule Engine Layer 把命盘 facts 与提取出的特征映射成结构化规则输出。
 
 规则不应该直接输出最终解盘文本。一条规则应输出：
 
@@ -157,9 +156,13 @@ Rule Engine Layer 把特征映射成结构化判断。
 
 这样规则匹配可以测试，也方便多个规则先聚合，再生成报告。
 
+`rules::pattern` 把传统格局结构识别为 `PatternDetection` facts。
+`rules::classical` 把古籍规则评估为 source hits、claims 和 diagnostics。
+两个引擎都消费命盘 facts；它们都不拥有命盘生成或安星逻辑。
+
 ### 分层分析协调
 
-`analysis` 模块是一个轻量协调层，组合 Feature Extraction Layer 的 `core::pattern` 格局检测与 Rule Engine Layer 的 `rules::classical` 评估，提供**可缓存的逐层**检测。它位于 `core` 之外，正是因为 `core` 不得依赖 `rules`，而分层 API 两者都需要。它不新增任何解读：`detect_analysis_layer` 针对一个 `AnalysisLayerKey` 返回紧凑的 `ClassicalRuleHitRef`（经 `classical_rule_metadata` 解析回逐字原文）以及结构化的 `PatternDetection`，把分组、缓存与渲染留给消费方。API 及“最深层”跨层归属策略见 [`rules/rule-engine.md`](rules/rule-engine.md)。
+`analysis` 模块是一个轻量协调层，组合 `rules::pattern` 格局检测与 `rules::classical` 评估，提供**可缓存的逐层**检测。它位于 `core` 之外，正是因为 `core` 不得依赖 `rules`，而分层 API 两者都需要。它不新增任何解读：`detect_analysis_layer` 针对一个 `AnalysisLayerKey` 返回紧凑的 `ClassicalRuleHitRef`（经 `classical_rule_metadata` 解析回逐字原文）以及结构化的 `PatternDetection`，把分组、缓存与渲染留给消费方。API 及“最深层”跨层归属策略见 [`rules/rule-engine.md`](rules/rule-engine.md)。
 
 ## 8. Narrative Layer
 

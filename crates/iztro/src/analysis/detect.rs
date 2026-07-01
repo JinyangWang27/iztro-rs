@@ -2,13 +2,13 @@
 
 use serde::Serialize;
 
-use crate::core::pattern::{
-    PatternContext, PatternDetection, PatternDetectionRequest, detect_patterns,
-};
 use crate::core::{Chart, HoroscopeChart};
 use crate::rules::classical::{
     ClaimEvaluationRequest, ClassicalRuleContext, ClassicalRuleHitRef, ClassicalWork,
     DiagnosticMode, evaluate_classical_in_context,
+};
+use crate::rules::pattern::{
+    PatternContext, PatternDetection, PatternDetectionRequest, detect_patterns,
 };
 
 use crate::analysis::layer::{AnalysisLayerKey, analysis_scopes_for_layer_key};

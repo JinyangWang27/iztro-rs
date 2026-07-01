@@ -1,10 +1,11 @@
-//! Classical rule engine contracts for iztro-rs.
+//! Rule engine contracts for iztro-rs.
 //!
-//! The active rule engine lives in [`classical`]. It is the Chinese-first,
-//! corpus-backed engine that evaluates chart facts into source hits, claims,
-//! and diagnostics.
+//! Pattern rules live in [`pattern`] and recognize structured pattern facts
+//! over already-computed chart state. Classical rules live in [`classical`] and
+//! evaluate chart facts into source hits, claims, and diagnostics.
 
 pub mod classical;
+pub mod pattern;
 
 pub use classical::{
     Claim, ClaimDomain, ClaimEvaluation, ClaimEvaluationRequest, ClaimId, ClaimPolarity,

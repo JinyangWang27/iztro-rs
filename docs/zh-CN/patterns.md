@@ -1,6 +1,6 @@
 # 格局检测（Pattern Detection）
 
-`core::pattern` 是构建在既有命盘事实之上的**只读分析层**。它把传统紫微斗数格局识别为
+`rules::pattern` 是构建在既有命盘事实之上的**只读格局规则引擎**。它把传统紫微斗数格局识别为
 结构化、可解释的事实，并且不产生任何叙述性文字。
 
 ## 保证
@@ -111,11 +111,11 @@ scope、status 与 family。
 `crates/iztro/rule-corpus/quan-shu/source/volume-01.toml`，使用
 `category = "pattern_rule"` 与 `status = "segmented"`。运行时代码不解析该 inventory。
 
-**一个格局只有唯一的规范运行时身份：其 `PatternId`，由 `core::pattern` 检测。**《紫微斗数全书》
+**一个格局只有唯一的规范运行时身份：其 `PatternId`，由 `rules::pattern` 检测。**《紫微斗数全书》
 卷一格局目录条目是这些规范格局的**古籍出处来源（source provenance）**，不会创造第二个运行时身份：
 
-- `core::pattern` 负责结构检测，产出 `PatternDetection` 事实。这是唯一识别格局之处。
-- `core::pattern::metadata::pattern_source_metadata(pattern_id)` 把全书出处引用（work、
+- `rules::pattern` 负责结构检测，产出 `PatternDetection` 事实。这是唯一识别格局之处。
+- `rules::pattern::metadata::pattern_source_metadata(pattern_id)` 把全书出处引用（work、
   `source_id`、原文逐字文本、目录分组）挂到已实现的 `PatternId` 上，供 GUI 或文档展示出处。
   这仅为出处来源，不代表存在独立的 classical 运行时规则。
 - `rules::classical` **不**为每个全书格局目录条目创建平行的 source-hit/claim 规则，

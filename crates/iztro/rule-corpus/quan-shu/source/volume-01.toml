@@ -436,7 +436,7 @@ notes_zh_hans = "太微赋例曰之收束语（赞叹治学），非断语；以
 #
 # 以下四组为卷一末尾显式格局目录。每个 item 保留「格局名 + 条件/说明」
 # 的原文整条，不拆分名称与说明，不链接 classical claim rule。可执行检测仅
-# 通过 core::pattern 的 PatternDetection 暴露，source inventory 仍只作为
+# 通过 rules::pattern 的 PatternDetection 暴露，source inventory 仍只作为
 # governance/test data。
 
 [[source_group]]

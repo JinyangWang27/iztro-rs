@@ -4,7 +4,7 @@
 //! a QuanShu Volume 1 pattern-catalogue entry. It is **not** classical runtime
 //! rule metadata and is **not** consumed by `evaluate_classical`: a 格局/pattern
 //! has exactly one canonical runtime identity (`PatternId`, detected by
-//! `core::pattern`), and this table only records where that pattern is cited.
+//! `rules::pattern`), and this table only records where that pattern is cited.
 //!
 //! The QuanShu source inventory TOML remains governance/test data. Runtime code
 //! only carries provenance for patterns that have executable detections, so a
@@ -12,7 +12,7 @@
 
 use serde::{Deserialize, Serialize};
 
-use crate::core::pattern::model::PatternId;
+use crate::rules::pattern::model::PatternId;
 
 /// Source catalogue group for a source-backed pattern.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]

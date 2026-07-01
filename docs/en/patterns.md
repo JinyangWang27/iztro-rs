@@ -1,8 +1,8 @@
 # Pattern (格局) Detection
 
-`core::pattern` is a **read-only analytical layer** over already-computed chart
-facts. It recognizes classical Zi Wei Dou Shu patterns (格局) as structured,
-explainable facts and never produces narrative prose.
+`rules::pattern` is the **read-only pattern rule engine** over
+already-computed chart facts. It recognizes classical Zi Wei Dou Shu patterns
+(格局) as structured, explainable facts and never produces narrative prose.
 
 ## Guarantees
 
@@ -132,13 +132,13 @@ These sections are source-backed pattern material. Their source entries live in
 parse that inventory.
 
 **A 格局/pattern has exactly one canonical runtime identity: its `PatternId`,
-detected by `core::pattern`.** QuanShu Volume 1 pattern catalogue entries are the
+detected by `rules::pattern`.** QuanShu Volume 1 pattern catalogue entries are the
 *ancient source provenance* for those canonical patterns — they do not create a
 second runtime identity:
 
-- `core::pattern` performs the structural detection and emits
+- `rules::pattern` performs the structural detection and emits
   `PatternDetection` facts. This is the only place a pattern is recognized.
-- `core::pattern::metadata::pattern_source_metadata(pattern_id)` attaches the
+- `rules::pattern::metadata::pattern_source_metadata(pattern_id)` attaches the
   QuanShu source citation (work, `source_id`, verbatim source text, catalogue
   group) to an implemented `PatternId`, so a GUI or docs layer can display the
   provenance. This is provenance only.

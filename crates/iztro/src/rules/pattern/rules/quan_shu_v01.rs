@@ -4,18 +4,18 @@
 //! and 定贫贱局. The source inventory records more entries than this module
 //! executes; unclear, referenced, and temporal entries remain metadata-only.
 
-use crate::core::pattern::context::{PatternContext, PatternDetectionRequest};
-use crate::core::pattern::metadata::pattern_source_metadata;
-use crate::core::pattern::model::{
+use crate::core::{EarthlyBranch, PalaceName, Scope, StarName};
+use crate::rules::pattern::context::{PatternContext, PatternDetectionRequest};
+use crate::rules::pattern::metadata::pattern_source_metadata;
+use crate::rules::pattern::model::{
     PatternAnchor, PatternDetection, PatternEvidence, PatternFamily, PatternId, PatternPolarity,
     PatternStatus, PatternStrength,
 };
-use crate::core::pattern::query::{
+use crate::rules::pattern::query::{
     effective_branch_of_palace, effective_palace_has_all_stars, effective_star_in_palace,
     effective_stars_in_palace, find_star_for_scope, is_bright,
     modeled_void_star_in_palace_for_scope, pattern_scope_for,
 };
-use crate::core::{EarthlyBranch, PalaceName, Scope, StarName};
 
 /// Detects the supported QuanShu Volume 1 source-backed patterns.
 pub fn detect(

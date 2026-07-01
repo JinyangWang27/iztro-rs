@@ -144,7 +144,7 @@ The TUI and MCP layers are tooling/application consumers. They should not duplic
 - [x] Extract star features.
 - [x] Extract natal mutagen flows.
 - [x] Extract palace relations, triads, and oppositions.
-- [x] Add first read-only `core::pattern` slice for explainable classical pattern detection over chart facts.
+- [x] Add first read-only `rules::pattern` slice for explainable classical pattern detection over chart facts.
 - [ ] Add strength-score placeholders.
 - [ ] Add temporal activation interfaces.
 - [ ] Add pattern-hit interfaces suitable for later 成格 and highlight annotations.

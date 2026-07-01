@@ -7,11 +7,11 @@
 //! deterministic, testable accessors. No astrology placement, rule evaluation,
 //! pattern detection, temporal-overlay, 三方四正, mutagen, or 成格 derivation is
 //! computed here — chart facts are read from prepared snapshots, and the right
-//! inspector's rule/pattern data is **requested** from the core analysis API
+//! inspector's rule/pattern data is **requested** from the layer analysis API
 //! (`iztro::analysis::detect_static_temporal_analysis_layers_from_chart`) per
 //! layer and cached. This module
 //! decides *which* layers to request and holds the results; the derivation
-//! itself stays in core.
+//! itself stays in `analysis`, `rules::pattern`, and `rules::classical`.
 
 use std::collections::{BTreeSet, HashMap};
 
@@ -1079,13 +1079,13 @@ impl StaticChartApp {
     /// Fills the analysis cache for the layers the current temporal selection
     /// makes visible, requesting detection only for the layers still missing.
     ///
-    /// Detection goes through the core selected-view batch facade
+    /// Detection goes through the analysis selected-view batch facade
     /// ([`detect_static_temporal_analysis_layers_from_chart`]): the GUI passes the
-    /// natal [`Chart`], the current selection, and the missing layer keys, and core
-    /// builds the temporal context and returns one compact result per requested
-    /// layer. The GUI stays a cache/render layer and never constructs horoscope
-    /// overlays itself. On failure the user-facing [`FormError`] is set the same
-    /// way temporal selection failures are reported.
+    /// natal [`Chart`], the current selection, and the missing layer keys, and the
+    /// analysis layer builds the temporal context and returns one compact result
+    /// per requested layer. The GUI stays a cache/render layer and never
+    /// constructs horoscope overlays itself. On failure the user-facing
+    /// [`FormError`] is set the same way temporal selection failures are reported.
     fn refresh_analysis(&mut self) {
         let Some(natal) = self.natal_chart.as_ref() else {
             return;
@@ -2986,7 +2986,7 @@ mod tests {
 
     fn pattern_key(
         layer: AnalysisLayerKey,
-        pattern_id: iztro::core::PatternId,
+        pattern_id: iztro::PatternId,
     ) -> PatternHitExpansionKey {
         PatternHitExpansionKey { layer, pattern_id }
     }
@@ -3049,7 +3049,7 @@ mod tests {
 
     fn first_cached_non_natal_pattern_hit(
         app: &mut StaticChartApp,
-    ) -> (AnalysisLayerKey, iztro::core::PatternId) {
+    ) -> (AnalysisLayerKey, iztro::PatternId) {
         app.generate();
         app.update(Message::SelectTemporalCell(TemporalCell::Decadal(0)));
 
@@ -3112,10 +3112,7 @@ mod tests {
     fn clicking_a_pattern_hit_sets_the_active_analysis_selection() {
         let mut app = StaticChartApp::new();
         app.generate();
-        let key = pattern_key(
-            AnalysisLayerKey::Natal,
-            iztro::core::PatternId::ZiFuChaoYuan,
-        );
+        let key = pattern_key(AnalysisLayerKey::Natal, iztro::PatternId::ZiFuChaoYuan);
         app.update(Message::TogglePatternHit(key.clone()));
         assert_eq!(
             app.active_analysis_selection(),
@@ -3128,13 +3125,10 @@ mod tests {
     fn pattern_expansion_is_keyed_by_layer_and_pattern_id() {
         let mut app = StaticChartApp::new();
         app.generate();
-        let natal = pattern_key(
-            AnalysisLayerKey::Natal,
-            iztro::core::PatternId::ChangQuJiaMing,
-        );
+        let natal = pattern_key(AnalysisLayerKey::Natal, iztro::PatternId::ChangQuJiaMing);
         let decadal = pattern_key(
             AnalysisLayerKey::Decadal { decadal_index: 0 },
-            iztro::core::PatternId::ChangQuJiaMing,
+            iztro::PatternId::ChangQuJiaMing,
         );
 
         app.update(Message::TogglePatternHit(natal.clone()));
