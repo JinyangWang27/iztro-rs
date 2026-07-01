@@ -8,6 +8,7 @@
 //! - [`facade`] — public iztro-compatible entry points;
 //! - [`feature`] — boundary for future derived-fact extraction helpers;
 //! - [`error`] — the cross-cutting crate error type.
+//! - [`rule_context`] — shared selected-state context for rule evaluation;
 //!
 //! The flat re-exports below preserve the stable public API regardless of where
 //! a type or function lives internally.

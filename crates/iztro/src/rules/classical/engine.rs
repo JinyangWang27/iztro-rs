@@ -125,9 +125,10 @@ pub fn evaluate_classical(chart: &Chart, request: &ClaimEvaluationRequest) -> Cl
 /// This is the layer-ready evaluation API: it accepts a [`ClassicalRuleContext`]
 /// carrying the chart, optional horoscope, and active scopes. Current executable
 /// rules evaluate against the context's natal chart facts only, so for now this
-/// produces the same result as [`evaluate_classical`]. Future temporal rules will
-/// inspect `ctx.horoscope_chart()` and `ctx.active_scopes()` to emit non-natal hits without
-/// changing this signature.
+/// produces the same result as [`evaluate_classical`]. Future temporal rules
+/// should prefer ctx.effective() and ctx.selected_frame_scope() for
+/// selected-state semantics, using ctx.horoscope_chart() / ctx.active_scopes()
+/// only for explicitly source/layer-specific logic.
 pub fn evaluate_classical_in_context(
     ctx: &ClassicalRuleContext<'_>,
     request: &ClaimEvaluationRequest,
