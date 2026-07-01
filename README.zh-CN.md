@@ -58,15 +58,15 @@ cargo run -p iztro --example plain_text
 
 ## 初始架构
 
-项目按多层设计：
+项目按多层边界设计：
 
 1. **Core Chart Layer**：确定性排盘事实与领域模型。
-2. **Snapshot / Read Model Layer**：将事实转换为 renderer-neutral view model。
-3. **Runtime Localization Layer**：在展示边界处理 `en-US` / `zh-Hans` 文案。
+2. **Snapshot / Read Model Layer**：面向渲染器中立的图盘和 GUI/API read model。
+3. **Runtime Localization Layer**：在展示边界处理标签与 UI 文案本地化。
 4. **Render / Application Layer**：文本、GUI、未来 TUI/MCP/3D 等消费者。
-5. **Feature / Rule / Narrative Layers**：后续解释能力，必须消费结构化事实而不是解析文本。
+5. **Feature / Rule / Narrative Layers**：面向解释的层，必须消费结构化事实而不是解析渲染文本。
 
-详见 [docs/zh-CN/architecture.md](docs/zh-CN/architecture.md)。
+详见 [docs/zh-CN/architecture.md](docs/zh-CN/architecture.md)。领域模型第一性原则见 [ADR 0009](docs/zh-CN/adr/0009-domain-model-first-principles.md)。
 
 ## 与 iztro 的关系
 
@@ -81,10 +81,12 @@ cargo run -p iztro --example plain_text
 - [项目规格](docs/zh-CN/project-spec.md)
 - [当前状态](docs/zh-CN/current-status.md)
 - [架构](docs/zh-CN/architecture.md)
+- [领域模型第一性原则](docs/zh-CN/adr/0009-domain-model-first-principles.md)
 - [路线图](docs/zh-CN/roadmap.md)
 - [兼容性](docs/zh-CN/compatibility.md)
 - [术语表](docs/zh-CN/terminology.md)
-- [规则引擎](docs/zh-CN/rule-engine.md)
+- [规则引擎概览](docs/zh-CN/rule-engine.md)
+- [经典规则引擎](docs/zh-CN/rules/rule-engine.md)
 - [多语言文档](docs/zh-CN/i18n.md)
 
 ## 致谢
