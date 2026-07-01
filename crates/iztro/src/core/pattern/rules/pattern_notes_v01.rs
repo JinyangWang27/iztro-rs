@@ -11,9 +11,11 @@ use crate::core::pattern::model::{
     PatternPolarity, PatternStatus, PatternStrength,
 };
 use crate::core::pattern::query::{
-    branch_of_palace_for_scope, is_bright, major_star_count_in_palace_for_scope,
-    mutagen_activations_for_scope, palace_has_all_stars_for_scope, pattern_scope_for,
-    stars_in_palace_for_scope, stars_in_san_fang_si_zheng_for_scope,
+    branch_of_palace_for_scope, is_bright, mutagen_activations_for_scope,
+    palace_has_all_stars_for_scope, pattern_scope_for, selected_branch_of_palace,
+    selected_frame_scope, selected_major_star_count_in_palace, selected_palace_has_all_stars,
+    selected_star_in_palace, selected_stars_in_palace, selected_stars_in_san_fang_si_zheng,
+    stars_in_palace_for_scope,
 };
 use crate::core::pattern::relation::{is_in_san_fang_si_zheng, san_fang_si_zheng};
 use crate::core::{EarthlyBranch, Mutagen, PalaceName, Scope, StarKind, StarName};
@@ -36,17 +38,14 @@ pub fn detect(
 ) {
     detect_ri_chu_fu_sang(ctx, request, out);
     detect_zuo_you_tong_gong(ctx, request, out);
-
-    for &scope in &request.scopes {
-        detect_ming_li_feng_kong(ctx, scope, out);
-        detect_lu_feng_chong_po(ctx, scope, out);
-        detect_wen_xing_gong_ming(ctx, scope, out);
-        detect_tian_ji_si_hai(ctx, scope, out);
-        detect_ming_zhu_chu_hai(ctx, scope, out);
-        detect_ming_wu_zheng_yao(ctx, scope, out);
-        detect_ji_xiang_li_ming(ctx, scope, out);
-        detect_fu_xiang_chao_yuan(ctx, scope, out);
-    }
+    detect_ming_li_feng_kong(ctx, request, out);
+    detect_lu_feng_chong_po(ctx, request, out);
+    detect_wen_xing_gong_ming(ctx, request, out);
+    detect_tian_ji_si_hai(ctx, request, out);
+    detect_ming_zhu_chu_hai(ctx, request, out);
+    detect_ming_wu_zheng_yao(ctx, request, out);
+    detect_ji_xiang_li_ming(ctx, request, out);
+    detect_fu_xiang_chao_yuan(ctx, request, out);
 }
 
 #[derive(Clone, Debug, Default)]
@@ -160,6 +159,80 @@ fn support_in_san_fang_si_zheng_for_scope(
     support
 }
 
+fn requested_selected_scope(
+    ctx: &PatternContext<'_>,
+    request: &PatternDetectionRequest,
+) -> Option<Scope> {
+    let scope = selected_frame_scope(ctx)?;
+    request.scopes.contains(&scope).then_some(scope)
+}
+
+fn selected_support_in_san_fang_si_zheng(
+    ctx: &PatternContext<'_>,
+    anchor: EarthlyBranch,
+) -> PatternSupportMatch {
+    let mut support = PatternSupportMatch::default();
+    let branches = san_fang_si_zheng(anchor);
+
+    for branch in branches {
+        for requested_star in SUPPORT_STARS {
+            if let Some(placement) = selected_star_in_palace(ctx, branch, requested_star) {
+                support.stars.push((placement.placement().name(), branch));
+                support.branches.push(branch);
+            }
+        }
+
+        for placement in selected_stars_in_palace(ctx, branch) {
+            let star = placement.placement().name();
+            if placement.source_scope() == Scope::Natal
+                && matches!(
+                    placement.placement().mutagen(),
+                    Some(Mutagen::Lu | Mutagen::Quan | Mutagen::Ke)
+                )
+            {
+                let mutagen = placement.placement().mutagen().expect("checked mutagen");
+                support
+                    .mutagens
+                    .push((star, mutagen, placement.source_scope(), branch));
+                support.branches.push(branch);
+            }
+        }
+    }
+
+    if let Some(state) = ctx.effective.as_ref() {
+        for activation in state.mutagen_activations() {
+            if matches!(
+                activation.activation().mutagen(),
+                Mutagen::Lu | Mutagen::Quan | Mutagen::Ke
+            ) && is_in_san_fang_si_zheng(anchor, activation.activation().target_branch())
+            {
+                support.mutagens.push((
+                    activation.activation().target_star(),
+                    activation.activation().mutagen(),
+                    activation.source_scope(),
+                    activation.activation().target_branch(),
+                ));
+                support
+                    .branches
+                    .push(activation.activation().target_branch());
+            }
+        }
+    }
+
+    support
+        .stars
+        .sort_by_key(|(star, branch)| (*star, branch.index()));
+    support.stars.dedup();
+    support
+        .mutagens
+        .sort_by_key(|(star, mutagen, scope, branch)| {
+            (*star, *mutagen, scope_sort_key(*scope), branch.index())
+        });
+    support.mutagens.dedup();
+    sort_dedup_branches(&mut support.branches);
+    support
+}
+
 fn detect_ri_chu_fu_sang(
     ctx: &PatternContext<'_>,
     request: &PatternDetectionRequest,
@@ -239,14 +312,17 @@ fn detect_ri_chu_fu_sang(
 /// palace trigger it.
 fn detect_ming_li_feng_kong(
     ctx: &PatternContext<'_>,
-    scope: Scope,
+    request: &PatternDetectionRequest,
     out: &mut Vec<PatternDetection>,
 ) {
-    let Some(branch) = branch_of_palace_for_scope(ctx, scope, PalaceName::Life) else {
+    let Some(scope) = requested_selected_scope(ctx, request) else {
+        return;
+    };
+    let Some(branch) = selected_branch_of_palace(ctx, PalaceName::Life) else {
         return;
     };
 
-    let mut matched: Vec<StarName> = stars_in_palace_for_scope(ctx, scope, branch)
+    let mut matched: Vec<StarName> = selected_stars_in_palace(ctx, branch)
         .into_iter()
         .map(|placement| placement.placement().name())
         .filter(|star| matches!(star, StarName::DiKong | StarName::DiJie))
@@ -290,18 +366,21 @@ fn detect_ming_li_feng_kong(
 /// within the Life 三方四正; arbitrary 煞星 or 空亡-family stars are not accepted.
 fn detect_lu_feng_chong_po(
     ctx: &PatternContext<'_>,
-    scope: Scope,
+    request: &PatternDetectionRequest,
     out: &mut Vec<PatternDetection>,
 ) {
-    let Some(life_branch) = branch_of_palace_for_scope(ctx, scope, PalaceName::Life) else {
+    let Some(scope) = requested_selected_scope(ctx, request) else {
+        return;
+    };
+    let Some(life_branch) = selected_branch_of_palace(ctx, PalaceName::Life) else {
         return;
     };
 
-    let Some(lu_base) = lu_base_in_life_for_scope(ctx, scope, life_branch) else {
+    let Some(lu_base) = selected_lu_base_in_life(ctx, life_branch) else {
         return;
     };
 
-    let breakers = kong_jie_in_san_fang_si_zheng_for_scope(ctx, scope, life_branch);
+    let breakers = selected_kong_jie_in_san_fang_si_zheng(ctx, life_branch);
     if breakers.is_empty() {
         return;
     }
@@ -367,12 +446,11 @@ struct LuBase {
 }
 
 /// Returns a 禄 base (禄存 or 化禄) sitting in the Life palace itself.
-fn lu_base_in_life_for_scope(
+fn selected_lu_base_in_life(
     ctx: &PatternContext<'_>,
-    scope: Scope,
     life_branch: EarthlyBranch,
 ) -> Option<LuBase> {
-    for placement in stars_in_palace_for_scope(ctx, scope, life_branch) {
+    for placement in selected_stars_in_palace(ctx, life_branch) {
         let star = placement.placement().name();
         if star == StarName::LuCun {
             return Some(LuBase {
@@ -391,21 +469,24 @@ fn lu_base_in_life_for_scope(
                 evidence: PatternEvidence::MutagenOnStar {
                     star,
                     mutagen: Mutagen::Lu,
-                    scope: placement.placement().scope(),
+                    scope: placement.source_scope(),
                     branch: life_branch,
                 },
             });
         }
     }
 
-    if scope != Scope::Natal {
-        for activation in mutagen_activations_for_scope(ctx, scope) {
-            if activation.mutagen() == Mutagen::Lu && activation.target_branch() == life_branch {
+    if let Some(state) = ctx.effective.as_ref() {
+        for activation in state.mutagen_activations() {
+            let activation_fact = activation.activation();
+            if activation_fact.mutagen() == Mutagen::Lu
+                && activation_fact.target_branch() == life_branch
+            {
                 return Some(LuBase {
-                    star: activation.target_star(),
+                    star: activation_fact.target_star(),
                     mutagen: Some(Mutagen::Lu),
                     evidence: PatternEvidence::MutagenOnStar {
-                        star: activation.target_star(),
+                        star: activation_fact.target_star(),
                         mutagen: Mutagen::Lu,
                         scope: activation.source_scope(),
                         branch: life_branch,
@@ -419,14 +500,13 @@ fn lu_base_in_life_for_scope(
 }
 
 /// Returns each 地空/地劫 found within the 三方四正 of `anchor`, with its branch.
-fn kong_jie_in_san_fang_si_zheng_for_scope(
+fn selected_kong_jie_in_san_fang_si_zheng(
     ctx: &PatternContext<'_>,
-    scope: Scope,
     anchor: EarthlyBranch,
 ) -> Vec<(StarName, EarthlyBranch)> {
     let mut found = Vec::new();
     for branch in san_fang_si_zheng(anchor) {
-        for placement in stars_in_palace_for_scope(ctx, scope, branch) {
+        for placement in selected_stars_in_palace(ctx, branch) {
             let star = placement.placement().name();
             if matches!(star, StarName::DiKong | StarName::DiJie) {
                 found.push((star, branch));
@@ -438,19 +518,20 @@ fn kong_jie_in_san_fang_si_zheng_for_scope(
 
 fn detect_wen_xing_gong_ming(
     ctx: &PatternContext<'_>,
-    scope: Scope,
+    request: &PatternDetectionRequest,
     out: &mut Vec<PatternDetection>,
 ) {
-    let Some(anchor) = branch_of_palace_for_scope(ctx, scope, PalaceName::Life) else {
+    let Some(scope) = requested_selected_scope(ctx, request) else {
         return;
     };
-    let found = stars_in_san_fang_si_zheng_for_scope(
-        ctx,
-        scope,
-        anchor,
-        &[StarName::WenChang, StarName::WenQu],
-    );
-    if !contains_all(&found, &[StarName::WenChang, StarName::WenQu]) {
+    let Some(anchor) = selected_branch_of_palace(ctx, PalaceName::Life) else {
+        return;
+    };
+    let found =
+        selected_stars_in_san_fang_si_zheng(ctx, anchor, &[StarName::WenChang, StarName::WenQu]);
+    if selected_stars_in_san_fang_si_zheng(ctx, anchor, &[StarName::WenChang]).is_empty()
+        || selected_stars_in_san_fang_si_zheng(ctx, anchor, &[StarName::WenQu]).is_empty()
+    {
         return;
     }
 
@@ -469,14 +550,21 @@ fn detect_wen_xing_gong_ming(
 ///
 /// The Life palace branch must be Si or Hai, and 天机 must occupy the Life palace
 /// itself — not merely appear elsewhere in the Life 三方四正.
-fn detect_tian_ji_si_hai(ctx: &PatternContext<'_>, scope: Scope, out: &mut Vec<PatternDetection>) {
-    let Some(branch) = branch_of_palace_for_scope(ctx, scope, PalaceName::Life) else {
+fn detect_tian_ji_si_hai(
+    ctx: &PatternContext<'_>,
+    request: &PatternDetectionRequest,
+    out: &mut Vec<PatternDetection>,
+) {
+    let Some(scope) = requested_selected_scope(ctx, request) else {
+        return;
+    };
+    let Some(branch) = selected_branch_of_palace(ctx, PalaceName::Life) else {
         return;
     };
     if !matches!(branch, EarthlyBranch::Si | EarthlyBranch::Hai) {
         return;
     }
-    if !palace_has_all_stars_for_scope(ctx, scope, branch, &[StarName::TianJi]) {
+    if !selected_palace_has_all_stars(ctx, branch, &[StarName::TianJi]) {
         return;
     }
 
@@ -503,20 +591,23 @@ fn detect_tian_ji_si_hai(ctx: &PatternContext<'_>, scope: Scope, out: &mut Vec<P
 
 /// 左右同宫格 (吉): 命身宫入丑未，左辅右弼同宫，更于吉星同宫或加会者，为本格。
 ///
-/// Natal-only. The anchor is the Life or Body palace when its branch is Chou or
-/// Wei, 左辅 and 右弼 must share that anchor palace, and there must be additional
-/// support (`更于吉星`) in the anchor 三方四正 beyond the base 左右 pair itself.
+/// The selected Life palace anchors non-natal frames. Natal also accepts the
+/// natal Body palace, preserving the traditional 命身 condition. 左辅 and 右弼
+/// must share the anchor palace, with additional support (`更于吉星`) in the
+/// anchor 三方四正 beyond the base 左右 pair itself.
 fn detect_zuo_you_tong_gong(
     ctx: &PatternContext<'_>,
     request: &PatternDetectionRequest,
     out: &mut Vec<PatternDetection>,
 ) {
-    if !request.scopes.contains(&Scope::Natal) {
+    let Some(scope) = requested_selected_scope(ctx, request) else {
         return;
-    }
+    };
 
-    let life = branch_of_palace_for_scope(ctx, Scope::Natal, PalaceName::Life);
-    let body = ctx.chart.body_palace_branch();
+    let life = selected_branch_of_palace(ctx, PalaceName::Life);
+    let body = (scope == Scope::Natal)
+        .then(|| ctx.chart.body_palace_branch())
+        .flatten();
 
     let mut anchors: Vec<EarthlyBranch> = Vec::new();
     for candidate in [life, body].into_iter().flatten() {
@@ -528,16 +619,11 @@ fn detect_zuo_you_tong_gong(
     }
 
     for anchor in anchors {
-        if !palace_has_all_stars_for_scope(
-            ctx,
-            Scope::Natal,
-            anchor,
-            &[StarName::ZuoFu, StarName::YouBi],
-        ) {
+        if !selected_palace_has_all_stars(ctx, anchor, &[StarName::ZuoFu, StarName::YouBi]) {
             continue;
         }
 
-        let support = support_in_san_fang_si_zheng_for_scope(ctx, Scope::Natal, anchor);
+        let support = selected_support_in_san_fang_si_zheng(ctx, anchor);
         // `更于吉星`: support beyond the base 左右 pair sitting in the anchor palace.
         let additional_stars: Vec<(StarName, EarthlyBranch)> = support
             .stars
@@ -579,7 +665,7 @@ fn detect_zuo_you_tong_gong(
                 family: PatternFamily::AuxiliaryStarCombination,
                 polarity: PatternPolarity::Auspicious,
                 status: PatternStatus::Fulfilled,
-                scope: Scope::Natal,
+                scope,
                 anchor: PatternAnchor::Palace(anchor),
                 involved_palaces,
                 involved_stars,
@@ -595,27 +681,29 @@ fn detect_zuo_you_tong_gong(
 /// 禄存，科权禄、左右、曲昌、魁钺加会为本格。
 fn detect_ming_zhu_chu_hai(
     ctx: &PatternContext<'_>,
-    scope: Scope,
+    request: &PatternDetectionRequest,
     out: &mut Vec<PatternDetection>,
 ) {
-    let Some(life) = branch_of_palace_for_scope(ctx, scope, PalaceName::Life) else {
+    let Some(scope) = requested_selected_scope(ctx, request) else {
+        return;
+    };
+    let Some(life) = selected_branch_of_palace(ctx, PalaceName::Life) else {
         return;
     };
     if life != EarthlyBranch::Wei {
         return;
     }
-    if major_star_count_in_palace_for_scope(ctx, scope, life) != 0 {
+    if selected_major_star_count_in_palace(ctx, life) != 0 {
         return;
     }
-    if !palace_has_all_stars_for_scope(
+    if !selected_palace_has_all_stars(
         ctx,
-        scope,
         EarthlyBranch::Mao,
         &[StarName::TaiYang, StarName::TianLiang],
     ) {
         return;
     }
-    let tai_yin_bright = stars_in_palace_for_scope(ctx, scope, EarthlyBranch::Hai)
+    let tai_yin_bright = selected_stars_in_palace(ctx, EarthlyBranch::Hai)
         .into_iter()
         .any(|placement| {
             placement.placement().name() == StarName::TaiYin
@@ -625,7 +713,7 @@ fn detect_ming_zhu_chu_hai(
         return;
     }
 
-    let support = support_in_san_fang_si_zheng_for_scope(ctx, scope, life);
+    let support = selected_support_in_san_fang_si_zheng(ctx, life);
     if support.is_empty() {
         return;
     }
@@ -672,13 +760,16 @@ fn detect_ming_zhu_chu_hai(
 
 fn detect_ming_wu_zheng_yao(
     ctx: &PatternContext<'_>,
-    scope: Scope,
+    request: &PatternDetectionRequest,
     out: &mut Vec<PatternDetection>,
 ) {
-    let Some(branch) = branch_of_palace_for_scope(ctx, scope, PalaceName::Life) else {
+    let Some(scope) = requested_selected_scope(ctx, request) else {
         return;
     };
-    if major_star_count_in_palace_for_scope(ctx, scope, branch) != 0 {
+    let Some(branch) = selected_branch_of_palace(ctx, PalaceName::Life) else {
+        return;
+    };
+    if selected_major_star_count_in_palace(ctx, branch) != 0 {
         return;
     }
 
@@ -702,18 +793,21 @@ fn detect_ming_wu_zheng_yao(
 
 fn detect_ji_xiang_li_ming(
     ctx: &PatternContext<'_>,
-    scope: Scope,
+    request: &PatternDetectionRequest,
     out: &mut Vec<PatternDetection>,
 ) {
+    let Some(scope) = requested_selected_scope(ctx, request) else {
+        return;
+    };
     let branch = EarthlyBranch::Wu;
-    if branch_of_palace_for_scope(ctx, scope, PalaceName::Life) != Some(branch)
-        || !palace_has_all_stars_for_scope(ctx, scope, branch, &[StarName::ZiWei])
+    if selected_branch_of_palace(ctx, PalaceName::Life) != Some(branch)
+        || !selected_palace_has_all_stars(ctx, branch, &[StarName::ZiWei])
     {
         return;
     }
 
     let breaker = san_fang_si_zheng(branch).into_iter().find_map(|candidate| {
-        stars_in_palace_for_scope(ctx, scope, candidate)
+        selected_stars_in_palace(ctx, candidate)
             .into_iter()
             .find(|placement| placement.placement().kind() == StarKind::Tough)
             .map(|placement| (placement.placement().name(), candidate))
@@ -771,18 +865,21 @@ fn detect_ji_xiang_li_ming(
 /// 加会天相。命宫三方四正有禄存，科权禄、左右、曲昌、魁钺加会。
 fn detect_fu_xiang_chao_yuan(
     ctx: &PatternContext<'_>,
-    scope: Scope,
+    request: &PatternDetectionRequest,
     out: &mut Vec<PatternDetection>,
 ) {
-    let Some(life) = branch_of_palace_for_scope(ctx, scope, PalaceName::Life) else {
+    let Some(scope) = requested_selected_scope(ctx, request) else {
+        return;
+    };
+    let Some(life) = selected_branch_of_palace(ctx, PalaceName::Life) else {
         return;
     };
 
-    let Some(base) = fu_xiang_base_form(ctx, scope, life) else {
+    let Some(base) = selected_fu_xiang_base_form(ctx, life) else {
         return;
     };
 
-    let support = support_in_san_fang_si_zheng_for_scope(ctx, scope, life);
+    let support = selected_support_in_san_fang_si_zheng(ctx, life);
     if support.is_empty() {
         return;
     }
@@ -826,18 +923,15 @@ struct FuXiangBase {
 ///
 /// A. 天府 and 天相 occupy the Wealth and Career palaces, one in each.
 /// B. 天府 sits in the Life palace, and 天相 appears in the Life 三方四正.
-fn fu_xiang_base_form(
+fn selected_fu_xiang_base_form(
     ctx: &PatternContext<'_>,
-    scope: Scope,
     life: EarthlyBranch,
 ) -> Option<FuXiangBase> {
-    let wealth = branch_of_palace_for_scope(ctx, scope, PalaceName::Wealth);
-    let career = branch_of_palace_for_scope(ctx, scope, PalaceName::Career);
+    let wealth = selected_branch_of_palace(ctx, PalaceName::Wealth);
+    let career = selected_branch_of_palace(ctx, PalaceName::Career);
     if let (Some(wealth), Some(career)) = (wealth, career) {
-        let fu_at =
-            |branch| palace_has_all_stars_for_scope(ctx, scope, branch, &[StarName::TianFu]);
-        let xiang_at =
-            |branch| palace_has_all_stars_for_scope(ctx, scope, branch, &[StarName::TianXiang]);
+        let fu_at = |branch| selected_palace_has_all_stars(ctx, branch, &[StarName::TianFu]);
+        let xiang_at = |branch| selected_palace_has_all_stars(ctx, branch, &[StarName::TianXiang]);
         if fu_at(wealth) && xiang_at(career) {
             return Some(FuXiangBase {
                 palaces: vec![wealth, career],
@@ -870,8 +964,8 @@ fn fu_xiang_base_form(
         }
     }
 
-    if palace_has_all_stars_for_scope(ctx, scope, life, &[StarName::TianFu]) {
-        let xiang = stars_in_san_fang_si_zheng_for_scope(ctx, scope, life, &[StarName::TianXiang]);
+    if selected_palace_has_all_stars(ctx, life, &[StarName::TianFu]) {
+        let xiang = selected_stars_in_san_fang_si_zheng(ctx, life, &[StarName::TianXiang]);
         if let Some((_, xiang_branch)) = xiang.first().copied() {
             return Some(FuXiangBase {
                 palaces: vec![life, xiang_branch],
@@ -890,12 +984,6 @@ fn fu_xiang_base_form(
     }
 
     None
-}
-
-fn contains_all(found: &[(StarName, EarthlyBranch)], stars: &[StarName]) -> bool {
-    stars
-        .iter()
-        .all(|star| found.iter().any(|(found_star, _)| found_star == star))
 }
 
 fn push_san_fang_detection(
@@ -973,4 +1061,16 @@ fn push_detection(out: &mut Vec<PatternDetection>, draft: DetectionDraft) {
 fn sort_dedup_branches(branches: &mut Vec<EarthlyBranch>) {
     branches.sort_by_key(|branch| branch.index());
     branches.dedup();
+}
+
+const fn scope_sort_key(scope: Scope) -> u8 {
+    match scope {
+        Scope::Natal => 0,
+        Scope::Decadal => 1,
+        Scope::Age => 2,
+        Scope::Yearly => 3,
+        Scope::Monthly => 4,
+        Scope::Daily => 5,
+        Scope::Hourly => 6,
+    }
 }

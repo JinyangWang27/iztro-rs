@@ -204,7 +204,11 @@ fn detect_pattern_hits(
     patterns.scopes = vec![key.scope()];
 
     let pattern_ctx = match ctx.horoscope {
-        Some(horoscope) => PatternContext::horoscope(horoscope, analysis_scopes_for_layer_key(key)),
+        Some(horoscope) => PatternContext::horoscope_with_frame(
+            horoscope,
+            key.scope(),
+            analysis_scopes_for_layer_key(key),
+        ),
         None => PatternContext::natal(ctx.natal),
     };
 

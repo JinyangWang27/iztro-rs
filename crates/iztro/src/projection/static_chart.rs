@@ -934,6 +934,19 @@ pub struct StaticChartProjectionRequest {
 }
 
 impl StaticChartProjection {
+    /// Returns the branch marked as the Life palace in the active palace frame.
+    ///
+    /// This is the selected frame's 命宫, not necessarily the natal Life palace.
+    /// It is the default branch GUI consumers should use for selected-view
+    /// 三方四正 highlighting.
+    pub fn active_life_branch(&self) -> EarthlyBranch {
+        self.palaces
+            .iter()
+            .find(|palace| palace.active_frame.is_life_palace)
+            .map(|palace| palace.branch)
+            .expect("static chart projection carries exactly one active Life palace")
+    }
+
     /// Builds a natal-only static chart view from a natal chart.
     ///
     /// Only [`Scope::Natal`] is enabled and selected; every temporal selector is

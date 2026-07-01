@@ -1,7 +1,7 @@
 //! Read-only context and request types for pattern detection.
 
 use crate::core::pattern::model::PatternFamily;
-use crate::core::{Chart, HoroscopeChart, Scope};
+use crate::core::{Chart, EffectiveChartState, HoroscopeChart, Scope};
 
 /// A read-only query wrapper over a chart for pattern detection.
 ///
@@ -17,6 +17,8 @@ pub struct PatternContext<'a> {
     pub horoscope: Option<&'a HoroscopeChart>,
     /// The temporal scopes currently active for detection.
     pub active_scopes: Vec<Scope>,
+    /// The selected effective chart state, when strict construction succeeds.
+    pub effective: Option<EffectiveChartState<'a>>,
 }
 
 impl<'a> PatternContext<'a> {
@@ -26,15 +28,52 @@ impl<'a> PatternContext<'a> {
             chart,
             horoscope: None,
             active_scopes: vec![Scope::Natal],
+            effective: Some(
+                EffectiveChartState::from_chart(chart, Scope::Natal, vec![Scope::Natal])
+                    .expect("natal effective state is valid"),
+            ),
         }
     }
 
     /// Creates a context over a horoscope chart with the given active scopes.
+    ///
+    /// This compatibility/convenience constructor uses the deepest active scope
+    /// as the palace frame when a strict effective state can be formed.
+    /// Production selected-view analysis should use
+    /// [`PatternContext::horoscope_with_frame`] so the frame scope is explicit.
+    /// If strict effective-state construction fails, effective helpers fail
+    /// closed while source/layer-specific helpers remain available.
     pub fn horoscope(chart: &'a HoroscopeChart, active_scopes: Vec<Scope>) -> Self {
+        let frame_scope = active_scopes.last().copied().unwrap_or(Scope::Natal);
+        let effective =
+            EffectiveChartState::from_horoscope(chart, frame_scope, active_scopes.clone()).ok();
         Self {
             chart: chart.natal(),
             horoscope: Some(chart),
             active_scopes,
+            effective,
+        }
+    }
+
+    /// Creates a context over a horoscope chart with an explicit palace frame.
+    ///
+    /// This is the production constructor for selected-view analysis. The
+    /// effective state is built strictly from `palace_frame_scope` and
+    /// `active_scopes`; invalid inputs panic because callers must validate
+    /// selected temporal context before detection.
+    pub fn horoscope_with_frame(
+        chart: &'a HoroscopeChart,
+        palace_frame_scope: Scope,
+        active_scopes: Vec<Scope>,
+    ) -> Self {
+        let effective =
+            EffectiveChartState::from_horoscope(chart, palace_frame_scope, active_scopes.clone())
+                .expect("pattern context requires a valid effective chart state");
+        Self {
+            chart: chart.natal(),
+            horoscope: Some(chart),
+            active_scopes,
+            effective: Some(effective),
         }
     }
 }

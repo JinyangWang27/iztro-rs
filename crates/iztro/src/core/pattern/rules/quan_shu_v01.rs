@@ -11,9 +11,9 @@ use crate::core::pattern::model::{
     PatternStatus, PatternStrength,
 };
 use crate::core::pattern::query::{
-    branch_of_palace_for_scope, find_star_for_scope, is_bright,
-    major_star_count_in_palace_for_scope, modeled_void_star_in_palace_for_scope,
-    palace_has_all_stars_for_scope, pattern_scope_for,
+    effective_branch_of_palace, effective_palace_has_all_stars, effective_star_in_palace,
+    effective_stars_in_palace, find_star_for_scope, is_bright,
+    modeled_void_star_in_palace_for_scope, pattern_scope_for,
 };
 use crate::core::{EarthlyBranch, PalaceName, Scope, StarName};
 
@@ -41,16 +41,18 @@ fn detect_jin_can_guang_hui(
     out: &mut Vec<PatternDetection>,
 ) {
     let branch = EarthlyBranch::Wu;
-    if branch_of_palace_for_scope(ctx, scope, PalaceName::Life) != Some(branch) {
+    if effective_branch_of_palace(ctx, scope, PalaceName::Life) != Some(branch) {
         return;
     }
-    let Some(tai_yang) = find_star_for_scope(ctx, scope, StarName::TaiYang) else {
+    let Some(tai_yang) = effective_star_in_palace(ctx, scope, branch, StarName::TaiYang) else {
         return;
     };
-    if tai_yang.branch() != branch {
-        return;
-    }
-    if major_star_count_in_palace_for_scope(ctx, scope, branch) != 1 {
+    if effective_stars_in_palace(ctx, branch)
+        .iter()
+        .filter(|star| star.placement().kind() == crate::core::StarKind::Major)
+        .count()
+        != 1
+    {
         return;
     }
 
@@ -71,15 +73,12 @@ fn detect_yue_luo_hai_gong(
     out: &mut Vec<PatternDetection>,
 ) {
     let branch = EarthlyBranch::Hai;
-    if branch_of_palace_for_scope(ctx, scope, PalaceName::Life) != Some(branch) {
+    if effective_branch_of_palace(ctx, scope, PalaceName::Life) != Some(branch) {
         return;
     }
-    let Some(tai_yin) = find_star_for_scope(ctx, scope, StarName::TaiYin) else {
+    let Some(tai_yin) = effective_star_in_palace(ctx, scope, branch, StarName::TaiYin) else {
         return;
     };
-    if tai_yin.branch() != branch {
-        return;
-    }
 
     push_single_star(
         out,
@@ -98,15 +97,12 @@ fn detect_yue_sheng_cang_hai(
     out: &mut Vec<PatternDetection>,
 ) {
     let branch = EarthlyBranch::Zi;
-    if branch_of_palace_for_scope(ctx, scope, PalaceName::Property) != Some(branch) {
+    if effective_branch_of_palace(ctx, scope, PalaceName::Property) != Some(branch) {
         return;
     }
-    let Some(tai_yin) = find_star_for_scope(ctx, scope, StarName::TaiYin) else {
+    let Some(tai_yin) = effective_star_in_palace(ctx, scope, branch, StarName::TaiYin) else {
         return;
     };
-    if tai_yin.branch() != branch {
-        return;
-    }
 
     push_single_star(
         out,
@@ -147,23 +143,21 @@ fn detect_tan_huo_xiang_feng(
     scope: Scope,
     out: &mut Vec<PatternDetection>,
 ) {
-    let Some(branch) = branch_of_palace_for_scope(ctx, scope, PalaceName::Life) else {
+    let Some(branch) = effective_branch_of_palace(ctx, scope, PalaceName::Life) else {
         return;
     };
-    if !palace_has_all_stars_for_scope(ctx, scope, branch, &[StarName::TanLang, StarName::HuoXing])
+    if !effective_palace_has_all_stars(ctx, scope, branch, &[StarName::TanLang, StarName::HuoXing])
     {
         return;
     }
 
-    let Some(tan_lang) = find_star_for_scope(ctx, scope, StarName::TanLang) else {
+    let Some(tan_lang) = effective_star_in_palace(ctx, scope, branch, StarName::TanLang) else {
         return;
     };
-    let Some(huo_xing) = find_star_for_scope(ctx, scope, StarName::HuoXing) else {
+    let Some(huo_xing) = effective_star_in_palace(ctx, scope, branch, StarName::HuoXing) else {
         return;
     };
-    if tan_lang.branch() != branch
-        || huo_xing.branch() != branch
-        || !is_bright(tan_lang.placement().brightness())
+    if !is_bright(tan_lang.placement().brightness())
         || !is_bright(huo_xing.placement().brightness())
     {
         return;
@@ -182,15 +176,12 @@ fn detect_tan_huo_xiang_feng(
 
 fn detect_wu_qu_shou_yuan(ctx: &PatternContext<'_>, scope: Scope, out: &mut Vec<PatternDetection>) {
     let branch = EarthlyBranch::Mao;
-    if branch_of_palace_for_scope(ctx, scope, PalaceName::Life) != Some(branch) {
+    if effective_branch_of_palace(ctx, scope, PalaceName::Life) != Some(branch) {
         return;
     }
-    let Some(wu_qu) = find_star_for_scope(ctx, scope, StarName::WuQu) else {
+    let Some(wu_qu) = effective_star_in_palace(ctx, scope, branch, StarName::WuQu) else {
         return;
     };
-    if wu_qu.branch() != branch {
-        return;
-    }
 
     push_single_star(
         out,
@@ -205,7 +196,7 @@ fn detect_wu_qu_shou_yuan(ctx: &PatternContext<'_>, scope: Scope, out: &mut Vec<
 
 fn detect_cai_yu_qiu_chou(ctx: &PatternContext<'_>, scope: Scope, out: &mut Vec<PatternDetection>) {
     let mut branches = Vec::new();
-    if let Some(branch) = branch_of_palace_for_scope(ctx, scope, PalaceName::Life) {
+    if let Some(branch) = effective_branch_of_palace(ctx, scope, PalaceName::Life) {
         branches.push(branch);
     }
     if scope == Scope::Natal {
@@ -217,7 +208,7 @@ fn detect_cai_yu_qiu_chou(ctx: &PatternContext<'_>, scope: Scope, out: &mut Vec<
     branches.dedup();
 
     for branch in branches {
-        if palace_has_all_stars_for_scope(ctx, scope, branch, &[StarName::WuQu, StarName::LianZhen])
+        if effective_palace_has_all_stars(ctx, scope, branch, &[StarName::WuQu, StarName::LianZhen])
         {
             push_same_palace(
                 out,
