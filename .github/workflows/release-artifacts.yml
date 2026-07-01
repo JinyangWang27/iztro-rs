@@ -1,0 +1,177 @@
+name: Release artifacts
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - ".github/workflows/release-artifacts.yml"
+      - "scripts/install/**"
+      - "crates/iztro-gui/**"
+      - "crates/iztro/**"
+      - "crates/iztro-i18n/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "README.md"
+      - "README.zh-CN.md"
+  push:
+    tags:
+      - "iztro-v*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-artifacts-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-unix:
+    name: Build ${{ matrix.target }}
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - runner: ubuntu-24.04
+            target: x86_64-unknown-linux-gnu
+            artifact_name: iztro-gui-x86_64-unknown-linux-gnu
+            install_linux_deps: true
+          - runner: macos-26
+            target: aarch64-apple-darwin
+            artifact_name: iztro-gui-aarch64-apple-darwin
+            install_linux_deps: false
+          - runner: macos-26-intel
+            target: x86_64-apple-darwin
+            artifact_name: iztro-gui-x86_64-apple-darwin
+            install_linux_deps: false
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Install Linux GUI build dependencies
+        if: ${{ matrix.install_linux_deps }}
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends libwayland-dev libx11-dev libxkbcommon-dev pkg-config
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Build iztro-gui
+        run: cargo build -p iztro-gui --release --target "${{ matrix.target }}"
+
+      - name: Package artifact
+        run: |
+          set -euo pipefail
+          artifact="${{ matrix.artifact_name }}"
+          stage="dist/${artifact}"
+          archive="dist/${artifact}.tar.gz"
+          mkdir -p "${stage}"
+          cp "target/${{ matrix.target }}/release/iztro-gui" "${stage}/"
+          cp README.md LICENSE "${stage}/"
+          cp crates/iztro-gui/assets/fonts/LICENSE-SourceHanSerif.txt "${stage}/"
+          cp crates/iztro-gui/assets/fonts/NOTICE.md "${stage}/FONT-NOTICE.md"
+          chmod 755 "${stage}/iztro-gui"
+          tar -czf "${archive}" -C dist "${artifact}"
+          tar -tzf "${archive}" | grep -Fx "${artifact}/iztro-gui"
+          if command -v sha256sum >/dev/null 2>&1; then
+            (cd dist && sha256sum "${artifact}.tar.gz" | tee "${artifact}.tar.gz.sha256")
+          else
+            (cd dist && shasum -a 256 "${artifact}.tar.gz" | tee "${artifact}.tar.gz.sha256")
+          fi
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact_name }}
+          path: |
+            dist/${{ matrix.artifact_name }}.tar.gz
+            dist/${{ matrix.artifact_name }}.tar.gz.sha256
+          if-no-files-found: error
+
+  build-windows:
+    name: Build x86_64-pc-windows-msvc
+    runs-on: windows-2025
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-pc-windows-msvc
+      - run: cargo build -p iztro-gui --release --target x86_64-pc-windows-msvc
+      - name: Package artifact
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = "Stop"
+          $artifact = "iztro-gui-x86_64-pc-windows-msvc"
+          $stage = "dist\$artifact"
+          $archive = "dist\$artifact.zip"
+          New-Item -ItemType Directory -Force -Path $stage | Out-Null
+          Copy-Item "target\x86_64-pc-windows-msvc\release\iztro-gui.exe" $stage
+          Copy-Item "README.md" $stage
+          Copy-Item "LICENSE" $stage
+          Copy-Item "crates\iztro-gui\assets\fonts\LICENSE-SourceHanSerif.txt" $stage
+          Copy-Item "crates\iztro-gui\assets\fonts\NOTICE.md" "$stage\FONT-NOTICE.md"
+          Compress-Archive -Path $stage -DestinationPath $archive -Force
+          $hash = (Get-FileHash -Algorithm SHA256 $archive).Hash.ToLowerInvariant()
+          "$hash  $artifact.zip" | Set-Content -NoNewline -Encoding ascii "$archive.sha256"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: iztro-gui-x86_64-pc-windows-msvc
+          path: |
+            dist/iztro-gui-x86_64-pc-windows-msvc.zip
+            dist/iztro-gui-x86_64-pc-windows-msvc.zip.sha256
+          if-no-files-found: error
+
+  installers:
+    name: Upload installer scripts
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+      - name: Validate shell installer syntax
+        run: |
+          bash -n scripts/install/iztro-gui-installer.sh
+          sh -n scripts/install/iztro-gui-installer.sh
+      - name: Stage installer scripts
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          cp scripts/install/iztro-gui-installer.sh dist/
+          if command -v sha256sum >/dev/null 2>&1; then
+            (cd dist && sha256sum iztro-gui-installer.sh | tee iztro-gui-installer.sh.sha256)
+          else
+            (cd dist && shasum -a 256 iztro-gui-installer.sh | tee iztro-gui-installer.sh.sha256)
+          fi
+      - uses: actions/upload-artifact@v4
+        with:
+          name: iztro-gui-installers
+          path: |
+            dist/iztro-gui-installer.sh
+            dist/iztro-gui-installer.sh.sha256
+          if-no-files-found: error
+
+  publish-github-release:
+    name: Attach artifacts to GitHub Release
+    runs-on: ubuntu-24.04
+    needs: [build-unix, build-windows, installers]
+    if: ${{ startsWith(github.ref, 'refs/tags/') }}
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: iztro-gui-*
+          merge-multiple: true
+          path: dist
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: dist/*
+          fail_on_unmatched_files: true
