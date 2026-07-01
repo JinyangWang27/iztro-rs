@@ -126,13 +126,13 @@ pub fn evaluate_classical(chart: &Chart, request: &ClaimEvaluationRequest) -> Cl
 /// carrying the chart, optional horoscope, and active scopes. Current executable
 /// rules evaluate against the context's natal chart facts only, so for now this
 /// produces the same result as [`evaluate_classical`]. Future temporal rules will
-/// inspect `ctx.horoscope` and `ctx.active_scopes` to emit non-natal hits without
+/// inspect `ctx.horoscope_chart()` and `ctx.active_scopes()` to emit non-natal hits without
 /// changing this signature.
 pub fn evaluate_classical_in_context(
     ctx: &ClassicalRuleContext<'_>,
     request: &ClaimEvaluationRequest,
 ) -> ClaimEvaluation {
-    let chart = ctx.chart;
+    let chart = ctx.chart();
     let mut claims = Vec::new();
     let mut source_hits = Vec::new();
     let mut diagnostics = Vec::new();
