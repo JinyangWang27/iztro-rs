@@ -19,7 +19,6 @@ pub mod facade;
 pub mod feature;
 pub mod labels;
 pub mod model;
-pub mod pattern;
 pub mod placement;
 pub mod rule_context;
 
@@ -90,12 +89,6 @@ pub use model::star::{
     star_tag_strength, try_flow_star_parts, try_known_star_metadata, try_star_metadata,
 };
 pub use model::zodiac::{WesternZodiac, western_zodiac};
-pub use pattern::{
-    PalaceRelation, PatternAnchor, PatternCondition, PatternContext, PatternDetection,
-    PatternDetectionRequest, PatternDisplayMetadata, PatternEvidence, PatternFamily, PatternId,
-    PatternPolarity, PatternScope, PatternSourceGroup, PatternSourceMetadata, PatternStatus,
-    PatternStrength, detect_patterns, pattern_display_metadata, pattern_source_metadata,
-};
 
 pub use placement::natal::adjective::{
     AdjectiveStarPlacementInput, AdjectiveStarPlacer, DeterministicAdjectiveStarPlacer,

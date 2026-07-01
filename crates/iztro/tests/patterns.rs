@@ -6,7 +6,7 @@
 
 use std::collections::BTreeSet;
 
-use iztro::core::pattern::query::{
+use iztro::rules::pattern::query::{
     effective_branch_of_palace, effective_star_in_palace, effective_stars_in_san_fang_si_zheng,
     find_star_branch, palace_has_star, selected_branch_of_palace,
     selected_stars_in_san_fang_si_zheng, source_stars_in_san_fang_si_zheng,

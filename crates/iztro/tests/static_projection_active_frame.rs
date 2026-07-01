@@ -5,8 +5,8 @@
 //! that scope's palace-name frame, while the natal identity stays immutable and
 //! the temporal facts stay attached as overlays.
 
-use iztro::core::pattern::query::branch_of_palace_for_scope;
 use iztro::core::{EarthlyBranch, PalaceName, Scope};
+use iztro::rules::pattern::query::branch_of_palace_for_scope;
 use iztro::{
     BirthTime, ChartAlgorithmKind, ChartError, DecadalHoroscopeInput, Gender, HoroscopeChart,
     MethodProfile, PatternContext, SolarChartRequest, SolarDay, SolarMonth, StaticChartProjection,

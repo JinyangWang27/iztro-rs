@@ -5,7 +5,7 @@
 //! context for names, aliases, condition notes, source notes, and interpretation
 //! notes.
 
-use crate::core::pattern::model::PatternId;
+use crate::rules::pattern::model::PatternId;
 
 /// Runtime/display metadata for one canonical pattern id.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]

@@ -25,14 +25,14 @@
 //! take a bare [`Chart`] and read natal facts directly; they predate the
 //! effective-state model and remain for natal rules.
 
-use crate::core::pattern::context::PatternContext;
-use crate::core::pattern::model::PatternScope;
-use crate::core::pattern::relation::{clamp_branches, san_fang_si_zheng};
 use crate::core::{
     Brightness, Chart, EarthlyBranch, EffectiveChartState, EffectiveStarRef, FlowStarBase,
     FlowStarScope, Mutagen, MutagenActivation, PalaceName, Scope, StarKind, StarName,
     StarPlacement, flow_star_name, try_flow_star_parts,
 };
+use crate::rules::pattern::context::PatternContext;
+use crate::rules::pattern::model::PatternScope;
+use crate::rules::pattern::relation::{clamp_branches, san_fang_si_zheng};
 
 /// A pattern-facing star read with its spatial branch.
 #[derive(Clone, Copy, Debug)]
@@ -749,7 +749,7 @@ pub fn any_sha_star_in_palace_for_scope(
 /// Returns whether `star` is one of the modeled 空亡-family stars.
 ///
 /// This mirrors the existing classical void family without importing the rule
-/// engine into `core::pattern`: 旬空, 空亡, 截路, and 截空 count; 天空, 地空, and
+/// engine into `rules::pattern`: 旬空, 空亡, 截路, and 截空 count; 天空, 地空, and
 /// 地劫 do not.
 pub const fn is_modeled_void_star(star: StarName) -> bool {
     matches!(

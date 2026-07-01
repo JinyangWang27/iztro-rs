@@ -1,22 +1,23 @@
-//! 左右夹命 — Zuo Fu (左辅) and You Bi (右弼) clamping the Life palace.
+//! 昌曲夹命 — Wen Chang (文昌) and Wen Qu (文曲) clamping the Life palace.
 //!
 //! Conservative condition: the two palaces clamping (夹) the Life palace are
-//! occupied — one by 左辅 and the other by 右弼, in either orientation.
+//! occupied — one by 文昌 and the other by 文曲, in either orientation. Runtime
+//! flow 昌/曲 stars match only within their requested temporal scope.
 
-use crate::core::pattern::context::{PatternContext, PatternDetectionRequest};
-use crate::core::pattern::model::{
+use crate::core::{PalaceName, StarName};
+use crate::rules::pattern::context::{PatternContext, PatternDetectionRequest};
+use crate::rules::pattern::model::{
     PatternAnchor, PatternDetection, PatternEvidence, PatternFamily, PatternId, PatternPolarity,
     PatternStatus, PatternStrength,
 };
-use crate::core::pattern::query::{
+use crate::rules::pattern::query::{
     effective_branch_of_palace, effective_clamp_pair_matches, pattern_scope_for,
 };
-use crate::core::pattern::relation::PalaceRelation;
-use crate::core::{PalaceName, StarName};
+use crate::rules::pattern::relation::PalaceRelation;
 
-const NAME_ZH: &str = "左右夹命";
+const NAME_ZH: &str = "昌曲夹命";
 
-/// Detects 左右夹命 and appends any detection to `out`.
+/// Detects 昌曲夹命 and appends any detection to `out`.
 pub fn detect(
     ctx: &PatternContext<'_>,
     request: &PatternDetectionRequest,
@@ -28,7 +29,7 @@ pub fn detect(
         };
 
         let Some([(low_star, low_branch), (high_star, high_branch)]) =
-            effective_clamp_pair_matches(ctx, scope, anchor, StarName::ZuoFu, StarName::YouBi)
+            effective_clamp_pair_matches(ctx, scope, anchor, StarName::WenChang, StarName::WenQu)
         else {
             continue;
         };
@@ -38,7 +39,7 @@ pub fn detect(
         involved_palaces.dedup();
 
         out.push(PatternDetection {
-            id: PatternId::ZuoYouJiaMing,
+            id: PatternId::ChangQuJiaMing,
             name_zh: NAME_ZH,
             family: PatternFamily::AuxiliaryStarCombination,
             polarity: PatternPolarity::Auspicious,

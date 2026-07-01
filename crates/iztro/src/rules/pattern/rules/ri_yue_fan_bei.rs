@@ -10,12 +10,12 @@
 //! [`Brightness`]: crate::core::Brightness
 
 use crate::core::StarName;
-use crate::core::pattern::context::{PatternContext, PatternDetectionRequest};
-use crate::core::pattern::model::{
+use crate::rules::pattern::context::{PatternContext, PatternDetectionRequest};
+use crate::rules::pattern::model::{
     PatternAnchor, PatternDetection, PatternEvidence, PatternFamily, PatternId, PatternPolarity,
     PatternStatus, PatternStrength,
 };
-use crate::core::pattern::query::{find_star_for_scope, is_dim, pattern_scope_for};
+use crate::rules::pattern::query::{find_star_for_scope, is_dim, pattern_scope_for};
 
 const NAME_ZH: &str = "日月反背";
 

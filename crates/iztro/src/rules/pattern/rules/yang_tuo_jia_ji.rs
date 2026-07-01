@@ -6,16 +6,16 @@
 //! 陀罗. Natal 化忌 is taken from natal placements; temporal 化忌 is read from
 //! scoped [`MutagenActivation`] facts.
 
-use crate::core::pattern::context::{PatternContext, PatternDetectionRequest};
-use crate::core::pattern::model::{
+use crate::core::{Mutagen, Scope, StarName};
+use crate::rules::pattern::context::{PatternContext, PatternDetectionRequest};
+use crate::rules::pattern::model::{
     PatternAnchor, PatternDetection, PatternEvidence, PatternFamily, PatternId, PatternPolarity,
     PatternStatus, PatternStrength,
 };
-use crate::core::pattern::query::{
+use crate::rules::pattern::query::{
     find_star_branch_for_scope, mutagen_activations_for_scope, pattern_scope_for, scope_is_visible,
 };
-use crate::core::pattern::relation::{PalaceRelation, clamp_branches};
-use crate::core::{Mutagen, Scope, StarName};
+use crate::rules::pattern::relation::{PalaceRelation, clamp_branches};
 
 const NAME_ZH: &str = "羊陀夹忌";
 

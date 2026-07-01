@@ -81,16 +81,19 @@ pub use core::{
     try_known_star_metadata, try_major_star_metadata, try_minor_star_metadata, try_star_metadata,
     validate_chart_algorithm_plane, western_zodiac, zi_wei_branch,
 };
-// GUI/API/CLI-facing static chart projections and the orchestration facade that
-// builds them. These read models moved out of `core` into the `projection` and
-// `facade` modules to keep `core` owning domain facts only.
-pub use core::{
+// Shared selected-state context still lives in `core` for now. Pattern rules
+// live under `rules::pattern`, but the headline pattern API remains available
+// from the crate root.
+pub use core::RuleEvaluationContext;
+pub use rules::pattern::{
     PalaceRelation, PatternAnchor, PatternCondition, PatternContext, PatternDetection,
     PatternDetectionRequest, PatternDisplayMetadata, PatternEvidence, PatternFamily, PatternId,
     PatternPolarity, PatternScope, PatternSourceGroup, PatternSourceMetadata, PatternStatus,
-    PatternStrength, RuleEvaluationContext, detect_patterns, pattern_display_metadata,
-    pattern_source_metadata,
+    PatternStrength, detect_patterns, pattern_display_metadata, pattern_source_metadata,
 };
+// GUI/API/CLI-facing static chart projections and the orchestration facade that
+// builds them. These read models moved out of `core` into the `projection` and
+// `facade` modules to keep `core` owning domain facts only.
 pub use facade::static_temporal_chart_view::{
     static_temporal_chart_view, static_temporal_chart_view_from_chart,
     temporal_selection_for_local_moment, temporal_selection_for_solar_moment,

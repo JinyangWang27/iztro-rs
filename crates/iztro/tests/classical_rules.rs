@@ -727,7 +727,7 @@ fn ri_yue_fan_bei_negative_when_one_bright() {
 
 #[test]
 fn quan_shu_pattern_catalogue_entries_emit_no_classical_runtime_output() {
-    // These charts form QuanShu pattern catalogue shapes. `core::pattern` detects
+    // These charts form QuanShu pattern catalogue shapes. `rules::pattern` detects
     // them as canonical `PatternId`s (see tests/patterns.rs), but the classical
     // runtime must not emit any source hit or claim for the former QuanShu rule
     // ids: those are source provenance, not classical runtime rules.

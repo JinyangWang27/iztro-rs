@@ -137,7 +137,7 @@ fn palaces_key(branches: &[crate::core::EarthlyBranch]) -> Vec<usize> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::core::pattern::model::PatternFamily;
+    use crate::rules::pattern::model::PatternFamily;
 
     fn request_with(scopes: Vec<Scope>) -> PatternDetectionRequest {
         PatternDetectionRequest {

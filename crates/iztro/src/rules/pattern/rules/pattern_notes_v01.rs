@@ -4,21 +4,21 @@
 //! source notes, but they are not direct source-provenance rows unless
 //! `PatternSourceMetadata` separately says so.
 
-use crate::core::pattern::context::{PatternContext, PatternDetectionRequest};
-use crate::core::pattern::display_metadata::pattern_display_metadata;
-use crate::core::pattern::model::{
+use crate::core::{EarthlyBranch, Mutagen, PalaceName, Scope, StarKind, StarName};
+use crate::rules::pattern::context::{PatternContext, PatternDetectionRequest};
+use crate::rules::pattern::display_metadata::pattern_display_metadata;
+use crate::rules::pattern::model::{
     PatternAnchor, PatternCondition, PatternDetection, PatternEvidence, PatternFamily, PatternId,
     PatternPolarity, PatternStatus, PatternStrength,
 };
-use crate::core::pattern::query::{
+use crate::rules::pattern::query::{
     branch_of_palace_for_scope, is_bright, mutagen_activations_for_scope,
     palace_has_all_stars_for_scope, pattern_scope_for, selected_branch_of_palace,
     selected_frame_scope, selected_major_star_count_in_palace, selected_palace_has_all_stars,
     selected_star_in_palace, selected_stars_in_palace, selected_stars_in_san_fang_si_zheng,
     stars_in_palace_for_scope,
 };
-use crate::core::pattern::relation::{is_in_san_fang_si_zheng, san_fang_si_zheng};
-use crate::core::{EarthlyBranch, Mutagen, PalaceName, Scope, StarKind, StarName};
+use crate::rules::pattern::relation::{is_in_san_fang_si_zheng, san_fang_si_zheng};
 
 const SUPPORT_STARS: [StarName; 7] = [
     StarName::ZuoFu,

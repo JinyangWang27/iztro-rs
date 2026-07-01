@@ -1,7 +1,7 @@
 //! Read-only context and request types for pattern detection.
 
-use crate::core::pattern::model::PatternFamily;
 use crate::core::{Chart, EffectiveChartState, HoroscopeChart, RuleEvaluationContext, Scope};
+use crate::rules::pattern::model::PatternFamily;
 
 /// A read-only query wrapper over a chart for pattern detection.
 ///
@@ -122,18 +122,18 @@ impl<'a> PatternContext<'a> {
 
 /// A request controlling which detections [`detect_patterns`] returns.
 ///
-/// [`detect_patterns`]: crate::core::pattern::detect_patterns
+/// [`detect_patterns`]: crate::rules::pattern::detect_patterns
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct PatternDetectionRequest {
     /// Scopes to detect within.
     pub scopes: Vec<Scope>,
     /// Whether to include [`PatternStatus::Weakened`] detections.
     ///
-    /// [`PatternStatus::Weakened`]: crate::core::pattern::PatternStatus::Weakened
+    /// [`PatternStatus::Weakened`]: crate::rules::pattern::PatternStatus::Weakened
     pub include_weakened: bool,
     /// Whether to include [`PatternStatus::Broken`] detections.
     ///
-    /// [`PatternStatus::Broken`]: crate::core::pattern::PatternStatus::Broken
+    /// [`PatternStatus::Broken`]: crate::rules::pattern::PatternStatus::Broken
     pub include_broken: bool,
     /// If non-empty, only detections in these families are returned.
     pub families: Vec<PatternFamily>,
