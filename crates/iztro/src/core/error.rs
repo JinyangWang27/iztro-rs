@@ -157,6 +157,15 @@ pub enum ChartError {
     /// A temporal layer cannot use the natal scope; natal facts live in the chart.
     #[error("temporal layer cannot use the natal scope")]
     NatalScopeInTemporalLayer,
+    /// An effective chart state must always include natal facts.
+    #[error("effective chart state must include the natal scope")]
+    EffectiveChartStateMissingNatalScope,
+    /// An effective chart state cannot include the same active scope twice.
+    #[error("effective chart state repeats active scope {scope:?}")]
+    DuplicateEffectiveChartStateScope {
+        /// Scope that appears more than once.
+        scope: Scope,
+    },
     /// Nominal-age periods support only a bounded human-age range.
     #[error("invalid nominal age: expected 1..=120, got {value}")]
     InvalidNominalAge {

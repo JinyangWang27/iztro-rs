@@ -9,6 +9,7 @@ pub mod chart;
 pub mod daily;
 pub mod decadal;
 pub mod diagnostic;
+pub mod effective;
 pub mod facade_snapshot;
 pub mod horoscope;
 pub mod hourly;
@@ -35,6 +36,7 @@ pub use chart::{
 pub use daily::{DailyPeriod, build_daily_period};
 pub use decadal::{DecadalDirection, DecadalFrame, DecadalPeriod, build_decadal_frame};
 pub use diagnostic::{ChartDiagnosticSnapshot, PalaceDiagnosticSnapshot};
+pub use effective::{EffectiveChartState, EffectiveMutagenRef, EffectiveStarRef};
 pub use facade_snapshot::{
     HoroscopeFacadeContext, HoroscopeFacadeSnapshot, HoroscopePalaceProjectionSnapshot,
     HoroscopeProjectionMutagenActivationSnapshot, HoroscopeSurroundPalacesSnapshot,
