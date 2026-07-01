@@ -233,3 +233,9 @@ timezone_meridian_degrees = utc_offset_hours * 15
 longitude_correction_minutes = 4 * (longitude_degrees - timezone_meridian_degrees)
 resolved_time = clock_time + longitude_correction_minutes + equation_of_time_minutes
 ```
+
+When the adjusted time crosses midnight, the resolved solar date moves to the adjacent day. These policies run ahead of the existing chart-generation path and never define a new algorithm, chart plane, natal anchor, or star placer.
+
+## Evidence-first interpretation
+
+Every interpretive claim should be traceable to chart evidence. This enables debugging, review, rule tuning, and future empirical validation.
