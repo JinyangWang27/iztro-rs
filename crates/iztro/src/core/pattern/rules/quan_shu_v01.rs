@@ -200,7 +200,7 @@ fn detect_cai_yu_qiu_chou(ctx: &PatternContext<'_>, scope: Scope, out: &mut Vec<
         branches.push(branch);
     }
     if scope == Scope::Natal {
-        if let Some(branch) = ctx.chart.body_palace_branch() {
+        if let Some(branch) = ctx.chart().body_palace_branch() {
             branches.push(branch);
         }
     }

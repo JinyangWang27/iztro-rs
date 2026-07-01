@@ -51,10 +51,10 @@ pub const fn pattern_scope_for(scope: Scope) -> PatternScope {
 
 /// Returns whether `scope` is visible in the detection context.
 pub fn scope_is_visible(ctx: &PatternContext<'_>, scope: Scope) -> bool {
-    if !ctx.active_scopes.contains(&scope) {
+    if !ctx.active_scopes().contains(&scope) {
         return false;
     }
-    scope == Scope::Natal || ctx.horoscope.is_some()
+    scope == Scope::Natal || ctx.horoscope_chart().is_some()
 }
 
 /// Returns the typed star placements in the palace at `branch`.
@@ -79,7 +79,7 @@ pub fn stars_in_palace_for_scope<'a>(
 
     if scope == Scope::Natal {
         return ctx
-            .chart
+            .chart()
             .palaces()
             .iter()
             .filter(|palace| palace.branch() == branch)
@@ -92,7 +92,7 @@ pub fn stars_in_palace_for_scope<'a>(
             .collect();
     }
 
-    let Some(horoscope) = ctx.horoscope else {
+    let Some(horoscope) = ctx.horoscope_chart() else {
         return Vec::new();
     };
     horoscope
@@ -148,18 +148,20 @@ pub fn branch_of_palace_for_scope(
     }
 
     if scope == Scope::Natal {
-        return ctx.chart.branch_of_palace(palace);
+        return ctx.chart().branch_of_palace(palace);
     }
 
-    ctx.horoscope?.layers_in_scope(scope).find_map(|layer| {
-        layer.palace_layout().and_then(|layout| {
-            layout
-                .names()
-                .iter()
-                .find(|name| name.palace_name() == palace)
-                .map(|name| name.branch())
+    ctx.horoscope_chart()?
+        .layers_in_scope(scope)
+        .find_map(|layer| {
+            layer.palace_layout().and_then(|layout| {
+                layout
+                    .names()
+                    .iter()
+                    .find(|name| name.palace_name() == palace)
+                    .map(|name| name.branch())
+            })
         })
-    })
 }
 
 /// Returns the branch occupied by a named palace in the effective palace frame.
@@ -172,10 +174,11 @@ pub fn effective_branch_of_palace(
 }
 
 /// Returns the scope supplying the selected palace-name frame.
+///
+/// Thin free-function wrapper over [`PatternContext::selected_frame_scope`] for
+/// call sites that read it alongside other query helpers.
 pub fn selected_frame_scope(ctx: &PatternContext<'_>) -> Option<Scope> {
-    ctx.effective
-        .as_ref()
-        .map(EffectiveChartState::palace_frame_scope)
+    ctx.selected_frame_scope()
 }
 
 /// Returns the branch occupied by a named palace in the selected frame.
@@ -183,14 +186,14 @@ pub fn selected_branch_of_palace(
     ctx: &PatternContext<'_>,
     palace: PalaceName,
 ) -> Option<EarthlyBranch> {
-    ctx.effective.as_ref()?.branch_of_palace(palace)
+    ctx.effective()?.branch_of_palace(palace)
 }
 
 fn effective_state_for_match_scope<'a, 'ctx>(
     ctx: &'ctx PatternContext<'a>,
     match_scope: Scope,
 ) -> Option<&'ctx EffectiveChartState<'a>> {
-    let state = ctx.effective.as_ref()?;
+    let state = ctx.effective()?;
     (state.palace_frame_scope() == match_scope).then_some(state)
 }
 
@@ -218,8 +221,7 @@ pub fn effective_stars_in_palace<'a>(
     ctx: &PatternContext<'a>,
     branch: EarthlyBranch,
 ) -> Vec<EffectiveStarRef<'a>> {
-    ctx.effective
-        .as_ref()
+    ctx.effective()
         .map(|state| state.stars_in_palace(branch))
         .unwrap_or_default()
 }
@@ -229,8 +231,7 @@ pub fn selected_stars_in_palace<'a>(
     ctx: &PatternContext<'a>,
     branch: EarthlyBranch,
 ) -> Vec<EffectiveStarRef<'a>> {
-    ctx.effective
-        .as_ref()
+    ctx.effective()
         .map(|state| state.stars_in_palace(branch))
         .unwrap_or_default()
 }
@@ -255,7 +256,7 @@ pub fn selected_star_in_palace<'a>(
     branch: EarthlyBranch,
     star: StarName,
 ) -> Option<EffectiveStarRef<'a>> {
-    let state = ctx.effective.as_ref()?;
+    let state = ctx.effective()?;
     let frame_scope = state.palace_frame_scope();
     state
         .stars_in_palace(branch)
@@ -362,13 +363,13 @@ pub fn find_star_for_scope<'a>(
     }
 
     if scope == Scope::Natal {
-        return ctx.chart.stars().into_iter().find_map(|fact| {
+        return ctx.chart().stars().into_iter().find_map(|fact| {
             star_matches_for_scope(scope, star, fact.placement().name())
                 .then(|| ScopedPatternStarRef::new(fact.palace().branch(), fact.placement()))
         });
     }
 
-    let horoscope = ctx.horoscope?;
+    let horoscope = ctx.horoscope_chart()?;
     horoscope
         .layers_in_scope(scope)
         .flat_map(|layer| layer.placements())
@@ -446,7 +447,7 @@ pub fn selected_stars_in_san_fang_si_zheng(
     anchor: EarthlyBranch,
     stars: &[StarName],
 ) -> Vec<(StarName, EarthlyBranch)> {
-    let Some(state) = ctx.effective.as_ref() else {
+    let Some(state) = ctx.effective() else {
         return Vec::new();
     };
     let frame_scope = state.palace_frame_scope();
@@ -671,7 +672,7 @@ pub fn mutagen_activations_for_scope<'a>(
     if scope == Scope::Natal || !scope_is_visible(ctx, scope) {
         return Vec::new();
     }
-    let Some(horoscope) = ctx.horoscope else {
+    let Some(horoscope) = ctx.horoscope_chart() else {
         return Vec::new();
     };
     horoscope

@@ -9,20 +9,33 @@ use crate::core::{Chart, EffectiveChartState, HoroscopeChart, Scope};
 /// [`HoroscopeChart`] is supplied, its natal chart is used as the underlying
 /// [`Chart`]; temporal layers remain overlays and are never folded into natal
 /// facts.
+///
+/// Fields are private so detector and query code cannot bypass the
+/// selected-state model or fabricate ambiguous contexts. Read through the
+/// accessors ([`chart`](Self::chart), [`horoscope`](Self::horoscope),
+/// [`active_scopes`](Self::active_scopes), [`effective`](Self::effective),
+/// [`selected_frame_scope`](Self::selected_frame_scope)) and construct through
+/// the named constructors so the effective selected state is always built by
+/// one of the sanctioned paths.
 #[derive(Clone, Debug)]
 pub struct PatternContext<'a> {
     /// The natal chart facts being analyzed.
-    pub chart: &'a Chart,
+    chart: &'a Chart,
     /// The horoscope chart, when temporal scopes are in play.
-    pub horoscope: Option<&'a HoroscopeChart>,
+    horoscope: Option<&'a HoroscopeChart>,
     /// The temporal scopes currently active for detection.
-    pub active_scopes: Vec<Scope>,
+    active_scopes: Vec<Scope>,
     /// The selected effective chart state, when strict construction succeeds.
-    pub effective: Option<EffectiveChartState<'a>>,
+    effective: Option<EffectiveChartState<'a>>,
 }
 
 impl<'a> PatternContext<'a> {
     /// Creates a natal-only context.
+    ///
+    /// This constructor is strict: the natal effective state is always present,
+    /// so selected-state helpers never fail closed for a natal context. The
+    /// selected palace frame is [`Scope::Natal`] and the only active scope is
+    /// [`Scope::Natal`].
     pub fn natal(chart: &'a Chart) -> Self {
         Self {
             chart,
@@ -37,12 +50,16 @@ impl<'a> PatternContext<'a> {
 
     /// Creates a context over a horoscope chart with the given active scopes.
     ///
-    /// This compatibility/convenience constructor uses the deepest active scope
-    /// as the palace frame when a strict effective state can be formed.
+    /// This is a **compatibility/convenience constructor only**. It derives the
+    /// palace frame from the *deepest* active scope (`active_scopes.last()`) and
+    /// builds the effective state leniently: if strict effective-state
+    /// construction fails, [`effective`](Self::effective) is `None` and every
+    /// selected-state helper fails closed, while source/layer-specific helpers
+    /// remain available.
+    ///
     /// Production selected-view analysis should use
-    /// [`PatternContext::horoscope_with_frame`] so the frame scope is explicit.
-    /// If strict effective-state construction fails, effective helpers fail
-    /// closed while source/layer-specific helpers remain available.
+    /// [`PatternContext::horoscope_with_frame`] so the frame scope is explicit
+    /// and construction is strict.
     pub fn horoscope(chart: &'a HoroscopeChart, active_scopes: Vec<Scope>) -> Self {
         let frame_scope = active_scopes.last().copied().unwrap_or(Scope::Natal);
         let effective =
@@ -75,6 +92,46 @@ impl<'a> PatternContext<'a> {
             active_scopes,
             effective: Some(effective),
         }
+    }
+
+    /// Returns the natal chart facts being analyzed.
+    pub fn chart(&self) -> &'a Chart {
+        self.chart
+    }
+
+    /// Returns the horoscope chart, when temporal scopes are in play.
+    ///
+    /// Named `horoscope_chart` rather than `horoscope` because the
+    /// [`horoscope`](Self::horoscope) constructor already owns that name.
+    pub fn horoscope_chart(&self) -> Option<&'a HoroscopeChart> {
+        self.horoscope
+    }
+
+    /// Returns the temporal scopes currently active for detection.
+    pub fn active_scopes(&self) -> &[Scope] {
+        &self.active_scopes
+    }
+
+    /// Returns the selected effective chart state, when one was constructed.
+    ///
+    /// This is `None` only for the lenient [`horoscope`](Self::horoscope)
+    /// constructor when strict effective-state construction failed; the
+    /// [`natal`](Self::natal) and [`horoscope_with_frame`](Self::horoscope_with_frame)
+    /// constructors always populate it.
+    pub fn effective(&self) -> Option<&EffectiveChartState<'a>> {
+        self.effective.as_ref()
+    }
+
+    /// Returns the scope supplying the selected palace-name frame, if an
+    /// effective state exists.
+    ///
+    /// This is the frame that selected-state helpers read against. It is
+    /// [`Scope::Natal`] for a natal context and the explicit frame scope for a
+    /// [`horoscope_with_frame`](Self::horoscope_with_frame) context.
+    pub fn selected_frame_scope(&self) -> Option<Scope> {
+        self.effective
+            .as_ref()
+            .map(EffectiveChartState::palace_frame_scope)
     }
 }
 

@@ -199,7 +199,7 @@ fn selected_support_in_san_fang_si_zheng(
         }
     }
 
-    if let Some(state) = ctx.effective.as_ref() {
+    if let Some(state) = ctx.effective() {
         for activation in state.mutagen_activations() {
             if matches!(
                 activation.activation().mutagen(),
@@ -242,7 +242,7 @@ fn detect_ri_chu_fu_sang(
         return;
     }
 
-    let birth_time = ctx.chart.birth_context().birth_time();
+    let birth_time = ctx.chart().birth_context().birth_time();
     if !matches!(
         birth_time,
         EarthlyBranch::Mao
@@ -476,7 +476,7 @@ fn selected_lu_base_in_life(
         }
     }
 
-    if let Some(state) = ctx.effective.as_ref() {
+    if let Some(state) = ctx.effective() {
         for activation in state.mutagen_activations() {
             let activation_fact = activation.activation();
             if activation_fact.mutagen() == Mutagen::Lu
@@ -606,7 +606,7 @@ fn detect_zuo_you_tong_gong(
 
     let life = selected_branch_of_palace(ctx, PalaceName::Life);
     let body = (scope == Scope::Natal)
-        .then(|| ctx.chart.body_palace_branch())
+        .then(|| ctx.chart().body_palace_branch())
         .flatten();
 
     let mut anchors: Vec<EarthlyBranch> = Vec::new();

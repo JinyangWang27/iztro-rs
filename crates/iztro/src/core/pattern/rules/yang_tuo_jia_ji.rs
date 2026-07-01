@@ -106,7 +106,7 @@ fn ji_targets(
 ) -> Vec<(StarName, crate::core::EarthlyBranch)> {
     if scope == Scope::Natal {
         return ctx
-            .chart
+            .chart()
             .stars()
             .into_iter()
             .filter(|fact| fact.placement().mutagen() == Some(Mutagen::Ji))
