@@ -8,7 +8,9 @@ use std::collections::BTreeSet;
 
 use iztro::core::pattern::query::{
     effective_branch_of_palace, effective_star_in_palace, effective_stars_in_san_fang_si_zheng,
-    find_star_branch, palace_has_star, stars_in_san_fang_si_zheng,
+    find_star_branch, palace_has_star, selected_branch_of_palace,
+    selected_stars_in_san_fang_si_zheng, source_stars_in_san_fang_si_zheng,
+    stars_in_san_fang_si_zheng, stars_in_san_fang_si_zheng_for_scope,
 };
 use iztro::{
     BirthContext, Brightness, CalendarDate, Chart, EarthlyBranch, Gender, HeavenlyStem,
@@ -2981,5 +2983,140 @@ fn fu_xiang_chao_yuan_covers_wealth_career_split_and_tian_fu_in_life_forms() {
         detections
             .iter()
             .all(|d| d.id != PatternId::FuXiangChaoYuan)
+    );
+}
+
+// ---- PatternContext API boundaries -----------------------------------------
+
+#[test]
+fn natal_context_has_natal_selected_frame_and_effective_state() {
+    let chart = build_chart(EarthlyBranch::Zi, &[]);
+    let ctx = PatternContext::natal(&chart);
+
+    assert_eq!(ctx.selected_frame_scope(), Some(Scope::Natal));
+    assert_eq!(ctx.active_scopes(), &[Scope::Natal]);
+    assert!(ctx.effective().is_some(), "natal context is strict");
+    assert!(ctx.horoscope_chart().is_none());
+}
+
+#[test]
+fn horoscope_with_frame_context_uses_the_explicit_frame() {
+    let natal = build_chart(EarthlyBranch::Zi, &[]);
+    let horoscope = horoscope_with_layer(natal, Scope::Yearly, EarthlyBranch::Chou, vec![], vec![]);
+    let active = vec![Scope::Natal, Scope::Yearly];
+    let ctx = PatternContext::horoscope_with_frame(&horoscope, Scope::Yearly, active.clone());
+
+    assert_eq!(
+        ctx.selected_frame_scope(),
+        Some(Scope::Yearly),
+        "frame comes from the explicit argument, not the deepest active scope"
+    );
+    assert_eq!(ctx.active_scopes(), active.as_slice());
+    assert!(ctx.effective().is_some(), "explicit frame is strict");
+    assert_eq!(
+        selected_branch_of_palace(&ctx, iztro::PalaceName::Life),
+        Some(EarthlyBranch::Chou)
+    );
+}
+
+#[test]
+fn horoscope_context_derives_frame_from_the_deepest_active_scope() {
+    let natal = build_chart(EarthlyBranch::Zi, &[]);
+    let horoscope = horoscope_with_layer(natal, Scope::Yearly, EarthlyBranch::Chou, vec![], vec![]);
+    let ctx = PatternContext::horoscope(&horoscope, vec![Scope::Natal, Scope::Yearly]);
+
+    assert_eq!(
+        ctx.selected_frame_scope(),
+        Some(Scope::Yearly),
+        "compatibility constructor derives the frame from active_scopes.last()"
+    );
+    assert!(ctx.effective().is_some());
+}
+
+#[test]
+fn horoscope_context_fails_closed_when_strict_effective_state_is_invalid() {
+    // active_scopes without Natal cannot form a strict effective state, so the
+    // compatibility constructor leaves `effective` empty and selected-state
+    // helpers fail closed rather than guessing.
+    let natal = build_chart(
+        EarthlyBranch::Zi,
+        &[soft(EarthlyBranch::Chou, StarName::WenChang)],
+    );
+    let horoscope = horoscope_with_layer(natal, Scope::Yearly, EarthlyBranch::Chou, vec![], vec![]);
+    let ctx = PatternContext::horoscope(&horoscope, vec![Scope::Yearly]);
+
+    assert_eq!(ctx.active_scopes(), &[Scope::Yearly]);
+    assert!(
+        ctx.effective().is_none(),
+        "strict construction failed, so no effective state"
+    );
+    assert_eq!(ctx.selected_frame_scope(), None);
+    assert_eq!(
+        selected_branch_of_palace(&ctx, iztro::PalaceName::Life),
+        None
+    );
+    assert!(
+        selected_stars_in_san_fang_si_zheng(&ctx, EarthlyBranch::Chou, &[StarName::WenChang])
+            .is_empty(),
+        "selected-state helper fails closed when no effective state exists"
+    );
+}
+
+// ---- selected-state vs source/layer query boundaries -----------------------
+
+#[test]
+fn selected_and_source_sfsz_helpers_disagree_on_natal_support_in_a_temporal_frame() {
+    // Yearly frame relabels Chou as Life. Natal WenChang sits in that frame's
+    // 三方四正 (at Chou itself), and no Yearly WenChang exists. The selected-state
+    // helper sees the natal support star through the selected frame; the
+    // source/layer helper, restricted to the Yearly layer, does not. This is the
+    // exact distinction that PR #145 fixed.
+    let natal = build_chart(
+        EarthlyBranch::Zi,
+        &[soft(EarthlyBranch::Chou, StarName::WenChang)],
+    );
+    let horoscope = horoscope_with_layer(natal, Scope::Yearly, EarthlyBranch::Chou, vec![], vec![]);
+    let ctx = PatternContext::horoscope_with_frame(
+        &horoscope,
+        Scope::Yearly,
+        vec![Scope::Natal, Scope::Yearly],
+    );
+
+    assert_eq!(ctx.selected_frame_scope(), Some(Scope::Yearly));
+    assert_eq!(
+        selected_branch_of_palace(&ctx, iztro::PalaceName::Life),
+        Some(EarthlyBranch::Chou),
+        "Yearly Life is Chou"
+    );
+
+    let selected =
+        selected_stars_in_san_fang_si_zheng(&ctx, EarthlyBranch::Chou, &[StarName::WenChang]);
+    assert!(
+        selected
+            .iter()
+            .any(|(star, branch)| *star == StarName::WenChang && *branch == EarthlyBranch::Chou),
+        "selected-state helper finds the natal support star in the selected frame"
+    );
+
+    let source = stars_in_san_fang_si_zheng_for_scope(
+        &ctx,
+        Scope::Yearly,
+        EarthlyBranch::Chou,
+        &[StarName::WenChang],
+    );
+    assert!(
+        source.is_empty(),
+        "source/layer helper sees only Yearly-layer facts, not natal support"
+    );
+
+    // The source_* alias is a pure rename of the *_for_scope helper.
+    assert_eq!(
+        source,
+        source_stars_in_san_fang_si_zheng(
+            &ctx,
+            Scope::Yearly,
+            EarthlyBranch::Chou,
+            &[StarName::WenChang],
+        )
     );
 }
