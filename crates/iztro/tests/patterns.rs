@@ -12,6 +12,7 @@ use iztro::rules::pattern::query::{
     selected_stars_in_san_fang_si_zheng, source_stars_in_san_fang_si_zheng,
     stars_in_san_fang_si_zheng, stars_in_san_fang_si_zheng_for_scope,
 };
+use iztro::rules::pattern::registry::{PATTERN_SPECS, pattern_spec, try_pattern_spec};
 use iztro::{
     BirthContext, Brightness, CalendarDate, Chart, EarthlyBranch, Gender, HeavenlyStem,
     HoroscopeChart, MethodProfile, Mutagen, MutagenActivation, PALACE_NAMES, Palace, PatternAnchor,
@@ -1544,6 +1545,46 @@ fn display_metadata_carries_unverified_source_notes_without_source_metadata() {
         Some("府相朝垣 见前批注（紫微斗数全书）")
     );
     assert!(pattern_source_metadata(PatternId::FuXiangChaoYuan).is_none());
+}
+
+#[test]
+fn pattern_registry_covers_every_pattern_id_once() {
+    assert_eq!(PATTERN_SPECS.len(), PatternId::ALL.len());
+
+    let mut ids = BTreeSet::new();
+    for spec in PATTERN_SPECS {
+        assert!(
+            ids.insert(spec.id),
+            "duplicate pattern spec for {:?}",
+            spec.id
+        );
+        assert!(
+            PatternId::ALL.contains(&spec.id),
+            "registry contains unknown pattern id {:?}",
+            spec.id
+        );
+        assert!(try_pattern_spec(spec.id).is_some());
+    }
+
+    for id in PatternId::ALL {
+        assert!(ids.contains(&id), "registry missing pattern id {id:?}");
+    }
+}
+
+#[test]
+fn pattern_metadata_wrappers_delegate_to_registry() {
+    for id in PatternId::ALL {
+        let spec = pattern_spec(id);
+        let display = pattern_display_metadata(id);
+
+        assert_eq!(spec.id, id);
+        assert_eq!(spec.name_zh, display.name_zh);
+        assert_eq!(spec.aliases_zh, display.aliases_zh);
+        assert_eq!(spec.family, display.family);
+        assert_eq!(spec.polarity, display.polarity);
+        assert_eq!(spec.display, *display);
+        assert_eq!(spec.source.as_ref(), pattern_source_metadata(id));
+    }
 }
 
 // ---- QuanShu Volume 1 executable pattern subset --------------------------

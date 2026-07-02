@@ -8,6 +8,7 @@
 
 use crate::core::{Mutagen, Scope, StarName};
 use crate::rules::pattern::context::{PatternContext, PatternDetectionRequest};
+use crate::rules::pattern::display_metadata::pattern_display_metadata;
 use crate::rules::pattern::model::{
     PatternAnchor, PatternDetection, PatternEvidence, PatternFamily, PatternId, PatternPolarity,
     PatternStatus, PatternStrength,
@@ -16,8 +17,6 @@ use crate::rules::pattern::query::{
     find_star_branch_for_scope, mutagen_activations_for_scope, pattern_scope_for, scope_is_visible,
 };
 use crate::rules::pattern::relation::{PalaceRelation, clamp_branches};
-
-const NAME_ZH: &str = "羊陀夹忌";
 
 /// Detects 羊陀夹忌 and appends any detection to `out`.
 pub fn detect(
@@ -57,7 +56,7 @@ pub fn detect(
 
             out.push(PatternDetection {
                 id: PatternId::YangTuoJiaJi,
-                name_zh: NAME_ZH,
+                name_zh: pattern_display_metadata(PatternId::YangTuoJiaJi).name_zh,
                 family: PatternFamily::ShaJi,
                 polarity: PatternPolarity::Inauspicious,
                 status: PatternStatus::Fulfilled,
