@@ -12,19 +12,19 @@
 - [x] F2 — GUI derivation-guard test does not scan `static_chart_screen/`
   - Addressed by: PR #157
 - [x] F3 — Shared relation type/helpers live inside `rules::pattern`
-  - Addressed by: this PR (`rules::relation` is now the canonical module; `rules::pattern::relation` is a compatibility re-export)
+  - Addressed by: PR #160 (`rules::relation` is now the canonical module; `rules::pattern::relation` is a compatibility re-export)
 - [x] F4 — Overlay-aware rule wiring duplicated by string literal
   - Addressed by: PR #158
 - [x] F5 — No detector-registration guard for `PatternId`
   - Addressed by: PR #158
 - [x] F6 — `effective_stars_in_palace` duplicate/misleading helper
-  - Addressed by: this PR (`rules::query::effective_stars_in_palace` now takes an explicit `match_scope`; `selected_stars_in_palace` remains the selected-frame helper)
+  - Addressed by: PR #160 (`rules::query::effective_stars_in_palace` now takes an explicit `match_scope`; `selected_stars_in_palace` remains the selected-frame helper)
 - [x] F7 — `matches_rule_metadata` hard-codes `ClaimScope::Natal`
   - Addressed by: PR #158
 - [ ] F8 — Docs polarity drift for 马头带剑 / reserved id note
 - [ ] F9 — i18n claim-key coverage skips patterns corpus
 - [ ] F10 — Overlapping palace-relation vocabularies
-  - Partially addressed by: this PR (`rules::relation` is now canonical for branch/palace relation vocabulary; the `features::relations` `PalaceName`-level overlap remains)
+  - Partially addressed by: PR #160 (`rules::relation` is now canonical for branch/palace relation vocabulary; the `features::relations` `PalaceName`-level overlap remains)
 - [ ] F11 — Panicking constructors on future binding/MCP surface
 - [ ] F12 — Stringly `work` in `PatternSourceMetadata`
 
