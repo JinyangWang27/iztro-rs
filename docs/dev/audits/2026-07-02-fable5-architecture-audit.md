@@ -22,9 +22,9 @@
 - [x] F7 — `matches_rule_metadata` hard-codes `ClaimScope::Natal`
   - Addressed by: PR #158
 - [x] F8 — Docs polarity drift for 马头带剑 / reserved id note
-  - Addressed by: this PR
+  - Addressed by: PR #161
 - [x] F9 — i18n claim-key coverage skips patterns corpus
-  - Addressed by: this PR
+  - Addressed by: PR #161
 - [ ] F10 — Overlapping palace-relation vocabularies
   - Partially addressed by: PR #160 (`rules::relation` is now canonical for branch/palace relation vocabulary; the `features::relations` `PalaceName`-level overlap remains)
 - [ ] F11 — Panicking constructors on future binding/MCP surface
