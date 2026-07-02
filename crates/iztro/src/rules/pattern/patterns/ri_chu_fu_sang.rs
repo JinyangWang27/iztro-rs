@@ -23,7 +23,8 @@ pub fn detect(
     let Some(base) = detect_base_formation(ctx, request) else {
         return;
     };
-    emit::push_detection(out, base, IntegrityAssessment::fulfilled());
+    let integrity = assess_integrity(ctx, &base);
+    emit::push_detection(out, base, integrity);
 }
 
 /// 成格: 出生时辰卯至未，太阳天梁在卯宫坐命，命宫三方四正见辅佐加会。
@@ -89,4 +90,9 @@ fn detect_base_formation(
         involved_mutagens: support.involved_mutagens(),
         evidence,
     })
+}
+
+/// 减力/破格: no weakening/breaker policy is modeled.
+fn assess_integrity(_ctx: &PatternContext<'_>, _base: &FormationMatch) -> IntegrityAssessment {
+    IntegrityAssessment::fulfilled()
 }

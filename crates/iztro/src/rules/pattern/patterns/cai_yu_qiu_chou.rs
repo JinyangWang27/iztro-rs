@@ -18,7 +18,8 @@ pub fn detect(
 ) {
     for &scope in &request.scopes {
         for base in detect_base_formations(ctx, scope) {
-            emit::push_detection(out, base, IntegrityAssessment::fulfilled());
+            let integrity = assess_integrity(ctx, &base);
+            emit::push_detection(out, base, integrity);
         }
     }
 }
@@ -62,4 +63,9 @@ fn same_palace_formation(scope: Scope, branch: EarthlyBranch) -> FormationMatch 
         involved_mutagens: Vec::new(),
         evidence: vec![PatternEvidence::StarsInSamePalace { stars, branch }],
     }
+}
+
+/// 减力/破格: no weakening/breaker policy is modeled.
+fn assess_integrity(_ctx: &PatternContext<'_>, _base: &FormationMatch) -> IntegrityAssessment {
+    IntegrityAssessment::fulfilled()
 }

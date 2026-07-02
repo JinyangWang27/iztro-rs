@@ -27,7 +27,8 @@ pub fn detect(
     let Some(base) = detect_base_formation(ctx, request) else {
         return;
     };
-    emit::push_detection(out, base, IntegrityAssessment::fulfilled());
+    let integrity = assess_integrity(ctx, &base);
+    emit::push_detection(out, base, integrity);
 }
 
 /// 成格: a 府相 base form (A or B) plus auxiliary support in the Life 三方四正.
@@ -138,4 +139,9 @@ fn selected_fu_xiang_base_form(
     }
 
     None
+}
+
+/// 减力/破格: no weakening/breaker policy is modeled.
+fn assess_integrity(_ctx: &PatternContext<'_>, _base: &FormationMatch) -> IntegrityAssessment {
+    IntegrityAssessment::fulfilled()
 }

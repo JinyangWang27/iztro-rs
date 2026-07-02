@@ -21,7 +21,8 @@ pub fn detect(
     let Some(base) = detect_base_formation(ctx, request) else {
         return;
     };
-    emit::push_detection(out, base, IntegrityAssessment::fulfilled());
+    let integrity = assess_integrity(ctx, &base);
+    emit::push_detection(out, base, integrity);
 }
 
 /// 成格: 命宫无主星坐命。
@@ -44,4 +45,9 @@ fn detect_base_formation(
         involved_mutagens: Vec::new(),
         evidence: vec![PatternEvidence::NoMajorStarInPalace { branch }],
     })
+}
+
+/// 减力/破格: no weakening/breaker policy is modeled.
+fn assess_integrity(_ctx: &PatternContext<'_>, _base: &FormationMatch) -> IntegrityAssessment {
+    IntegrityAssessment::fulfilled()
 }

@@ -25,7 +25,8 @@ pub fn detect(
     out: &mut Vec<PatternDetection>,
 ) {
     for base in detect_base_formations(ctx, request) {
-        emit::push_detection(out, base, IntegrityAssessment::fulfilled());
+        let integrity = assess_integrity(ctx, &base);
+        emit::push_detection(out, base, integrity);
     }
 }
 
@@ -114,4 +115,9 @@ fn formation_for_anchor(
         involved_mutagens: additional.involved_mutagens(),
         evidence,
     })
+}
+
+/// 减力/破格: no weakening/breaker policy is modeled.
+fn assess_integrity(_ctx: &PatternContext<'_>, _base: &FormationMatch) -> IntegrityAssessment {
+    IntegrityAssessment::fulfilled()
 }

@@ -27,7 +27,8 @@ pub fn detect(
 ) {
     for &scope in &request.scopes {
         for base in detect_base_formations(ctx, scope) {
-            emit::push_detection(out, base, IntegrityAssessment::fulfilled());
+            let integrity = assess_integrity(ctx, &base);
+            emit::push_detection(out, base, integrity);
         }
     }
 }
@@ -118,4 +119,9 @@ fn ji_targets(ctx: &PatternContext<'_>, scope: Scope) -> Vec<(StarName, EarthlyB
         .filter(|activation| activation.mutagen() == Mutagen::Ji)
         .map(|activation| (activation.target_star(), activation.target_branch()))
         .collect()
+}
+
+/// 减力/破格: no weakening/breaker policy is modeled.
+fn assess_integrity(_ctx: &PatternContext<'_>, _base: &FormationMatch) -> IntegrityAssessment {
+    IntegrityAssessment::fulfilled()
 }
