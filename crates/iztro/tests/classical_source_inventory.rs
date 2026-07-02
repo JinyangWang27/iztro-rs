@@ -378,7 +378,7 @@ fn canonical_pattern_metadata_references_source_inventory() {
         };
         assert_eq!(metadata.work, QUAN_SHU_WORK);
         assert!(
-            metadata.source_id.starts_with("quan_shu.v01."),
+            metadata.source_id.starts_with("quan_shu."),
             "{pattern:?} must cite a QuanShu source inventory id"
         );
 
@@ -388,7 +388,11 @@ fn canonical_pattern_metadata_references_source_inventory() {
                 metadata.source_id
             )
         });
-        assert_eq!(item.category, "pattern_rule");
+        assert!(
+            matches!(item.category.as_str(), "pattern_rule" | "aphorism_rule"),
+            "{pattern:?} source item {} must be a pattern catalogue item or an aphorism source item",
+            item.source_id
+        );
         assert_eq!(item.status, "segmented");
         assert!(
             item.linked_rule_ids.is_empty(),
