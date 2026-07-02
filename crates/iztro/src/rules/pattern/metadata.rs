@@ -28,6 +28,10 @@ pub enum PatternSourceGroup {
     PovertyLowStatus,
     /// 定杂局.
     Miscellaneous,
+    /// 斗数骨髓赋.
+    DouShuGuSuiFu,
+    /// 卷三：论诸星同垣各司所宜分别富贵贫贱夭寿.
+    ZhuXingTongYuan,
 }
 
 /// Static source provenance for one canonical pattern detection.

@@ -450,7 +450,7 @@ static PATTERN_SPECS_INNER: [PatternSpec; 31] = [
             "quan_shu.v01.dou_shu_gu_sui_fu.shi_zhong_yin_yu",
             "子午巨门石中隐玉，明禄暗禄锦上添花",
             "斗数骨髓赋",
-            PatternSourceGroup::Noble,
+            PatternSourceGroup::DouShuGuSuiFu,
         )),
     ),
     spec!(
@@ -468,7 +468,7 @@ static PATTERN_SPECS_INNER: [PatternSpec; 31] = [
             "quan_shu.v03.zhu_xing_tong_yuan.zi_fu_jia_ming",
             "紫府夹命为贵格",
             "论诸星同垣各司所宜分别富贵贫贱夭寿",
-            PatternSourceGroup::Noble,
+            PatternSourceGroup::ZhuXingTongYuan,
         )),
     ),
     spec!(
@@ -488,7 +488,7 @@ static PATTERN_SPECS_INNER: [PatternSpec; 31] = [
             "quan_shu.v03.zhu_xing_tong_yuan.lian_zhen_qi_sha_miao_wang",
             "廉贞七杀居庙旺反为积富之人 杀居午奇格，若陷地化忌，贫贱残疾",
             "论诸星同垣各司所宜分别富贵贫贱夭寿",
-            PatternSourceGroup::Wealth,
+            PatternSourceGroup::ZhuXingTongYuan,
         )),
     ),
     spec!(

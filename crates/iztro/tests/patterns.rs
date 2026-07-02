@@ -1506,21 +1506,21 @@ fn quan_shu_source_backed_pattern_metadata_is_available_for_executable_subset() 
             "石中隐玉",
             "quan_shu.v01.dou_shu_gu_sui_fu.shi_zhong_yin_yu",
             "子午巨门石中隐玉，明禄暗禄锦上添花",
-            PatternSourceGroup::Noble,
+            PatternSourceGroup::DouShuGuSuiFu,
         ),
         (
             PatternId::ZiFuJiaMing,
             "紫府夹命",
             "quan_shu.v03.zhu_xing_tong_yuan.zi_fu_jia_ming",
             "紫府夹命为贵格",
-            PatternSourceGroup::Noble,
+            PatternSourceGroup::ZhuXingTongYuan,
         ),
         (
             PatternId::LianZhenQiShaTongGong,
             "贞杀同宫",
             "quan_shu.v03.zhu_xing_tong_yuan.lian_zhen_qi_sha_miao_wang",
             "廉贞七杀居庙旺反为积富之人 杀居午奇格，若陷地化忌，贫贱残疾",
-            PatternSourceGroup::Wealth,
+            PatternSourceGroup::ZhuXingTongYuan,
         ),
         (
             PatternId::TianYiGongMing,
@@ -3555,4 +3555,127 @@ fn new_patterns_expose_runtime_names_and_source_facing_aliases() {
     let lian_zhen = pattern_display_metadata(PatternId::LianZhenQiShaTongGong);
     assert_eq!(lian_zhen.name_zh, "贞杀同宫");
     assert_eq!(lian_zhen.aliases_zh, &["廉贞七杀同宫"]);
+}
+
+#[test]
+fn new_pattern_source_groups_use_correct_sections() {
+    // Non-catalogue source sections must not be mislabeled as Volume 1 定局
+    // catalogue groups. 石中隐玉 is from 斗数骨髓赋; 紫府夹命 and 贞杀同宫 are
+    // from Volume 3 论诸星同垣. 坐贵向贵 and 羊刃入庙 keep 定贵局 (Noble) because
+    // their primary source entries are in 定贵局.
+    assert_eq!(
+        pattern_source_metadata(PatternId::ShiZhongYinYu)
+            .unwrap()
+            .group,
+        PatternSourceGroup::DouShuGuSuiFu,
+    );
+    assert_eq!(
+        pattern_source_metadata(PatternId::ZiFuJiaMing)
+            .unwrap()
+            .group,
+        PatternSourceGroup::ZhuXingTongYuan,
+    );
+    assert_eq!(
+        pattern_source_metadata(PatternId::LianZhenQiShaTongGong)
+            .unwrap()
+            .group,
+        PatternSourceGroup::ZhuXingTongYuan,
+    );
+    assert_eq!(
+        pattern_source_metadata(PatternId::TianYiGongMing)
+            .unwrap()
+            .group,
+        PatternSourceGroup::Noble,
+    );
+    assert_eq!(
+        pattern_source_metadata(PatternId::QingYangRuMiao)
+            .unwrap()
+            .group,
+        PatternSourceGroup::Noble,
+    );
+}
+
+#[test]
+fn shi_zhong_yin_yu_detects_in_selected_yearly_frame() {
+    // Natal Life is Yin, so 石中隐玉 does not form on the natal frame. The Yearly
+    // frame relabels Zi as Life; natal 巨门 sits at that Yearly Life palace and
+    // natal 文昌 sits in its 三方四正 (Wu ∈ SFSZ(Zi)). Both are visible through
+    // selected-state helpers, so the detector fires on the Yearly frame only.
+    let natal = build_chart(
+        EarthlyBranch::Yin,
+        &[
+            major(EarthlyBranch::Zi, StarName::JuMen),
+            soft(EarthlyBranch::Wu, StarName::WenChang),
+        ],
+    );
+    let horoscope = horoscope_with_layer(natal, Scope::Yearly, EarthlyBranch::Zi, vec![], vec![]);
+
+    // Positive: selected Yearly frame.
+    let yearly = iztro::detect_patterns(
+        &PatternContext::horoscope_with_frame(
+            &horoscope,
+            Scope::Yearly,
+            vec![Scope::Natal, Scope::Yearly],
+        ),
+        &request_for_scope(Scope::Yearly),
+    );
+    let matched = detection(&yearly, PatternId::ShiZhongYinYu);
+    assert_eq!(matched.scope, PatternScope::Yearly);
+    assert_eq!(matched.anchor, PatternAnchor::Palace(EarthlyBranch::Zi));
+    assert!(
+        star_set(&matched.involved_stars)
+            .is_superset(&star_set(&[StarName::JuMen, StarName::WenChang]))
+    );
+    assert!(evidence_has_star_in_palace(
+        matched,
+        StarName::JuMen,
+        EarthlyBranch::Zi
+    ));
+
+    // Negative: on the natal frame the selected Life is Yin (not Zi), so the same
+    // chart does not form 石中隐玉.
+    let natal_scope = iztro::detect_patterns(
+        &PatternContext::horoscope(&horoscope, vec![Scope::Natal, Scope::Yearly]),
+        &request_for_scope(Scope::Natal),
+    );
+    assert!(natal_scope.iter().all(|d| d.id != PatternId::ShiZhongYinYu));
+}
+
+#[test]
+fn zi_fu_jia_ming_clamp_follows_selected_life_palace() {
+    // Natal Life is Yin; clamp(Yin) = {Chou, Mao}, so 紫微@Hai/天府@Chou do not
+    // clamp natal Life. The Yearly frame relabels Zi as Life; clamp(Zi) =
+    // {Hai, Chou}, which both stars occupy. The clamp check therefore follows the
+    // selected Yearly Life palace, not the natal Life palace.
+    let natal = build_chart(
+        EarthlyBranch::Yin,
+        &[
+            major(EarthlyBranch::Hai, StarName::ZiWei),
+            major(EarthlyBranch::Chou, StarName::TianFu),
+        ],
+    );
+    let horoscope = horoscope_with_layer(natal, Scope::Yearly, EarthlyBranch::Zi, vec![], vec![]);
+
+    let yearly = iztro::detect_patterns(
+        &PatternContext::horoscope_with_frame(
+            &horoscope,
+            Scope::Yearly,
+            vec![Scope::Natal, Scope::Yearly],
+        ),
+        &request_for_scope(Scope::Yearly),
+    );
+    let matched = detection(&yearly, PatternId::ZiFuJiaMing);
+    assert_eq!(matched.scope, PatternScope::Yearly);
+    assert_eq!(matched.anchor, PatternAnchor::Palace(EarthlyBranch::Zi));
+    assert!(
+        star_set(&matched.involved_stars)
+            .is_superset(&star_set(&[StarName::ZiWei, StarName::TianFu]))
+    );
+
+    // Natal frame: clamp(Yin) is not occupied by both stars, so no detection.
+    let natal_scope = iztro::detect_patterns(
+        &PatternContext::horoscope(&horoscope, vec![Scope::Natal, Scope::Yearly]),
+        &request_for_scope(Scope::Natal),
+    );
+    assert!(natal_scope.iter().all(|d| d.id != PatternId::ZiFuJiaMing));
 }
