@@ -1552,8 +1552,7 @@ mod tests {
                 }) {
                     stack.push(entry.expect("readable dir entry").path());
                 }
-            } else if path.is_file()
-                && path.extension().and_then(|ext| ext.to_str()) == Some("rs")
+            } else if path.is_file() && path.extension().and_then(|ext| ext.to_str()) == Some("rs")
             {
                 rust_files.push(path);
             }
@@ -2795,7 +2794,7 @@ mod tests {
         );
 
         for path in &rust_files {
-            let raw = std::fs::read_to_string(&path).expect("source file must read");
+            let raw = std::fs::read_to_string(path).expect("source file must read");
             // Scan production code only; tests and comments may name forbidden symbols.
             let source = production_source(&raw);
             for needle in FORBIDDEN {
