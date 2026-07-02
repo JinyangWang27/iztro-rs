@@ -7,8 +7,8 @@
 use serde::{Deserialize, Serialize};
 
 use crate::rules::classical::claim::ClaimDomain;
-use crate::rules::source::{ClassicalWork, SourceRef};
 use crate::rules::classical::theme::{ClaimPolarity, ClaimTheme};
+use crate::rules::source::{ClassicalWork, SourceRef};
 
 /// A stable, machine-facing rule identifier (e.g.
 /// `migration.tian_ma_void.restless_movement`).

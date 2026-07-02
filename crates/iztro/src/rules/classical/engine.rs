@@ -13,9 +13,9 @@ use crate::rules::classical::evaluator;
 use crate::rules::classical::metadata::classical_rule_metadata;
 use crate::rules::classical::outcome::{ClaimEvaluation, RuleDiagnostic, RuleOutcome};
 use crate::rules::classical::rule::{ClassicalRule, ClassicalRuleId};
-use crate::rules::source::ClassicalWork;
 use crate::rules::classical::source_hit::ClassicalSourceHit;
 use crate::rules::classical::theme::{ClaimPolarity, ClaimTheme};
+use crate::rules::source::ClassicalWork;
 
 /// Controls whether unsupported-rule diagnostics are returned with an evaluation.
 #[derive(Clone, Copy, Debug, Default, Eq, PartialEq)]

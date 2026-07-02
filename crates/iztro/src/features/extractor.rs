@@ -1,7 +1,7 @@
 use crate::core::Chart;
 use crate::features::{
     domains::Domain, mutagen_flows::MutagenFlow, palace_features::PalaceFeature,
-    relations::PalaceRelation, star_features::StarFeature,
+    relations::PalaceNameRelation, star_features::StarFeature,
 };
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
@@ -14,7 +14,7 @@ pub struct ChartFeatures {
     palace_features: Vec<PalaceFeature>,
     star_features: Vec<StarFeature>,
     mutagen_flows: Vec<MutagenFlow>,
-    relations: Vec<PalaceRelation>,
+    relations: Vec<PalaceNameRelation>,
 }
 
 impl ChartFeatures {
@@ -25,7 +25,7 @@ impl ChartFeatures {
         palace_features: Vec<PalaceFeature>,
         star_features: Vec<StarFeature>,
         mutagen_flows: Vec<MutagenFlow>,
-        relations: Vec<PalaceRelation>,
+        relations: Vec<PalaceNameRelation>,
     ) -> Self {
         Self {
             source_profile_id: source_profile_id.into(),
@@ -75,7 +75,7 @@ impl ChartFeatures {
     }
 
     /// Returns palace relations.
-    pub fn relations(&self) -> &[PalaceRelation] {
+    pub fn relations(&self) -> &[PalaceNameRelation] {
         &self.relations
     }
 }
