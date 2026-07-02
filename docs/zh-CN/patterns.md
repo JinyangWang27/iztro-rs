@@ -83,7 +83,7 @@ scope、status 与 family。
 | 日照雷门 | `RiChuFuSang` | `MajorStarCombination` | 吉 | 仅本命：出生时辰为卯至未，命宫在卯，太阳与天梁同在卯宫命宫，且命宫三方四正有禄存／左右／曲昌／魁钺或禄／权／科加会。公开 id 继续使用 `RiChuFuSang`；展示别名为 `日出扶桑格`。展示出处说明：`日出扶桑 日在卯守命是也，守官禄宫亦然（紫微斗数全书）`。 |
 | 月落亥宫 | `YueLuoHaiGong` | `MajorStarCombination` | 吉 | 太阴在亥，且亥宫是命宫。 |
 | 月生沧海 | `YueShengCangHai` | `MajorStarCombination` | 吉 | 太阴在子，且子宫是田宅宫。 |
-| 马头带剑 | `MaTouDaiJian` | `ShaJi` | 吉凶参半 | 天马与擎羊同宫；不采用午宫限定口径。 |
+| 马头带剑 | `MaTouDaiJian` | `ShaJi` | 平 | 天马与擎羊同宫；不限定为午宫格。 |
 | 贪火相逢 | `TanHuoXiangFeng` | `ShaJi` | 吉 | 贪狼与火星同守命宫，且二者皆为已建模的明亮状态。 |
 | 武曲守垣 | `WuQuShouYuan` | `MajorStarCombination` | 吉 | 武曲在命宫，且命宫地支为卯。 |
 | 财与囚仇 | `CaiYuQiuChou` | `MajorStarCombination` | 凶 | 武曲与廉贞同宫，且该宫为命宫或身宫。 |
@@ -97,6 +97,11 @@ scope、status 与 family。
 | 命无正曜 | `MingWuZhengYao` | `MajorStarCombination` | 平 | 命宫无主星。 |
 | 极向离明 | `JiXiangLiMing` | `MajorStarCombination` | 吉 | 命宫在午且紫微在命宫；命宫三方四正无煞星则成格，有煞星则以破格产出。 |
 | 府相朝垣 | `FuXiangChaoYuan` | `MajorStarCombination` | 吉 | 天府与天相分居财帛宫与官禄宫（各占一宫），或天府坐命且天相在命宫三方四正；另需命宫三方四正有禄存／左右／曲昌／魁钺或禄／权／科加会。展示出处说明：`府相朝垣 见前批注（紫微斗数全书）`。 |
+
+### 保留但未检测的 id
+
+`LingChangTuoWu`（铃昌陀武）目前作为稳定公开 `PatternId` 与 registry 条目保留，供后续
+实现使用。当前未注册 detector，因此不会出现在 `detect_patterns` 的运行时输出中。
 
 ### 全书出处格局目录
 
