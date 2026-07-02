@@ -4,5 +4,7 @@
 //! one shared low-level source. The predicates only report which branches clamp a
 //! target and which stars occupy them; the named pattern decides meaning.
 
-pub(crate) use crate::rules::pattern::query::effective_clamp_pair_matches;
+pub(crate) use crate::rules::pattern::query::{
+    effective_clamp_pair_matches, selected_clamp_pair_matches,
+};
 pub(crate) use crate::rules::relation::clamp_branches;

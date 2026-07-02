@@ -30,6 +30,9 @@ pub struct PatternSpec {
 
 const EMPTY_ALIASES: &[&str] = &[];
 const RI_CHU_FU_SANG_ALIASES: &[&str] = &["日出扶桑格"];
+const LIAN_ZHEN_QI_SHA_ALIASES: &[&str] = &["廉贞七杀同宫"];
+const TIAN_YI_GONG_MING_ALIASES: &[&str] = &["坐贵向贵"];
+const QING_YANG_RU_MIAO_ALIASES: &[&str] = &["羊刃入庙"];
 
 const fn source(
     pattern_id: PatternId,
@@ -82,7 +85,7 @@ macro_rules! spec {
 }
 
 /// Canonical pattern metadata for every [`PatternId`].
-static PATTERN_SPECS_INNER: [PatternSpec; 26] = [
+static PATTERN_SPECS_INNER: [PatternSpec; 31] = [
     spec!(
         PatternId::ZiFuChaoYuan,
         "紫府朝垣",
@@ -431,6 +434,98 @@ static PATTERN_SPECS_INNER: [PatternSpec; 26] = [
         Some("府相朝垣 见前批注（紫微斗数全书）"),
         None,
         None,
+    ),
+    spec!(
+        PatternId::ShiZhongYinYu,
+        "石中隐玉",
+        EMPTY_ALIASES,
+        PatternFamily::MajorStarCombination,
+        PatternPolarity::Auspicious,
+        "命宫在子或午，巨门坐命，命宫三方四正有禄存／左右／曲昌／魁钺或禄／权／科加会。",
+        None,
+        None,
+        Some(source(
+            PatternId::ShiZhongYinYu,
+            "石中隐玉",
+            "quan_shu.v01.dou_shu_gu_sui_fu.shi_zhong_yin_yu",
+            "子午巨门石中隐玉，明禄暗禄锦上添花",
+            "斗数骨髓赋",
+            PatternSourceGroup::Noble,
+        )),
+    ),
+    spec!(
+        PatternId::ZiFuJiaMing,
+        "紫府夹命",
+        EMPTY_ALIASES,
+        PatternFamily::MajorStarCombination,
+        PatternPolarity::Auspicious,
+        "紫微与天府分居命宫两侧夹宫，任一方向皆可。",
+        None,
+        None,
+        Some(source(
+            PatternId::ZiFuJiaMing,
+            "紫府夹命",
+            "quan_shu.v03.zhu_xing_tong_yuan.zi_fu_jia_ming",
+            "紫府夹命为贵格",
+            "论诸星同垣各司所宜分别富贵贫贱夭寿",
+            PatternSourceGroup::Noble,
+        )),
+    ),
+    spec!(
+        PatternId::LianZhenQiShaTongGong,
+        "贞杀同宫",
+        LIAN_ZHEN_QI_SHA_ALIASES,
+        PatternFamily::MajorStarCombination,
+        PatternPolarity::Neutral,
+        "命宫在丑或未，廉贞与七杀同守命宫。",
+        None,
+        Some(
+            "本检测器仅识别廉贞七杀同守丑未命宫的结构；出处同时讨论庙旺与陷地化忌之别，此处只识别基础结构，不推衍如法律纠纷等现代断语。",
+        ),
+        Some(source(
+            PatternId::LianZhenQiShaTongGong,
+            "贞杀同宫",
+            "quan_shu.v03.zhu_xing_tong_yuan.lian_zhen_qi_sha_miao_wang",
+            "廉贞七杀居庙旺反为积富之人 杀居午奇格，若陷地化忌，贫贱残疾",
+            "论诸星同垣各司所宜分别富贵贫贱夭寿",
+            PatternSourceGroup::Wealth,
+        )),
+    ),
+    spec!(
+        PatternId::TianYiGongMing,
+        "天乙拱命",
+        TIAN_YI_GONG_MING_ALIASES,
+        PatternFamily::AuxiliaryStarCombination,
+        PatternPolarity::Auspicious,
+        "天魁、天钺一在命宫、一在迁移宫相对拱照。",
+        None,
+        Some("公开运行时显示名为天乙拱命，出处名为坐贵向贵。"),
+        Some(source(
+            PatternId::TianYiGongMing,
+            "坐贵向贵",
+            "quan_shu.v01.ding_gui_ju.zuo_gui_xiang_gui",
+            "坐贵向贵 谓魁钺在命迭相坐拱是也",
+            "定贵局",
+            PatternSourceGroup::Noble,
+        )),
+    ),
+    spec!(
+        PatternId::QingYangRuMiao,
+        "擎羊入庙",
+        QING_YANG_RU_MIAO_ALIASES,
+        PatternFamily::ShaJi,
+        PatternPolarity::Auspicious,
+        "命宫在辰戌丑未，擎羊守命，且命宫三方四正有禄存／左右／曲昌／魁钺或禄／权／科加会。无吉加会不产出。",
+        Some("擎羊入庙富贵声扬 加吉万论（紫微斗数全书·卷三）"),
+        Some("公开运行时显示名为擎羊入庙，出处名为羊刃入庙。"),
+        Some(source(
+            PatternId::QingYangRuMiao,
+            "羊刃入庙",
+            "quan_shu.v01.ding_gui_ju.yang_ren_ru_miao",
+            "羊刃入庙 辰戍丑未守命遇吉是也",
+            "定贵局",
+            PatternSourceGroup::Noble,
+        )),
     ),
 ];
 
