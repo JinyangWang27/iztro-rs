@@ -21,8 +21,10 @@
   - Addressed by: PR #160 (`rules::query::effective_stars_in_palace` now takes an explicit `match_scope`; `selected_stars_in_palace` remains the selected-frame helper)
 - [x] F7 — `matches_rule_metadata` hard-codes `ClaimScope::Natal`
   - Addressed by: PR #158
-- [ ] F8 — Docs polarity drift for 马头带剑 / reserved id note
-- [ ] F9 — i18n claim-key coverage skips patterns corpus
+- [x] F8 — Docs polarity drift for 马头带剑 / reserved id note
+  - Addressed by: PR #161
+- [x] F9 — i18n claim-key coverage skips patterns corpus
+  - Addressed by: PR #161
 - [ ] F10 — Overlapping palace-relation vocabularies
   - Partially addressed by: PR #160 (`rules::relation` is now canonical for branch/palace relation vocabulary; the `features::relations` `PalaceName`-level overlap remains)
 - [ ] F11 — Panicking constructors on future binding/MCP surface

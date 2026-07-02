@@ -102,7 +102,7 @@ GUI/pattern panel can choose to show damaged-but-formed patterns.
 | 日照雷门 | `RiChuFuSang` | `MajorStarCombination` | Auspicious | Natal-only: birth time is Mao through Wei, Life palace is Mao, 太阳 and 天梁 both occupy Mao Life, and Life 三方四正 has explicit 禄存／左右／曲昌／魁钺 or 禄/权/科 support. Public id retained from `RiChuFuSang`; display alias `日出扶桑格`. Display source note: `日出扶桑 日在卯守命是也，守官禄宫亦然（紫微斗数全书）`. |
 | 月落亥宫 | `YueLuoHaiGong` | `MajorStarCombination` | Auspicious | 太阴 is in Hai, and Hai is the Life palace. |
 | 月生沧海 | `YueShengCangHai` | `MajorStarCombination` | Auspicious | 太阴 is in Zi, and Zi is the Property palace. |
-| 马头带剑 | `MaTouDaiJian` | `ShaJi` | Mixed | 天马 and 擎羊 share one palace. This does not impose a Wu-only interpretation. |
+| 马头带剑 | `MaTouDaiJian` | `ShaJi` | Neutral | 天马 and 擎羊 share one palace. This does not impose a Wu-only interpretation. |
 | 贪火相逢 | `TanHuoXiangFeng` | `ShaJi` | Auspicious | 贪狼 and 火星 share the Life palace, and both have clearly bright states. |
 | 武曲守垣 | `WuQuShouYuan` | `MajorStarCombination` | Auspicious | 武曲 is in the Life palace and the Life palace branch is Mao. |
 | 财与囚仇 | `CaiYuQiuChou` | `MajorStarCombination` | Inauspicious | 武曲 and 廉贞 share the Life or Body palace. |
@@ -116,6 +116,12 @@ GUI/pattern panel can choose to show damaged-but-formed patterns.
 | 命无正曜 | `MingWuZhengYao` | `MajorStarCombination` | Neutral | Life palace has no major star. |
 | 极向离明 | `JiXiangLiMing` | `MajorStarCombination` | Auspicious | Life is Wu and 紫微 is in Life. Fulfilled when Life 三方四正 has no tough star; broken when a tough star appears. |
 | 府相朝垣 | `FuXiangChaoYuan` | `MajorStarCombination` | Auspicious | Either 天府 and 天相 occupy the Wealth and Career palaces (one in each), or 天府 sits in the Life palace with 天相 in the Life 三方四正; additionally the Life 三方四正 carries explicit 禄存／左右／曲昌／魁钺 or 禄/权/科 support. Display source note: `府相朝垣 见前批注（紫微斗数全书）`. |
+
+### Reserved ids without detectors
+
+`LingChangTuoWu` (铃昌陀武) is retained as a stable public `PatternId` and
+registry entry for future implementation. It currently has no registered detector
+and therefore never appears in `detect_patterns` output.
 
 ### QuanShu source-backed catalogues
 

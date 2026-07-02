@@ -352,10 +352,10 @@ mod tests {
     }
 
     #[test]
-    fn every_pilot_claim_text_exists_in_both_locales() {
+    fn every_classical_claim_text_exists_in_both_locales() {
         let en = I18n::new(Locale::EnUs);
         let zh = I18n::new(Locale::ZhHans);
-        for rule in iztro::rules::classical::quan_shu_rules() {
+        for rule in iztro::rules::classical::classical_rules() {
             let Some(claim) = &rule.claim else {
                 continue;
             };
