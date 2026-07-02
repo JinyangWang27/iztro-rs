@@ -72,8 +72,6 @@ macro_rules! spec {
                 pattern_id: $id,
                 name_zh: $name_zh,
                 aliases_zh: $aliases_zh,
-                family: $family,
-                polarity: $polarity,
                 condition_note_zh_hans: $condition_note_zh_hans,
                 source_note_zh_hans: $source_note_zh_hans,
                 interpretation_note_zh_hans: $interpretation_note_zh_hans,
@@ -84,7 +82,7 @@ macro_rules! spec {
 }
 
 /// Canonical pattern metadata for every [`PatternId`].
-pub static PATTERN_SPECS: [PatternSpec; 26] = [
+static PATTERN_SPECS_INNER: [PatternSpec; 26] = [
     spec!(
         PatternId::ZiFuChaoYuan,
         "紫府朝垣",
@@ -441,7 +439,12 @@ pub fn pattern_spec(id: PatternId) -> &'static PatternSpec {
     try_pattern_spec(id).expect("pattern registry must cover every PatternId")
 }
 
+/// Returns the canonical pattern registry as a stable slice.
+pub fn pattern_specs() -> &'static [PatternSpec] {
+    &PATTERN_SPECS_INNER
+}
+
 /// Returns the canonical pattern spec if the id is present in the registry.
 pub fn try_pattern_spec(id: PatternId) -> Option<&'static PatternSpec> {
-    PATTERN_SPECS.iter().find(|spec| spec.id == id)
+    pattern_specs().iter().find(|spec| spec.id == id)
 }

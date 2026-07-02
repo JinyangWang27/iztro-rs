@@ -6,7 +6,6 @@
 
 use crate::core::{EarthlyBranch, Mutagen, PalaceName, Scope, StarKind, StarName};
 use crate::rules::pattern::context::{PatternContext, PatternDetectionRequest};
-use crate::rules::pattern::display_metadata::pattern_display_metadata;
 use crate::rules::pattern::model::{
     PatternAnchor, PatternCondition, PatternDetection, PatternEvidence, PatternFamily, PatternId,
     PatternPolarity, PatternStatus, PatternStrength,
@@ -18,6 +17,7 @@ use crate::rules::pattern::query::{
     selected_star_in_palace, selected_stars_in_palace, selected_stars_in_san_fang_si_zheng,
     stars_in_palace_for_scope,
 };
+use crate::rules::pattern::registry::pattern_spec;
 use crate::rules::pattern::relation::{is_in_san_fang_si_zheng, san_fang_si_zheng};
 
 const SUPPORT_STARS: [StarName; 7] = [
@@ -1039,12 +1039,14 @@ struct DetectionDraft {
 }
 
 fn push_detection(out: &mut Vec<PatternDetection>, draft: DetectionDraft) {
-    let metadata = pattern_display_metadata(draft.id);
+    let spec = pattern_spec(draft.id);
+    debug_assert_eq!(spec.family, draft.family);
+    debug_assert_eq!(spec.polarity, draft.polarity);
     out.push(PatternDetection {
         id: draft.id,
-        name_zh: metadata.name_zh,
-        family: draft.family,
-        polarity: draft.polarity,
+        name_zh: spec.name_zh,
+        family: spec.family,
+        polarity: spec.polarity,
         status: draft.status,
         strength: PatternStrength::Medium,
         scope: pattern_scope_for(draft.scope),

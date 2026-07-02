@@ -12,7 +12,7 @@ use iztro::rules::pattern::query::{
     selected_stars_in_san_fang_si_zheng, source_stars_in_san_fang_si_zheng,
     stars_in_san_fang_si_zheng, stars_in_san_fang_si_zheng_for_scope,
 };
-use iztro::rules::pattern::registry::{PATTERN_SPECS, pattern_spec, try_pattern_spec};
+use iztro::rules::pattern::registry::{pattern_spec, pattern_specs, try_pattern_spec};
 use iztro::{
     BirthContext, Brightness, CalendarDate, Chart, EarthlyBranch, Gender, HeavenlyStem,
     HoroscopeChart, MethodProfile, Mutagen, MutagenActivation, PALACE_NAMES, Palace, PatternAnchor,
@@ -1549,10 +1549,10 @@ fn display_metadata_carries_unverified_source_notes_without_source_metadata() {
 
 #[test]
 fn pattern_registry_covers_every_pattern_id_once() {
-    assert_eq!(PATTERN_SPECS.len(), PatternId::ALL.len());
+    assert_eq!(pattern_specs().len(), PatternId::ALL.len());
 
     let mut ids = BTreeSet::new();
-    for spec in PATTERN_SPECS {
+    for spec in pattern_specs() {
         assert!(
             ids.insert(spec.id),
             "duplicate pattern spec for {:?}",
@@ -1580,11 +1580,23 @@ fn pattern_metadata_wrappers_delegate_to_registry() {
         assert_eq!(spec.id, id);
         assert_eq!(spec.name_zh, display.name_zh);
         assert_eq!(spec.aliases_zh, display.aliases_zh);
-        assert_eq!(spec.family, display.family);
-        assert_eq!(spec.polarity, display.polarity);
         assert_eq!(spec.display, *display);
         assert_eq!(spec.source.as_ref(), pattern_source_metadata(id));
     }
+}
+
+#[test]
+fn pattern_display_metadata_preserves_public_field_shape() {
+    let metadata = iztro::PatternDisplayMetadata {
+        pattern_id: PatternId::ZiFuChaoYuan,
+        name_zh: "紫府朝垣",
+        aliases_zh: &[],
+        condition_note_zh_hans: "紫微与天府同在命宫三方四正。",
+        source_note_zh_hans: None,
+        interpretation_note_zh_hans: None,
+    };
+
+    assert_eq!(metadata, pattern_spec(PatternId::ZiFuChaoYuan).display);
 }
 
 // ---- QuanShu Volume 1 executable pattern subset --------------------------

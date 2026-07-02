@@ -35,5 +35,5 @@ pub use model::{
     PatternAnchor, PatternCondition, PatternDetection, PatternEvidence, PatternFamily, PatternId,
     PatternPolarity, PatternScope, PatternStatus, PatternStrength,
 };
-pub use registry::{PATTERN_SPECS, PatternSpec, pattern_spec, try_pattern_spec};
+pub use registry::{PatternSpec, pattern_spec, pattern_specs, try_pattern_spec};
 pub use relation::PalaceRelation;

@@ -3,7 +3,7 @@
 //! Static values live in the central pattern registry. This module preserves the
 //! public display metadata type and lookup wrapper.
 
-use crate::rules::pattern::model::{PatternFamily, PatternId, PatternPolarity};
+use crate::rules::pattern::model::PatternId;
 use crate::rules::pattern::registry::pattern_spec;
 
 /// Runtime/display metadata for one canonical pattern id.
@@ -15,10 +15,6 @@ pub struct PatternDisplayMetadata {
     pub name_zh: &'static str,
     /// Runtime display aliases.
     pub aliases_zh: &'static [&'static str],
-    /// Coarse family used for filtering and display grouping.
-    pub family: PatternFamily,
-    /// Pattern valence used for filtering and display grouping.
-    pub polarity: PatternPolarity,
     /// Normalized condition note for display/help surfaces.
     pub condition_note_zh_hans: &'static str,
     /// Optional source note for display surfaces.

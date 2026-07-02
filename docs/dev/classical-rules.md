@@ -84,8 +84,11 @@ canonical entry for one `PatternId` and carries:
 - optional verified source provenance.
 
 The compatibility wrappers `pattern_display_metadata(id)` and
-`pattern_source_metadata(id)` delegate to this registry. Do not add detector-local
-name tables or separate display/source tables when adding a pattern.
+`pattern_source_metadata(id)` delegate to this registry. Code that needs to
+iterate the registry should use `pattern_specs()`, which returns a stable slice
+instead of exposing the private fixed-size backing array. Do not add
+detector-local name tables or separate display/source tables when adding a
+pattern.
 
 The registry keeps two metadata surfaces with different purposes:
 

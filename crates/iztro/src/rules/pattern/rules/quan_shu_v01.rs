@@ -16,6 +16,7 @@ use crate::rules::pattern::query::{
     effective_stars_in_palace, find_star_for_scope, is_bright,
     modeled_void_star_in_palace_for_scope, pattern_scope_for,
 };
+use crate::rules::pattern::registry::pattern_spec;
 
 /// Detects the supported QuanShu Volume 1 source-backed patterns.
 pub fn detect(
@@ -256,12 +257,16 @@ fn push_single_star(
     branch: EarthlyBranch,
     star: StarName,
 ) {
-    let metadata = pattern_source_metadata(id).expect("source-backed pattern metadata");
+    let spec = pattern_spec(id);
+    debug_assert!(spec.source.is_some());
+    let _source = pattern_source_metadata(id).expect("source-backed pattern metadata");
+    debug_assert_eq!(spec.family, family);
+    debug_assert_eq!(spec.polarity, polarity);
     out.push(PatternDetection {
         id,
-        name_zh: metadata.name_zh,
-        family,
-        polarity,
+        name_zh: spec.name_zh,
+        family: spec.family,
+        polarity: spec.polarity,
         status: PatternStatus::Fulfilled,
         strength: PatternStrength::Medium,
         scope: pattern_scope_for(scope),
@@ -284,12 +289,16 @@ fn push_same_palace(
     branch: EarthlyBranch,
     stars: Vec<StarName>,
 ) {
-    let metadata = pattern_source_metadata(id).expect("source-backed pattern metadata");
+    let spec = pattern_spec(id);
+    debug_assert!(spec.source.is_some());
+    let _source = pattern_source_metadata(id).expect("source-backed pattern metadata");
+    debug_assert_eq!(spec.family, family);
+    debug_assert_eq!(spec.polarity, polarity);
     out.push(PatternDetection {
         id,
-        name_zh: metadata.name_zh,
-        family,
-        polarity,
+        name_zh: spec.name_zh,
+        family: spec.family,
+        polarity: spec.polarity,
         status: PatternStatus::Fulfilled,
         strength: PatternStrength::Medium,
         scope: pattern_scope_for(scope),
