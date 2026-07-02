@@ -34,7 +34,7 @@ pub(crate) const ALL_SELECTED_SCOPES: &[ClaimScope] = &[
     ClaimScope::Hourly,
 ];
 
-pub(crate) const OVERLAY_AWARE_RULES: &[(&str, &'static [ClaimScope])] =
+pub(crate) const OVERLAY_AWARE_RULES: &[(&str, &[ClaimScope])] =
     &[(CHANG_QU_CLAMP_LIFE, ALL_SELECTED_SCOPES)];
 
 pub(crate) fn applicable_scopes_for_rule_id(rule_id: &str) -> &'static [ClaimScope] {
