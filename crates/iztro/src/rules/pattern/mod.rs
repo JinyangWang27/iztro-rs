@@ -23,6 +23,7 @@ pub mod display_metadata;
 pub mod metadata;
 pub mod model;
 pub mod query;
+pub mod registry;
 pub mod relation;
 pub mod rules;
 
@@ -34,4 +35,5 @@ pub use model::{
     PatternAnchor, PatternCondition, PatternDetection, PatternEvidence, PatternFamily, PatternId,
     PatternPolarity, PatternScope, PatternStatus, PatternStrength,
 };
+pub use registry::{PatternSpec, pattern_spec, pattern_specs, try_pattern_spec};
 pub use relation::PalaceRelation;

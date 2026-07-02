@@ -6,6 +6,7 @@
 
 use crate::core::{PalaceName, StarName};
 use crate::rules::pattern::context::{PatternContext, PatternDetectionRequest};
+use crate::rules::pattern::display_metadata::pattern_display_metadata;
 use crate::rules::pattern::model::{
     PatternAnchor, PatternDetection, PatternEvidence, PatternFamily, PatternId, PatternPolarity,
     PatternStatus, PatternStrength,
@@ -14,8 +15,6 @@ use crate::rules::pattern::query::{
     effective_branch_of_palace, effective_clamp_pair_matches, pattern_scope_for,
 };
 use crate::rules::pattern::relation::PalaceRelation;
-
-const NAME_ZH: &str = "昌曲夹命";
 
 /// Detects 昌曲夹命 and appends any detection to `out`.
 pub fn detect(
@@ -40,7 +39,7 @@ pub fn detect(
 
         out.push(PatternDetection {
             id: PatternId::ChangQuJiaMing,
-            name_zh: NAME_ZH,
+            name_zh: pattern_display_metadata(PatternId::ChangQuJiaMing).name_zh,
             family: PatternFamily::AuxiliaryStarCombination,
             polarity: PatternPolarity::Auspicious,
             status: PatternStatus::Fulfilled,

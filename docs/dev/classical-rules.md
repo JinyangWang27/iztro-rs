@@ -73,7 +73,24 @@ test `user_facing_analysis_request_is_quan_shu_only` pins this.
 
 ## Pattern metadata boundaries
 
-`rules::pattern` has two metadata surfaces with different purposes:
+`rules::pattern` stores pattern metadata in one central registry,
+`crates/iztro/src/rules/pattern/registry.rs`. Each `PatternSpec` is the
+canonical entry for one `PatternId` and carries:
+
+- stable identity and runtime display name;
+- display aliases;
+- family and polarity;
+- display notes;
+- optional verified source provenance.
+
+The compatibility wrappers `pattern_display_metadata(id)` and
+`pattern_source_metadata(id)` delegate to this registry. Code that needs to
+iterate the registry should use `pattern_specs()`, which returns a stable slice
+instead of exposing the private fixed-size backing array. Do not add
+detector-local name tables or separate display/source tables when adding a
+pattern.
+
+The registry keeps two metadata surfaces with different purposes:
 
 - `PatternSourceMetadata` is verified source provenance only. It should quote
   the source-facing name and verbatim source text, and it must not carry
@@ -81,6 +98,14 @@ test `user_facing_analysis_request_is_quan_shu_only` pins this.
 - `PatternDisplayMetadata` is display/runtime metadata. It may carry display
   name, aliases, condition note, source note, and interpretation note. A source
   note is presentation context, not verified provenance.
+
+Pattern detectors evaluate against a selected effective chart/projection state.
+The natal chart is the birth-time projection with a lifetime horizon, not a
+separate class of pattern. Decadal, yearly, monthly, daily, and hourly views are
+selected projections with their own horizons. Some detectors may inspect
+immutable birth context as an additional prerequisite, but that belongs in
+detector logic; the registry must not encode a hard `natal-only` versus
+`projection` category.
 
 Use the three-line convention for every pattern:
 
@@ -97,9 +122,11 @@ entry, while runtime display metadata may show `日照雷门` and alias
 
 - [ ] Add the `PatternId` variant and update `PatternId::ALL` plus its
   exhaustive unit test.
-- [ ] Add `PatternDisplayMetadata` for display/runtime names and notes.
-- [ ] Add `PatternSourceMetadata` only when the exact source-facing name and
-  verbatim source text are verified against the inventory.
+- [ ] Add one `PatternSpec` registry entry with display/runtime names, aliases,
+  family, polarity, and notes.
+- [ ] Add `PatternSourceMetadata` inside that registry entry only when the exact
+  source-facing name and verbatim source text are verified against the
+  inventory.
 - [ ] Add a focused detector in `rules::pattern::rules` and register it in
   `detector.rs`.
 - [ ] Populate `involved_palaces`, `involved_stars`, `involved_mutagens`, and

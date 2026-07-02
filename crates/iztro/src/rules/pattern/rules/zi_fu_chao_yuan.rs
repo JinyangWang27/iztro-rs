@@ -7,6 +7,7 @@
 
 use crate::core::{EarthlyBranch, PalaceName, StarKind, StarName};
 use crate::rules::pattern::context::{PatternContext, PatternDetectionRequest};
+use crate::rules::pattern::display_metadata::pattern_display_metadata;
 use crate::rules::pattern::model::{
     PatternAnchor, PatternCondition, PatternDetection, PatternEvidence, PatternFamily, PatternId,
     PatternPolarity, PatternStatus, PatternStrength,
@@ -15,7 +16,6 @@ use crate::rules::pattern::query::{
     branch_of_palace_for_scope, pattern_scope_for, stars_in_palace_for_scope,
 };
 
-const NAME_ZH: &str = "紫府朝垣";
 const REQUIRED: [StarName; 2] = [StarName::ZiWei, StarName::TianFu];
 
 /// Detects 紫府朝垣 and appends any detection to `out`.
@@ -68,7 +68,7 @@ pub fn detect(
 
         out.push(PatternDetection {
             id: PatternId::ZiFuChaoYuan,
-            name_zh: NAME_ZH,
+            name_zh: pattern_display_metadata(PatternId::ZiFuChaoYuan).name_zh,
             family: PatternFamily::MajorStarCombination,
             polarity: PatternPolarity::Auspicious,
             status,

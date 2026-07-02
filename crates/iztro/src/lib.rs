@@ -88,8 +88,9 @@ pub use core::RuleEvaluationContext;
 pub use rules::pattern::{
     PalaceRelation, PatternAnchor, PatternCondition, PatternContext, PatternDetection,
     PatternDetectionRequest, PatternDisplayMetadata, PatternEvidence, PatternFamily, PatternId,
-    PatternPolarity, PatternScope, PatternSourceGroup, PatternSourceMetadata, PatternStatus,
-    PatternStrength, detect_patterns, pattern_display_metadata, pattern_source_metadata,
+    PatternPolarity, PatternScope, PatternSourceGroup, PatternSourceMetadata, PatternSpec,
+    PatternStatus, PatternStrength, detect_patterns, pattern_display_metadata,
+    pattern_source_metadata, pattern_spec, pattern_specs, try_pattern_spec,
 };
 // GUI/API/CLI-facing static chart projections and the orchestration facade that
 // builds them. These read models moved out of `core` into the `projection` and

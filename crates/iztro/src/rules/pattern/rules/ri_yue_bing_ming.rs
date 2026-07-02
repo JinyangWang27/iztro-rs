@@ -11,13 +11,12 @@
 
 use crate::core::StarName;
 use crate::rules::pattern::context::{PatternContext, PatternDetectionRequest};
+use crate::rules::pattern::display_metadata::pattern_display_metadata;
 use crate::rules::pattern::model::{
     PatternAnchor, PatternDetection, PatternEvidence, PatternFamily, PatternId, PatternPolarity,
     PatternStatus, PatternStrength,
 };
 use crate::rules::pattern::query::{find_star_for_scope, is_bright, pattern_scope_for};
-
-const NAME_ZH: &str = "日月并明";
 
 /// Detects 日月并明 and appends any detection to `out`.
 pub fn detect(
@@ -46,7 +45,7 @@ pub fn detect(
 
         out.push(PatternDetection {
             id: PatternId::RiYueBingMing,
-            name_zh: NAME_ZH,
+            name_zh: pattern_display_metadata(PatternId::RiYueBingMing).name_zh,
             family: PatternFamily::MajorStarCombination,
             polarity: PatternPolarity::Auspicious,
             status: PatternStatus::Fulfilled,

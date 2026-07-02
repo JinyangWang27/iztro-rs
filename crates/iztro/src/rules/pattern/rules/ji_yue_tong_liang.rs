@@ -8,6 +8,7 @@
 
 use crate::core::{EarthlyBranch, PalaceName, StarName};
 use crate::rules::pattern::context::{PatternContext, PatternDetectionRequest};
+use crate::rules::pattern::display_metadata::pattern_display_metadata;
 use crate::rules::pattern::model::{
     PatternAnchor, PatternDetection, PatternEvidence, PatternFamily, PatternId, PatternPolarity,
     PatternStatus, PatternStrength,
@@ -16,7 +17,6 @@ use crate::rules::pattern::query::{
     effective_branch_of_palace, effective_stars_in_san_fang_si_zheng, pattern_scope_for,
 };
 
-const NAME_ZH: &str = "机月同梁";
 const REQUIRED: [StarName; 4] = [
     StarName::TianJi,
     StarName::TaiYin,
@@ -60,7 +60,7 @@ pub fn detect(
 
         out.push(PatternDetection {
             id: PatternId::JiYueTongLiang,
-            name_zh: NAME_ZH,
+            name_zh: pattern_display_metadata(PatternId::JiYueTongLiang).name_zh,
             family: PatternFamily::MajorStarCombination,
             polarity: PatternPolarity::Auspicious,
             status: PatternStatus::Fulfilled,
