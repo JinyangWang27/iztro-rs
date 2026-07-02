@@ -14,6 +14,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::rules::pattern::model::PatternId;
 use crate::rules::pattern::registry::try_pattern_spec;
+use crate::rules::source::ClassicalWork;
 
 /// Source catalogue group for a source-backed pattern.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]
@@ -40,8 +41,10 @@ pub struct PatternSourceMetadata {
     pub pattern_id: PatternId,
     /// Canonical Chinese pattern name.
     pub name_zh: &'static str,
-    /// Classical work identifier, matching source-inventory TOML.
-    pub work: &'static str,
+    /// Classical work this provenance is drawn from. Shared source vocabulary
+    /// with the classical engine ([`ClassicalWork`]); serializes to the same
+    /// snake_case identifier used in the source-inventory TOML.
+    pub work: ClassicalWork,
     /// Full source inventory id.
     pub source_id: &'static str,
     /// Verbatim Simplified Chinese source text, without final `。`.

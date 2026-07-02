@@ -13,7 +13,7 @@ use crate::rules::classical::evaluator;
 use crate::rules::classical::metadata::classical_rule_metadata;
 use crate::rules::classical::outcome::{ClaimEvaluation, RuleDiagnostic, RuleOutcome};
 use crate::rules::classical::rule::{ClassicalRule, ClassicalRuleId};
-use crate::rules::classical::source::ClassicalWork;
+use crate::rules::source::ClassicalWork;
 use crate::rules::classical::source_hit::ClassicalSourceHit;
 use crate::rules::classical::theme::{ClaimPolarity, ClaimTheme};
 

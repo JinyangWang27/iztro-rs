@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 use crate::core::Scope;
 use crate::rules::classical::evidence::Evidence;
 use crate::rules::classical::rule::ClassicalRuleId;
-use crate::rules::classical::source::SourceRef;
+use crate::rules::source::SourceRef;
 use crate::rules::classical::theme::{ClaimPolarity, ClaimTheme};
 
 /// The life-area domain (领域) a claim affects.

@@ -20,7 +20,7 @@ use crate::rules::classical::claim::ClaimScope;
 use crate::rules::classical::corpus::classical_rules;
 use crate::rules::classical::rule::{ClassicalRule, ClassicalRuleId};
 use crate::rules::classical::scope_registry::applicable_scopes_for_rule_id;
-use crate::rules::classical::source::ClassicalWork;
+use crate::rules::source::ClassicalWork;
 
 /// Default applicable scope set for current executable rules.
 ///

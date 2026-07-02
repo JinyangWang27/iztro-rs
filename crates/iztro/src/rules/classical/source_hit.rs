@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 use crate::rules::classical::claim::ClaimScope;
 use crate::rules::classical::evidence::Evidence;
 use crate::rules::classical::rule::{ClassicalRule, ClassicalRuleId, RuleStatus};
-use crate::rules::classical::source::ClassicalWork;
+use crate::rules::source::ClassicalWork;
 
 /// Evidence-backed source/provenance for one matched executable rule.
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]

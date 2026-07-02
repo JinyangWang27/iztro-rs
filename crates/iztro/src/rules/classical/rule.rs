@@ -7,7 +7,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::rules::classical::claim::ClaimDomain;
-use crate::rules::classical::source::{ClassicalWork, SourceRef};
+use crate::rules::source::{ClassicalWork, SourceRef};
 use crate::rules::classical::theme::{ClaimPolarity, ClaimTheme};
 
 /// A stable, machine-facing rule identifier (e.g.

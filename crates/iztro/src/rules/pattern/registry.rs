@@ -7,6 +7,7 @@
 use crate::rules::pattern::display_metadata::PatternDisplayMetadata;
 use crate::rules::pattern::metadata::{PatternSourceGroup, PatternSourceMetadata};
 use crate::rules::pattern::model::{PatternFamily, PatternId, PatternPolarity};
+use crate::rules::source::ClassicalWork;
 
 /// Canonical metadata for one pattern id.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
@@ -29,7 +30,6 @@ pub struct PatternSpec {
 
 const EMPTY_ALIASES: &[&str] = &[];
 const RI_CHU_FU_SANG_ALIASES: &[&str] = &["日出扶桑格"];
-const QUAN_SHU_WORK: &str = "zi_wei_dou_shu_quan_shu";
 
 const fn source(
     pattern_id: PatternId,
@@ -42,7 +42,7 @@ const fn source(
     PatternSourceMetadata {
         pattern_id,
         name_zh,
-        work: QUAN_SHU_WORK,
+        work: ClassicalWork::ZiWeiDouShuQuanShu,
         source_id,
         source_text_zh_hans,
         section,

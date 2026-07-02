@@ -8,13 +8,14 @@ pub mod classical;
 pub mod pattern;
 pub mod query;
 pub mod relation;
+pub mod source;
 
 pub use classical::{
     Claim, ClaimDomain, ClaimEvaluation, ClaimEvaluationRequest, ClaimId, ClaimPolarity,
     ClaimScope, ClaimSpec, ClaimStrength, ClaimTheme, ClassicalRule, ClassicalRuleId,
-    ClassicalSourceHit, ClassicalWork, DiagnosticMode, Evidence, EvidenceKind, RuleDiagnostic,
-    RuleOutcome, RuleSchool, RuleStatus, SourceRef, UnsupportedReason, VoidKind, VoidPolicy,
-    classical_rules, evaluate_classical, evaluate_classical_claims, pattern_rules, quan_shu_rules,
-    rule_by_id,
+    ClassicalSourceHit, DiagnosticMode, Evidence, EvidenceKind, RuleDiagnostic, RuleOutcome,
+    RuleSchool, RuleStatus, UnsupportedReason, VoidKind, VoidPolicy, classical_rules,
+    evaluate_classical, evaluate_classical_claims, pattern_rules, quan_shu_rules, rule_by_id,
 };
 pub use relation::PalaceRelation;
+pub use source::{ClassicalWork, SourceRef};
