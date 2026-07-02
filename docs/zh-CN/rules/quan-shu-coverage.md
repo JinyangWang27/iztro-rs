@@ -10,11 +10,11 @@ source inventory 以原子 source item 记录每条受引出处单元；`source_
 
 | Metric | Count |
 | --- | ---: |
-| Source items | 113 |
-| Located source items | 113 |
+| Source items | 117 |
+| Located source items | 117 |
 | Pending source items | 0 |
 | Linked source items | 64 |
-| Unlinked source items | 49 |
+| Unlinked source items | 53 |
 | Linked rules | 64 |
 | Executable linked rules | 5 |
 | Normalized linked rules | 41 |
@@ -127,3 +127,7 @@ Category: `pattern_rule`
 | quan_shu.v01.ding_za_ju.shui_shang_jia_xing | 6 | 水上驾星 一年好一年不好是也 |
 | quan_shu.v01.ding_za_ju.ji_xiong_xiang_ban | 7 | 吉凶相伴 命有主星限前则发限衰不发是也 |
 | quan_shu.v01.ding_za_ju.ku_mu_feng_chun | 8 | 枯木逢春 谓命衰限好是也 |
+| quan_shu.v01.dou_shu_gu_sui_fu.shi_zhong_yin_yu | 1 | 子午巨门石中隐玉，明禄暗禄锦上添花 |
+| quan_shu.v03.zhu_xing_tong_yuan.zi_fu_jia_ming | 1 | 紫府夹命为贵格 |
+| quan_shu.v03.zhu_xing_tong_yuan.lian_zhen_qi_sha_miao_wang | 2 | 廉贞七杀居庙旺反为积富之人 杀居午奇格，若陷地化忌，贫贱残疾 |
+| quan_shu.v03.zhu_xing_tong_yuan.qing_yang_ru_miao | 3 | 擎羊入庙富贵声扬 加吉万论 |
