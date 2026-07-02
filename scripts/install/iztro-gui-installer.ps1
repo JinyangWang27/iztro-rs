@@ -10,7 +10,15 @@ if ($BASE_URL -notmatch '^https://') {
     exit 1
 }
 
-$INSTALL_DIR = if ($env:IZTRO_GUI_INSTALL_DIR) { $env:IZTRO_GUI_INSTALL_DIR } else { Join-Path $env:LOCALAPPDATA "Programs\iztro-gui" }
+$INSTALL_DIR = if ($env:IZTRO_GUI_INSTALL_DIR) {
+    $env:IZTRO_GUI_INSTALL_DIR
+} else {
+    if (-not $env:LOCALAPPDATA) {
+        Write-Error "error: LOCALAPPDATA is not set; set IZTRO_GUI_INSTALL_DIR to choose an install directory"
+        exit 1
+    }
+    Join-Path $env:LOCALAPPDATA "Programs\iztro-gui"
+}
 
 $ARTIFACT     = "iztro-gui-x86_64-pc-windows-msvc.zip"
 $ARTIFACT_DIR = "iztro-gui-x86_64-pc-windows-msvc"
