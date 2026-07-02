@@ -9,7 +9,7 @@
 
 - [ ] F1 — Ancestor analysis-layer cache identity instability
 - [x] F2 — GUI derivation-guard test does not scan `static_chart_screen/`
-  - Addressed by: this PR
+  - Addressed by: PR #157
 - [ ] F3 — Shared relation type/helpers live inside `rules::pattern`
 - [ ] F4 — Overlay-aware rule wiring duplicated by string literal
 - [ ] F5 — No detector-registration guard for `PatternId`
