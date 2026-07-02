@@ -1,9 +1,15 @@
 //! Layer keys and selection-to-layer expansion for cacheable analysis.
+//!
+//! [`StaticTemporalNavigationSelection`] belongs to core and describes a
+//! concrete navigation path. [`AnalysisLayerKey`] belongs to analysis and
+//! describes a cacheable analysis identity. For cache stability, each key maps
+//! to its own canonical analysis selection before core builds the temporal
+//! overlay stack.
 
 use serde::{Deserialize, Serialize};
 
-use crate::core::Scope;
 use crate::core::StaticTemporalNavigationSelection;
+use crate::core::{ChartError, Scope};
 use crate::rules::classical::ClaimScope;
 use crate::rules::pattern::PatternScope;
 
@@ -106,6 +112,84 @@ impl AnalysisLayerKey {
             Self::Hourly { .. } => PatternScope::Hourly,
         }
     }
+
+    /// The canonical core navigation selection used to analyze this cache key.
+    ///
+    /// `AnalysisLayerKey` owns cache identity, so it also owns the policy that
+    /// turns that identity into a stable core navigation anchor. Age has no
+    /// separate navigation selection; it reuses the corresponding yearly
+    /// selection, while [`analysis_scopes_for_layer_key`] truncates active scopes
+    /// to `[Natal, Decadal, Age]`.
+    pub(crate) fn selection_for_canonical_analysis(
+        &self,
+    ) -> Result<StaticTemporalNavigationSelection, ChartError> {
+        use StaticTemporalNavigationSelection as Sel;
+
+        Ok(match self {
+            Self::Natal => Sel::Natal,
+            Self::Decadal { decadal_index } => Sel::Decadal {
+                decadal_index: *decadal_index,
+            },
+            Self::Age {
+                decadal_index,
+                year_index,
+            }
+            | Self::Yearly {
+                decadal_index,
+                year_index,
+            } => Sel::Yearly {
+                decadal_index: *decadal_index,
+                year_index: checked_temporal_index("year_index", *year_index, 9)?,
+            },
+            Self::Monthly {
+                decadal_index,
+                year_index,
+                month_index,
+            } => Sel::Monthly {
+                decadal_index: *decadal_index,
+                year_index: checked_temporal_index("year_index", *year_index, 9)?,
+                month_index: checked_temporal_index("month_index", *month_index, 11)?,
+            },
+            Self::Daily {
+                decadal_index,
+                year_index,
+                month_index,
+                day_index,
+            } => Sel::Daily {
+                decadal_index: *decadal_index,
+                year_index: checked_temporal_index("year_index", *year_index, 9)?,
+                month_index: checked_temporal_index("month_index", *month_index, 11)?,
+                day_index: checked_temporal_index("day_index", *day_index, 29)?,
+            },
+            Self::Hourly {
+                decadal_index,
+                year_index,
+                month_index,
+                day_index,
+                hour_index,
+            } => Sel::Hourly {
+                decadal_index: *decadal_index,
+                year_index: checked_temporal_index("year_index", *year_index, 9)?,
+                month_index: checked_temporal_index("month_index", *month_index, 11)?,
+                day_index: checked_temporal_index("day_index", *day_index, 29)?,
+                hour_index: checked_temporal_index("hour_index", *hour_index, 12)?,
+            },
+        })
+    }
+}
+
+fn checked_temporal_index(field: &'static str, value: usize, max: u8) -> Result<u8, ChartError> {
+    // ChartError stores temporal child indexes as u8 because core selections use u8.
+    // Larger usize values fail closed and are reported as u8::MAX.
+    let value = u8::try_from(value).map_err(|_| ChartError::InvalidTemporalSelectionIndex {
+        field,
+        value: u8::MAX,
+        max,
+    })?;
+    if value > max {
+        return Err(ChartError::InvalidTemporalSelectionIndex { field, value, max });
+    }
+    Ok(value)
 }
 
 /// The inclusive natal-outward [`Scope`] chain an analysis layer may inspect.
@@ -124,9 +208,16 @@ impl AnalysisLayerKey {
 /// | Daily     | `[Natal, Decadal, Age, Yearly, Monthly, Daily]`          |
 /// | Hourly    | `[Natal, Decadal, Age, Yearly, Monthly, Daily, Hourly]`  |
 ///
-/// This is what keeps cached layer results semantically stable: detecting a 流年
-/// layer inside a selected 流月 view sees only up to 流年, so changing 流月 / 流日 /
-/// 流时 never changes a previously cached 流年 result.
+/// Cached layer stability has two parts:
+///
+/// 1. canonical target-coordinate anchoring from [`AnalysisLayerKey`];
+/// 2. active-scope truncation from [`AnalysisLayerKey`].
+///
+/// Canonical anchoring prevents descendant target coordinates from leaking into
+/// ancestor overlay construction. Scope truncation prevents descendant overlay
+/// scopes and facts from leaking into ancestor detection. Both are necessary:
+/// detecting a 流年 layer inside a selected 流月 view must use the 流年 key's own
+/// canonical target coordinates and see only `Natal..=Yearly`.
 pub fn analysis_scopes_for_layer_key(key: &AnalysisLayerKey) -> Vec<Scope> {
     const ORDER: [Scope; 7] = [
         Scope::Natal,
@@ -295,5 +386,54 @@ pub fn analysis_layers_for_selection(
                 },
             ]
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn age_key_uses_yearly_selection_as_canonical_anchor() {
+        let key = AnalysisLayerKey::Age {
+            decadal_index: 1,
+            year_index: 2,
+        };
+
+        let selection = key
+            .selection_for_canonical_analysis()
+            .expect("age key should map to yearly selection");
+
+        assert_eq!(
+            selection,
+            StaticTemporalNavigationSelection::Yearly {
+                decadal_index: 1,
+                year_index: 2,
+            }
+        );
+    }
+
+    #[test]
+    fn canonical_anchor_rejects_out_of_range_child_indexes() {
+        let key = AnalysisLayerKey::Hourly {
+            decadal_index: 0,
+            year_index: 0,
+            month_index: 0,
+            day_index: 0,
+            hour_index: 13,
+        };
+
+        let err = key
+            .selection_for_canonical_analysis()
+            .expect_err("hour index above 12 should be rejected");
+
+        assert!(matches!(
+            err,
+            ChartError::InvalidTemporalSelectionIndex {
+                field: "hour_index",
+                value: 13,
+                max: 12,
+            }
+        ));
     }
 }
