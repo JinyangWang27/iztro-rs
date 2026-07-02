@@ -723,3 +723,788 @@ source_text_zh_hans = "吉凶相伴 命有主星限前则发限衰不发是也"
 key = "ku_mu_feng_chun"
 source_order = 8
 source_text_zh_hans = "枯木逢春 谓命衰限好是也"
+
+# --- 斗数骨髓赋（source inventory，原子化补全） ---
+#
+# Each item below is one atomic source unit from the Volume 1 `斗数骨髓赋`
+# section. Keep source text verbatim. Do not store interpretation here.
+
+[[source_group]]
+source_id_prefix = "quan_shu.v01.dou_shu_gu_sui_fu."
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "斗数骨髓赋"
+category = "aphorism_rule"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "斗数骨髓赋"
+
+[[source_group.item]]
+key = "tai_ji_xing_chan"
+source_order = 1
+source_text_zh_hans = "太极星缠，乃群宿众星之主，天门运限，即扶身助命之源，在天则运用无常，在人则命有格局"
+
+[[source_group.item]]
+key = "xian_ming_ge_ju"
+source_order = 2
+source_text_zh_hans = "先明格局，次看众星"
+
+[[source_group.item]]
+key = "tong_nian_tong_shi"
+source_order = 3
+source_text_zh_hans = "或有同年同月同日同时而生，则有贫贱富贵寿夭之异"
+
+[[source_group.item]]
+key = "e_xian_ji_bai_wan"
+source_order = 4
+source_text_zh_hans = "或在恶限，积百万之金银"
+
+[[source_group.item]]
+key = "wang_xiang_lian_nian_kun"
+source_order = 5
+source_text_zh_hans = "或在旺乡，遭连年之困苦"
+
+[[source_group.item]]
+key = "huo_fu_bu_ke_yi_tu"
+source_order = 6
+source_text_zh_hans = "祸福不可一途而惟，吉凶不可一例而断"
+
+[[source_group.item]]
+key = "yi_shi_rong_ku"
+source_order = 7
+source_text_zh_hans = "要知一世之荣枯，定看五行之宫位"
+
+[[source_group.item]]
+key = "li_ming_gui_jian"
+source_order = 8
+source_text_zh_hans = "立命可知贵贱"
+
+[[source_group.item]]
+key = "an_shen_gen_ji"
+source_order = 9
+source_text_zh_hans = "安身便晓根基"
+
+[[source_group.item]]
+key = "xian_kan_fu_de"
+source_order = 10
+source_text_zh_hans = "第一先看福德，再三细考迁移，分对宫之体用，定三合之源流"
+
+[[source_group.item]]
+key = "ming_wu_zheng_yao"
+source_order = 11
+source_text_zh_hans = "命无正曜，夭折孤贫"
+
+[[source_group.item]]
+key = "ji_you_xiong_xing"
+source_order = 12
+source_text_zh_hans = "吉有凶星，美玉瑕玷"
+
+[[source_group.item]]
+key = "gen_yuan_jian_gu"
+source_order = 13
+source_text_zh_hans = "既得根源坚固，须知合局相生，坚固则富贵延寿，相生则财官昭著"
+
+[[source_group.item]]
+key = "ming_hao_shen_hao"
+source_order = 14
+source_text_zh_hans = "命好身好限好到老荣昌"
+
+[[source_group.item]]
+key = "ming_shuai_shen_shuai"
+source_order = 15
+source_text_zh_hans = "命衰身衰限衰终身乞丐"
+
+[[source_group.item]]
+key = "jia_gui_jia_lu"
+source_order = 16
+source_text_zh_hans = "夹贵夹禄少人知"
+
+[[source_group.item]]
+key = "jia_quan_jia_ke"
+source_order = 17
+source_text_zh_hans = "夹权夹科世所宜"
+
+[[source_group.item]]
+key = "jia_ri_jia_yue"
+source_order = 18
+source_text_zh_hans = "夹日夹月谁能遇"
+
+[[source_group.item]]
+key = "jia_chang_jia_qu"
+source_order = 19
+source_text_zh_hans = "夹昌夹曲主贵兮"
+
+[[source_group.item]]
+key = "jia_kong_jia_jie"
+source_order = 20
+source_text_zh_hans = "夹空夹劫主贫贱"
+
+[[source_group.item]]
+key = "jia_yang_jia_tuo"
+source_order = 21
+source_text_zh_hans = "夹羊夹陀为乞丐"
+
+[[source_group.item]]
+key = "lian_zhen_qi_sha"
+source_order = 22
+source_text_zh_hans = "廉贞七杀反为积富之人"
+
+[[source_group.item]]
+key = "tian_liang_tai_yin"
+source_order = 23
+source_text_zh_hans = "天梁太阴却作飘蓬之客"
+
+[[source_group.item]]
+key = "lian_zhen_xia_jian"
+source_order = 24
+source_text_zh_hans = "廉贞主下贱孤寒"
+
+[[source_group.item]]
+key = "tai_yin_kuai_le"
+source_order = 25
+source_text_zh_hans = "太阴主一生快乐"
+
+[[source_group.item]]
+key = "xian_pin_hou_fu_wu_tan"
+source_order = 26
+source_text_zh_hans = "先贫后富武贪同身命之宫"
+
+[[source_group.item]]
+key = "xian_fu_hou_pin_jie_sha"
+source_order = 27
+source_text_zh_hans = "先富后贫只为运限逢劫杀"
+
+[[source_group.item]]
+key = "quan_lu_cai_guan"
+source_order = 28
+source_text_zh_hans = "出世荣华权禄守财官之位"
+
+[[source_group.item]]
+key = "jie_kong_cai_fu"
+source_order = 29
+source_text_zh_hans = "生来贫贱劫空临财福之乡"
+
+[[source_group.item]]
+key = "wen_qu_wu_qu"
+source_order = 30
+source_text_zh_hans = "文曲武曲为人多学多能"
+
+[[source_group.item]]
+key = "zuo_fu_you_bi"
+source_order = 31
+source_text_zh_hans = "左辅右弼禀性克宽克厚"
+
+[[source_group.item]]
+key = "tian_fu_tian_xiang"
+source_order = 32
+source_text_zh_hans = "天府天相乃为衣禄之神，为仕为官定主亨通之兆"
+
+[[source_group.item]]
+key = "ke_ming_xian_xiong"
+source_order = 33
+source_text_zh_hans = "苗而不秀科名陷于凶神"
+
+[[source_group.item]]
+key = "cai_lu_ruo_di"
+source_order = 34
+source_text_zh_hans = "发不主财禄主躔于弱地"
+
+[[source_group.item]]
+key = "qi_sha_chao_dou"
+source_order = 35
+source_text_zh_hans = "七杀朝斗爵禄荣昌"
+
+[[source_group.item]]
+key = "zi_fu_tong_gong"
+source_order = 36
+source_text_zh_hans = "紫府同宫终身福厚"
+
+[[source_group.item]]
+key = "zi_wei_ju_wu"
+source_order = 37
+source_text_zh_hans = "紫微居午无杀凑位至三公"
+
+[[source_group.item]]
+key = "tian_fu_lin_xu"
+source_order = 38
+source_text_zh_hans = "天府临戌有星扶腰金衣紫"
+
+[[source_group.item]]
+key = "ke_quan_lu_gong"
+source_order = 39
+source_text_zh_hans = "科权禄拱名誉昭彰"
+
+[[source_group.item]]
+key = "wu_qu_miao_yuan"
+source_order = 40
+source_text_zh_hans = "武曲庙垣威名赫奕"
+
+[[source_group.item]]
+key = "ke_ming_lu_an"
+source_order = 41
+source_text_zh_hans = "科明禄暗位列三台"
+
+[[source_group.item]]
+key = "ri_yue_tong_lin"
+source_order = 42
+source_text_zh_hans = "日月同临官居侯伯"
+
+[[source_group.item]]
+key = "ju_ji_tong_gong"
+source_order = 43
+source_text_zh_hans = "巨机同宫公卿之位"
+
+[[source_group.item]]
+key = "tan_ling_bing_shou"
+source_order = 44
+source_text_zh_hans = "贪铃并守将相之名"
+
+[[source_group.item]]
+key = "tian_kui_tian_yue"
+source_order = 45
+source_text_zh_hans = "天魁天钺盖世文章"
+
+[[source_group.item]]
+key = "tian_lu_tian_ma"
+source_order = 46
+source_text_zh_hans = "天禄天马惊人甲第"
+
+[[source_group.item]]
+key = "zuo_fu_wen_chang"
+source_order = 47
+source_text_zh_hans = "左辅文昌会吉星尊居八座"
+
+[[source_group.item]]
+key = "tan_lang_huo_xing"
+source_order = 48
+source_text_zh_hans = "贪狼火星居庙旺名镇诸邦"
+
+[[source_group.item]]
+key = "ju_ri_tong_gong"
+source_order = 49
+source_text_zh_hans = "巨日同宫官封三代"
+
+[[source_group.item]]
+key = "zi_fu_chao_yuan"
+source_order = 50
+source_text_zh_hans = "紫府朝垣食禄万钟"
+
+[[source_group.item]]
+key = "ke_quan_dui_gong"
+source_order = 51
+source_text_zh_hans = "科权对拱跃三汲于禹门"
+
+[[source_group.item]]
+key = "ri_yue_bing_ming"
+source_order = 52
+source_text_zh_hans = "日月并明佐九重于尧殿"
+
+[[source_group.item]]
+key = "fu_xiang_ming_gong"
+source_order = 53
+source_text_zh_hans = "府相同来会命宫全家食禄"
+
+[[source_group.item]]
+key = "san_he_ming_zhu"
+source_order = 54
+source_text_zh_hans = "三合明珠生旺地稳步蟾宫"
+
+[[source_group.item]]
+key = "qi_sha_po_jun"
+source_order = 55
+source_text_zh_hans = "七杀破军宜出外"
+
+[[source_group.item]]
+key = "ji_yue_tong_liang"
+source_order = 56
+source_text_zh_hans = "机月同梁作吏人"
+
+[[source_group.item]]
+key = "zi_fu_ri_yue_wang_di"
+source_order = 57
+source_text_zh_hans = "紫府日月居旺地断定公侯器"
+
+[[source_group.item]]
+key = "ri_yue_ke_lu_chou"
+source_order = 58
+source_text_zh_hans = "日月科禄丑宫中定是方伯公"
+
+[[source_group.item]]
+key = "tian_liang_tian_ma_xian"
+source_order = 59
+source_text_zh_hans = "天梁天马陷飘荡无疑"
+
+[[source_group.item]]
+key = "lian_zhen_sha_bu_jia"
+source_order = 60
+source_text_zh_hans = "廉贞杀不加声名远播"
+
+[[source_group.item]]
+key = "ri_zhao_lei_men"
+source_order = 61
+source_text_zh_hans = "日照雷门富贵荣华"
+
+[[source_group.item]]
+key = "yue_lang_tian_men"
+source_order = 62
+source_text_zh_hans = "月朗天门进爵封侯"
+
+[[source_group.item]]
+key = "yin_feng_fu_xiang"
+source_order = 63
+source_text_zh_hans = "寅逢府相位登一品之荣"
+
+[[source_group.item]]
+key = "mu_feng_zuo_you"
+source_order = 64
+source_text_zh_hans = "墓逢左右尊居八座之贵"
+
+[[source_group.item]]
+key = "liang_ju_wu_wei"
+source_order = 65
+source_text_zh_hans = "梁居午位官资清显"
+
+[[source_group.item]]
+key = "qu_yu_liang_xing"
+source_order = 66
+source_text_zh_hans = "曲遇梁星位至台纲"
+
+[[source_group.item]]
+key = "ke_lu_xun_feng"
+source_order = 67
+source_text_zh_hans = "科禄巡逢周勃欣然入相"
+
+[[source_group.item]]
+key = "wen_xing_an_gong"
+source_order = 68
+source_text_zh_hans = "文星暗拱贾谊允矣登科"
+
+[[source_group.item]]
+key = "qing_yang_huo_xing"
+source_order = 69
+source_text_zh_hans = "擎羊火星威权出众"
+
+[[source_group.item]]
+key = "tan_wu_tong_xing"
+source_order = 70
+source_text_zh_hans = "贪武同行威镇边夷"
+
+[[source_group.item]]
+key = "li_guang_bu_feng"
+source_order = 71
+source_text_zh_hans = "李广不封擎羊逢于力士"
+
+[[source_group.item]]
+key = "yan_hui_yao_zhe"
+source_order = 72
+source_text_zh_hans = "颜回夭折文昌陷于天伤"
+
+[[source_group.item]]
+key = "zhong_you_wei_meng"
+source_order = 73
+source_text_zh_hans = "仲由威猛廉贞入庙遇将军"
+
+[[source_group.item]]
+key = "zi_yu_cai_neng"
+source_order = 74
+source_text_zh_hans = "子羽才能巨宿同梁冲且合"
+
+[[source_group.item]]
+key = "yin_shen_tong_liang"
+source_order = 75
+source_text_zh_hans = "寅申最喜同梁会"
+
+[[source_group.item]]
+key = "chen_xu_xian_ju_men"
+source_order = 76
+source_text_zh_hans = "辰戌应嫌陷巨门"
+
+[[source_group.item]]
+key = "lu_dao_ma_dao"
+source_order = 77
+source_text_zh_hans = "禄倒马倒忌太岁之合劫空"
+
+[[source_group.item]]
+key = "yun_shuai_xian_shuai"
+source_order = 78
+source_text_zh_hans = "运衰限衰喜紫微之解凶厄"
+
+[[source_group.item]]
+key = "gu_pin_duo_shou"
+source_order = 79
+source_text_zh_hans = "孤贫多有寿"
+
+[[source_group.item]]
+key = "fu_gui_yao_wang"
+source_order = 80
+source_text_zh_hans = "富贵即夭亡"
+
+[[source_group.item]]
+key = "diao_ke_sang_men"
+source_order = 81
+source_text_zh_hans = "吊客丧门绿珠有堕楼之厄"
+
+[[source_group.item]]
+key = "guan_fu_tai_sui"
+source_order = 82
+source_text_zh_hans = "官符太岁公冶有缧绁之忧"
+
+[[source_group.item]]
+key = "xian_zhi_tian_luo_di_wang"
+source_order = 83
+source_text_zh_hans = "限至天罗地网屈原溺水而身亡"
+
+[[source_group.item]]
+key = "yun_yu_di_jie_tian_kong"
+source_order = 84
+source_text_zh_hans = "运遇地劫天空阮籍有贫穷之苦"
+
+[[source_group.item]]
+key = "wen_chang_wen_qu_hui_lian_zhen"
+source_order = 85
+source_text_zh_hans = "文昌文曲会廉贞丧命天年"
+
+[[source_group.item]]
+key = "ming_kong_xian_kong"
+source_order = 86
+source_text_zh_hans = "命空限空无吉凑功名蹭蹬"
+
+[[source_group.item]]
+key = "sheng_feng_tian_kong"
+source_order = 87
+source_text_zh_hans = "生逢天空犹如半天折翅"
+
+[[source_group.item]]
+key = "ming_zhong_yu_jie"
+source_order = 88
+source_text_zh_hans = "命中遇劫恰如浪里行船"
+
+[[source_group.item]]
+key = "xiang_yu_ying_xiong"
+source_order = 89
+source_text_zh_hans = "项羽英雄限至天空而丧国"
+
+[[source_group.item]]
+key = "shi_chong_hao_fu"
+source_order = 90
+source_text_zh_hans = "石崇豪富限行劫地以亡家"
+
+[[source_group.item]]
+key = "lv_hou_zhuan_quan"
+source_order = 91
+source_text_zh_hans = "吕后专权两重天禄天马"
+
+[[source_group.item]]
+key = "yang_fei_hao_se"
+source_order = 92
+source_text_zh_hans = "杨妃好色三合文曲文昌"
+
+[[source_group.item]]
+key = "tian_liang_yu_ma"
+source_order = 93
+source_text_zh_hans = "天梁遇马女命贱而且淫"
+
+[[source_group.item]]
+key = "chang_qu_jia_chi"
+source_order = 94
+source_text_zh_hans = "昌曲夹墀男命贵而且显"
+
+[[source_group.item]]
+key = "ji_ju_mao_you"
+source_order = 95
+source_text_zh_hans = "极居卯酉多为脱俗僧人"
+
+[[source_group.item]]
+key = "zhen_ju_mao_you"
+source_order = 96
+source_text_zh_hans = "贞居卯酉定是公胥吏辈"
+
+[[source_group.item]]
+key = "zuo_fu_tong_gong"
+source_order = 97
+source_text_zh_hans = "左府同宫尊居万乘"
+
+[[source_group.item]]
+key = "lian_zhen_qi_sha_liu_dang"
+source_order = 98
+source_text_zh_hans = "廉贞七杀流荡天涯"
+
+[[source_group.item]]
+key = "deng_tong_e_si"
+source_order = 99
+source_text_zh_hans = "邓通饿死运逢大耗之乡"
+
+[[source_group.item]]
+key = "fu_zi_jue_liang"
+source_order = 100
+source_text_zh_hans = "夫子绝粮限到天伤之内"
+
+[[source_group.item]]
+key = "ling_chang_luo_wu"
+source_order = 101
+source_text_zh_hans = "铃昌罗武限至投河"
+
+[[source_group.item]]
+key = "ju_huo_qing_yang"
+source_order = 102
+source_text_zh_hans = "巨火擎羊终身缢死"
+
+[[source_group.item]]
+key = "ming_li_feng_kong"
+source_order = 103
+source_text_zh_hans = "命里逢空不飘流即主疾苦"
+
+[[source_group.item]]
+key = "ma_tou_dai_jian"
+source_order = 104
+source_text_zh_hans = "马头带剑非夭折则主刑伤"
+
+[[source_group.item]]
+key = "zi_wu_po_jun"
+source_order = 105
+source_text_zh_hans = "子午破军加官进禄"
+
+[[source_group.item]]
+key = "chang_tan_ju_ming"
+source_order = 106
+source_text_zh_hans = "昌贪居命粉骨碎尸"
+
+[[source_group.item]]
+key = "chao_dou_yang_dou"
+source_order = 107
+source_text_zh_hans = "朝斗仰斗爵禄荣昌"
+
+[[source_group.item]]
+key = "wen_gui_wen_hua"
+source_order = 108
+source_text_zh_hans = "文桂文华九重贵显"
+
+[[source_group.item]]
+key = "dan_chi_gui_chi"
+source_order = 109
+source_text_zh_hans = "丹墀桂墀早遂青云之志"
+
+[[source_group.item]]
+key = "he_lu_gong_lu"
+source_order = 110
+source_text_zh_hans = "合禄拱禄定为巨擘之臣"
+
+[[source_group.item]]
+key = "yin_yang_hui_chang_qu"
+source_order = 111
+source_text_zh_hans = "阴阳会昌曲出世荣华"
+
+[[source_group.item]]
+key = "fu_bi_yu_cai_guan"
+source_order = 112
+source_text_zh_hans = "辅弼遇财官衣绯着紫"
+
+[[source_group.item]]
+key = "ju_liang_xiang_hui"
+source_order = 113
+source_text_zh_hans = "巨梁相会廉贞并"
+
+[[source_group.item]]
+key = "he_lu_yuan_yang"
+source_order = 114
+source_text_zh_hans = "合禄鸳鸯一世荣"
+
+[[source_group.item]]
+key = "wu_qu_xian_gong"
+source_order = 115
+source_text_zh_hans = "武曲闲宫多手艺"
+
+[[source_group.item]]
+key = "tan_lang_xian_di"
+source_order = 116
+source_text_zh_hans = "贪狼陷地作屠人"
+
+[[source_group.item]]
+key = "tian_lu_chao_yuan"
+source_order = 117
+source_text_zh_hans = "天禄朝垣身荣贵显"
+
+[[source_group.item]]
+key = "kui_xing_lin_ming"
+source_order = 118
+source_text_zh_hans = "魁星临命位列三台"
+
+[[source_group.item]]
+key = "wu_qu_ju_gan_xu_hai"
+source_order = 119
+source_text_zh_hans = "武曲居干戌亥上，最怕太阴逢贪狼"
+
+[[source_group.item]]
+key = "hua_lu_mu_zhong"
+source_order = 120
+source_text_zh_hans = "化禄还为好，休向墓中藏"
+
+[[source_group.item]]
+key = "shi_zhong_yin_yu"
+source_order = 121
+source_text_zh_hans = "子午巨门石中隐玉，明禄暗禄锦上添花"
+
+[[source_group.item]]
+key = "zi_wei_chen_xu_po_jun"
+source_order = 122
+source_text_zh_hans = "紫微辰戌遇破军，富而不贵有虚名"
+
+[[source_group.item]]
+key = "chang_qu_po_jun"
+source_order = 123
+source_text_zh_hans = "昌曲破军逢刑克多劳碌"
+
+[[source_group.item]]
+key = "tan_wu_mu_zhong"
+source_order = 124
+source_text_zh_hans = "贪武墓中居三十才发福"
+
+[[source_group.item]]
+key = "tian_tong_xu_gong"
+source_order = 125
+source_text_zh_hans = "天同戌宫为反背，丁人化吉主大贵"
+
+[[source_group.item]]
+key = "ju_men_chen_xu"
+source_order = 126
+source_text_zh_hans = "巨门辰戌为陷地，辛人化吉禄峥嵘"
+
+[[source_group.item]]
+key = "ji_liang_you_shang"
+source_order = 127
+source_text_zh_hans = "机梁酉上化吉者，纵遇财官也不荣"
+
+[[source_group.item]]
+key = "ri_yue_fan_bei_shi_hui"
+source_order = 128
+source_text_zh_hans = "日月最嫌反背乃为失辉"
+
+[[source_group.item]]
+key = "ming_shen_jing_qiu"
+source_order = 129
+source_text_zh_hans = "命身定要精求恐差分数"
+
+[[source_group.item]]
+key = "yin_zhi_yan_nian"
+source_order = 130
+source_text_zh_hans = "阴骘延年增百福，至于陷地不遭伤"
+
+[[source_group.item]]
+key = "ming_shi_yun_jian"
+source_order = 131
+source_text_zh_hans = "命实运坚稿田得雨"
+
+[[source_group.item]]
+key = "ming_shuai_xian_ruo"
+source_order = 132
+source_text_zh_hans = "命衰限弱嫩草遭霜"
+
+[[source_group.item]]
+key = "lun_ming_xing_shan_e"
+source_order = 133
+source_text_zh_hans = "论命必推星善恶"
+
+[[source_group.item]]
+key = "ju_po_qing_yang"
+source_order = 134
+source_text_zh_hans = "巨破擎羊性必刚"
+
+[[source_group.item]]
+key = "fu_xiang_tong_liang"
+source_order = 135
+source_text_zh_hans = "府相同梁性必好"
+
+[[source_group.item]]
+key = "huo_jie_kong_tan"
+source_order = 136
+source_text_zh_hans = "火劫空贪性不常"
+
+[[source_group.item]]
+key = "chang_qu_lu_ji"
+source_order = 137
+source_text_zh_hans = "昌曲禄机清秀巧"
+
+[[source_group.item]]
+key = "yin_yang_zuo_you"
+source_order = 138
+source_text_zh_hans = "阴阳左右最慈祥"
+
+[[source_group.item]]
+key = "wu_po_zhen_tan"
+source_order = 139
+source_text_zh_hans = "武破贞贪冲合曲全固贵"
+
+[[source_group.item]]
+key = "yang_tuo_qi_sha"
+source_order = 140
+source_text_zh_hans = "羊陀七杀相杂互见则伤"
+
+[[source_group.item]]
+key = "tan_lang_lian_zhen_po_jun"
+source_order = 141
+source_text_zh_hans = "贪狼廉贞破军恶"
+
+[[source_group.item]]
+key = "qi_sha_qing_yang_tuo_luo"
+source_order = 142
+source_text_zh_hans = "七杀擎羊陀罗凶"
+
+[[source_group.item]]
+key = "huo_xing_ling_xing"
+source_order = 143
+source_text_zh_hans = "火星铃星专作祸"
+
+[[source_group.item]]
+key = "jie_kong_shang_shi"
+source_order = 144
+source_text_zh_hans = "劫空伤使祸重重"
+
+[[source_group.item]]
+key = "ju_men_ji_xing"
+source_order = 145
+source_text_zh_hans = "巨门忌星皆不吉"
+
+[[source_group.item]]
+key = "yun_shen_ming_xian_ji"
+source_order = 146
+source_text_zh_hans = "运身命限忌相逢"
+
+[[source_group.item]]
+key = "tai_sui_guan_fu"
+source_order = 147
+source_text_zh_hans = "更兼太岁官符至，官非口舌决不空"
+
+[[source_group.item]]
+key = "diao_ke_sang_men_you_yu"
+source_order = 148
+source_text_zh_hans = "吊客丧门又相遇，管教灾病两相攻"
+
+[[source_group.item]]
+key = "qi_sha_shou_shen"
+source_order = 149
+source_text_zh_hans = "七杀守身终是夭"
+
+[[source_group.item]]
+key = "tan_lang_ru_ming"
+source_order = 150
+source_text_zh_hans = "贪狼入命必为娼"
+
+[[source_group.item]]
+key = "xin_hao_ming_wei"
+source_order = 151
+source_text_zh_hans = "心好命微亦主寿"
+
+[[source_group.item]]
+key = "xin_du_ming_gu"
+source_order = 152
+source_text_zh_hans = "心毒命固亦夭亡"
+
+[[source_group.item]]
+key = "qian_jin_gui_yun_qu"
+source_order = 153
+source_text_zh_hans = "今人命有千金贵，运去之时岂久长"
+
+[[source_group.item]]
+key = "shu_nei_bao_cang"
+source_order = 154
+source_text_zh_hans = "数内包藏多少理，学者须当仔细详"

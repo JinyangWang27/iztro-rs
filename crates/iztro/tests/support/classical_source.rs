@@ -1,7 +1,7 @@
 //! Test-only deserialization shapes for the 《紫微斗数全书》 source inventory and
 //! its linked rule corpus.
 //!
-//! These mirror `rule-corpus/quan-shu/source/volume-01.toml` and
+//! These mirror `rule-corpus/quan-shu/source/*.toml` and
 //! `rule-corpus/quan-shu/rules.toml`. They are intentionally private to the
 //! test binaries and not exported from the crate: adding runtime APIs purely to
 //! validate corpus-tracking data would blur the layer boundary. Each binary
@@ -10,10 +10,10 @@
 
 #![allow(dead_code)]
 
-/// Test-only raw mirror of the **canonical** grouped
-/// `rule-corpus/quan-shu/source/volume-01.toml`. A `source_group` carries shared
-/// metadata / section defaults; each `source_group.item` is one atomic cited
-/// source unit. The flat [`SourceItem`] view used by the tests is produced by
+/// Test-only raw mirror of the grouped source inventory TOML files under
+/// `rule-corpus/quan-shu/source/`. A `source_group` carries shared metadata /
+/// section defaults; each `source_group.item` is one atomic cited source unit.
+/// The flat [`SourceItem`] view used by the tests is produced by
 /// [`RawSourceInventory::expand`], which joins each item with its group defaults.
 #[derive(Debug, serde::Deserialize)]
 pub struct RawSourceInventory {
@@ -124,8 +124,10 @@ pub struct RuleEntry {
     pub status: String,
 }
 
-const SOURCE_INVENTORY_TOML: &str =
-    include_str!("../../rule-corpus/quan-shu/source/volume-01.toml");
+const SOURCE_INVENTORY_TOMLS: &[&str] = &[
+    include_str!("../../rule-corpus/quan-shu/source/volume-01.toml"),
+    include_str!("../../rule-corpus/quan-shu/source/volume-03.toml"),
+];
 const RULES_CORPUS_TOML: &str = include_str!("../../rule-corpus/quan-shu/rules.toml");
 const PATTERN_RULES_CORPUS_TOML: &str = include_str!("../../rule-corpus/patterns/rules.toml");
 
@@ -134,12 +136,16 @@ const PATTERN_RULES_CORPUS_TOML: &str = include_str!("../../rule-corpus/patterns
 /// QuanShu source rules and must not be required in the inventory.
 pub const QUAN_SHU_WORK: &str = "zi_wei_dou_shu_quan_shu";
 
-/// Deserializes the canonical grouped TOML and expands it into the flat
+/// Deserializes the grouped TOML files and expands them into the flat
 /// source-item view the tests operate on.
 pub fn source_inventory() -> SourceInventory {
-    let raw: RawSourceInventory = toml::from_str(SOURCE_INVENTORY_TOML)
-        .expect("QuanShu source inventory TOML must deserialize");
-    raw.expand()
+    let mut source_item = Vec::new();
+    for toml_src in SOURCE_INVENTORY_TOMLS {
+        let raw: RawSourceInventory =
+            toml::from_str(toml_src).expect("QuanShu source inventory TOML must deserialize");
+        source_item.extend(raw.expand().source_item);
+    }
+    SourceInventory { source_item }
 }
 
 /// The 《紫微斗数全书》 rule corpus (`rule-corpus/quan-shu/rules.toml`).

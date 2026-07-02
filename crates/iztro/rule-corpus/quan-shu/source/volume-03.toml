@@ -1,0 +1,34 @@
+# 《紫微斗数全书》 source inventory — Volume 3 additions.
+#
+# Corpus-management data only. Runtime code does not parse this file.
+
+# --- 卷三：论诸星同垣各司所宜分别富贵贫贱夭寿 ---
+#
+# These entries are kept segmented until canonical PatternId metadata/detectors
+# are added. Interpretive conditions and claims belong in pattern display metadata
+# or future rule metadata, not in this source inventory.
+
+[[source_group]]
+source_id_prefix = "quan_shu.v03.zhu_xing_tong_yuan."
+work = "zi_wei_dou_shu_quan_shu"
+volume = 3
+section = "论诸星同垣各司所宜分别富贵贫贱夭寿"
+category = "pattern_rule"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-03.md"
+anchor = "论诸星同垣各司所宜分别富贵贫贱夭寿"
+
+[[source_group.item]]
+key = "zi_fu_jia_ming"
+source_order = 1
+source_text_zh_hans = "紫府夹命为贵格"
+
+[[source_group.item]]
+key = "lian_zhen_qi_sha_miao_wang"
+source_order = 2
+source_text_zh_hans = "廉贞七杀居庙旺反为积富之人 杀居午奇格，若陷地化忌，贫贱残疾"
+
+[[source_group.item]]
+key = "qing_yang_ru_miao"
+source_order = 3
+source_text_zh_hans = "擎羊入庙富贵声扬 加吉万论"

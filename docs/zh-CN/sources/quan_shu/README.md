@@ -12,15 +12,16 @@
 
 ## 对应的结构化 source inventory
 
-本 PR 同时加入一个最小的结构化 source inventory pilot：
+当前结构化 source inventory 位于：
 
 ```text
 crates/iztro/rule-corpus/quan-shu/source/
   README.md
   volume-01.toml
+  volume-03.toml
 ```
 
-`volume-01.toml` 采用「原子 source item」结构：每条受引出处单元（一句断语/规则候选）即一个 source item，登记其对应规则出处。它涵盖太微赋完整规范化映射，但不是卷一全部章节的完整清单；完整 line-by-line inventory、lint 应在后续 PR 中继续扩展。
+这些 TOML 文件采用同一种「原子 source item」结构：每条受引出处单元（一句断语/规则候选/格局出处）即一个 source item，登记其对应规则出处或保持为 segmented 条目。`volume-01.toml` 涵盖太微赋完整规范化映射、完整切分的「斗数骨髓赋」source inventory，以及卷一末尾显式格局目录；`volume-03.toml` 记录当前仍保持 segmented 的卷三格局补充出处。完整 line-by-line inventory、lint 应在后续 PR 中继续扩展。
 
 后续可加入尚未链接的 `raw` / `segmented` source item（`linked_rule_ids = []`）记录已切分但尚未规范化/实现为规则的原文；当前太微赋每个 `rule_linked` 条目均已链接规则。
 
