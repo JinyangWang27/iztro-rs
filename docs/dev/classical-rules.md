@@ -15,7 +15,7 @@ source inventory (TOML, test-only)
   -> RuleDiagnostic for unsupported rules
 ```
 
-The source inventory (`crates/iztro/rule-corpus/quan-shu/source/volume-01.toml`) is
+The source inventory (`crates/iztro/rule-corpus/quan-shu/source/*.toml`) is
 corpus-management data validated by tests only. Nothing in `src/` parses it.
 The runtime rule corpus (`crates/iztro/rule-corpus/quan-shu/rules.toml`,
 `crates/iztro/rule-corpus/patterns/rules.toml`) is embedded at compile time and parsed once
@@ -111,9 +111,9 @@ entry, while runtime display metadata may show `日照雷门` and alias
 
 ## Checklist for adding one executable QuanShu rule
 
-- [ ] Confirm the source inventory entry exists in
-  `crates/iztro/rule-corpus/quan-shu/source/volume-01.toml` with
-  `status = "rule_linked"` and the rule id in `linked_rule_ids`.
+- [ ] Confirm the source inventory entry exists under
+  `crates/iztro/rule-corpus/quan-shu/source/` with `status = "rule_linked"` and
+  the rule id in `linked_rule_ids`.
 - [ ] Quote source text verbatim in `source_text_zh_hans` (no interpretation).
 - [ ] Add the rule entry to `crates/iztro/rule-corpus/quan-shu/rules.toml` with
   `status = "executable"`.
