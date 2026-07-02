@@ -73,9 +73,31 @@ sh iztro-gui-installer.sh
 
 The Unix installer uses `${XDG_BIN_HOME:-$HOME/.local/bin}`.
 
+Windows users can install with the PowerShell installer script. Run this in a
+PowerShell terminal (Windows x64 only):
+
+```powershell
+irm https://github.com/JinyangWang27/iztro-rs/releases/latest/download/iztro-gui-installer.ps1 | iex
+```
+
+The one-line command executes the downloaded installer directly. For an auditable
+install, download the installer and its `.sha256` file first, verify the checksum,
+then execute the script:
+
+```powershell
+Invoke-WebRequest -Uri https://github.com/JinyangWang27/iztro-rs/releases/latest/download/iztro-gui-installer.ps1     -OutFile iztro-gui-installer.ps1     -UseBasicParsing
+Invoke-WebRequest -Uri https://github.com/JinyangWang27/iztro-rs/releases/latest/download/iztro-gui-installer.ps1.sha256 -OutFile iztro-gui-installer.ps1.sha256 -UseBasicParsing
+$expected = ((Get-Content iztro-gui-installer.ps1.sha256 -Raw).Trim() -split '\s+')[0].ToLowerInvariant()
+$actual   = (Get-FileHash -Algorithm SHA256 iztro-gui-installer.ps1).Hash.ToLowerInvariant()
+if ($expected -ne $actual) { Write-Error "Checksum mismatch"; exit 1 }
+.\iztro-gui-installer.ps1
+```
+
+The Windows installer installs to `%LOCALAPPDATA%\Programs\iztro-gui\`.
+
 Command-line/JSON export, package manager distribution, MCP, bindings, signed
-native installers, `.dmg`, `.msi`, Windows installer scripts, and AppImage
-packages are future work and are not included in this release-artifact step.
+native installers, `.dmg`, `.msi`, and AppImage packages are future work and are
+not included in this release-artifact step.
 
 ## Quick demo
 
