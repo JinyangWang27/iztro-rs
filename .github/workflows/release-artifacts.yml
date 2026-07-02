@@ -104,6 +104,20 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
         with:
           targets: x86_64-pc-windows-msvc
+      - name: Validate PowerShell installer syntax
+        shell: pwsh
+        run: |
+          $tokens = $null
+          $errors = $null
+          [System.Management.Automation.Language.Parser]::ParseFile(
+            "scripts\install\iztro-gui-installer.ps1",
+            [ref]$tokens,
+            [ref]$errors
+          ) | Out-Null
+          if ($errors.Count -gt 0) {
+            $errors | Format-List
+            exit 1
+          }
       - run: cargo build -p iztro-gui --release --target x86_64-pc-windows-msvc
       - name: Package artifact
         shell: pwsh
@@ -145,10 +159,13 @@ jobs:
           set -euo pipefail
           mkdir -p dist
           cp scripts/install/iztro-gui-installer.sh dist/
+          cp scripts/install/iztro-gui-installer.ps1 dist/
           if command -v sha256sum >/dev/null 2>&1; then
-            (cd dist && sha256sum iztro-gui-installer.sh | tee iztro-gui-installer.sh.sha256)
+            (cd dist && sha256sum iztro-gui-installer.sh  | tee iztro-gui-installer.sh.sha256)
+            (cd dist && sha256sum iztro-gui-installer.ps1 | tee iztro-gui-installer.ps1.sha256)
           else
-            (cd dist && shasum -a 256 iztro-gui-installer.sh | tee iztro-gui-installer.sh.sha256)
+            (cd dist && shasum -a 256 iztro-gui-installer.sh  | tee iztro-gui-installer.sh.sha256)
+            (cd dist && shasum -a 256 iztro-gui-installer.ps1 | tee iztro-gui-installer.ps1.sha256)
           fi
       - uses: actions/upload-artifact@v4
         with:
@@ -156,6 +173,8 @@ jobs:
           path: |
             dist/iztro-gui-installer.sh
             dist/iztro-gui-installer.sh.sha256
+            dist/iztro-gui-installer.ps1
+            dist/iztro-gui-installer.ps1.sha256
           if-no-files-found: error
 
   publish-github-release:

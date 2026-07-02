@@ -63,7 +63,26 @@ sh iztro-gui-installer.sh
 
 Unix installer 使用 `${XDG_BIN_HOME:-$HOME/.local/bin}`。
 
-命令行/JSON export、包管理器分发、MCP、bindings、签名原生安装器、`.dmg`、`.msi`、Windows installer script 和 AppImage 都是后续工作，不包含在本次 release artifact 步骤中。
+Windows 用户可以通过 PowerShell 安装脚本安装（仅支持 Windows x64）。在 PowerShell 终端中运行：
+
+```powershell
+irm https://github.com/JinyangWang27/iztro-rs/releases/latest/download/iztro-gui-installer.ps1 | iex
+```
+
+上面的 one-line 命令会直接执行下载的安装脚本。若希望先审计和校验，可以先下载 installer 和对应的 `.sha256` 文件，验证 checksum 后再执行：
+
+```powershell
+Invoke-WebRequest -Uri https://github.com/JinyangWang27/iztro-rs/releases/latest/download/iztro-gui-installer.ps1     -OutFile iztro-gui-installer.ps1     -UseBasicParsing
+Invoke-WebRequest -Uri https://github.com/JinyangWang27/iztro-rs/releases/latest/download/iztro-gui-installer.ps1.sha256 -OutFile iztro-gui-installer.ps1.sha256 -UseBasicParsing
+$expected = ((Get-Content iztro-gui-installer.ps1.sha256 -Raw).Trim() -split '\s+')[0].ToLowerInvariant()
+$actual   = (Get-FileHash -Algorithm SHA256 iztro-gui-installer.ps1).Hash.ToLowerInvariant()
+if ($expected -ne $actual) { Write-Error "Checksum mismatch"; exit 1 }
+.\iztro-gui-installer.ps1
+```
+
+Windows installer 安装至 `%LOCALAPPDATA%\Programs\iztro-gui\`。
+
+命令行/JSON export、包管理器分发、MCP、bindings、签名原生安装器、`.dmg`、`.msi` 和 AppImage 都是后续工作，不包含在本次 release artifact 步骤中。
 
 ## 快速演示
 
