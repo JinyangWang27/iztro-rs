@@ -5,6 +5,22 @@
 - **Verification commands run**: `cargo fmt --all -- --check` ✅, `cargo clippy --workspace --all-targets -- -D warnings` ✅, `cargo test --workspace` ✅ (all suites green, incl. `patterns`, `classical_source_inventory`, `classical_rule_guardrails`)
 - **Scope**: docs (`current-status`, `project-spec`, `architecture`, ADRs 0008/0009, `patterns`, `rules/rule-engine`), `crates/iztro/src/{core,rules,analysis,projection,facade,features,reading,render}`, `crates/iztro-gui`, `crates/iztro-i18n`, `crates/iztro-cli`, `rule-corpus/`, `crates/iztro/tests/`
 
+## Triage status
+
+- [ ] F1 — Ancestor analysis-layer cache identity instability
+- [x] F2 — GUI derivation-guard test does not scan `static_chart_screen/`
+  - Addressed by: PR #157
+- [ ] F3 — Shared relation type/helpers live inside `rules::pattern`
+- [ ] F4 — Overlay-aware rule wiring duplicated by string literal
+- [ ] F5 — No detector-registration guard for `PatternId`
+- [ ] F6 — `effective_stars_in_palace` duplicate/misleading helper
+- [ ] F7 — `matches_rule_metadata` hard-codes `ClaimScope::Natal`
+- [ ] F8 — Docs polarity drift for 马头带剑 / reserved id note
+- [ ] F9 — i18n claim-key coverage skips patterns corpus
+- [ ] F10 — Overlapping palace-relation vocabularies
+- [ ] F11 — Panicking constructors on future binding/MCP surface
+- [ ] F12 — Stringly `work` in `PatternSourceMetadata`
+
 No files were modified during the audit itself; this document records the findings.
 
 ---
