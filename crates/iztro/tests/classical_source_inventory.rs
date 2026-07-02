@@ -25,6 +25,8 @@ use support::classical_source::{
 };
 
 const TAI_WEI_FU_PREFIX: &str = "quan_shu.v01.tai_wei_fu.";
+const DOU_SHU_GU_SUI_FU_PREFIX: &str = "quan_shu.v01.dou_shu_gu_sui_fu.";
+const DOU_SHU_GU_SUI_FU_EXPECTED_LEN: usize = 154;
 const SOURCE_BACKED_PATTERN_SECTIONS: [(&str, &str, usize); 4] = [
     ("quan_shu.v01.ding_fu_ju.", "定富局", 6),
     ("quan_shu.v01.ding_gui_ju.", "定贵局", 27),
@@ -233,6 +235,71 @@ fn source_backed_pattern_section_orders_are_continuous() {
             "{section} source_order must be section-local and continuous"
         );
     }
+}
+
+#[test]
+fn dou_shu_gu_sui_fu_is_complete_segmented_aphorism_inventory() {
+    let inventory = source_inventory();
+    let mut items: Vec<_> = inventory
+        .source_item
+        .iter()
+        .filter(|item| item.volume == 1 && item.section == "斗数骨髓赋")
+        .collect();
+    items.sort_by_key(|item| item.source_order);
+
+    assert_eq!(
+        items.len(),
+        DOU_SHU_GU_SUI_FU_EXPECTED_LEN,
+        "斗数骨髓赋 must cover the complete segmented Volume 1 section"
+    );
+
+    for (idx, item) in items.iter().enumerate() {
+        assert_eq!(
+            item.source_order,
+            idx + 1,
+            "斗数骨髓赋 source_order must be section-local and continuous"
+        );
+        assert!(
+            item.source_id.starts_with(DOU_SHU_GU_SUI_FU_PREFIX),
+            "斗数骨髓赋 item {} must use prefix {DOU_SHU_GU_SUI_FU_PREFIX}",
+            item.source_id
+        );
+        assert_eq!(item.category, "aphorism_rule");
+        assert_eq!(item.status, "segmented");
+        assert_eq!(item.doc_path, "docs/zh-CN/sources/quan_shu/volume-01.md");
+        assert_eq!(item.anchor, "斗数骨髓赋");
+        assert!(
+            !item.source_text_zh_hans.ends_with('。'),
+            "斗数骨髓赋 item {} must not include final sentence punctuation",
+            item.source_id
+        );
+
+        let suffix = item
+            .source_id
+            .strip_prefix(DOU_SHU_GU_SUI_FU_PREFIX)
+            .unwrap_or_else(|| panic!("unexpected source id {}", item.source_id));
+        assert!(
+            suffix.chars().any(|c| !c.is_ascii_digit()),
+            "斗数骨髓赋 item {} must use a stable mnemonic key",
+            item.source_id
+        );
+    }
+
+    assert_eq!(
+        items.first().map(|item| item.source_text_zh_hans.as_str()),
+        Some("太极星缠，乃群宿众星之主，天门运限，即扶身助命之源，在天则运用无常，在人则命有格局")
+    );
+    assert!(
+        items.iter().any(|item| item.source_id
+            == "quan_shu.v01.dou_shu_gu_sui_fu.shi_zhong_yin_yu"
+            && item.source_order == 121
+            && item.source_text_zh_hans == "子午巨门石中隐玉，明禄暗禄锦上添花"),
+        "existing 石中隐玉 source id must remain stable while moving into the complete aphorism group"
+    );
+    assert_eq!(
+        items.last().map(|item| item.source_text_zh_hans.as_str()),
+        Some("数内包藏多少理，学者须当仔细详")
+    );
 }
 
 #[test]

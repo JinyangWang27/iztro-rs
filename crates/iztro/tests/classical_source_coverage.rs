@@ -17,6 +17,7 @@ use support::classical_source::{RulesCorpus, SourceInventory, rules_corpus, sour
 
 const COVERAGE_REPORT: &str = include_str!("../../../docs/zh-CN/rules/quan-shu-coverage.md");
 const PATTERN_RULE_SECTIONS: [&str; 4] = ["定富局", "定贵局", "定贫贱局", "定杂局"];
+const SEGMENTED_APHORISM_SECTIONS: [&str; 1] = ["斗数骨髓赋"];
 
 /// Coverage metrics over the whole source inventory. Counts of source items and
 /// the rules they link to (classified by the rule's `status`).
@@ -217,6 +218,31 @@ fn generate_report() -> String {
         );
     }
 
+    for section in SEGMENTED_APHORISM_SECTIONS {
+        let metrics = SectionMetrics::compute(&inventory, 1, section);
+        out.push_str("\n## Volume 1 — ");
+        out.push_str(section);
+        out.push_str("\n\n");
+        out.push_str("Category: `aphorism_rule`\n\n");
+        out.push_str("| Metric | Count |\n| --- | ---: |\n");
+        let _ = writeln!(out, "| Source items | {} |", metrics.source_items);
+        let _ = writeln!(
+            out,
+            "| Linked classical rule source items | {} |",
+            metrics.linked_source_items
+        );
+        let _ = writeln!(
+            out,
+            "| Segmented aphorism source items | {} |",
+            metrics.unlinked_source_items
+        );
+        let _ = writeln!(
+            out,
+            "| Pending source items | {} |",
+            metrics.pending_source_items
+        );
+    }
+
     out.push_str("\n## Unlinked source items\n\n");
     out.push_str("| Source ID | Order | Text |\n| --- | ---: | --- |\n");
     for item in &inventory.source_item {
@@ -251,12 +277,12 @@ fn quan_shu_coverage_report_is_deterministic() {
     assert_eq!(generate_report(), generate_report());
 }
 
-/// After completing the 太微赋 normalization map every aphorism source item is
-/// linked. Source-backed pattern catalogues may be segmented without classical
-/// claim-rule links; those unlinked items must be explicit `pattern_rule`
-/// inventory entries, not missed 太微赋 normalization work.
+/// After completing the 太微赋 normalization map every 太微赋 aphorism source
+/// item is linked. Source-backed pattern catalogues and newly segmented
+/// aphorism sections may be unlinked while they remain source-inventory
+/// governance data, not runtime claim rules.
 #[test]
-fn quan_shu_coverage_unlinked_items_are_segmented_pattern_sources() {
+fn quan_shu_coverage_unlinked_items_are_intentionally_segmented_sources() {
     let inventory = source_inventory();
     let rules = rules_corpus();
     let m = CoverageMetrics::compute(&inventory, &rules);
@@ -268,9 +294,12 @@ fn quan_shu_coverage_unlinked_items_are_segmented_pattern_sources() {
 
     assert_eq!(m.unlinked_source_items, unlinked.len());
     for item in unlinked {
-        assert_eq!(
-            item.category, "pattern_rule",
-            "unlinked item {} must be a segmented pattern source, not a missed classical rule",
+        let allowed_segmented_source = item.category == "pattern_rule"
+            || (item.category == "aphorism_rule"
+                && SEGMENTED_APHORISM_SECTIONS.contains(&item.section.as_str()));
+        assert!(
+            allowed_segmented_source,
+            "unlinked item {} must be an intentionally segmented source, not missed classical rule work",
             item.source_id
         );
         assert_eq!(

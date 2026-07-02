@@ -21,7 +21,7 @@ crates/iztro/rule-corpus/quan-shu/source/
   volume-03.toml
 ```
 
-这些 TOML 文件采用同一种「原子 source item」结构：每条受引出处单元（一句断语/规则候选/格局出处）即一个 source item，登记其对应规则出处或保持为 segmented pattern-only 条目。`volume-01.toml` 涵盖太微赋完整规范化映射、卷一末尾显式格局目录，以及额外的卷一「斗数骨髓赋」格局出处条目；`volume-03.toml` 记录当前仍保持 segmented 的卷三格局补充出处。完整 line-by-line inventory、lint 应在后续 PR 中继续扩展。
+这些 TOML 文件采用同一种「原子 source item」结构：每条受引出处单元（一句断语/规则候选/格局出处）即一个 source item，登记其对应规则出处或保持为 segmented 条目。`volume-01.toml` 涵盖太微赋完整规范化映射、完整切分的「斗数骨髓赋」source inventory，以及卷一末尾显式格局目录；`volume-03.toml` 记录当前仍保持 segmented 的卷三格局补充出处。完整 line-by-line inventory、lint 应在后续 PR 中继续扩展。
 
 后续可加入尚未链接的 `raw` / `segmented` source item（`linked_rule_ids = []`）记录已切分但尚未规范化/实现为规则的原文；当前太微赋每个 `rule_linked` 条目均已链接规则。
 

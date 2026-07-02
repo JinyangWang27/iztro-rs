@@ -141,8 +141,8 @@ pub const QUAN_SHU_WORK: &str = "zi_wei_dou_shu_quan_shu";
 pub fn source_inventory() -> SourceInventory {
     let mut source_item = Vec::new();
     for toml_src in SOURCE_INVENTORY_TOMLS {
-        let raw: RawSourceInventory = toml::from_str(toml_src)
-            .expect("QuanShu source inventory TOML must deserialize");
+        let raw: RawSourceInventory =
+            toml::from_str(toml_src).expect("QuanShu source inventory TOML must deserialize");
         source_item.extend(raw.expand().source_item);
     }
     SourceInventory { source_item }
