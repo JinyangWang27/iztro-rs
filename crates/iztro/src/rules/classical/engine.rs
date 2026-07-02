@@ -10,6 +10,7 @@ use crate::rules::classical::claim::{Claim, ClaimDomain, ClaimScope};
 use crate::rules::classical::context::ClassicalRuleContext;
 use crate::rules::classical::corpus::classical_rules;
 use crate::rules::classical::evaluator;
+use crate::rules::classical::metadata::classical_rule_metadata;
 use crate::rules::classical::outcome::{ClaimEvaluation, RuleDiagnostic, RuleOutcome};
 use crate::rules::classical::rule::{ClassicalRule, ClassicalRuleId};
 use crate::rules::classical::source::ClassicalWork;
@@ -85,7 +86,13 @@ impl ClaimEvaluationRequest {
             }
             None => self.domains.is_empty() && self.polarities.is_empty() && self.themes.is_empty(),
         };
-        let scope_ok = self.scopes.is_empty() || self.scopes.contains(&ClaimScope::Natal);
+        let scope_ok = self.scopes.is_empty()
+            || classical_rule_metadata(rule.id.clone()).is_some_and(|metadata| {
+                metadata
+                    .applicable_scopes
+                    .iter()
+                    .any(|scope| self.scopes.contains(scope))
+            });
         let rule_ok = self.rule_ids.is_empty() || self.rule_ids.contains(&rule.id);
         let work_ok = self.works.is_empty() || self.works.contains(&rule.work);
         claim_ok && scope_ok && rule_ok && work_ok
@@ -196,4 +203,35 @@ fn sort_source_hits(source_hits: &mut [ClassicalSourceHit]) {
             .then_with(|| a.source_clause_id.cmp(&b.source_clause_id))
             .then_with(|| a.rule_id.cmp(&b.rule_id))
     });
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{ClaimEvaluationRequest, DiagnosticMode};
+    use crate::rules::classical::claim::ClaimScope;
+    use crate::rules::classical::corpus::rule_by_id;
+
+    const CHANG_QU: &str = "life.chang_qu_clamp_life.literary_reputation";
+    const LU_MA: &str = "fortune.lu_ma_jiao_chi.favorable_convergence";
+
+    #[test]
+    fn matching_request_scope_filter_uses_rule_metadata_applicable_scopes() {
+        let yearly_request = ClaimEvaluationRequest {
+            scopes: vec![ClaimScope::Yearly],
+            diagnostic_mode: DiagnosticMode::MatchingRequest,
+            ..Default::default()
+        };
+
+        let overlay_rule = rule_by_id(CHANG_QU).expect("overlay-aware rule");
+        assert!(
+            yearly_request.matches_rule_metadata(overlay_rule),
+            "yearly requests should metadata-match rules that advertise yearly applicability",
+        );
+
+        let natal_only_rule = rule_by_id(LU_MA).expect("natal-only unsupported rule");
+        assert!(
+            !yearly_request.matches_rule_metadata(natal_only_rule),
+            "purely yearly requests should not metadata-match natal-only rules",
+        );
+    }
 }

@@ -787,6 +787,12 @@ fn chang_qu_clamp_life_yearly_context_emits_yearly_source_hit() {
         .find(|claim| claim.rule_id.as_str() == CHANG_QU)
         .expect("expected yearly 昌曲夹命 claim");
     assert_eq!(claim.scope, ClaimScope::Yearly);
+    let metadata =
+        classical_rule_metadata(ClassicalRuleId::new(CHANG_QU)).expect("chang-qu metadata");
+    assert!(
+        metadata.applicable_scopes.contains(&claim.scope),
+        "emitted claim scope must be advertised by metadata",
+    );
     let source_hit = evaluation
         .source_hits
         .iter()
@@ -794,6 +800,10 @@ fn chang_qu_clamp_life_yearly_context_emits_yearly_source_hit() {
         .expect("expected yearly 昌曲夹命 source hit");
 
     assert_eq!(source_hit.scope, ClaimScope::Yearly);
+    assert!(
+        metadata.applicable_scopes.contains(&source_hit.scope),
+        "emitted source-hit scope must be advertised by metadata",
+    );
     assert_eq!(source_hit.work, ClassicalWork::IztroPatternCatalog);
     assert_eq!(source_hit.source_id, "pattern.chang_qu_jia_ming");
     assert_eq!(source_hit.source_text_zh_hans, "昌曲夹命，主贵显");

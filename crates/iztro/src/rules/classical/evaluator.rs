@@ -25,35 +25,14 @@ use crate::rules::classical::predicates::{
     star_meets_tag_same_palace, stars_clamp_life, sun_and_moon_dim, tian_ma_affected_by_void,
 };
 use crate::rules::classical::rule::{ClaimSpec, ClassicalRule};
+use crate::rules::classical::scope_registry::{
+    CHANG_QU_CLAMP_LIFE, HANDLED_RULE_IDS, LU_MA_JIAO_CHI, RI_YUE_FAN_BEI, SHAN_FU_JU_KONG,
+    TAN_LANG_HAI_ZI, TIAN_MA_VOID, XING_YU_TAN_LANG, YANG_TUO_CLAMP_LIFE, is_overlay_aware_rule,
+};
 use crate::rules::classical::source_hit::ClassicalSourceHit;
 use crate::rules::classical::void::VoidPolicy;
 use crate::rules::pattern::model::PatternId;
 use crate::rules::pattern::relation::PalaceRelation;
-
-// Stable rule ids handled by this module.
-const TIAN_MA_VOID: &str = "migration.tian_ma_void.restless_movement";
-const YANG_TUO_CLAMP_LIFE: &str = "life.yang_tuo_clamp_life.constraint_damage";
-const CHANG_QU_CLAMP_LIFE: &str = "life.chang_qu_clamp_life.literary_reputation";
-const LU_MA_JIAO_CHI: &str = "fortune.lu_ma_jiao_chi.favorable_convergence";
-const RI_YUE_FAN_BEI: &str = "life.ri_yue_fan_bei.hardship_pressure";
-const TAN_LANG_HAI_ZI: &str = "relationship.tan_ju_hai_zi.water_romance";
-const XING_YU_TAN_LANG: &str = "relationship.xing_yu_tan_lang.romance_with_penalty";
-const SHAN_FU_JU_KONG: &str = "fortune.shan_fu_ju_kong.monastic_life";
-
-/// Every rule id the [`evaluate`] dispatch has a predicate arm for. The `match`
-/// arms below must stay in sync with this list; the `every_executable_corpus_rule_is_handled`
-/// guardrail test fails if a corpus rule is marked `Executable` without a wired
-/// arm here (which would otherwise silently return [`RuleOutcome::NotApplicable`]).
-const HANDLED_RULE_IDS: [&str; 8] = [
-    TIAN_MA_VOID,
-    YANG_TUO_CLAMP_LIFE,
-    CHANG_QU_CLAMP_LIFE,
-    LU_MA_JIAO_CHI,
-    RI_YUE_FAN_BEI,
-    TAN_LANG_HAI_ZI,
-    XING_YU_TAN_LANG,
-    SHAN_FU_JU_KONG,
-];
 
 /// Evaluates `rule` against `chart`, returning a typed outcome.
 ///
@@ -96,16 +75,26 @@ pub fn evaluate(rule: &ClassicalRule, chart: &Chart) -> RuleOutcome {
 /// selected-state vertical slice, so it can match against the selected frame's
 /// effective chart state.
 pub fn evaluate_in_context(rule: &ClassicalRule, ctx: &ClassicalRuleContext<'_>) -> RuleOutcome {
-    match rule.id.as_str() {
-        CHANG_QU_CLAMP_LIFE => evaluate_clamp_life_in_context(
-            rule,
-            ctx,
-            StarName::WenChang,
-            StarName::WenQu,
-            Some(PatternId::ChangQuJiaMing),
-        ),
-        _ => evaluate(rule, ctx.chart()),
+    if is_overlay_aware_rule(rule.id.as_str()) {
+        return match rule.id.as_str() {
+            CHANG_QU_CLAMP_LIFE => evaluate_clamp_life_in_context(
+                rule,
+                ctx,
+                StarName::WenChang,
+                StarName::WenQu,
+                Some(PatternId::ChangQuJiaMing),
+            ),
+            id => {
+                debug_assert!(
+                    !is_overlay_aware_rule(id),
+                    "overlay-aware rule id {id} has no context evaluator arm",
+                );
+                RuleOutcome::NotApplicable
+            }
+        };
     }
+
+    evaluate(rule, ctx.chart())
 }
 
 fn build_claim(
