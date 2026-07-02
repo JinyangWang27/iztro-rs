@@ -40,6 +40,7 @@ pub mod metadata;
 pub mod outcome;
 pub mod predicates;
 pub mod rule;
+pub(crate) mod scope_registry;
 pub mod source;
 pub mod source_hit;
 pub mod theme;
@@ -66,3 +67,54 @@ pub use view::{
     ClassicalRulePanelView, classical_rule_panel_view, classical_rule_panel_view_in_context,
 };
 pub use void::{VoidKind, VoidPolicy};
+
+#[cfg(test)]
+mod tests {
+    use super::claim::ClaimScope;
+    use super::corpus::classical_rules;
+    use super::metadata::classical_rule_metadata;
+    use super::rule::ClassicalRuleId;
+    use super::scope_registry::OVERLAY_AWARE_RULES;
+
+    #[test]
+    fn overlay_aware_rule_registry_matches_corpus_metadata() {
+        for (rule_id, scopes) in OVERLAY_AWARE_RULES {
+            assert!(
+                scopes.iter().any(|scope| *scope != ClaimScope::Natal),
+                "overlay-aware rule {rule_id} must include at least one non-natal scope",
+            );
+            assert!(
+                classical_rules()
+                    .iter()
+                    .any(|rule| rule.id.as_str() == *rule_id),
+                "overlay-aware rule {rule_id} is missing from the classical corpus",
+            );
+            let metadata = classical_rule_metadata(ClassicalRuleId::new(*rule_id))
+                .unwrap_or_else(|| panic!("overlay-aware rule {rule_id} has no metadata"));
+            assert_eq!(
+                metadata.applicable_scopes, *scopes,
+                "overlay-aware rule {rule_id} metadata scopes must match the registry",
+            );
+        }
+    }
+
+    #[test]
+    fn only_overlay_aware_rules_advertise_non_natal_scopes() {
+        for rule in classical_rules() {
+            let metadata = classical_rule_metadata(rule.id.clone())
+                .unwrap_or_else(|| panic!("rule {} has no metadata", rule.id));
+            let has_non_natal = metadata
+                .applicable_scopes
+                .iter()
+                .any(|scope| *scope != ClaimScope::Natal);
+            let registered = OVERLAY_AWARE_RULES
+                .iter()
+                .any(|(rule_id, _)| *rule_id == rule.id.as_str());
+            assert_eq!(
+                has_non_natal, registered,
+                "rule {} has inconsistent overlay-aware metadata registration",
+                rule.id,
+            );
+        }
+    }
+}

@@ -7,10 +7,12 @@
 //! 2. **破格 / 减力 assessment** (`assess_integrity`): once the base exists, is it
 //!    fulfilled, weakened, or broken?
 //!
-//! [`detect_all`] owns the ordered list of detector calls. Ordering is kept stable
-//! so downstream sorting and existing tests stay deterministic. Detectors emit
-//! through [`emit::push_detection`], which resolves display name, family, and
-//! polarity from the registry.
+//!
+//! [`DETECTORS`] owns the canonical detector registration order. [`detect_all`]
+//! executes that table so downstream sorting and existing tests stay deterministic.
+//! Ordering is kept stable so downstream sorting and existing tests stay deterministic.
+//! Detectors emit through [`emit::push_detection`], which resolves display name,
+//! family, and polarity from the registry.
 
 pub(crate) mod emit;
 
@@ -43,8 +45,120 @@ pub mod zuo_you_tong_gong;
 use crate::core::Scope;
 
 use super::context::{PatternContext, PatternDetectionRequest};
-use super::model::PatternDetection;
+use super::model::{PatternDetection, PatternId};
 use super::query::selected_frame_scope;
+
+type DetectorFn = fn(&PatternContext<'_>, &PatternDetectionRequest, &mut Vec<PatternDetection>);
+
+pub(crate) struct PatternDetectorRegistration {
+    pub(crate) id: PatternId,
+    pub(crate) detect: DetectorFn,
+}
+
+pub(crate) const DETECTORS: &[PatternDetectorRegistration] = &[
+    PatternDetectorRegistration {
+        id: PatternId::ZiFuChaoYuan,
+        detect: zi_fu_chao_yuan::detect,
+    },
+    PatternDetectorRegistration {
+        id: PatternId::JiYueTongLiang,
+        detect: ji_yue_tong_liang::detect,
+    },
+    PatternDetectorRegistration {
+        id: PatternId::YangTuoJiaJi,
+        detect: yang_tuo_jia_ji::detect,
+    },
+    PatternDetectorRegistration {
+        id: PatternId::ZuoYouJiaMing,
+        detect: zuo_you_jia_ming::detect,
+    },
+    PatternDetectorRegistration {
+        id: PatternId::ChangQuJiaMing,
+        detect: chang_qu_jia_ming::detect,
+    },
+    PatternDetectorRegistration {
+        id: PatternId::RiYueBingMing,
+        detect: ri_yue_bing_ming::detect,
+    },
+    PatternDetectorRegistration {
+        id: PatternId::RiYueFanBei,
+        detect: ri_yue_fan_bei::detect,
+    },
+    PatternDetectorRegistration {
+        id: PatternId::JinCanGuangHui,
+        detect: jin_can_guang_hui::detect,
+    },
+    PatternDetectorRegistration {
+        id: PatternId::YueLuoHaiGong,
+        detect: yue_luo_hai_gong::detect,
+    },
+    PatternDetectorRegistration {
+        id: PatternId::YueShengCangHai,
+        detect: yue_sheng_cang_hai::detect,
+    },
+    PatternDetectorRegistration {
+        id: PatternId::MaTouDaiJian,
+        detect: ma_tou_dai_jian::detect,
+    },
+    PatternDetectorRegistration {
+        id: PatternId::TanHuoXiangFeng,
+        detect: tan_huo_xiang_feng::detect,
+    },
+    PatternDetectorRegistration {
+        id: PatternId::WuQuShouYuan,
+        detect: wu_qu_shou_yuan::detect,
+    },
+    PatternDetectorRegistration {
+        id: PatternId::CaiYuQiuChou,
+        detect: cai_yu_qiu_chou::detect,
+    },
+    PatternDetectorRegistration {
+        id: PatternId::MaLuoKongWang,
+        detect: ma_luo_kong_wang::detect,
+    },
+    PatternDetectorRegistration {
+        id: PatternId::RiChuFuSang,
+        detect: ri_chu_fu_sang::detect,
+    },
+    PatternDetectorRegistration {
+        id: PatternId::ZuoYouTongGong,
+        detect: zuo_you_tong_gong::detect,
+    },
+    PatternDetectorRegistration {
+        id: PatternId::MingLiFengKong,
+        detect: ming_li_feng_kong::detect,
+    },
+    PatternDetectorRegistration {
+        id: PatternId::LuFengChongPo,
+        detect: lu_feng_chong_po::detect,
+    },
+    PatternDetectorRegistration {
+        id: PatternId::WenXingGongMing,
+        detect: wen_xing_gong_ming::detect,
+    },
+    PatternDetectorRegistration {
+        id: PatternId::TianJiSiHai,
+        detect: tian_ji_si_hai::detect,
+    },
+    PatternDetectorRegistration {
+        id: PatternId::MingZhuChuHai,
+        detect: ming_zhu_chu_hai::detect,
+    },
+    PatternDetectorRegistration {
+        id: PatternId::MingWuZhengYao,
+        detect: ming_wu_zheng_yao::detect,
+    },
+    PatternDetectorRegistration {
+        id: PatternId::JiXiangLiMing,
+        detect: ji_xiang_li_ming::detect,
+    },
+    PatternDetectorRegistration {
+        id: PatternId::FuXiangChaoYuan,
+        detect: fu_xiang_chao_yuan::detect,
+    },
+];
+
+pub(crate) const DETECTORLESS_PATTERN_IDS: &[PatternId] = &[PatternId::LingChangTuoWu];
 
 /// Runs every named detector in a stable order, appending detections to `out`.
 ///
@@ -55,35 +169,14 @@ pub fn detect_all(
     request: &PatternDetectionRequest,
     out: &mut Vec<PatternDetection>,
 ) {
-    zi_fu_chao_yuan::detect(ctx, request, out);
-    ji_yue_tong_liang::detect(ctx, request, out);
-    yang_tuo_jia_ji::detect(ctx, request, out);
-    zuo_you_jia_ming::detect(ctx, request, out);
-    chang_qu_jia_ming::detect(ctx, request, out);
-    ri_yue_bing_ming::detect(ctx, request, out);
-    ri_yue_fan_bei::detect(ctx, request, out);
-
-    // Source-backed QuanShu Volume 1 patterns (定富局 / 定贵局 / 定贫贱局).
-    jin_can_guang_hui::detect(ctx, request, out);
-    yue_luo_hai_gong::detect(ctx, request, out);
-    yue_sheng_cang_hai::detect(ctx, request, out);
-    ma_tou_dai_jian::detect(ctx, request, out);
-    tan_huo_xiang_feng::detect(ctx, request, out);
-    wu_qu_shou_yuan::detect(ctx, request, out);
-    cai_yu_qiu_chou::detect(ctx, request, out);
-    ma_luo_kong_wang::detect(ctx, request, out);
-
-    // Normalized pattern-note detectors.
-    ri_chu_fu_sang::detect(ctx, request, out);
-    zuo_you_tong_gong::detect(ctx, request, out);
-    ming_li_feng_kong::detect(ctx, request, out);
-    lu_feng_chong_po::detect(ctx, request, out);
-    wen_xing_gong_ming::detect(ctx, request, out);
-    tian_ji_si_hai::detect(ctx, request, out);
-    ming_zhu_chu_hai::detect(ctx, request, out);
-    ming_wu_zheng_yao::detect(ctx, request, out);
-    ji_xiang_li_ming::detect(ctx, request, out);
-    fu_xiang_chao_yuan::detect(ctx, request, out);
+    for registration in DETECTORS {
+        debug_assert!(
+            !DETECTORLESS_PATTERN_IDS.contains(&registration.id),
+            "detectorless pattern {:?} must not have a detector registration",
+            registration.id,
+        );
+        (registration.detect)(ctx, request, out);
+    }
 }
 
 /// Returns the selected frame scope when the request asks for it.
@@ -100,6 +193,7 @@ pub(crate) fn requested_selected_scope(
 
 #[cfg(test)]
 mod tests {
+    use super::{DETECTORLESS_PATTERN_IDS, DETECTORS};
     use crate::rules::pattern::metadata::pattern_source_metadata;
     use crate::rules::pattern::model::PatternId;
 
@@ -126,5 +220,66 @@ mod tests {
                 "source-backed pattern {id:?} has no source metadata",
             );
         }
+    }
+
+    #[test]
+    fn every_pattern_id_has_exactly_one_detector_or_is_allowlisted() {
+        for id in PatternId::ALL {
+            let detector_count = DETECTORS
+                .iter()
+                .filter(|registration| registration.id == id)
+                .count();
+            let allowlisted = DETECTORLESS_PATTERN_IDS.contains(&id);
+            assert!(
+                detector_count == 1 || allowlisted,
+                "{id:?} must have exactly one detector or be explicitly detectorless",
+            );
+            assert!(
+                detector_count <= 1,
+                "{id:?} has {detector_count} detector registrations",
+            );
+            assert!(
+                !(allowlisted && detector_count > 0),
+                "{id:?} is allowlisted as detectorless but also has a detector",
+            );
+        }
+    }
+
+    #[test]
+    fn detector_registration_order_is_stable() {
+        let registered_ids: Vec<PatternId> = DETECTORS
+            .iter()
+            .map(|registration| registration.id)
+            .collect();
+        assert_eq!(
+            registered_ids,
+            vec![
+                PatternId::ZiFuChaoYuan,
+                PatternId::JiYueTongLiang,
+                PatternId::YangTuoJiaJi,
+                PatternId::ZuoYouJiaMing,
+                PatternId::ChangQuJiaMing,
+                PatternId::RiYueBingMing,
+                PatternId::RiYueFanBei,
+                PatternId::JinCanGuangHui,
+                PatternId::YueLuoHaiGong,
+                PatternId::YueShengCangHai,
+                PatternId::MaTouDaiJian,
+                PatternId::TanHuoXiangFeng,
+                PatternId::WuQuShouYuan,
+                PatternId::CaiYuQiuChou,
+                PatternId::MaLuoKongWang,
+                PatternId::RiChuFuSang,
+                PatternId::ZuoYouTongGong,
+                PatternId::MingLiFengKong,
+                PatternId::LuFengChongPo,
+                PatternId::WenXingGongMing,
+                PatternId::TianJiSiHai,
+                PatternId::MingZhuChuHai,
+                PatternId::MingWuZhengYao,
+                PatternId::JiXiangLiMing,
+                PatternId::FuXiangChaoYuan,
+            ],
+        );
     }
 }

@@ -19,6 +19,7 @@ use std::sync::OnceLock;
 use crate::rules::classical::claim::ClaimScope;
 use crate::rules::classical::corpus::classical_rules;
 use crate::rules::classical::rule::{ClassicalRule, ClassicalRuleId};
+use crate::rules::classical::scope_registry::applicable_scopes_for_rule_id;
 use crate::rules::classical::source::ClassicalWork;
 
 /// Default applicable scope set for current executable rules.
@@ -26,23 +27,8 @@ use crate::rules::classical::source::ClassicalWork;
 /// Most current executable rules remain natal-only. Overlay-aware rules must
 /// opt into wider applicable scopes explicitly. No rule is promoted to every
 /// temporal scope automatically.
-const NATAL_ONLY_SCOPES: &[ClaimScope] = &[ClaimScope::Natal];
-
-const ALL_SELECTED_SCOPES: &[ClaimScope] = &[
-    ClaimScope::Natal,
-    ClaimScope::Decadal,
-    ClaimScope::Age,
-    ClaimScope::Yearly,
-    ClaimScope::Monthly,
-    ClaimScope::Daily,
-    ClaimScope::Hourly,
-];
-
 fn applicable_scopes_for_rule(rule: &ClassicalRule) -> &'static [ClaimScope] {
-    match rule.id.as_str() {
-        "life.chang_qu_clamp_life.literary_reputation" => ALL_SELECTED_SCOPES,
-        _ => NATAL_ONLY_SCOPES,
-    }
+    applicable_scopes_for_rule_id(rule.id.as_str())
 }
 
 /// Static, display-facing metadata for one classical rule.

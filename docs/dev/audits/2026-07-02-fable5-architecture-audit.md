@@ -11,10 +11,13 @@
 - [x] F2 — GUI derivation-guard test does not scan `static_chart_screen/`
   - Addressed by: PR #157
 - [ ] F3 — Shared relation type/helpers live inside `rules::pattern`
-- [ ] F4 — Overlay-aware rule wiring duplicated by string literal
-- [ ] F5 — No detector-registration guard for `PatternId`
+- [x] F4 — Overlay-aware rule wiring duplicated by string literal
+  - Addressed by: PR #158
+- [x] F5 — No detector-registration guard for `PatternId`
+  - Addressed by: PR #158
 - [ ] F6 — `effective_stars_in_palace` duplicate/misleading helper
-- [ ] F7 — `matches_rule_metadata` hard-codes `ClaimScope::Natal`
+- [x] F7 — `matches_rule_metadata` hard-codes `ClaimScope::Natal`
+  - Addressed by: PR #158
 - [ ] F8 — Docs polarity drift for 马头带剑 / reserved id note
 - [ ] F9 — i18n claim-key coverage skips patterns corpus
 - [ ] F10 — Overlapping palace-relation vocabularies
