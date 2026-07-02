@@ -22,6 +22,7 @@ use iztro::{
     TemporalPalaceName,
 };
 use iztro::{PalaceRelation, PatternEvidence};
+use iztro::rules::source::ClassicalWork;
 use iztro::{PatternSourceGroup, pattern_display_metadata, pattern_source_metadata};
 
 /// One synthetic star placement: (branch, star, kind, optional mutagen).
@@ -1510,7 +1511,12 @@ fn quan_shu_source_backed_pattern_metadata_is_available_for_executable_subset() 
         assert_eq!(metadata.source_id, source_id);
         assert_eq!(metadata.source_text_zh_hans, source_text);
         assert_eq!(metadata.group, group);
-        assert_eq!(metadata.work, "zi_wei_dou_shu_quan_shu");
+        assert_eq!(metadata.work, ClassicalWork::ZiWeiDouShuQuanShu);
+        // Typed `work` must still serialize to the historical snake_case id.
+        assert_eq!(
+            serde_json::to_value(metadata.work).unwrap(),
+            "zi_wei_dou_shu_quan_shu"
+        );
     }
 }
 

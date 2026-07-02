@@ -13,5 +13,11 @@ pub use domains::{Domain, domain_for_palace};
 pub use extractor::{ChartFeatures, FeatureExtractionError, FeatureExtractor};
 pub use mutagen_flows::MutagenFlow;
 pub use palace_features::PalaceFeature;
-pub use relations::{PalaceRelation, PalaceRelationKind, PalaceRelations, all_palace_relations};
+pub use relations::{
+    PalaceNameRelation, PalaceNameRelationKind, PalaceNameRelations, all_palace_relations,
+};
+// Compatibility aliases for the former feature relation names. The `PalaceName*`
+// names above are canonical; these preserve existing `features::PalaceRelation*`
+// users.
+pub use relations::{PalaceRelation, PalaceRelationKind, PalaceRelations};
 pub use star_features::StarFeature;

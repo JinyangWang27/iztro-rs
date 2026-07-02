@@ -11,8 +11,8 @@ use serde::{Deserialize, Serialize};
 use crate::core::Scope;
 use crate::rules::classical::evidence::Evidence;
 use crate::rules::classical::rule::ClassicalRuleId;
-use crate::rules::classical::source::SourceRef;
 use crate::rules::classical::theme::{ClaimPolarity, ClaimTheme};
+use crate::rules::source::SourceRef;
 
 /// The life-area domain (领域) a claim affects.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]

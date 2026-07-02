@@ -337,7 +337,7 @@ mod tests {
         build_empty_chart,
     };
     use crate::rules::classical::rule::{ClassicalRuleId, RuleStatus};
-    use crate::rules::classical::source::ClassicalWork;
+    use crate::rules::source::ClassicalWork;
 
     #[test]
     fn matched_rule_without_claim_spec_emits_source_hit_only() {

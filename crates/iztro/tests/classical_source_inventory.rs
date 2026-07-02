@@ -358,6 +358,7 @@ fn source_backed_pattern_catalogues_do_not_create_classical_rules() {
 fn canonical_pattern_metadata_references_source_inventory() {
     use iztro::rules::pattern::metadata::pattern_source_metadata;
     use iztro::rules::pattern::model::PatternId;
+    use iztro::rules::source::ClassicalWork;
 
     // Validates inventory-reference correctness for every source-backed pattern
     // (a `PatternId` carrying source metadata). This test owns the test-only
@@ -376,7 +377,14 @@ fn canonical_pattern_metadata_references_source_inventory() {
         let Some(metadata) = pattern_source_metadata(pattern) else {
             continue;
         };
-        assert_eq!(metadata.work, QUAN_SHU_WORK);
+        assert_eq!(metadata.work, ClassicalWork::ZiWeiDouShuQuanShu);
+        // The typed `work` must still serialize to the same snake_case id the
+        // source-inventory TOML uses, so serde output stays byte-compatible.
+        assert_eq!(
+            serde_json::to_value(metadata.work).unwrap(),
+            QUAN_SHU_WORK,
+            "serialized pattern source work must match the inventory work id"
+        );
         assert!(
             metadata.source_id.starts_with("quan_shu."),
             "{pattern:?} must cite a QuanShu source inventory id"

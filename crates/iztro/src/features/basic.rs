@@ -4,7 +4,7 @@ use crate::features::{
     extractor::{ChartFeatures, FeatureExtractionError, FeatureExtractor},
     mutagen_flows::MutagenFlow,
     palace_features::PalaceFeature,
-    relations::{PalaceRelation, all_palace_relations},
+    relations::{PalaceNameRelation, all_palace_relations},
     star_features::StarFeature,
 };
 
@@ -86,7 +86,7 @@ fn distinct_domains(palace_features: &[PalaceFeature]) -> Vec<Domain> {
 
 /// Flattens the deterministic cyclic relations of all twelve palaces into
 /// edge-level relation features.
-fn all_relations() -> Vec<PalaceRelation> {
+fn all_relations() -> Vec<PalaceNameRelation> {
     all_palace_relations()
         .iter()
         .flat_map(|relations| relations.to_relations())
