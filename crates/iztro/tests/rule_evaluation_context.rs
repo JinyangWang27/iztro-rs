@@ -7,8 +7,8 @@
 //! identical selected view for the same inputs.
 
 use iztro::{
-    BirthContext, CalendarDate, Chart, ChartError, ClassicalRuleContext, EarthlyBranch, Gender,
-    HeavenlyStem, HoroscopeChart, MethodProfile, PALACE_NAMES, Palace, PalaceName, PatternContext,
+    BirthContext, CalendarDate, Chart, ClassicalRuleContext, EarthlyBranch, Gender, HeavenlyStem,
+    HoroscopeChart, MethodProfile, PALACE_NAMES, Palace, PalaceName, PatternContext,
     RuleEvaluationContext, Scope, StarPlacement, StemBranch, TemporalContext, TemporalLayer,
     TemporalPalaceLayout, TemporalPalaceName,
 };
@@ -96,14 +96,9 @@ fn try_horoscope_with_frame_errors_on_missing_temporal_layer() {
         vec![Scope::Natal, Scope::Decadal, Scope::Yearly],
     );
 
-    // The exact variant is owned by `EffectiveChartState::from_horoscope`; a
-    // missing frame layer surfaces as `MissingHoroscopeLayer` today.
-    assert!(matches!(
-        result,
-        Err(ChartError::MissingHoroscopeLayer { .. })
-            | Err(ChartError::MissingHoroscopePalaceLayout { .. })
-            | Err(_)
-    ));
+    // The exact variant is owned by `EffectiveChartState::from_horoscope`; the
+    // fallible constructor's contract is only that invalid frame input returns
+    // an error rather than panicking.
     assert!(result.is_err());
 }
 
