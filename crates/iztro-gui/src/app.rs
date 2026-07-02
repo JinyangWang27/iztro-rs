@@ -1529,6 +1529,7 @@ fn resolve_today_selection(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::path::{Path, PathBuf};
 
     fn production_source(raw: &str) -> String {
         raw.split("#[cfg(test)]")
@@ -1538,6 +1539,28 @@ mod tests {
             .filter(|line| !line.trim_start().starts_with("//"))
             .collect::<Vec<_>>()
             .join("\n")
+    }
+
+    fn collect_rust_source_files_recursively(root: &Path) -> Vec<PathBuf> {
+        let mut stack = vec![root.to_path_buf()];
+        let mut rust_files = Vec::new();
+
+        while let Some(path) = stack.pop() {
+            if path.is_dir() {
+                for entry in std::fs::read_dir(&path).unwrap_or_else(|error| {
+                    panic!("{} must be a readable directory: {error}", path.display())
+                }) {
+                    stack.push(entry.expect("readable dir entry").path());
+                }
+            } else if path.is_file()
+                && path.extension().and_then(|ext| ext.to_str()) == Some("rs")
+            {
+                rust_files.push(path);
+            }
+        }
+
+        rust_files.sort();
+        rust_files
     }
 
     /// A saved record for `input` carrying its default chart name.
@@ -2759,13 +2782,19 @@ mod tests {
             "build_decadal_frame",
         ];
 
-        let src_dir = std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
-        let mut checked = 0;
-        for entry in std::fs::read_dir(&src_dir).expect("src directory must exist") {
-            let path = entry.expect("readable dir entry").path();
-            if path.extension().and_then(|ext| ext.to_str()) != Some("rs") {
-                continue;
-            }
+        let src_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
+        let rust_files = collect_rust_source_files_recursively(&src_dir);
+        assert!(!rust_files.is_empty(), "expected to scan GUI source files");
+
+        let static_chart_screen_dir = src_dir.join("static_chart_screen");
+        assert!(
+            rust_files
+                .iter()
+                .any(|path| path.starts_with(&static_chart_screen_dir)),
+            "expected to scan static_chart_screen Rust source files"
+        );
+
+        for path in &rust_files {
             let raw = std::fs::read_to_string(&path).expect("source file must read");
             // Scan production code only; tests and comments may name forbidden symbols.
             let source = production_source(&raw);
@@ -2776,9 +2805,7 @@ mod tests {
                     path.display()
                 );
             }
-            checked += 1;
         }
-        assert!(checked >= 3, "expected to scan the GUI source files");
 
         let app_src = std::fs::read_to_string(src_dir.join("app.rs")).expect("app.rs must read");
         assert!(
