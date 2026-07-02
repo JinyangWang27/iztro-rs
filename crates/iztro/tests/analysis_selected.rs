@@ -249,10 +249,13 @@ fn ancestor_layer_results_are_identical_across_selection_depths() {
     let request = AnalysisLayerRequest::user_facing();
     let natal = natal_chart();
 
-    // The hourly late-Zi selection resolves to different concrete daily target
-    // coordinates than the daily Early-Zi selection. Before canonical
-    // per-key anchoring, requesting the same Daily key through Hourly leaked
-    // those descendant target coordinates into the Daily result.
+    // This fixture was selected because the old one-shared-deepest-stack
+    // implementation produced path-dependent output for the same Daily
+    // AnalysisLayerKey when it was requested from Hourly late-Zi navigation.
+    // The fixed facade evaluates each key through its own canonical analysis
+    // anchor, so the result is identical regardless of whether the key is
+    // requested from Monthly, Daily, or Hourly navigation. The non-empty
+    // assertions below keep this from degrading into vacuous equality.
     let monthly_selection = StaticTemporalNavigationSelection::Monthly {
         decadal_index: 0,
         year_index: 0,
@@ -295,6 +298,7 @@ fn ancestor_layer_results_are_identical_across_selection_depths() {
         monthly_key.clone(),
         &request,
     );
+    assert_analysis_non_empty(&monthly_result_from_monthly, "monthly");
     assert_eq!(monthly_result_from_monthly, monthly_result_from_daily);
     assert_eq!(monthly_result_from_monthly, monthly_result_from_hourly);
 
@@ -307,7 +311,15 @@ fn ancestor_layer_results_are_identical_across_selection_depths() {
     let daily_result_from_daily =
         single_result(natal.clone(), daily_selection, daily_key.clone(), &request);
     let daily_result_from_hourly = single_result(natal, hourly_selection, daily_key, &request);
+    assert_analysis_non_empty(&daily_result_from_daily, "daily");
     assert_eq!(daily_result_from_daily, daily_result_from_hourly);
+}
+
+fn assert_analysis_non_empty(result: &iztro::AnalysisLayerResult, label: &str) {
+    assert!(
+        !result.rule_hits.is_empty() || !result.pattern_hits.is_empty(),
+        "{label} fixture must produce non-empty analysis so this regression is not vacuous"
+    );
 }
 
 fn single_result(

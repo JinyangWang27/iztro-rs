@@ -179,6 +179,8 @@ impl AnalysisLayerKey {
 }
 
 fn checked_temporal_index(field: &'static str, value: usize, max: u8) -> Result<u8, ChartError> {
+    // ChartError stores temporal child indexes as u8 because core selections use u8.
+    // Larger usize values fail closed and are reported as u8::MAX.
     let value = u8::try_from(value).map_err(|_| ChartError::InvalidTemporalSelectionIndex {
         field,
         value: u8::MAX,
