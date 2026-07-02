@@ -25,10 +25,11 @@
   - Addressed by: PR #161
 - [x] F9 — i18n claim-key coverage skips patterns corpus
   - Addressed by: PR #161
-- [ ] F10 — Overlapping palace-relation vocabularies
-  - Partially addressed by: PR #160 (`rules::relation` is now canonical for branch/palace relation vocabulary; the `features::relations` `PalaceName`-level overlap remains)
+- [x] F10 — Overlapping palace-relation vocabularies
+  - Addressed by: PR #162 (feature extraction relation types now use `PalaceNameRelation*`; PR #160 moved rule branch-level relation vocabulary to `rules::relation`)
 - [ ] F11 — Panicking constructors on future binding/MCP surface
-- [ ] F12 — Stringly `work` in `PatternSourceMetadata`
+- [x] F12 — Stringly `work` in `PatternSourceMetadata`
+  - Addressed by: PR #162 (`PatternSourceMetadata.work` now uses typed shared `ClassicalWork`)
 
 No files were modified during the audit itself; this document records the findings.
 
