@@ -17,7 +17,7 @@ use crate::rules::pattern::predicates::clamp::clamp_branches;
 use crate::rules::pattern::query::{
     find_star_branch_for_scope, mutagen_activations_for_scope, scope_is_visible,
 };
-use crate::rules::pattern::relation::PalaceRelation;
+use crate::rules::relation::PalaceRelation;
 
 /// Detects 羊陀夹忌 and appends any detection to `out`.
 pub fn detect(

@@ -8,4 +8,4 @@ pub(crate) use crate::rules::pattern::query::{
     effective_stars_in_san_fang_si_zheng, selected_stars_in_san_fang_si_zheng,
     stars_in_san_fang_si_zheng_for_scope,
 };
-pub(crate) use crate::rules::pattern::relation::{is_in_san_fang_si_zheng, san_fang_si_zheng};
+pub(crate) use crate::rules::relation::{is_in_san_fang_si_zheng, san_fang_si_zheng};

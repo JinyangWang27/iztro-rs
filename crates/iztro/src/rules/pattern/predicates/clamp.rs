@@ -5,4 +5,4 @@
 //! target and which stars occupy them; the named pattern decides meaning.
 
 pub(crate) use crate::rules::pattern::query::effective_clamp_pair_matches;
-pub(crate) use crate::rules::pattern::relation::clamp_branches;
+pub(crate) use crate::rules::relation::clamp_branches;

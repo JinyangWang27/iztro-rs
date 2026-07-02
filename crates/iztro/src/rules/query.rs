@@ -9,6 +9,7 @@ use crate::core::{
     FlowStarScope, PalaceName, RuleEvaluationContext, Scope, StarName, StarPlacement,
     flow_star_name, try_flow_star_parts,
 };
+use crate::rules::relation::clamp_branches;
 
 /// Returns the typed star placements in the natal palace at `branch`.
 pub fn stars_in_palace(chart: &Chart, branch: EarthlyBranch) -> Vec<&StarPlacement> {
@@ -70,12 +71,13 @@ pub fn palace_has_all_stars(chart: &Chart, branch: EarthlyBranch, stars: &[StarN
         .all(|star| palace_has_star(chart, branch, *star))
 }
 
-/// Returns effective typed star placements in `branch`.
+/// Returns effective typed star placements in `branch` for `match_scope`.
 pub fn effective_stars_in_palace<'a>(
     ctx: &RuleEvaluationContext<'a>,
+    match_scope: Scope,
     branch: EarthlyBranch,
 ) -> Vec<EffectiveStarRef<'a>> {
-    ctx.effective()
+    effective_state_for_match_scope(ctx, match_scope)
         .map(|state| state.stars_in_palace(branch))
         .unwrap_or_default()
 }
@@ -296,8 +298,4 @@ fn base_flow_match(star: StarName) -> Option<FlowStarBase> {
         StarName::TianMa => Some(FlowStarBase::Ma),
         _ => None,
     }
-}
-
-fn clamp_branches(branch: EarthlyBranch) -> [EarthlyBranch; 2] {
-    [branch.offset(-1), branch.offset(1)]
 }
