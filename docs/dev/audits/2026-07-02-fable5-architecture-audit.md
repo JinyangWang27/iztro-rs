@@ -27,7 +27,8 @@
   - Addressed by: PR #161
 - [x] F10 — Overlapping palace-relation vocabularies
   - Addressed by: PR #162 (feature extraction relation types now use `PalaceNameRelation*`; PR #160 moved rule branch-level relation vocabulary to `rules::relation`)
-- [ ] F11 — Panicking constructors on future binding/MCP surface
+- [x] F11 — Panicking constructors on future binding/MCP surface
+  - Addressed by: PR #163 (`try_horoscope_with_frame` constructors provide Result-returning APIs for external/binding surfaces; strict constructors remain for validated internal callers)
 - [x] F12 — Stringly `work` in `PatternSourceMetadata`
   - Addressed by: PR #162 (`PatternSourceMetadata.work` now uses typed shared `ClassicalWork`)
 
@@ -210,10 +211,13 @@ Why it matters:
 - Internal callers validate first (analysis facade validates keys, `EffectiveChartState` returns `ChartError`), so no current bug. But an MCP/PyO3 layer calling these with attacker-shaped input turns validation errors into process aborts.
 
 Minimal safe fix:
-- Nothing now; record the rule "MCP/bindings call only `Result`-returning facades" (already implicit in §11 below). Optionally add `try_horoscope_with_frame` later.
+- Add `try_horoscope_with_frame` fallible constructors returning `Result<Self, ChartError>` on all three context types, and have the existing strict `horoscope_with_frame` constructors delegate to them (panicking only through `.expect(...)`). Record the rule "MCP/bindings call only `Result`-returning facades" (already implicit in §11 below).
 
 PR recommendation:
-- Defer (document in MCP design doc) / Small.
+- Immediate / Small.
+
+Resolution:
+- Addressed by PR #163. `RuleEvaluationContext::try_horoscope_with_frame`, `PatternContext::try_horoscope_with_frame`, and `ClassicalRuleContext::try_horoscope_with_frame` now provide the `Result`-returning public contract for external/binding/MCP surfaces; the strict `horoscope_with_frame` constructors remain for validated internal callers and delegate to the fallible ones. `pattern_spec` keeps its registry-exhaustiveness panic (rustdoc now points user-shaped lookup at the existing `try_pattern_spec`).
 
 ---
 

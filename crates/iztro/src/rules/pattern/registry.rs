@@ -435,6 +435,11 @@ static PATTERN_SPECS_INNER: [PatternSpec; 26] = [
 ];
 
 /// Returns the canonical pattern spec for a known id.
+///
+/// This panics only if the internal registry fails to cover a public
+/// [`PatternId`] — a registry-exhaustiveness invariant, not a user-input path.
+/// External, binding, or MCP surfaces and any user-shaped lookup should call
+/// [`try_pattern_spec`], which returns `None` instead of panicking.
 pub fn pattern_spec(id: PatternId) -> &'static PatternSpec {
     try_pattern_spec(id).expect("pattern registry must cover every PatternId")
 }

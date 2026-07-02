@@ -16,7 +16,7 @@
 //! natal chart is used as the underlying [`Chart`], and temporal facts are never
 //! folded into natal facts.
 
-use crate::core::{Chart, EffectiveChartState, HoroscopeChart, Scope};
+use crate::core::{Chart, ChartError, EffectiveChartState, HoroscopeChart, Scope};
 
 /// The shared, read-only context describing the chart state under evaluation.
 ///
@@ -79,26 +79,50 @@ impl<'a> RuleEvaluationContext<'a> {
         }
     }
 
+    /// Creates a context over a horoscope chart with an explicit palace frame,
+    /// returning an error instead of panicking on invalid input.
+    ///
+    /// This is the **public fallible constructor** and the one external,
+    /// binding, or MCP surfaces must use. The effective state is built strictly
+    /// from `palace_frame_scope` and `active_scopes`; an invalid frame/scope
+    /// combination (missing temporal layer, frame scope not active, …) returns
+    /// the underlying [`ChartError`] rather than aborting the process, so
+    /// user-shaped input can be handled as a recoverable error.
+    ///
+    /// Internal, already-validated selected-view callers may use the strict
+    /// [`horoscope_with_frame`](Self::horoscope_with_frame) instead.
+    pub fn try_horoscope_with_frame(
+        chart: &'a HoroscopeChart,
+        palace_frame_scope: Scope,
+        active_scopes: Vec<Scope>,
+    ) -> Result<Self, ChartError> {
+        let effective =
+            EffectiveChartState::from_horoscope(chart, palace_frame_scope, active_scopes.clone())?;
+        Ok(Self {
+            chart: chart.natal(),
+            horoscope: Some(chart),
+            active_scopes,
+            effective: Some(effective),
+        })
+    }
+
     /// Creates a context over a horoscope chart with an explicit palace frame.
     ///
-    /// This is the production constructor for selected-view analysis. The
-    /// effective state is built strictly from `palace_frame_scope` and
-    /// `active_scopes`; invalid inputs panic because callers must validate
-    /// selected temporal context before evaluation.
+    /// This is the strict constructor for already-validated internal
+    /// selected-view analysis. It delegates to
+    /// [`try_horoscope_with_frame`](Self::try_horoscope_with_frame) and panics
+    /// on an invalid frame/scope combination, because internal callers must
+    /// validate selected temporal context before evaluation. External,
+    /// binding, or MCP surfaces must call
+    /// [`try_horoscope_with_frame`](Self::try_horoscope_with_frame) instead,
+    /// which returns the [`ChartError`] rather than panicking.
     pub fn horoscope_with_frame(
         chart: &'a HoroscopeChart,
         palace_frame_scope: Scope,
         active_scopes: Vec<Scope>,
     ) -> Self {
-        let effective =
-            EffectiveChartState::from_horoscope(chart, palace_frame_scope, active_scopes.clone())
-                .expect("rule evaluation context requires a valid effective chart state");
-        Self {
-            chart: chart.natal(),
-            horoscope: Some(chart),
-            active_scopes,
-            effective: Some(effective),
-        }
+        Self::try_horoscope_with_frame(chart, palace_frame_scope, active_scopes)
+            .expect("rule evaluation context requires a valid effective chart state")
     }
 
     /// Returns the natal chart facts being analyzed.
