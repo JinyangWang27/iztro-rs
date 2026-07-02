@@ -243,3 +243,86 @@ fn facade_does_not_auto_return_unrequested_ancestors() {
     assert_eq!(results.len(), 1);
     assert_eq!(results[0].key, monthly_key);
 }
+
+#[test]
+fn ancestor_layer_results_are_identical_across_selection_depths() {
+    let request = AnalysisLayerRequest::user_facing();
+    let natal = natal_chart();
+
+    // The hourly late-Zi selection resolves to different concrete daily target
+    // coordinates than the daily Early-Zi selection. Before canonical
+    // per-key anchoring, requesting the same Daily key through Hourly leaked
+    // those descendant target coordinates into the Daily result.
+    let monthly_selection = StaticTemporalNavigationSelection::Monthly {
+        decadal_index: 0,
+        year_index: 0,
+        month_index: 0,
+    };
+    let daily_selection = StaticTemporalNavigationSelection::Daily {
+        decadal_index: 0,
+        year_index: 0,
+        month_index: 0,
+        day_index: 0,
+    };
+    let hourly_selection = StaticTemporalNavigationSelection::Hourly {
+        decadal_index: 0,
+        year_index: 0,
+        month_index: 0,
+        day_index: 0,
+        hour_index: 12,
+    };
+
+    let monthly_key = AnalysisLayerKey::Monthly {
+        decadal_index: 0,
+        year_index: 0,
+        month_index: 0,
+    };
+    let monthly_result_from_monthly = single_result(
+        natal.clone(),
+        monthly_selection,
+        monthly_key.clone(),
+        &request,
+    );
+    let monthly_result_from_daily = single_result(
+        natal.clone(),
+        daily_selection,
+        monthly_key.clone(),
+        &request,
+    );
+    let monthly_result_from_hourly = single_result(
+        natal.clone(),
+        hourly_selection,
+        monthly_key.clone(),
+        &request,
+    );
+    assert_eq!(monthly_result_from_monthly, monthly_result_from_daily);
+    assert_eq!(monthly_result_from_monthly, monthly_result_from_hourly);
+
+    let daily_key = AnalysisLayerKey::Daily {
+        decadal_index: 0,
+        year_index: 0,
+        month_index: 0,
+        day_index: 0,
+    };
+    let daily_result_from_daily =
+        single_result(natal.clone(), daily_selection, daily_key.clone(), &request);
+    let daily_result_from_hourly = single_result(natal, hourly_selection, daily_key, &request);
+    assert_eq!(daily_result_from_daily, daily_result_from_hourly);
+}
+
+fn single_result(
+    natal: Chart,
+    selection: StaticTemporalNavigationSelection,
+    key: AnalysisLayerKey,
+    request: &AnalysisLayerRequest,
+) -> iztro::AnalysisLayerResult {
+    let mut results = detect_static_temporal_analysis_layers_from_chart(
+        natal,
+        selection,
+        std::slice::from_ref(&key),
+        request,
+    )
+    .expect("visible analysis key should be detected");
+    assert_eq!(results.len(), 1);
+    results.remove(0)
+}

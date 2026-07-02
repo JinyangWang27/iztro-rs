@@ -7,7 +7,8 @@
 
 ## Triage status
 
-- [ ] F1 — Ancestor analysis-layer cache identity instability
+- [x] F1 — Ancestor analysis-layer cache identity instability
+  - Addressed by: this PR
 - [x] F2 — GUI derivation-guard test does not scan `static_chart_screen/`
   - Addressed by: PR #157
 - [ ] F3 — Shared relation type/helpers live inside `rules::pattern`

@@ -8,19 +8,22 @@
 //! [`analysis_layers_for_selection`]);
 //! it passes those in and receives one [`AnalysisLayerResult`] per requested key.
 //!
-//! Core owns the temporal context: it builds the selected horoscope overlay stack
-//! **once** and detects each requested layer against it. The app never constructs
-//! a [`HoroscopeChart`](crate::core::HoroscopeChart) or a borrowed
+//! The current navigation selection determines which analysis keys are visible.
+//! Each requested key is evaluated through that key's canonical analysis
+//! selection, so ancestor results are independent of descendant target
+//! coordinates. The app never constructs a
+//! [`HoroscopeChart`](crate::core::HoroscopeChart) or a borrowed
 //! [`TemporalAnalysisContext`] itself — it stays a cache/render layer.
 //!
-//! # Per-key scope truncation
+//! # Per-key anchoring and scope truncation
 //!
-//! The selected view fixes the deepest visible scope, but each requested layer is
-//! detected with **its own** active-scope chain
+//! The selected view fixes visibility only. Each requested layer is first mapped
+//! to its own canonical analysis selection, then detected with **its own**
+//! active-scope chain
 //! ([`analysis_scopes_for_layer_key`](crate::analysis::analysis_scopes_for_layer_key)),
-//! not the deepest chain. Detecting a 流年 layer inside a selected 流月 view sees
-//! only `Natal..=Yearly`, never 流月, so a cached 流年 result stays stable when the
-//! selected 流月 / 流日 / 流时 changes.
+//! not the deepest chain. Detecting a 流年 layer inside a selected 流月 view uses
+//! the 流年 key's canonical target coordinates and sees only `Natal..=Yearly`,
+//! so a cached 流年 result stays stable when the selected 流月 / 流日 / 流时 changes.
 
 use crate::core::placement::overlay::selected_temporal::{
     SelectedTemporalChart, build_selected_temporal_chart,
@@ -34,8 +37,8 @@ use crate::analysis::layer::{AnalysisLayerKey, analysis_layers_for_selection};
 
 /// Detects the requested analysis layers for one temporal navigation selection.
 ///
-/// This is the selected-view batch facade: it builds the temporal context for
-/// `selection` once and detects exactly the requested `keys`, returning one
+/// This is the selected-view batch facade: it uses `selection` to validate which
+/// keys are visible, then detects exactly the requested `keys`, returning one
 /// [`AnalysisLayerResult`] per key in input order.
 ///
 /// # Semantics
@@ -46,10 +49,12 @@ use crate::analysis::layer::{AnalysisLayerKey, analysis_layers_for_selection};
 ///   [`analysis_layers_for_selection`] expands `selection` into. A key for a
 ///   sibling index, a descendant scope, or a mismatched ancestor index is
 ///   rejected with [`ChartError::AnalysisLayerNotVisibleForSelection`].
-/// - The selected horoscope overlay stack is built once for the whole call.
-/// - Each requested layer is detected with its own truncated active-scope chain,
-///   so a deeper selection never leaks descendant overlays into an ancestor
+/// - Each requested key is evaluated through that key's canonical analysis
+///   selection, so descendant target coordinates never leak into an ancestor
 ///   layer's result.
+/// - Each requested layer is detected with its own truncated active-scope chain,
+///   so descendant overlay scopes/facts never leak into an ancestor layer's
+///   result.
 /// - Only the requested keys are returned; ancestor layers are **not** requested
 ///   automatically. The app drives ancestor caching through
 ///   [`analysis_layers_for_selection`] planning (expand the selection, then
@@ -76,17 +81,18 @@ pub fn detect_static_temporal_analysis_layers_from_chart(
         }
     }
 
-    // Build the selected temporal context once; reuse it for every requested key.
-    let selected = build_selected_temporal_chart(natal, selection)?;
-    let ctx = match &selected {
-        SelectedTemporalChart::Natal(natal) => TemporalAnalysisContext::natal(natal),
-        SelectedTemporalChart::Horoscope(horoscope) => {
-            TemporalAnalysisContext::horoscope(horoscope)
-        }
-    };
+    let mut results = Vec::with_capacity(keys.len());
+    for key in keys {
+        let canonical_selection = key.selection_for_canonical_analysis()?;
+        let selected = build_selected_temporal_chart(natal.clone(), canonical_selection)?;
+        let ctx = match &selected {
+            SelectedTemporalChart::Natal(natal) => TemporalAnalysisContext::natal(natal),
+            SelectedTemporalChart::Horoscope(horoscope) => {
+                TemporalAnalysisContext::horoscope(horoscope)
+            }
+        };
+        results.push(detect_analysis_layer(&ctx, key.clone(), request));
+    }
 
-    Ok(keys
-        .iter()
-        .map(|key| detect_analysis_layer(&ctx, key.clone(), request))
-        .collect())
+    Ok(results)
 }
