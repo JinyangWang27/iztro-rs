@@ -7,10 +7,12 @@
 //! 2. **破格 / 减力 assessment** (`assess_integrity`): once the base exists, is it
 //!    fulfilled, weakened, or broken?
 //!
-//! [`detect_all`] owns the ordered list of detector calls. Ordering is kept stable
-//! so downstream sorting and existing tests stay deterministic. Detectors emit
-//! through [`emit::push_detection`], which resolves display name, family, and
-//! polarity from the registry.
+//!
+//! [`DETECTORS`] owns the canonical detector registration order. [`detect_all`]
+//! executes that table so downstream sorting and existing tests stay deterministic.
+//! Ordering is kept stable so downstream sorting and existing tests stay deterministic.
+//! Detectors emit through [`emit::push_detection`], which resolves display name,
+//! family, and polarity from the registry.
 
 pub(crate) mod emit;
 
