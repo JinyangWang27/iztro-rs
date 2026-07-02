@@ -22,10 +22,11 @@ pub mod detector;
 pub mod display_metadata;
 pub mod metadata;
 pub mod model;
+pub(crate) mod patterns;
+pub(crate) mod predicates;
 pub mod query;
 pub mod registry;
 pub mod relation;
-pub mod rules;
 
 pub use context::{PatternContext, PatternDetectionRequest};
 pub use detector::detect_patterns;

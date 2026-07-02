@@ -8,7 +8,7 @@ use crate::core::Scope;
 
 use super::context::{PatternContext, PatternDetectionRequest};
 use super::model::{PatternAnchor, PatternDetection, PatternScope, PatternStatus};
-use super::rules;
+use super::patterns;
 
 /// Detects all supported patterns on a chart, honoring the request filters.
 ///
@@ -20,15 +20,7 @@ pub fn detect_patterns(
 ) -> Vec<PatternDetection> {
     let mut out = Vec::new();
 
-    rules::zi_fu_chao_yuan::detect(ctx, request, &mut out);
-    rules::ji_yue_tong_liang::detect(ctx, request, &mut out);
-    rules::yang_tuo_jia_ji::detect(ctx, request, &mut out);
-    rules::zuo_you_jia_ming::detect(ctx, request, &mut out);
-    rules::chang_qu_jia_ming::detect(ctx, request, &mut out);
-    rules::ri_yue_bing_ming::detect(ctx, request, &mut out);
-    rules::ri_yue_fan_bei::detect(ctx, request, &mut out);
-    rules::quan_shu_v01::detect(ctx, request, &mut out);
-    rules::pattern_notes_v01::detect(ctx, request, &mut out);
+    patterns::detect_all(ctx, request, &mut out);
 
     filter_and_sort(out, request)
 }

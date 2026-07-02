@@ -361,10 +361,10 @@ fn canonical_pattern_metadata_references_source_inventory() {
 
     // Validates inventory-reference correctness for every source-backed pattern
     // (a `PatternId` carrying source metadata). This test owns the test-only
-    // inventory loader. The runtime panic guard — that every id the detector
-    // *emits* has metadata — lives in a unit test next to the detector
-    // (`rules::pattern::rules::quan_shu_v01`), so that detector detail stays
-    // private rather than being made `pub` just for this test.
+    // inventory loader. The runtime guard — that every source-backed id the
+    // detectors *emit* has metadata — lives in a unit test in
+    // `rules::pattern::patterns`, so that detector detail stays private rather
+    // than being made `pub` just for this test.
     let inventory = source_inventory();
     let inventory_by_id: HashMap<&str, _> = inventory
         .source_item
