@@ -28,6 +28,7 @@ pub mod query;
 pub mod registry;
 pub mod relation;
 
+pub use crate::rules::relation::PalaceRelation;
 pub use context::{PatternContext, PatternDetectionRequest};
 pub use detector::detect_patterns;
 pub use display_metadata::{PatternDisplayMetadata, pattern_display_metadata};
@@ -37,4 +38,3 @@ pub use model::{
     PatternPolarity, PatternScope, PatternStatus, PatternStrength,
 };
 pub use registry::{PatternSpec, pattern_spec, pattern_specs, try_pattern_spec};
-pub use relation::PalaceRelation;

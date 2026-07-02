@@ -31,8 +31,8 @@ use crate::core::{
 };
 use crate::rules::pattern::context::PatternContext;
 use crate::rules::pattern::model::PatternScope;
-use crate::rules::pattern::relation::{clamp_branches, san_fang_si_zheng};
 use crate::rules::query as rule_query;
+use crate::rules::relation::{clamp_branches, san_fang_si_zheng};
 
 /// A pattern-facing star read with its spatial branch.
 #[derive(Clone, Copy, Debug)]
@@ -273,12 +273,13 @@ pub fn palace_has_all_stars_for_scope(
         .all(|star| palace_has_star_for_scope(ctx, scope, branch, *star))
 }
 
-/// Returns effective typed star placements in `branch`.
+/// Returns effective typed star placements in `branch` for `match_scope`.
 pub fn effective_stars_in_palace<'a>(
     ctx: &PatternContext<'a>,
+    match_scope: Scope,
     branch: EarthlyBranch,
 ) -> Vec<EffectiveStarRef<'a>> {
-    rule_query::effective_stars_in_palace(ctx.as_rule_context(), branch)
+    rule_query::effective_stars_in_palace(ctx.as_rule_context(), match_scope, branch)
 }
 
 /// Returns effective typed star placements in `branch` for the selected frame.

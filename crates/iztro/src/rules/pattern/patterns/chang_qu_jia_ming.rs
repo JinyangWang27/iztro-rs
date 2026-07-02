@@ -12,7 +12,7 @@ use crate::rules::pattern::model::{PatternAnchor, PatternDetection, PatternEvide
 use crate::rules::pattern::patterns::emit::{self, FormationMatch, IntegrityAssessment};
 use crate::rules::pattern::predicates::clamp::effective_clamp_pair_matches;
 use crate::rules::pattern::query::effective_branch_of_palace;
-use crate::rules::pattern::relation::PalaceRelation;
+use crate::rules::relation::PalaceRelation;
 
 /// Detects 昌曲夹命 and appends any detection to `out`.
 pub fn detect(

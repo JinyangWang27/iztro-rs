@@ -10,7 +10,7 @@ use crate::core::{Brightness, EarthlyBranch, Mutagen, StarName};
 use crate::rules::classical::outcome::UnsupportedReason;
 use crate::rules::classical::void::VoidKind;
 use crate::rules::pattern::model::PatternId;
-use crate::rules::pattern::relation::PalaceRelation;
+use crate::rules::relation::PalaceRelation;
 
 /// A concrete, machine-checkable reason a classical rule matched.
 #[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]

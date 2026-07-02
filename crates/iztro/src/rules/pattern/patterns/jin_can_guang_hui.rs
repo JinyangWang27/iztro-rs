@@ -9,7 +9,7 @@ use crate::rules::pattern::context::{PatternContext, PatternDetectionRequest};
 use crate::rules::pattern::model::{PatternAnchor, PatternDetection, PatternEvidence, PatternId};
 use crate::rules::pattern::patterns::emit::{self, FormationMatch, IntegrityAssessment};
 use crate::rules::pattern::query::{
-    effective_branch_of_palace, effective_star_in_palace, effective_stars_in_palace,
+    effective_branch_of_palace, effective_star_in_palace, selected_stars_in_palace,
 };
 
 /// Detects 金灿光辉 and appends any detection to `out`.
@@ -34,7 +34,7 @@ fn detect_base_formation(ctx: &PatternContext<'_>, scope: Scope) -> Option<Forma
         return None;
     }
     let tai_yang = effective_star_in_palace(ctx, scope, branch, StarName::TaiYang)?;
-    if effective_stars_in_palace(ctx, branch)
+    if selected_stars_in_palace(ctx, branch)
         .iter()
         .filter(|star| star.placement().kind() == StarKind::Major)
         .count()

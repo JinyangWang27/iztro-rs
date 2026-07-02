@@ -7,6 +7,7 @@
 pub mod classical;
 pub mod pattern;
 pub mod query;
+pub mod relation;
 
 pub use classical::{
     Claim, ClaimDomain, ClaimEvaluation, ClaimEvaluationRequest, ClaimId, ClaimPolarity,
@@ -16,3 +17,4 @@ pub use classical::{
     classical_rules, evaluate_classical, evaluate_classical_claims, pattern_rules, quan_shu_rules,
     rule_by_id,
 };
+pub use relation::PalaceRelation;

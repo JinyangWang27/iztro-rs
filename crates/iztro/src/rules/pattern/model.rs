@@ -13,7 +13,7 @@
 use serde::{Deserialize, Serialize};
 
 use crate::core::{EarthlyBranch, Mutagen, Scope, StarName};
-use crate::rules::pattern::relation::PalaceRelation;
+use crate::rules::relation::PalaceRelation;
 
 /// Stable identifier for a recognized pattern (格局).
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Ord, PartialOrd, Hash, Serialize, Deserialize)]

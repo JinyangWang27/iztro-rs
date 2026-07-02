@@ -32,7 +32,7 @@ use crate::rules::classical::scope_registry::{
 use crate::rules::classical::source_hit::ClassicalSourceHit;
 use crate::rules::classical::void::VoidPolicy;
 use crate::rules::pattern::model::PatternId;
-use crate::rules::pattern::relation::PalaceRelation;
+use crate::rules::relation::PalaceRelation;
 
 /// Evaluates `rule` against `chart`, returning a typed outcome.
 ///
