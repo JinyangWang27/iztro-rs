@@ -15,7 +15,9 @@
 //! natal chart is used as the underlying [`Chart`], and temporal facts are never
 //! folded into natal facts.
 
-use crate::core::{Chart, EffectiveChartState, HoroscopeChart, RuleEvaluationContext, Scope};
+use crate::core::{
+    Chart, ChartError, EffectiveChartState, HoroscopeChart, RuleEvaluationContext, Scope,
+};
 
 /// A read-only context over a chart for classical rule evaluation.
 ///
@@ -51,23 +53,46 @@ impl<'a> ClassicalRuleContext<'a> {
         }
     }
 
+    /// Creates a context over a horoscope chart with an explicit palace frame,
+    /// returning an error instead of panicking on invalid input.
+    ///
+    /// This is the **public fallible constructor** and the one external,
+    /// binding, or MCP surfaces must use. It delegates to
+    /// [`RuleEvaluationContext::try_horoscope_with_frame`], so an invalid
+    /// frame/scope combination returns the underlying [`ChartError`] rather than
+    /// aborting the process.
+    ///
+    /// Internal, already-validated selected-view callers may use the strict
+    /// [`horoscope_with_frame`](Self::horoscope_with_frame) instead.
+    pub fn try_horoscope_with_frame(
+        chart: &'a HoroscopeChart,
+        palace_frame_scope: Scope,
+        active_scopes: Vec<Scope>,
+    ) -> Result<Self, ChartError> {
+        Ok(Self {
+            inner: RuleEvaluationContext::try_horoscope_with_frame(
+                chart,
+                palace_frame_scope,
+                active_scopes,
+            )?,
+        })
+    }
+
     /// Creates a context over a horoscope chart with an explicit palace frame.
     ///
-    /// This is the production constructor for selected-view evaluation. The
-    /// effective state is built strictly; invalid inputs panic because callers
-    /// must validate selected temporal context before evaluation.
+    /// This is the strict constructor for already-validated internal
+    /// selected-view evaluation. It delegates to
+    /// [`try_horoscope_with_frame`](Self::try_horoscope_with_frame) and panics
+    /// on an invalid frame/scope combination. External, binding, or MCP surfaces
+    /// must call [`try_horoscope_with_frame`](Self::try_horoscope_with_frame)
+    /// instead, which returns the [`ChartError`] rather than panicking.
     pub fn horoscope_with_frame(
         chart: &'a HoroscopeChart,
         palace_frame_scope: Scope,
         active_scopes: Vec<Scope>,
     ) -> Self {
-        Self {
-            inner: RuleEvaluationContext::horoscope_with_frame(
-                chart,
-                palace_frame_scope,
-                active_scopes,
-            ),
-        }
+        Self::try_horoscope_with_frame(chart, palace_frame_scope, active_scopes)
+            .expect("classical rule context requires a valid effective chart state")
     }
 
     /// Returns the shared rule-evaluation context this classical context wraps.

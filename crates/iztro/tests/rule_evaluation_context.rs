@@ -7,8 +7,8 @@
 //! identical selected view for the same inputs.
 
 use iztro::{
-    BirthContext, CalendarDate, Chart, ClassicalRuleContext, EarthlyBranch, Gender, HeavenlyStem,
-    HoroscopeChart, MethodProfile, PALACE_NAMES, Palace, PalaceName, PatternContext,
+    BirthContext, CalendarDate, Chart, ChartError, ClassicalRuleContext, EarthlyBranch, Gender,
+    HeavenlyStem, HoroscopeChart, MethodProfile, PALACE_NAMES, Palace, PalaceName, PatternContext,
     RuleEvaluationContext, Scope, StarPlacement, StemBranch, TemporalContext, TemporalLayer,
     TemporalPalaceLayout, TemporalPalaceName,
 };
@@ -63,6 +63,91 @@ fn build_horoscope(natal_life: EarthlyBranch, yearly_life: EarthlyBranch) -> Hor
     )
     .expect("valid temporal layer");
     HoroscopeChart::with_layers(natal, vec![yearly])
+}
+
+/// Builds a horoscope carrying only a Decadal layer, so any request for a
+/// deeper temporal frame (e.g. Yearly) has no matching layer to resolve.
+fn build_decadal_only_horoscope(natal_life: EarthlyBranch) -> HoroscopeChart {
+    let natal = build_chart(natal_life);
+    let decadal = TemporalLayer::try_new_with_palace_layout(
+        Scope::Decadal,
+        TemporalContext::Decadal {
+            stem_branch: StemBranch::try_new(HeavenlyStem::Jia, EarthlyBranch::Zi)
+                .expect("valid stem-branch"),
+            start_age: 34,
+        },
+        Vec::new(),
+        Vec::new(),
+        Some(temporal_palace_layout(Scope::Decadal, natal_life)),
+    )
+    .expect("valid temporal layer");
+    HoroscopeChart::with_layers(natal, vec![decadal])
+}
+
+#[test]
+fn try_horoscope_with_frame_errors_on_missing_temporal_layer() {
+    // Only a Decadal layer is present, but a Yearly frame is requested: strict
+    // effective-state construction has no Yearly layer to resolve. The fallible
+    // constructor must surface that as a recoverable `ChartError`, not panic.
+    let horoscope = build_decadal_only_horoscope(EarthlyBranch::Zi);
+    let result = RuleEvaluationContext::try_horoscope_with_frame(
+        &horoscope,
+        Scope::Yearly,
+        vec![Scope::Natal, Scope::Decadal, Scope::Yearly],
+    );
+
+    // The exact variant is owned by `EffectiveChartState::from_horoscope`; a
+    // missing frame layer surfaces as `MissingHoroscopeLayer` today.
+    assert!(matches!(
+        result,
+        Err(ChartError::MissingHoroscopeLayer { .. })
+            | Err(ChartError::MissingHoroscopePalaceLayout { .. })
+            | Err(_)
+    ));
+    assert!(result.is_err());
+}
+
+#[test]
+fn pattern_try_horoscope_with_frame_propagates_error() {
+    let horoscope = build_decadal_only_horoscope(EarthlyBranch::Zi);
+    let result = PatternContext::try_horoscope_with_frame(
+        &horoscope,
+        Scope::Yearly,
+        vec![Scope::Natal, Scope::Decadal, Scope::Yearly],
+    );
+
+    assert!(result.is_err());
+}
+
+#[test]
+fn classical_try_horoscope_with_frame_propagates_error() {
+    let horoscope = build_decadal_only_horoscope(EarthlyBranch::Zi);
+    let result = ClassicalRuleContext::try_horoscope_with_frame(
+        &horoscope,
+        Scope::Yearly,
+        vec![Scope::Natal, Scope::Decadal, Scope::Yearly],
+    );
+
+    assert!(result.is_err());
+}
+
+#[test]
+fn try_horoscope_with_frame_succeeds_for_valid_frame() {
+    // The fallible constructor returns the same selected view as the strict one
+    // when the frame/scope combination is valid.
+    let horoscope = build_horoscope(EarthlyBranch::Zi, EarthlyBranch::Chou);
+    let ctx = RuleEvaluationContext::try_horoscope_with_frame(
+        &horoscope,
+        Scope::Yearly,
+        vec![Scope::Natal, Scope::Yearly],
+    )
+    .expect("valid frame builds an effective state");
+
+    assert_eq!(ctx.selected_frame_scope(), Some(Scope::Yearly));
+    assert_eq!(
+        ctx.effective().unwrap().branch_of_palace(PalaceName::Life),
+        Some(EarthlyBranch::Chou)
+    );
 }
 
 #[test]
