@@ -31,28 +31,6 @@ const EMPTY_ALIASES: &[&str] = &[];
 const RI_CHU_FU_SANG_ALIASES: &[&str] = &["日出扶桑格"];
 const QUAN_SHU_WORK: &str = "zi_wei_dou_shu_quan_shu";
 
-const fn display(
-    pattern_id: PatternId,
-    name_zh: &'static str,
-    aliases_zh: &'static [&'static str],
-    family: PatternFamily,
-    polarity: PatternPolarity,
-    condition_note_zh_hans: &'static str,
-    source_note_zh_hans: Option<&'static str>,
-    interpretation_note_zh_hans: Option<&'static str>,
-) -> PatternDisplayMetadata {
-    PatternDisplayMetadata {
-        pattern_id,
-        name_zh,
-        aliases_zh,
-        family,
-        polarity,
-        condition_note_zh_hans,
-        source_note_zh_hans,
-        interpretation_note_zh_hans,
-    }
-}
-
 const fn source(
     pattern_id: PatternId,
     name_zh: &'static str,
@@ -72,40 +50,42 @@ const fn source(
     }
 }
 
-const fn spec(
-    id: PatternId,
-    name_zh: &'static str,
-    aliases_zh: &'static [&'static str],
-    family: PatternFamily,
-    polarity: PatternPolarity,
-    condition_note_zh_hans: &'static str,
-    source_note_zh_hans: Option<&'static str>,
-    interpretation_note_zh_hans: Option<&'static str>,
-    source: Option<PatternSourceMetadata>,
-) -> PatternSpec {
-    PatternSpec {
-        id,
-        name_zh,
-        aliases_zh,
-        family,
-        polarity,
-        display: display(
-            id,
-            name_zh,
-            aliases_zh,
-            family,
-            polarity,
-            condition_note_zh_hans,
-            source_note_zh_hans,
-            interpretation_note_zh_hans,
-        ),
-        source,
-    }
+macro_rules! spec {
+    (
+        $id:expr,
+        $name_zh:expr,
+        $aliases_zh:expr,
+        $family:expr,
+        $polarity:expr,
+        $condition_note_zh_hans:expr,
+        $source_note_zh_hans:expr,
+        $interpretation_note_zh_hans:expr,
+        $source:expr $(,)?
+    ) => {
+        PatternSpec {
+            id: $id,
+            name_zh: $name_zh,
+            aliases_zh: $aliases_zh,
+            family: $family,
+            polarity: $polarity,
+            display: PatternDisplayMetadata {
+                pattern_id: $id,
+                name_zh: $name_zh,
+                aliases_zh: $aliases_zh,
+                family: $family,
+                polarity: $polarity,
+                condition_note_zh_hans: $condition_note_zh_hans,
+                source_note_zh_hans: $source_note_zh_hans,
+                interpretation_note_zh_hans: $interpretation_note_zh_hans,
+            },
+            source: $source,
+        }
+    };
 }
 
 /// Canonical pattern metadata for every [`PatternId`].
 pub static PATTERN_SPECS: [PatternSpec; 26] = [
-    spec(
+    spec!(
         PatternId::ZiFuChaoYuan,
         "紫府朝垣",
         EMPTY_ALIASES,
@@ -116,7 +96,7 @@ pub static PATTERN_SPECS: [PatternSpec; 26] = [
         None,
         None,
     ),
-    spec(
+    spec!(
         PatternId::JiYueTongLiang,
         "机月同梁",
         EMPTY_ALIASES,
@@ -127,7 +107,7 @@ pub static PATTERN_SPECS: [PatternSpec; 26] = [
         None,
         None,
     ),
-    spec(
+    spec!(
         PatternId::YangTuoJiaJi,
         "羊陀夹忌",
         EMPTY_ALIASES,
@@ -138,7 +118,7 @@ pub static PATTERN_SPECS: [PatternSpec; 26] = [
         None,
         None,
     ),
-    spec(
+    spec!(
         PatternId::LingChangTuoWu,
         "铃昌陀武",
         EMPTY_ALIASES,
@@ -149,7 +129,7 @@ pub static PATTERN_SPECS: [PatternSpec; 26] = [
         None,
         None,
     ),
-    spec(
+    spec!(
         PatternId::ZuoYouJiaMing,
         "左右夹命",
         EMPTY_ALIASES,
@@ -160,7 +140,7 @@ pub static PATTERN_SPECS: [PatternSpec; 26] = [
         None,
         None,
     ),
-    spec(
+    spec!(
         PatternId::ChangQuJiaMing,
         "昌曲夹命",
         EMPTY_ALIASES,
@@ -171,7 +151,7 @@ pub static PATTERN_SPECS: [PatternSpec; 26] = [
         None,
         None,
     ),
-    spec(
+    spec!(
         PatternId::RiYueBingMing,
         "日月并明",
         EMPTY_ALIASES,
@@ -182,7 +162,7 @@ pub static PATTERN_SPECS: [PatternSpec; 26] = [
         None,
         None,
     ),
-    spec(
+    spec!(
         PatternId::RiYueFanBei,
         "日月反背",
         EMPTY_ALIASES,
@@ -193,7 +173,7 @@ pub static PATTERN_SPECS: [PatternSpec; 26] = [
         None,
         None,
     ),
-    spec(
+    spec!(
         PatternId::JinCanGuangHui,
         "金灿光辉",
         EMPTY_ALIASES,
@@ -211,7 +191,7 @@ pub static PATTERN_SPECS: [PatternSpec; 26] = [
             PatternSourceGroup::Wealth,
         )),
     ),
-    spec(
+    spec!(
         PatternId::RiChuFuSang,
         "日照雷门",
         RI_CHU_FU_SANG_ALIASES,
@@ -229,7 +209,7 @@ pub static PATTERN_SPECS: [PatternSpec; 26] = [
             PatternSourceGroup::Noble,
         )),
     ),
-    spec(
+    spec!(
         PatternId::YueLuoHaiGong,
         "月落亥宫",
         EMPTY_ALIASES,
@@ -247,7 +227,7 @@ pub static PATTERN_SPECS: [PatternSpec; 26] = [
             PatternSourceGroup::Noble,
         )),
     ),
-    spec(
+    spec!(
         PatternId::YueShengCangHai,
         "月生沧海",
         EMPTY_ALIASES,
@@ -265,7 +245,7 @@ pub static PATTERN_SPECS: [PatternSpec; 26] = [
             PatternSourceGroup::Noble,
         )),
     ),
-    spec(
+    spec!(
         PatternId::MaTouDaiJian,
         "马头带剑",
         EMPTY_ALIASES,
@@ -283,7 +263,7 @@ pub static PATTERN_SPECS: [PatternSpec; 26] = [
             PatternSourceGroup::Noble,
         )),
     ),
-    spec(
+    spec!(
         PatternId::TanHuoXiangFeng,
         "贪火相逢",
         EMPTY_ALIASES,
@@ -301,7 +281,7 @@ pub static PATTERN_SPECS: [PatternSpec; 26] = [
             PatternSourceGroup::Noble,
         )),
     ),
-    spec(
+    spec!(
         PatternId::WuQuShouYuan,
         "武曲守垣",
         EMPTY_ALIASES,
@@ -319,7 +299,7 @@ pub static PATTERN_SPECS: [PatternSpec; 26] = [
             PatternSourceGroup::Noble,
         )),
     ),
-    spec(
+    spec!(
         PatternId::CaiYuQiuChou,
         "财与囚仇",
         EMPTY_ALIASES,
@@ -337,7 +317,7 @@ pub static PATTERN_SPECS: [PatternSpec; 26] = [
             PatternSourceGroup::PovertyLowStatus,
         )),
     ),
-    spec(
+    spec!(
         PatternId::MaLuoKongWang,
         "马落空亡",
         EMPTY_ALIASES,
@@ -355,7 +335,7 @@ pub static PATTERN_SPECS: [PatternSpec; 26] = [
             PatternSourceGroup::PovertyLowStatus,
         )),
     ),
-    spec(
+    spec!(
         PatternId::MingLiFengKong,
         "命里逢空",
         EMPTY_ALIASES,
@@ -366,7 +346,7 @@ pub static PATTERN_SPECS: [PatternSpec; 26] = [
         Some("有精神上孤独，钱不易留住之迹象。"),
         None,
     ),
-    spec(
+    spec!(
         PatternId::LuFengChongPo,
         "禄逢冲破",
         EMPTY_ALIASES,
@@ -377,7 +357,7 @@ pub static PATTERN_SPECS: [PatternSpec; 26] = [
         Some("吉处藏凶之象、应居安思危。"),
         None,
     ),
-    spec(
+    spec!(
         PatternId::WenXingGongMing,
         "文星拱命",
         EMPTY_ALIASES,
@@ -388,7 +368,7 @@ pub static PATTERN_SPECS: [PatternSpec; 26] = [
         Some("经国济世之天才，文学、医学、经济学亦显荣耀。"),
         None,
     ),
-    spec(
+    spec!(
         PatternId::TianJiSiHai,
         "天机巳亥",
         EMPTY_ALIASES,
@@ -399,7 +379,7 @@ pub static PATTERN_SPECS: [PatternSpec; 26] = [
         Some("机智机诈难以分辨。"),
         None,
     ),
-    spec(
+    spec!(
         PatternId::ZuoYouTongGong,
         "左右同宫",
         EMPTY_ALIASES,
@@ -410,7 +390,7 @@ pub static PATTERN_SPECS: [PatternSpec; 26] = [
         Some("端庄高士，性喜助人。"),
         None,
     ),
-    spec(
+    spec!(
         PatternId::MingZhuChuHai,
         "明珠出海",
         EMPTY_ALIASES,
@@ -421,7 +401,7 @@ pub static PATTERN_SPECS: [PatternSpec; 26] = [
         None,
         None,
     ),
-    spec(
+    spec!(
         PatternId::MingWuZhengYao,
         "命无正曜",
         EMPTY_ALIASES,
@@ -432,7 +412,7 @@ pub static PATTERN_SPECS: [PatternSpec; 26] = [
         Some("个人特质不明显，发展不具特定方向。"),
         None,
     ),
-    spec(
+    spec!(
         PatternId::JiXiangLiMing,
         "极向离明",
         EMPTY_ALIASES,
@@ -443,7 +423,7 @@ pub static PATTERN_SPECS: [PatternSpec; 26] = [
         None,
         None,
     ),
-    spec(
+    spec!(
         PatternId::FuXiangChaoYuan,
         "府相朝垣",
         EMPTY_ALIASES,
