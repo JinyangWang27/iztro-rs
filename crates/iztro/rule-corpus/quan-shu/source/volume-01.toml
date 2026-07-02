@@ -723,3 +723,23 @@ source_text_zh_hans = "吉凶相伴 命有主星限前则发限衰不发是也"
 key = "ku_mu_feng_chun"
 source_order = 8
 source_text_zh_hans = "枯木逢春 谓命衰限好是也"
+
+# --- 卷一：斗数骨髓赋 pattern source additions ---
+#
+# These are explicit pattern/格局 source units from docs/zh-CN/sources/quan_shu/volume-01.md
+# not covered by the 卷一末尾「定富局 / 定贵局 / 定贫贱局 / 定杂局」catalogue.
+
+[[source_group]]
+source_id_prefix = "quan_shu.v01.dou_shu_gu_sui_fu."
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "斗数骨髓赋"
+category = "pattern_rule"
+status = "segmented"
+doc_path = "docs/zh-CN/sources/quan_shu/volume-01.md"
+anchor = "斗数骨髓赋"
+
+[[source_group.item]]
+key = "shi_zhong_yin_yu"
+source_order = 1
+source_text_zh_hans = "子午巨门石中隐玉，明禄暗禄锦上添花"

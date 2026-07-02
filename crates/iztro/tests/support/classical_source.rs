@@ -126,7 +126,7 @@ pub struct RuleEntry {
 
 const SOURCE_INVENTORY_TOMLS: &[&str] = &[
     include_str!("../../rule-corpus/quan-shu/source/volume-01.toml"),
-    include_str!("../../rule-corpus/quan-shu/source/pattern-additions.toml"),
+    include_str!("../../rule-corpus/quan-shu/source/volume-03.toml"),
 ];
 const RULES_CORPUS_TOML: &str = include_str!("../../rule-corpus/quan-shu/rules.toml");
 const PATTERN_RULES_CORPUS_TOML: &str = include_str!("../../rule-corpus/patterns/rules.toml");
