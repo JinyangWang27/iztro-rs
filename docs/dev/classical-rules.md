@@ -118,6 +118,41 @@ palace's `三方四正`. `RiChuFuSang` remains the public id for the source-inve
 entry, while runtime display metadata may show `日照雷门` and alias
 `日出扶桑格`.
 
+## Pattern detector layout
+
+`rules::pattern` separates pattern identity, detector semantics, and reusable
+mechanics into distinct modules:
+
+- `registry.rs` owns pattern identity and metadata (display name, family,
+  polarity, provenance). Registry metadata stays separate from detector
+  semantics.
+- `patterns/` contains named 格局 detectors, one file per pattern. A maintainer
+  looking for `紫府朝垣` opens `patterns/zi_fu_chao_yuan.rs`.
+- `predicates/` contains reusable low-level chart predicates (clamp, 三方四正,
+  brightness, support, breakers). Predicates *discover facts* only; they never
+  decide pattern-specific meaning. A helper may find `空劫` in a `三方四正`, but
+  the named pattern decides whether that means `Weakened`, `Broken`, or nothing.
+- `model.rs` owns the structured types (`PatternDetection`, `PatternStatus`,
+  `PatternEvidence`, `PatternCondition`, …).
+- `query.rs` owns the selected/effective chart query helpers.
+
+Each named detector separates the two conceptual layers explicitly:
+
+1. **成格 detection** (`detect_base_formation`): does the base formation exist?
+2. **破格 / 减力 assessment** (`assess_integrity`): once the base exists, is it
+   fulfilled, weakened, or broken?
+
+Detectors emit through `patterns::emit::push_detection`, which combines a
+`FormationMatch` (base facts), an `IntegrityAssessment` (status plus
+weakening/breaking factors), and the registry `PatternSpec`. Pattern-specific
+breaker semantics live in the named detector, not in `predicates/` or the
+registry. `patterns/mod.rs` owns the ordered list of detector calls; ordering is
+kept stable so downstream sorting and existing tests stay deterministic.
+
+When a pattern has multiple alternative base forms, keep them in the same named
+file (e.g. `fu_xiang_chao_yuan.rs` keeps both 府相 forms); do not split them into
+separate `PatternId`s unless the model already does so.
+
 ## Checklist for adding one executable pattern
 
 - [ ] Add the `PatternId` variant and update `PatternId::ALL` plus its
@@ -127,8 +162,9 @@ entry, while runtime display metadata may show `日照雷门` and alias
 - [ ] Add `PatternSourceMetadata` inside that registry entry only when the exact
   source-facing name and verbatim source text are verified against the
   inventory.
-- [ ] Add a focused detector in `rules::pattern::rules` and register it in
-  `detector.rs`.
+- [ ] Add a focused named detector in `rules::pattern::patterns` (one file per
+  pattern, with explicit `detect_base_formation` / `assess_integrity` layers) and
+  register its call in `patterns/mod.rs`.
 - [ ] Populate `involved_palaces`, `involved_stars`, `involved_mutagens`, and
   `PatternEvidence` from structured query results.
 - [ ] Add positive and negative integration tests in
