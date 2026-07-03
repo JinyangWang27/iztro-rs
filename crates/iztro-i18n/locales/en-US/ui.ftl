@@ -32,6 +32,7 @@ field-utc-offset = Birth-place UTC offset
 field-apparent-solar-time = Apparent solar time correction
 field-longitude = Birth-place longitude
 field-longitude-hint = East positive, west negative
+apparent-solar-time-short = apparent solar time
 
 # Buttons
 button-generate = Generate Chart

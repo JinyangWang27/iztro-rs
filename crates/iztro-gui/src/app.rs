@@ -424,14 +424,31 @@ pub fn default_chart_name(input: &BirthInput, locale: Locale) -> String {
 /// A short birth-time summary for a saved-chart label.
 ///
 /// Known-时辰 input shows the localized 时辰 name from its `timeIndex`. Clock
-/// input shows the raw wall-clock `HH:MM` — the GUI cannot show a resolved 时辰
-/// there without deriving it, which is core's responsibility, so it shows the
-/// user-entered clock time instead.
+/// input shows only user-entered, non-derived facts — never a resolved 时辰,
+/// which is core's responsibility:
+///
+/// - plain clock mode: `HH:MM` plus the birth-place UTC offset;
+/// - apparent-solar-time mode: additionally the longitude, so two records that
+///   differ only in UTC offset or in correction/longitude get distinct summaries
+///   (and therefore distinct default names, which the saved list de-dupes by).
 pub fn birth_time_summary(input: &BirthInput, i18n: &I18n) -> String {
     match input {
         BirthInput::SolarKnownTimeBranch(known) => i18n.hour_branch(known.time_index),
         BirthInput::SolarClock(clock) => {
-            format!("{:02}:{:02}", clock.clock_hour, clock.clock_minute)
+            let offset = UtcOffsetChoice::from_minutes(clock.utc_offset_minutes).label();
+            let clock_time = format!("{:02}:{:02}", clock.clock_hour, clock.clock_minute);
+            match clock.solar_time_policy {
+                GuiSolarTimePolicy::ClockTime => format!("{clock_time} {offset}"),
+                GuiSolarTimePolicy::ApparentSolarTime {
+                    longitude_micro_degrees,
+                } => {
+                    format!(
+                        "{clock_time} {offset} · {} {}",
+                        i18n.text("apparent-solar-time-short"),
+                        format_longitude_display(longitude_micro_degrees),
+                    )
+                }
+            }
         }
     }
 }
@@ -522,8 +539,9 @@ impl fmt::Display for UtcOffsetChoice {
 /// minutes and de-duplicated.
 pub fn utc_offset_choices() -> Vec<UtcOffsetChoice> {
     // Common fractional (half/quarter-hour) civil offsets, in minutes east.
-    const FRACTIONAL_OFFSET_MINUTES: [i32; 12] = [
+    const FRACTIONAL_OFFSET_MINUTES: [i32; 13] = [
         -570, // UTC-09:30
+        -270, // UTC-04:30
         -210, // UTC-03:30
         210,  // UTC+03:30
         270,  // UTC+04:30
@@ -549,6 +567,15 @@ pub fn utc_offset_choices() -> Vec<UtcOffsetChoice> {
 /// Formats a longitude in micro-degrees back into an editable decimal string.
 fn format_longitude(micro_degrees: i32) -> String {
     format!("{}", f64::from(micro_degrees) / 1_000_000.0)
+}
+
+/// Formats a longitude in micro-degrees into a compact, stable display string
+/// such as `105.000°`.
+///
+/// Fixed 3-decimal formatting avoids floating-point artifacts (for example
+/// `105.0999999`) in saved-chart labels while keeping sub-degree precision.
+fn format_longitude_display(micro_degrees: i32) -> String {
+    format!("{:.3}°", f64::from(micro_degrees) / 1_000_000.0)
 }
 
 /// Editable, renderer-facing birth-input form (raw text plus typed choices).
@@ -700,8 +727,11 @@ impl BirthForm {
     /// Parses the apparent-solar-time toggle and longitude into the GUI policy.
     ///
     /// A blank longitude while correction is enabled is [`FormError::LongitudeRequired`];
-    /// a non-numeric or non-finite longitude is [`FormError::LongitudeInvalid`].
-    /// The out-of-range longitude case is left to core's [`Longitude::new`].
+    /// a non-numeric, non-finite, or out-of-range longitude is
+    /// [`FormError::LongitudeInvalid`]. The range is validated *before* rounding
+    /// to micro-degrees so a value like `180.000001` cannot round into range.
+    /// Core's [`Longitude::new`] still validates at the boundary; this is GUI
+    /// input validation, not a replacement for it.
     fn parse_solar_time_policy(&self) -> Result<GuiSolarTimePolicy, FormError> {
         if !self.apparent_solar_time {
             return Ok(GuiSolarTimePolicy::ClockTime);
@@ -711,7 +741,7 @@ impl BirthForm {
             return Err(FormError::LongitudeRequired);
         }
         let degrees: f64 = text.parse().map_err(|_| FormError::LongitudeInvalid)?;
-        if !degrees.is_finite() {
+        if !degrees.is_finite() || !(-180.0..=180.0).contains(&degrees) {
             return Err(FormError::LongitudeInvalid);
         }
         let longitude_micro_degrees = (degrees * 1_000_000.0).round() as i32;

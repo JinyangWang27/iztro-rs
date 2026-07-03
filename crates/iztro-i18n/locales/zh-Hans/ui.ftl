@@ -32,6 +32,7 @@ field-utc-offset = 出生地 UTC 偏移
 field-apparent-solar-time = 视太阳时（常称真太阳时）校正
 field-longitude = 出生地经度（东经为正，西经为负）
 field-longitude-hint = 东经为正，西经为负
+apparent-solar-time-short = 视太阳时
 
 # 按钮
 button-generate = 生成命盘

@@ -8,9 +8,11 @@
 
 use iztro::core::Gender;
 use iztro_gui::app::{
-    BirthInput, ChartCache, GenerateOutcome, GuiSolarTimePolicy, InputMode, Message,
-    SolarClockBirthInput, StaticChartApp, UtcOffsetChoice, utc_offset_choices,
+    BirthForm, BirthInput, ChartCache, FormError, GenerateOutcome, GuiSolarTimePolicy, InputMode,
+    Message, SolarClockBirthInput, StaticChartApp, UtcOffsetChoice, default_chart_name,
+    utc_offset_choices,
 };
+use iztro_i18n::Locale;
 
 /// Drives the startup form into clock mode with the given fields and generates.
 fn generate_clock(apparent_solar_time: bool, longitude: &str) -> StaticChartApp {
@@ -128,6 +130,7 @@ fn utc_offset_choices_are_sorted_by_minutes_and_cover_common_offsets() {
     assert!(minutes.contains(&(8 * 60)), "includes UTC+08:00 (480)");
     assert!(minutes.contains(&(4 * 60)), "includes UTC+04:00 (240)");
     assert!(minutes.contains(&330), "includes UTC+05:30 (330)");
+    assert!(minutes.contains(&-270), "includes UTC-04:30 (-270)");
     assert!(minutes.contains(&(-12 * 60)), "includes UTC-12:00");
     assert!(minutes.contains(&(14 * 60)), "includes UTC+14:00");
 
@@ -142,4 +145,99 @@ fn utc_offset_choices_are_sorted_by_minutes_and_cover_common_offsets() {
     assert_eq!(label_for(8 * 60), "UTC+08:00");
     assert_eq!(label_for(-4 * 60), "UTC-04:00");
     assert_eq!(label_for(330), "UTC+05:30");
+    assert_eq!(label_for(-270), "UTC-04:30");
+}
+
+/// A clock-time input at 2000-01-01 01:05 with an explicit offset and policy.
+fn clock_input_with(offset_minutes: i32, policy: GuiSolarTimePolicy) -> BirthInput {
+    BirthInput::SolarClock(SolarClockBirthInput {
+        year: 2000,
+        month: 1,
+        day: 1,
+        clock_hour: 1,
+        clock_minute: 5,
+        utc_offset_minutes: offset_minutes,
+        solar_time_policy: policy,
+        gender: Gender::Male,
+    })
+}
+
+#[test]
+fn clock_default_name_distinguishes_utc_offset() {
+    // Same date/gender/clock time, different UTC offset -> distinct default names,
+    // so the saved list (which de-dupes by name) never overwrites one with the
+    // other.
+    let east8 = clock_input_with(8 * 60, GuiSolarTimePolicy::ClockTime);
+    let east4 = clock_input_with(4 * 60, GuiSolarTimePolicy::ClockTime);
+    assert_ne!(
+        default_chart_name(&east8, Locale::EnUs),
+        default_chart_name(&east4, Locale::EnUs),
+    );
+}
+
+#[test]
+fn clock_default_name_distinguishes_correction_and_longitude() {
+    let plain = clock_input_with(8 * 60, GuiSolarTimePolicy::ClockTime);
+    let corrected_105 = clock_input_with(
+        8 * 60,
+        GuiSolarTimePolicy::ApparentSolarTime {
+            longitude_micro_degrees: 105_000_000,
+        },
+    );
+    let corrected_120 = clock_input_with(
+        8 * 60,
+        GuiSolarTimePolicy::ApparentSolarTime {
+            longitude_micro_degrees: 120_000_000,
+        },
+    );
+
+    // Enabling correction changes the name; changing only the longitude does too.
+    assert_ne!(
+        default_chart_name(&plain, Locale::EnUs),
+        default_chart_name(&corrected_105, Locale::EnUs),
+    );
+    assert_ne!(
+        default_chart_name(&corrected_105, Locale::EnUs),
+        default_chart_name(&corrected_120, Locale::EnUs),
+    );
+}
+
+/// A clock-mode form with apparent solar time enabled and the given longitude.
+fn apparent_form(longitude: &str) -> BirthForm {
+    BirthForm {
+        mode: InputMode::Clock,
+        apparent_solar_time: true,
+        longitude: longitude.to_string(),
+        ..BirthForm::default()
+    }
+}
+
+#[test]
+fn longitude_just_outside_range_is_rejected_before_rounding() {
+    // A value that would round into range must still be rejected.
+    assert_eq!(
+        apparent_form("180.000001").parse().unwrap_err(),
+        FormError::LongitudeInvalid,
+    );
+    assert_eq!(
+        apparent_form("-180.000001").parse().unwrap_err(),
+        FormError::LongitudeInvalid,
+    );
+}
+
+#[test]
+fn longitude_range_boundaries_parse_successfully() {
+    for longitude in ["180", "-180"] {
+        let parsed = apparent_form(longitude).parse();
+        assert!(
+            matches!(
+                parsed,
+                Ok(BirthInput::SolarClock(SolarClockBirthInput {
+                    solar_time_policy: GuiSolarTimePolicy::ApparentSolarTime { .. },
+                    ..
+                }))
+            ),
+            "longitude {longitude} should parse, got {parsed:?}"
+        );
+    }
 }
