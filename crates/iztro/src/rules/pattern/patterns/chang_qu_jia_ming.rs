@@ -9,10 +9,10 @@
 //!
 //! TODO: if a distinct temporal-flow variant is wanted later, add an explicit
 //! detector that queries the exact per-scope flow names (e.g. 流昌/流曲 for
-//! [`Scope::Yearly`]) via [`StarFamily::member_in_scope`] — do not reintroduce
-//! hidden base↔flow equivalence in the generic clamp helpers.
+//! [`Scope::Yearly`]) via [`StarFamily::exact_member_for_scope`] — do not
+//! reintroduce hidden base↔flow equivalence in the generic clamp helpers.
 //!
-//! [`StarFamily::member_in_scope`]: crate::core::StarFamily::member_in_scope
+//! [`StarFamily::exact_member_for_scope`]: crate::core::StarFamily::exact_member_for_scope
 //! 减力/破格: no weakening/breaker policy is modeled, so integrity is always
 //! fulfilled.
 

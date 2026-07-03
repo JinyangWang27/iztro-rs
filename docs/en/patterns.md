@@ -70,7 +70,7 @@ records taxonomy/lineage (文曲 and 流曲 share `StarFamily::Qu`), **not** equ
 family-level matching is used only by detectors that explicitly ask for it via
 `StarSelector::Family`. A detector that intentionally wants the flow blade of a
 given layer (for example 羊陀夹忌 matching 流羊/流陀 in a yearly scope) resolves the
-exact per-scope identity explicitly through `StarFamily::member_in_scope`, and
+exact per-scope identity explicitly through `StarFamily::exact_member_for_scope`, and
 the detection records the actual matched runtime `StarName`. Temporal 四化 are
 read from `MutagenActivation` facts; they are never modeled as fake stars or
 attached to natal `StarPlacement`s.

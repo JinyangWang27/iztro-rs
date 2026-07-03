@@ -161,9 +161,9 @@ frame is an independent `StarName` and does not satisfy it. So 昌曲夹命 requ
 exact 文昌 + 文曲 even in a temporal frame; natal 文昌/文曲 projected into the
 selected frame still qualify, but 流昌/流曲 do not. Family-level matching is opt-in
 and explicit (`StarSelector::Family` over `StarFamily`); rules that intend a
-specific temporal blade resolve it explicitly via `StarFamily::member_in_scope`
-(as 羊陀夹忌 does for 流羊/流陀) rather than relying on any hidden base↔flow
-aliasing.
+specific temporal blade resolve the exact flow member for that layer explicitly
+via `StarFamily::exact_member_for_scope` (as 羊陀夹忌 does for 流羊/流陀) rather than
+relying on any hidden base↔flow aliasing.
 
 ## Layer-level analysis (`analysis`)
 

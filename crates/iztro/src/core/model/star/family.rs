@@ -60,14 +60,17 @@ impl StarFamily {
         }
     }
 
-    /// The exact family member that can appear in `scope`.
+    /// Resolves the exact [`StarName`] member of this family for a source/
+    /// evaluation layer `scope`.
     ///
     /// Natal (and 岁 [`Scope::Age`], which carries no flow layer) resolve to the
     /// natal [`base_star`](Self::base_star); every temporal scope resolves to the
-    /// scope-specific flow star (流曲, 运曲, …). A detector uses this to ask for
-    /// "the 曲 star of *this* temporal layer" as an **exact** identity, without
-    /// reintroducing base↔flow equivalence into generic matching.
-    pub const fn member_in_scope(self, scope: Scope) -> StarName {
+    /// scope-specific flow star (流曲, 运曲, …). The returned value is an **exact**
+    /// star identity, not a family/equivalence matcher: a detector uses this to
+    /// ask for "the 曲 star of *this* temporal layer" without reintroducing
+    /// base↔flow equivalence into generic matching. Here `scope` names the
+    /// source/flow layer, not the selected palace frame.
+    pub const fn exact_member_for_scope(self, scope: Scope) -> StarName {
         match flow_star_scope_for_scope(scope) {
             Some(flow_scope) => flow_star_name(flow_scope, self.flow_base()),
             None => self.base_star(),
@@ -240,23 +243,26 @@ mod tests {
     #[test]
     fn family_resolves_exact_member_per_scope() {
         assert_eq!(
-            StarFamily::Qu.member_in_scope(Scope::Natal),
+            StarFamily::Qu.exact_member_for_scope(Scope::Natal),
             StarName::WenQu
         );
         assert_eq!(
-            StarFamily::Qu.member_in_scope(Scope::Yearly),
+            StarFamily::Qu.exact_member_for_scope(Scope::Yearly),
             StarName::LiuQu
         );
         assert_eq!(
-            StarFamily::Yang.member_in_scope(Scope::Decadal),
+            StarFamily::Yang.exact_member_for_scope(Scope::Decadal),
             StarName::YunYang
         );
         assert_eq!(
-            StarFamily::Tuo.member_in_scope(Scope::Monthly),
+            StarFamily::Tuo.exact_member_for_scope(Scope::Monthly),
             StarName::YueTuo
         );
         // 岁 (age) carries no flow layer, so it resolves to the natal base.
-        assert_eq!(StarFamily::Ma.member_in_scope(Scope::Age), StarName::TianMa);
+        assert_eq!(
+            StarFamily::Ma.exact_member_for_scope(Scope::Age),
+            StarName::TianMa
+        );
     }
 
     #[test]

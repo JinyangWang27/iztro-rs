@@ -7,7 +7,7 @@
 //!
 //! Star matching is exact per scope: the natal scope queries 擎羊/陀罗 exactly,
 //! while temporal scopes query the scope-specific flow blades explicitly (运羊/
-//! 运陀, 流羊/流陀, …) via [`StarFamily::member_in_scope`]. There is no hidden
+//! 运陀, 流羊/流陀, …) via [`StarFamily::exact_member_for_scope`]. There is no hidden
 //! base↔flow equivalence — 擎羊 never silently matches 流羊.
 //! 减力/破格: no weakening/breaker policy is modeled, so integrity is always
 //! fulfilled.
@@ -48,8 +48,8 @@ fn detect_base_formations(ctx: &PatternContext<'_>, scope: Scope) -> Vec<Formati
     // Exact per-scope blade identities: 擎羊/陀罗 for natal, the scope-specific
     // flow blades (运羊/运陀, 流羊/流陀, …) for temporal scopes. Base blades never
     // silently match flow blades.
-    let yang_star = StarFamily::Yang.member_in_scope(scope);
-    let tuo_star = StarFamily::Tuo.member_in_scope(scope);
+    let yang_star = StarFamily::Yang.exact_member_for_scope(scope);
+    let tuo_star = StarFamily::Tuo.exact_member_for_scope(scope);
 
     let Some((qing_yang, qing_yang_branch)) = find_star_branch_for_scope(ctx, scope, yang_star)
     else {
