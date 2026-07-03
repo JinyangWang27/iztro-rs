@@ -4,12 +4,17 @@
 //! 成格: a star carries 化忌, and the two palaces clamping (夹) that star's palace
 //! are occupied — one by 擎羊 and the other by 陀罗. Natal 化忌 is read from natal
 //! placements; temporal 化忌 from scoped [`MutagenActivation`] facts.
+//!
+//! Star matching is exact per scope: the natal scope queries 擎羊/陀罗 exactly,
+//! while temporal scopes query the scope-specific flow blades explicitly (运羊/
+//! 运陀, 流羊/流陀, …) via [`StarFamily::member_in_scope`]. There is no hidden
+//! base↔flow equivalence — 擎羊 never silently matches 流羊.
 //! 减力/破格: no weakening/breaker policy is modeled, so integrity is always
 //! fulfilled.
 //!
 //! [`MutagenActivation`]: crate::core::MutagenActivation
 
-use crate::core::{EarthlyBranch, Mutagen, Scope, StarName};
+use crate::core::{EarthlyBranch, Mutagen, Scope, StarFamily, StarName};
 use crate::rules::pattern::context::{PatternContext, PatternDetectionRequest};
 use crate::rules::pattern::model::{PatternAnchor, PatternDetection, PatternEvidence, PatternId};
 use crate::rules::pattern::patterns::emit::{self, FormationMatch, IntegrityAssessment};
@@ -40,13 +45,17 @@ fn detect_base_formations(ctx: &PatternContext<'_>, scope: Scope) -> Vec<Formati
         return out;
     }
 
-    let Some((qing_yang, qing_yang_branch)) =
-        find_star_branch_for_scope(ctx, scope, StarName::QingYang)
+    // Exact per-scope blade identities: 擎羊/陀罗 for natal, the scope-specific
+    // flow blades (运羊/运陀, 流羊/流陀, …) for temporal scopes. Base blades never
+    // silently match flow blades.
+    let yang_star = StarFamily::Yang.member_in_scope(scope);
+    let tuo_star = StarFamily::Tuo.member_in_scope(scope);
+
+    let Some((qing_yang, qing_yang_branch)) = find_star_branch_for_scope(ctx, scope, yang_star)
     else {
         return out;
     };
-    let Some((tuo_luo, tuo_luo_branch)) = find_star_branch_for_scope(ctx, scope, StarName::TuoLuo)
-    else {
+    let Some((tuo_luo, tuo_luo_branch)) = find_star_branch_for_scope(ctx, scope, tuo_star) else {
         return out;
     };
 

@@ -5,9 +5,8 @@
 //! keep their own domain-specific wrappers, request types, and output models.
 
 use crate::core::{
-    Brightness, Chart, EarthlyBranch, EffectiveChartState, EffectiveStarRef, FlowStarBase,
-    FlowStarScope, PalaceName, RuleEvaluationContext, Scope, StarName, StarPlacement,
-    flow_star_name, try_flow_star_parts,
+    Brightness, Chart, EarthlyBranch, EffectiveChartState, EffectiveStarRef, PalaceName,
+    RuleEvaluationContext, Scope, StarName, StarPlacement,
 };
 use crate::rules::relation::clamp_branches;
 
@@ -102,7 +101,7 @@ pub fn effective_star_in_palace<'a>(
     effective_state_for_match_scope(ctx, match_scope)?
         .stars_in_palace(branch)
         .into_iter()
-        .find(|placement| star_matches_for_scope(match_scope, star, placement.placement().name()))
+        .find(|placement| placement.placement().name() == star)
 }
 
 /// Returns the actual effective star matching `star` in `branch` for the
@@ -112,12 +111,10 @@ pub fn selected_star_in_palace<'a>(
     branch: EarthlyBranch,
     star: StarName,
 ) -> Option<EffectiveStarRef<'a>> {
-    let state = ctx.effective()?;
-    let frame_scope = state.palace_frame_scope();
-    state
+    ctx.effective()?
         .stars_in_palace(branch)
         .into_iter()
-        .find(|placement| star_matches_for_scope(frame_scope, star, placement.placement().name()))
+        .find(|placement| placement.placement().name() == star)
 }
 
 /// Returns whether `star` occupies `branch` in the effective state.
@@ -260,42 +257,4 @@ pub fn is_bright(brightness: Brightness) -> bool {
 /// Returns whether `brightness` is a clearly dim/fallen state.
 pub fn is_dim(brightness: Brightness) -> bool {
     matches!(brightness, Brightness::Weak | Brightness::Trapped)
-}
-
-pub(crate) fn star_matches_for_scope(scope: Scope, requested: StarName, actual: StarName) -> bool {
-    if requested == actual {
-        return true;
-    }
-
-    let Some(flow_scope) = flow_scope_for_scope(scope) else {
-        return false;
-    };
-    let Some(base) = base_flow_match(requested) else {
-        return false;
-    };
-
-    actual == flow_star_name(flow_scope, base)
-        || try_flow_star_parts(actual) == Some((flow_scope, base))
-}
-
-fn flow_scope_for_scope(scope: Scope) -> Option<FlowStarScope> {
-    match scope {
-        Scope::Decadal => Some(FlowStarScope::Decadal),
-        Scope::Yearly => Some(FlowStarScope::Yearly),
-        Scope::Monthly => Some(FlowStarScope::Monthly),
-        Scope::Daily => Some(FlowStarScope::Daily),
-        Scope::Hourly => Some(FlowStarScope::Hourly),
-        Scope::Natal | Scope::Age => None,
-    }
-}
-
-fn base_flow_match(star: StarName) -> Option<FlowStarBase> {
-    match star {
-        StarName::WenChang => Some(FlowStarBase::Chang),
-        StarName::WenQu => Some(FlowStarBase::Qu),
-        StarName::QingYang => Some(FlowStarBase::Yang),
-        StarName::TuoLuo => Some(FlowStarBase::Tuo),
-        StarName::TianMa => Some(FlowStarBase::Ma),
-        _ => None,
-    }
 }

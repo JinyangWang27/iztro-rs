@@ -155,3 +155,142 @@ impl StarSelector {
         }
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// Every base star and its temporal flow variants share one family, yet each
+    /// remains a distinct [`StarName`] identity — family is taxonomy, not equality.
+    #[test]
+    fn star_family_links_base_and_flow_but_identity_remains_distinct() {
+        // (base, family, [flow variants across 运/流/月/日/时]).
+        let groups: [(StarName, StarFamily, [StarName; 5]); 5] = [
+            (
+                StarName::WenChang,
+                StarFamily::Chang,
+                [
+                    StarName::YunChang,
+                    StarName::LiuChang,
+                    StarName::YueChang,
+                    StarName::RiChang,
+                    StarName::ShiChang,
+                ],
+            ),
+            (
+                StarName::WenQu,
+                StarFamily::Qu,
+                [
+                    StarName::YunQu,
+                    StarName::LiuQu,
+                    StarName::YueQu,
+                    StarName::RiQu,
+                    StarName::ShiQu,
+                ],
+            ),
+            (
+                StarName::QingYang,
+                StarFamily::Yang,
+                [
+                    StarName::YunYang,
+                    StarName::LiuYang,
+                    StarName::YueYang,
+                    StarName::RiYang,
+                    StarName::ShiYang,
+                ],
+            ),
+            (
+                StarName::TuoLuo,
+                StarFamily::Tuo,
+                [
+                    StarName::YunTuo,
+                    StarName::LiuTuo,
+                    StarName::YueTuo,
+                    StarName::RiTuo,
+                    StarName::ShiTuo,
+                ],
+            ),
+            (
+                StarName::TianMa,
+                StarFamily::Ma,
+                [
+                    StarName::YunMa,
+                    StarName::LiuMa,
+                    StarName::YueMa,
+                    StarName::RiMa,
+                    StarName::ShiMa,
+                ],
+            ),
+        ];
+
+        for (base, family, flows) in groups {
+            assert_eq!(base.family(), Some(family));
+            assert_eq!(family.base_star(), base);
+            for flow in flows {
+                assert_ne!(base, flow, "base and flow must be distinct identities");
+                assert_eq!(
+                    flow.family(),
+                    Some(family),
+                    "flow variant shares the base family"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn family_resolves_exact_member_per_scope() {
+        assert_eq!(
+            StarFamily::Qu.member_in_scope(Scope::Natal),
+            StarName::WenQu
+        );
+        assert_eq!(
+            StarFamily::Qu.member_in_scope(Scope::Yearly),
+            StarName::LiuQu
+        );
+        assert_eq!(
+            StarFamily::Yang.member_in_scope(Scope::Decadal),
+            StarName::YunYang
+        );
+        assert_eq!(
+            StarFamily::Tuo.member_in_scope(Scope::Monthly),
+            StarName::YueTuo
+        );
+        // 岁 (age) carries no flow layer, so it resolves to the natal base.
+        assert_eq!(
+            StarFamily::Ma.member_in_scope(Scope::Age),
+            StarName::TianMa
+        );
+    }
+
+    #[test]
+    fn unrelated_and_non_family_flow_stars_have_no_family() {
+        assert_eq!(StarName::ZiWei.family(), None);
+        assert_eq!(StarName::TaiYang.family(), None);
+        // 禄/魁/钺/鸾/喜 flow lineages are not modeled as classical families.
+        assert_eq!(StarName::LiuLu.family(), None);
+        assert_eq!(StarName::LiuKui.family(), None);
+    }
+
+    #[test]
+    fn exact_selector_matches_only_that_identity() {
+        assert!(StarSelector::Exact(StarName::WenQu).matches(StarName::WenQu));
+        assert!(!StarSelector::Exact(StarName::WenQu).matches(StarName::LiuQu));
+        assert!(StarSelector::Exact(StarName::LiuQu).matches(StarName::LiuQu));
+        assert!(!StarSelector::Exact(StarName::LiuQu).matches(StarName::WenQu));
+        // Exact base-blade queries never match flow blades.
+        assert!(!StarSelector::Exact(StarName::QingYang).matches(StarName::LiuYang));
+        assert!(!StarSelector::Exact(StarName::TuoLuo).matches(StarName::LiuTuo));
+    }
+
+    #[test]
+    fn family_qu_selector_matches_wen_qu_and_liu_qu() {
+        let qu = StarSelector::Family(StarFamily::Qu);
+        assert!(qu.matches(StarName::WenQu));
+        assert!(qu.matches(StarName::LiuQu));
+        assert!(qu.matches(StarName::YunQu));
+        // But not the 昌 family, and not unrelated stars.
+        assert!(!qu.matches(StarName::WenChang));
+        assert!(!qu.matches(StarName::LiuChang));
+        assert!(!qu.matches(StarName::ZiWei));
+    }
+}
