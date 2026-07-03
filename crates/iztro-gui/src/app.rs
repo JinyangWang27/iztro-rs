@@ -3168,7 +3168,7 @@ mod tests {
 
     #[test]
     fn gui_source_does_not_derive_astrology_facts() {
-        const FORBIDDEN: [&str; 27] = [
+        const FORBIDDEN: [&str; 31] = [
             "Placer",
             "palace_grid_position",
             "zi_wei_branch",
@@ -3200,6 +3200,13 @@ mod tests {
             "TemporalLayer",
             "DecadalHoroscopeInput",
             "build_decadal_frame",
+            // Apparent solar time / 时辰 derivation is core policy: the GUI passes
+            // the UTC offset + longitude to core and reads the resolved facts. It
+            // must never resolve the clock time or derive the time branch itself.
+            "resolve_birth_datetime",
+            "meridian_degrees",
+            "time_index_for_hour",
+            "normalize_longitude_delta",
         ];
 
         let src_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
@@ -3243,6 +3250,14 @@ mod tests {
         assert!(
             app_production.contains("detect_static_temporal_analysis_layers_from_chart"),
             "analysis must request layers through the selected-view batch facade"
+        );
+
+        // Clock-time charts must be generated through the core clock-time facade,
+        // which applies the calculation policy (apparent solar time, 时辰
+        // derivation) inside core rather than in the GUI.
+        assert!(
+            app_production.contains("by_solar_with_options_report"),
+            "clock-time charts must be built through by_solar_with_options_report"
         );
     }
 
