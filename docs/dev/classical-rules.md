@@ -118,6 +118,13 @@ palace's `三方四正`. `RiChuFuSang` remains the public id for the source-inve
 entry, while runtime display metadata may show `日照雷门` and alias
 `日出扶桑格`.
 
+Aliases are runtime display aliases, and the source-facing name in
+`PatternSourceMetadata` may differ from the runtime display name. One runtime
+`PatternId` may therefore carry a normalized runtime display name plus one or
+more source aliases: e.g. `TianYiGongMing` displays 天乙拱命 with source-facing
+name / alias 坐贵向贵, and `QingYangRuMiao` displays 擎羊入庙 with source-facing
+name / alias 羊刃入庙.
+
 ## Pattern detector layout
 
 `rules::pattern` separates pattern identity, detector semantics, and reusable

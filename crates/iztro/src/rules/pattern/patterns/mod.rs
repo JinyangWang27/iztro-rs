@@ -22,23 +22,28 @@ pub mod fu_xiang_chao_yuan;
 pub mod ji_xiang_li_ming;
 pub mod ji_yue_tong_liang;
 pub mod jin_can_guang_hui;
+pub mod lian_zhen_qi_sha_tong_gong;
 pub mod lu_feng_chong_po;
 pub mod ma_luo_kong_wang;
 pub mod ma_tou_dai_jian;
 pub mod ming_li_feng_kong;
 pub mod ming_wu_zheng_yao;
 pub mod ming_zhu_chu_hai;
+pub mod qing_yang_ru_miao;
 pub mod ri_chu_fu_sang;
 pub mod ri_yue_bing_ming;
 pub mod ri_yue_fan_bei;
+pub mod shi_zhong_yin_yu;
 pub mod tan_huo_xiang_feng;
 pub mod tian_ji_si_hai;
+pub mod tian_yi_gong_ming;
 pub mod wen_xing_gong_ming;
 pub mod wu_qu_shou_yuan;
 pub mod yang_tuo_jia_ji;
 pub mod yue_luo_hai_gong;
 pub mod yue_sheng_cang_hai;
 pub mod zi_fu_chao_yuan;
+pub mod zi_fu_jia_ming;
 pub mod zuo_you_jia_ming;
 pub mod zuo_you_tong_gong;
 
@@ -156,6 +161,26 @@ pub(crate) const DETECTORS: &[PatternDetectorRegistration] = &[
         id: PatternId::FuXiangChaoYuan,
         detect: fu_xiang_chao_yuan::detect,
     },
+    PatternDetectorRegistration {
+        id: PatternId::ShiZhongYinYu,
+        detect: shi_zhong_yin_yu::detect,
+    },
+    PatternDetectorRegistration {
+        id: PatternId::ZiFuJiaMing,
+        detect: zi_fu_jia_ming::detect,
+    },
+    PatternDetectorRegistration {
+        id: PatternId::LianZhenQiShaTongGong,
+        detect: lian_zhen_qi_sha_tong_gong::detect,
+    },
+    PatternDetectorRegistration {
+        id: PatternId::TianYiGongMing,
+        detect: tian_yi_gong_ming::detect,
+    },
+    PatternDetectorRegistration {
+        id: PatternId::QingYangRuMiao,
+        detect: qing_yang_ru_miao::detect,
+    },
 ];
 
 pub(crate) const DETECTORLESS_PATTERN_IDS: &[PatternId] = &[PatternId::LingChangTuoWu];
@@ -201,7 +226,7 @@ mod tests {
     /// Each must resolve to source metadata, or emission would misrepresent an
     /// unbacked pattern as source-backed. (Inventory-reference correctness is
     /// checked separately in `tests/classical_source_inventory.rs`.)
-    const SOURCE_BACKED_PATTERN_IDS: [PatternId; 8] = [
+    const SOURCE_BACKED_PATTERN_IDS: [PatternId; 13] = [
         PatternId::JinCanGuangHui,
         PatternId::YueLuoHaiGong,
         PatternId::YueShengCangHai,
@@ -210,6 +235,11 @@ mod tests {
         PatternId::WuQuShouYuan,
         PatternId::CaiYuQiuChou,
         PatternId::MaLuoKongWang,
+        PatternId::ShiZhongYinYu,
+        PatternId::ZiFuJiaMing,
+        PatternId::LianZhenQiShaTongGong,
+        PatternId::TianYiGongMing,
+        PatternId::QingYangRuMiao,
     ];
 
     #[test]
@@ -279,6 +309,11 @@ mod tests {
                 PatternId::MingWuZhengYao,
                 PatternId::JiXiangLiMing,
                 PatternId::FuXiangChaoYuan,
+                PatternId::ShiZhongYinYu,
+                PatternId::ZiFuJiaMing,
+                PatternId::LianZhenQiShaTongGong,
+                PatternId::TianYiGongMing,
+                PatternId::QingYangRuMiao,
             ],
         );
     }
