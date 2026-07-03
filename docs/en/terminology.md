@@ -23,6 +23,8 @@ This glossary keeps engineering terms and Zi Wei Dou Shu terms aligned across la
 | `major_star` | Major Star | 主星 | The fourteen major stars. |
 | `minor_star` | Minor Star | 辅星 | Supportive or secondary stars. |
 | `adjective_star` | Adjective Star | 杂曜 | Miscellaneous stars and symbolic markers. |
+| `star_family` | Star Family | 星曜族系 | The 昌/曲/羊/陀/马 lineage grouping a natal base star with its 运/流/月/日/时 flow variants. Taxonomy, not equality: 文曲 (`WenQu`) and 流曲 (`LiuQu`) share the `Qu` family but stay distinct `StarName`s. |
+| `star_selector` | Star Selector | 星曜选择器 | Matching intent: `Exact` matches one star identity (文曲 does not match 流曲); `Family` matches a whole family explicitly. Default classical matching is exact. |
 | `brightness` | Brightness | 庙旺利陷 | Strength/state of a star in a palace. |
 | `mutagen` | Mutagen | 四化 | Lu, Quan, Ke, Ji transformation. |
 | `mutagen_lu` | Lu | 化禄 | Resource, affinity, flow, gain. |

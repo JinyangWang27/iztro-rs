@@ -220,3 +220,136 @@ pub(crate) const fn scope_sort_key(scope: Scope) -> u8 {
         Scope::Hourly => 6,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::core::{
+        BirthContext, Brightness, CalendarDate, Chart, Gender, HeavenlyStem, HoroscopeChart,
+        MethodProfile, PALACE_NAMES, Palace, ScopedStarPlacement, StarKind, StarPlacement,
+        StemBranch, TemporalContext, TemporalLayer, TemporalPalaceLayout, TemporalPalaceName,
+    };
+    use crate::rules::pattern::context::PatternContext;
+
+    fn palaces(life_branch: EarthlyBranch, stars: &[(EarthlyBranch, StarName)]) -> Vec<Palace> {
+        (0..12)
+            .map(|index| {
+                let branch = life_branch.offset(index as isize);
+                let placements = stars
+                    .iter()
+                    .filter(|(spec, _)| *spec == branch)
+                    .map(|(_, star)| {
+                        StarPlacement::new(
+                            *star,
+                            StarKind::Soft,
+                            Brightness::Unknown,
+                            None,
+                            Scope::Natal,
+                        )
+                    })
+                    .collect();
+                Palace::new(PALACE_NAMES[index], branch, HeavenlyStem::Jia, placements)
+            })
+            .collect()
+    }
+
+    fn natal_chart(life_branch: EarthlyBranch, stars: &[(EarthlyBranch, StarName)]) -> Chart {
+        Chart::try_new(
+            BirthContext::new(
+                CalendarDate::solar(1990, 5, 17),
+                EarthlyBranch::Chen,
+                Gender::Female,
+            ),
+            StemBranch::try_new(HeavenlyStem::Geng, EarthlyBranch::Wu).expect("stem-branch"),
+            MethodProfile::placeholder("support_test"),
+            palaces(life_branch, stars),
+            None,
+            None,
+        )
+        .expect("synthetic chart")
+    }
+
+    fn yearly_layout(life_branch: EarthlyBranch) -> TemporalPalaceLayout {
+        let names = PALACE_NAMES
+            .iter()
+            .enumerate()
+            .map(|(index, name)| TemporalPalaceName::new(life_branch.offset(index as isize), *name))
+            .collect();
+        TemporalPalaceLayout::try_new(Scope::Yearly, names).expect("layout")
+    }
+
+    fn yearly_horoscope(
+        natal: Chart,
+        life_branch: EarthlyBranch,
+        stars: &[(EarthlyBranch, StarName)],
+    ) -> HoroscopeChart {
+        let placements = stars
+            .iter()
+            .map(|(branch, star)| {
+                ScopedStarPlacement::new(
+                    *branch,
+                    StarPlacement::new(
+                        *star,
+                        StarKind::Soft,
+                        Brightness::Unknown,
+                        None,
+                        Scope::Yearly,
+                    ),
+                )
+            })
+            .collect();
+        let layer = TemporalLayer::try_new_with_palace_layout(
+            Scope::Yearly,
+            TemporalContext::Yearly {
+                stem_branch: StemBranch::try_new(HeavenlyStem::Jia, EarthlyBranch::Zi)
+                    .expect("stem-branch"),
+                lunar_year: 2026,
+            },
+            placements,
+            Vec::new(),
+            Some(yearly_layout(life_branch)),
+        )
+        .expect("yearly layer");
+        HoroscopeChart::with_layers(natal, vec![layer])
+    }
+
+    /// Under the exact-identity invariant, a yearly 流曲 visible in the selected
+    /// Life 三方四正 must not be discovered as 文曲 support, while an exact natal
+    /// 文昌 still counts.
+    #[test]
+    fn support_predicate_does_not_count_liu_qu_as_wen_qu() {
+        // Life = Zi; SFSZ(Zi) = {Zi, Wu, Chen, Shen}. Natal 文昌@Wu is exact
+        // support; yearly 流曲@Chen is a distinct identity and must not fill the
+        // 文曲 support slot.
+        let natal = natal_chart(
+            EarthlyBranch::Zi,
+            &[(EarthlyBranch::Wu, StarName::WenChang)],
+        );
+        let horoscope = yearly_horoscope(
+            natal,
+            EarthlyBranch::Zi,
+            &[(EarthlyBranch::Chen, StarName::LiuQu)],
+        );
+        let ctx = PatternContext::horoscope_with_frame(
+            &horoscope,
+            Scope::Yearly,
+            vec![Scope::Natal, Scope::Yearly],
+        );
+
+        let support = selected_support_in_san_fang_si_zheng(&ctx, EarthlyBranch::Zi);
+        let stars: Vec<StarName> = support.stars.iter().map(|(star, _)| *star).collect();
+
+        assert!(
+            stars.contains(&StarName::WenChang),
+            "exact natal 文昌 should still count as support"
+        );
+        assert!(
+            !stars.contains(&StarName::WenQu),
+            "流曲 must not be recorded as 文曲 support"
+        );
+        assert!(
+            !stars.contains(&StarName::LiuQu),
+            "流曲 is not in the recognized support set and must not appear"
+        );
+    }
+}

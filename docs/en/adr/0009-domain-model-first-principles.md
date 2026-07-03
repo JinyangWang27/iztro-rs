@@ -71,6 +71,8 @@ selected palace frame
 
 This is the default semantic surface for ordinary selected-view rules. Source/layer-specific rules may still read one source layer explicitly, but that should be visible in the helper name and rule intent.
 
+Selected temporal chart state controls the palace frame and which facts are visible. It does **not** alter star identity matching. A selected Yearly view may make 流曲 (`LiuQu`) visible, but 流曲 is not 文曲 (`WenQu`): star matching is exact by default, so a base-star condition never silently matches a same-scope flow star. 文曲 and 流曲 may share `StarFamily::Qu`, but family membership is taxonomy, not equality. A detector that wants family-level matching, or the exact flow blade of a specific layer, must ask for it explicitly (`StarSelector::Family`, `StarFamily::exact_member_for_scope`); the palace-frame scope is never overloaded to imply base↔flow equivalence.
+
 ### 5. Context describes chart state; rule metadata describes rule identity
 
 `RuleEvaluationContext` describes what chart state is being evaluated. It should not classify the rule.

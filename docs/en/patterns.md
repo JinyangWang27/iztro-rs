@@ -57,13 +57,23 @@ deterministically sorts the results by scope, family, id, anchor, and involved
 palaces. `PatternDetectionRequest` controls which scopes, statuses, and families
 are returned.
 
-When a detector is requested for a temporal scope, it reads only that scope's
-visible overlay facts plus the scope's temporal palace labels. Base-star
-conditions for 文昌/文曲/擎羊/陀罗/天马 may match the corresponding runtime
-flow-star identity in that same scope (for example 流昌, 月曲, 日羊), and the
-detection records the actual matched runtime `StarName`. Temporal 四化 are read
-from `MutagenActivation` facts; they are never modeled as fake stars or attached
-to natal `StarPlacement`s.
+When a detector is requested for a temporal scope, it reads that scope's
+visible facts (selected-state detectors also see natal facts projected into the
+temporal palace frame) plus the scope's temporal palace labels.
+
+**Star matching is exact by default.** An exact `StarName` condition matches only
+the exact runtime `StarName`. Flow stars such as 流曲 (`LiuQu`) are *independent*
+`StarName` identities from their base stars such as 文曲 (`WenQu`): a base-star
+condition never silently matches a flow star, and a selected temporal frame that
+makes 流曲 visible does **not** make it satisfy a 文曲 condition. `StarFamily`
+records taxonomy/lineage (文曲 and 流曲 share `StarFamily::Qu`), **not** equality;
+family-level matching is used only by detectors that explicitly ask for it via
+`StarSelector::Family`. A detector that intentionally wants the flow blade of a
+given layer (for example 羊陀夹忌 matching 流羊/流陀 in a yearly scope) resolves the
+exact per-scope identity explicitly through `StarFamily::exact_member_for_scope`, and
+the detection records the actual matched runtime `StarName`. Temporal 四化 are
+read from `MutagenActivation` facts; they are never modeled as fake stars or
+attached to natal `StarPlacement`s.
 
 ## Status model
 
@@ -169,10 +179,12 @@ source inventory only.
 The clamp-based rules (羊陀夹忌, 左右夹命, 昌曲夹命) share the branch-level
 `clamp_branches` relation: the two palaces clamping an anchor are its `-1` and
 `+1` neighbours. The shared scoped clamp helpers check that both clamp palaces
-are occupied — one by each required star or same-scope flow-star equivalent — in
-either orientation, and record each clamp as a
-`PalaceRelation { relation: ClampedBy }` from the anchor palace to the clamping
-palace.
+are occupied — one by each required exact star identity — in either orientation,
+and record each clamp as a `PalaceRelation { relation: ClampedBy }` from the
+anchor palace to the clamping palace. Matching is exact: 昌曲夹命 requires exact
+文昌 + exact 文曲 and is not satisfied by 流昌/流曲. 羊陀夹忌 keeps its temporal
+semantics by querying the exact per-scope blades (擎羊/陀罗 natally, 流羊/流陀 in a
+yearly scope, …) explicitly rather than relying on any base↔flow equivalence.
 
 ### Brightness rules
 

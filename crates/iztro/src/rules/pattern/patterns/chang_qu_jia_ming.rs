@@ -1,8 +1,18 @@
 //! 昌曲夹命 — Wen Chang (文昌) and Wen Qu (文曲) clamping the Life palace.
 //!
 //! 成格: the two palaces clamping (夹) the Life palace are occupied — one by 文昌
-//! and the other by 文曲, in either orientation. Runtime flow 昌/曲 stars match
-//! only within their requested temporal scope.
+//! and the other by 文曲 (exact identities), in either orientation. Matching is
+//! exact: the runtime flow 昌/曲 stars (流昌/流曲, 运昌/运曲, …) are independent
+//! [`StarName`] identities and do **not** satisfy this classical pattern. A
+//! selected temporal frame may make natal 文昌/文曲 visible in a temporal Life
+//! palace's clamps, but a flow 昌/曲 star never stands in for the base star.
+//!
+//! TODO: if a distinct temporal-flow variant is wanted later, add an explicit
+//! detector that queries the exact per-scope flow names (e.g. 流昌/流曲 for
+//! [`Scope::Yearly`]) via [`StarFamily::exact_member_for_scope`] — do not
+//! reintroduce hidden base↔flow equivalence in the generic clamp helpers.
+//!
+//! [`StarFamily::exact_member_for_scope`]: crate::core::StarFamily::exact_member_for_scope
 //! 减力/破格: no weakening/breaker policy is modeled, so integrity is always
 //! fulfilled.
 

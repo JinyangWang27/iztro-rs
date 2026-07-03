@@ -754,21 +754,18 @@ fn chang_qu_clamp_life_natal_context_matches_legacy_natal_evaluation() {
 
 #[test]
 fn chang_qu_clamp_life_yearly_context_emits_yearly_source_hit() {
+    // The selected yearly frame relabels Zi as Life. Exact natal 文昌 and 文曲
+    // clamp it from Hai and Chou and stay visible under the yearly frame, so the
+    // yearly context still emits a source hit — via exact identities, not flow
+    // aliasing.
     let natal = build_chart(
         EarthlyBranch::Zi,
-        &[soft(EarthlyBranch::Hai, StarName::WenChang)],
+        &[
+            soft(EarthlyBranch::Hai, StarName::WenChang),
+            soft(EarthlyBranch::Chou, StarName::WenQu),
+        ],
     );
-    let horoscope = horoscope_with_layer(
-        natal,
-        Scope::Yearly,
-        EarthlyBranch::Zi,
-        vec![scoped(
-            EarthlyBranch::Chou,
-            StarName::LiuQu,
-            StarKind::Soft,
-            Scope::Yearly,
-        )],
-    );
+    let horoscope = horoscope_with_layer(natal, Scope::Yearly, EarthlyBranch::Zi, Vec::new());
     let ctx = ClassicalRuleContext::horoscope_with_frame(
         &horoscope,
         Scope::Yearly,
@@ -818,11 +815,51 @@ fn chang_qu_clamp_life_yearly_context_emits_yearly_source_hit() {
     assert!(source_hit.evidence.iter().any(|e| matches!(
         e.kind(),
         EvidenceKind::StarClampsPalace {
-            star: StarName::LiuQu,
+            star: StarName::WenQu,
             clamp_branch: EarthlyBranch::Chou,
             target_branch: EarthlyBranch::Zi
         }
     )));
+}
+
+#[test]
+fn chang_qu_clamp_life_yearly_context_does_not_treat_liu_qu_as_wen_qu() {
+    // Natal 文昌 clamps the yearly Life palace from Hai, but the other clamp holds
+    // yearly 流曲, not 文曲. 流曲 is an independent identity, so the exact 昌曲夹命
+    // must not emit from this mix.
+    let natal = build_chart(
+        EarthlyBranch::Zi,
+        &[soft(EarthlyBranch::Hai, StarName::WenChang)],
+    );
+    let horoscope = horoscope_with_layer(
+        natal,
+        Scope::Yearly,
+        EarthlyBranch::Zi,
+        vec![scoped(
+            EarthlyBranch::Chou,
+            StarName::LiuQu,
+            StarKind::Soft,
+            Scope::Yearly,
+        )],
+    );
+    let ctx = ClassicalRuleContext::horoscope_with_frame(
+        &horoscope,
+        Scope::Yearly,
+        vec![Scope::Natal, Scope::Yearly],
+    );
+    let request = ClaimEvaluationRequest {
+        rule_ids: vec![ClassicalRuleId::new(CHANG_QU)],
+        scopes: vec![ClaimScope::Yearly],
+        ..Default::default()
+    };
+
+    let evaluation = evaluate_classical_in_context(&ctx, &request);
+    assert!(
+        evaluation
+            .source_hits
+            .iter()
+            .all(|hit| hit.rule_id.as_str() != CHANG_QU)
+    );
 }
 
 #[test]

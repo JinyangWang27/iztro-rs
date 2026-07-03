@@ -163,7 +163,7 @@ pub fn star_in_palace_for_scope<'a>(
 ) -> Option<ScopedPatternStarRef<'a>> {
     stars_in_palace_for_scope(ctx, scope, branch)
         .into_iter()
-        .find(|placement| star_matches_for_scope(scope, star, placement.placement().name()))
+        .find(|placement| placement.placement().name() == star)
 }
 
 /// Source/layer-specific alias for [`star_in_palace_for_scope`].
@@ -418,7 +418,7 @@ pub fn find_star_for_scope<'a>(
 
     if scope == Scope::Natal {
         return ctx.chart().stars().into_iter().find_map(|fact| {
-            star_matches_for_scope(scope, star, fact.placement().name())
+            (fact.placement().name() == star)
                 .then(|| ScopedPatternStarRef::new(fact.palace().branch(), fact.placement()))
         });
     }
@@ -428,7 +428,7 @@ pub fn find_star_for_scope<'a>(
         .layers_in_scope(scope)
         .flat_map(|layer| layer.placements())
         .find_map(|placement| {
-            star_matches_for_scope(scope, star, placement.placement().name())
+            (placement.placement().name() == star)
                 .then(|| ScopedPatternStarRef::new(placement.branch(), placement.placement()))
         })
 }
@@ -466,10 +466,7 @@ pub fn stars_in_san_fang_si_zheng_for_scope(
     let mut found = Vec::new();
     for branch in san_fang_si_zheng(anchor) {
         for placement in stars_in_palace_for_scope(ctx, scope, branch) {
-            if stars
-                .iter()
-                .any(|star| star_matches_for_scope(scope, *star, placement.placement().name()))
-            {
+            if stars.contains(&placement.placement().name()) {
                 found.push((placement.placement().name(), branch));
             }
         }
@@ -500,9 +497,7 @@ pub fn effective_stars_in_san_fang_si_zheng(
     let mut found = Vec::new();
     for branch in san_fang_si_zheng(anchor) {
         for placement in state.stars_in_palace(branch) {
-            if stars.iter().any(|star| {
-                star_matches_for_scope(match_scope, *star, placement.placement().name())
-            }) {
+            if stars.contains(&placement.placement().name()) {
                 found.push((placement.placement().name(), branch));
             }
         }
@@ -523,13 +518,10 @@ pub fn selected_stars_in_san_fang_si_zheng(
     let Some(state) = ctx.effective() else {
         return Vec::new();
     };
-    let frame_scope = state.palace_frame_scope();
     let mut found = Vec::new();
     for branch in san_fang_si_zheng(anchor) {
         for placement in state.stars_in_palace(branch) {
-            if stars.iter().any(|star| {
-                star_matches_for_scope(frame_scope, *star, placement.placement().name())
-            }) {
+            if stars.contains(&placement.placement().name()) {
                 found.push((placement.placement().name(), branch));
             }
         }
@@ -751,8 +743,4 @@ pub fn star_has_mutagen_activation_for_scope(
                 && activation.mutagen() == mutagen
                 && activation.target_branch() == branch
         })
-}
-
-fn star_matches_for_scope(scope: Scope, requested: StarName, actual: StarName) -> bool {
-    rule_query::star_matches_for_scope(scope, requested, actual)
 }

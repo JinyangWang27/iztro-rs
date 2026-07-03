@@ -84,9 +84,10 @@ pub use model::star::mutagen::{
 };
 pub use model::star::{
     Brightness, FlowStarBase, FlowStarScope, KnownStarFamily, KnownStarMetadata, StarCategory,
-    StarKind, StarMetadata, StarName, StarTag, StarTagStrength, flow_star_name, has_star_tag,
-    known_star_metadata, known_star_metadata_table, represented_star_metadata_table, star_metadata,
-    star_tag_strength, try_flow_star_parts, try_known_star_metadata, try_star_metadata,
+    StarFamily, StarKind, StarMetadata, StarName, StarSelector, StarTag, StarTagStrength,
+    flow_star_name, flow_star_scope_for_scope, has_star_tag, known_star_metadata,
+    known_star_metadata_table, represented_star_metadata_table, star_metadata, star_tag_strength,
+    try_flow_star_parts, try_known_star_metadata, try_star_metadata,
 };
 pub use model::zodiac::{WesternZodiac, western_zodiac};
 
