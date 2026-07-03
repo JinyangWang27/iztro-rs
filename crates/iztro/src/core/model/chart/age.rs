@@ -95,6 +95,10 @@ pub fn build_age_period(natal: &Chart, nominal_age: u8) -> Result<AgePeriod, Cha
             lunar_lite::StemBranchError::InvalidStemBranchPair { stem, branch } => {
                 ChartError::InvalidStemBranchPair { stem, branch }
             }
+            _ => ChartError::InvalidStemBranchPair {
+                stem: palace.stem(),
+                branch: palace_branch,
+            },
         })?;
     let palace_layout = build_age_palace_layout(palace_branch)?;
 

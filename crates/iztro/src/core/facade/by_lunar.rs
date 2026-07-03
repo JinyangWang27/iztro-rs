@@ -304,6 +304,10 @@ pub fn by_lunar(request: LunarChartRequest) -> Result<Chart, ChartError> {
             lunar_lite::StemBranchError::InvalidStemBranchPair { stem, branch } => {
                 ChartError::InvalidStemBranchPair { stem, branch }
             }
+            _ => ChartError::InvalidStemBranchPair {
+                stem: request.birth_year_stem(),
+                branch: request.birth_year_branch(),
+            },
         })?;
 
     let birth_context = BirthContext::new_with_birth_time_variant(

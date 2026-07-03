@@ -98,6 +98,10 @@ pub fn build_minimal_natal_chart_with_anchor(
                 lunar_lite::StemBranchError::InvalidStemBranchPair { stem, branch } => {
                     ChartError::InvalidStemBranchPair { stem, branch }
                 }
+                _ => ChartError::InvalidStemBranchPair {
+                    stem: input.birth_year_stem(),
+                    branch: input.birth_year_branch(),
+                },
             }
         })?,
         input.method_profile().clone(),
@@ -132,6 +136,10 @@ pub fn build_minimal_natal_chart_with_anchor(
                 lunar_lite::StemBranchError::InvalidStemBranchPair { stem, branch } => {
                     ChartError::InvalidStemBranchPair { stem, branch }
                 }
+                _ => ChartError::InvalidStemBranchPair {
+                    stem: palace_stem_for_branch(year_stem, life_branch),
+                    branch: life_branch,
+                },
             },
         )?;
     let five_element_bureau = five_element_bureau_from_life_palace(life_pair);

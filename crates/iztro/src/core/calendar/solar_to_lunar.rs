@@ -255,14 +255,16 @@ pub(crate) fn resolve_effective_birth_year(
 fn map_solar_conversion_error(err: LunarError, year: i32, month: u8, day: u8) -> ChartError {
     match err {
         LunarError::InvalidSolarDate { .. } => ChartError::InvalidSolarDate { year, month, day },
-        LunarError::YearOutOfRange { .. } | LunarError::SolarTermOutOfRange { .. } => {
+        LunarError::SolarYearOutOfRange { .. } | LunarError::LunarYearOutOfRange { .. } => {
             ChartError::UnsupportedCalendarDate { year, month, day }
         }
         LunarError::InvalidLunarDate { .. }
+        | LunarError::InvalidLunarMonth { .. }
         | LunarError::InvalidTime { .. }
         | LunarError::InvalidTimeIndex { .. } => {
             ChartError::CalendarConversionFailed { year, month, day }
         }
+        _ => ChartError::CalendarConversionFailed { year, month, day },
     }
 }
 

@@ -28,7 +28,7 @@ use crate::core::calculation::YearBoundary;
 ///   `iztro@2.5.8`, which is date-level.
 ///
 /// # Errors
-/// Propagates [`LunarError::SolarTermOutOfRange`] from `li_chun_datetime` when
+/// Propagates [`LunarError::SolarYearOutOfRange`] from `li_chun_datetime` when
 /// `solar_year` is outside the supported `1..=9999` range.
 pub(super) fn effective_birth_year(input: YearBoundaryInput) -> Result<StemBranch, LunarError> {
     match input.boundary {

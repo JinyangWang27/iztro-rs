@@ -288,6 +288,10 @@ pub fn resolve_solar_birth_input(
                 lunar_lite::StemBranchError::InvalidStemBranchPair { stem, branch } => {
                     ChartError::InvalidStemBranchPair { stem, branch }
                 }
+                _ => ChartError::InvalidStemBranchPair {
+                    stem: conversion.birth_year_stem(),
+                    branch: conversion.birth_year_branch(),
+                },
             },
         )?;
 

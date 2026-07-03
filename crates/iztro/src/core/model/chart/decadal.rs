@@ -54,6 +54,10 @@ impl DecadalPeriod {
                 lunar_lite::StemBranchError::InvalidStemBranchPair { stem, branch } => {
                     ChartError::InvalidStemBranchPair { stem, branch }
                 }
+                _ => ChartError::InvalidStemBranchPair {
+                    stem: palace_stem,
+                    branch: palace_branch,
+                },
             })?;
 
         Ok(Self {
