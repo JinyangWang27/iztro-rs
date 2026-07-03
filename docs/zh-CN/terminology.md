@@ -23,6 +23,8 @@
 | `major_star` | Major Star | 主星 | 十四主星。 |
 | `minor_star` | Minor Star | 辅星 | 辅助性或次级星曜。 |
 | `adjective_star` | Adjective Star | 杂曜 | 杂曜和其他象义标记。 |
+| `star_family` | Star Family | 星曜族系 | 昌/曲/羊/陀/马族系，将本命基础星与其运/流/月/日/时飞星归为同一族系。族系是分类谱系，非等同关系：文曲与流曲同属 `Qu` 族但仍是不同的 `StarName`。 |
+| `star_selector` | Star Selector | 星曜选择器 | 匹配意图：`Exact` 仅匹配单一星曜身份（文曲不匹配流曲）；`Family` 显式匹配整个族系。默认经典匹配为精确匹配。 |
 | `brightness` | Brightness | 庙旺利陷 | 星曜在宫位中的状态和强弱。 |
 | `mutagen` | Mutagen | 四化 | 禄、权、科、忌。 |
 | `mutagen_lu` | Lu | 化禄 | 资源、缘分、顺流、收益。 |

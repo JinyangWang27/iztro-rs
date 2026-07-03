@@ -152,6 +152,19 @@ selected-state vertical slice: when evaluated through
 in the selected frame scope. QuanShu rules remain conservative and are not
 promoted to temporal scopes automatically.
 
+Selected-state queries can see active overlays projected into the selected palace
+frame, but **exact star matching stays exact**. The selected frame scope controls
+which palace labels and facts are visible; it never overloads star identity
+equality. A base-star condition such as 文曲 (`WenQu`) matches only the exact
+runtime 文曲 — a flow star like 流曲 (`LiuQu`) that becomes visible under a yearly
+frame is an independent `StarName` and does not satisfy it. So 昌曲夹命 requires
+exact 文昌 + 文曲 even in a temporal frame; natal 文昌/文曲 projected into the
+selected frame still qualify, but 流昌/流曲 do not. Family-level matching is opt-in
+and explicit (`StarSelector::Family` over `StarFamily`); rules that intend a
+specific temporal blade resolve it explicitly via `StarFamily::member_in_scope`
+(as 羊陀夹忌 does for 流羊/流陀) rather than relying on any hidden base↔flow
+aliasing.
+
 ## Layer-level analysis (`analysis`)
 
 The `analysis` module is a lightweight coordinator that composes the pattern and
