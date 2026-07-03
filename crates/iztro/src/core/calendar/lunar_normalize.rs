@@ -97,15 +97,18 @@ pub(crate) fn resolve_lunar_date(
 
 fn map_lunar_normalize_error(err: LunarError, year: i32, month: u8, day: u8) -> ChartError {
     match err {
-        LunarError::InvalidLunarDate { .. } | LunarError::YearOutOfRange { .. } => {
+        LunarError::InvalidLunarDate { .. }
+        | LunarError::InvalidLunarMonth { .. }
+        | LunarError::LunarYearOutOfRange { .. } => {
             ChartError::UnsupportedCalendarDate { year, month, day }
         }
         LunarError::InvalidSolarDate { .. }
+        | LunarError::SolarYearOutOfRange { .. }
         | LunarError::InvalidTime { .. }
-        | LunarError::InvalidTimeIndex { .. }
-        | LunarError::SolarTermOutOfRange { .. } => {
+        | LunarError::InvalidTimeIndex { .. } => {
             ChartError::CalendarConversionFailed { year, month, day }
         }
+        _ => ChartError::CalendarConversionFailed { year, month, day },
     }
 }
 
