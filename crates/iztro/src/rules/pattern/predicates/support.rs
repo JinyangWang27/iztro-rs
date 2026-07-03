@@ -321,9 +321,15 @@ mod tests {
         // Life = Zi; SFSZ(Zi) = {Zi, Wu, Chen, Shen}. Natal 文昌@Wu is exact
         // support; yearly 流曲@Chen is a distinct identity and must not fill the
         // 文曲 support slot.
-        let natal = natal_chart(EarthlyBranch::Zi, &[(EarthlyBranch::Wu, StarName::WenChang)]);
-        let horoscope =
-            yearly_horoscope(natal, EarthlyBranch::Zi, &[(EarthlyBranch::Chen, StarName::LiuQu)]);
+        let natal = natal_chart(
+            EarthlyBranch::Zi,
+            &[(EarthlyBranch::Wu, StarName::WenChang)],
+        );
+        let horoscope = yearly_horoscope(
+            natal,
+            EarthlyBranch::Zi,
+            &[(EarthlyBranch::Chen, StarName::LiuQu)],
+        );
         let ctx = PatternContext::horoscope_with_frame(
             &horoscope,
             Scope::Yearly,

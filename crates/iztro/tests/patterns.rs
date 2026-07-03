@@ -992,10 +992,11 @@ fn chang_qu_jia_ming_negative_when_only_one_clamp_side() {
 }
 
 #[test]
-fn yearly_chang_qu_jia_ming_matches_scope_specific_flow_stars() {
+fn yearly_flow_chang_qu_does_not_form_exact_chang_qu_jia_ming() {
     // Temporal Life at Zi; clamp(Zi) = {Hai, Chou}. The yearly layer contributes
-    // 流昌/流曲, which should satisfy a 文昌/文曲 same-scope request while the
-    // detection records the actual runtime flow-star names.
+    // 流昌/流曲. Under the exact-identity invariant these flow stars are distinct
+    // from 文昌/文曲, so they do NOT satisfy the exact classical 昌曲夹命. A
+    // temporal-flow variant, if ever wanted, must query 流昌/流曲 explicitly.
     let natal = build_chart(EarthlyBranch::Zi, &[]);
     let horoscope = horoscope_with_layer(
         natal,
@@ -1022,30 +1023,46 @@ fn yearly_chang_qu_jia_ming_matches_scope_specific_flow_stars() {
         &PatternContext::horoscope(&horoscope, vec![Scope::Natal, Scope::Yearly]),
         &request_for_scope(Scope::Yearly),
     );
+    assert!(detections.iter().all(|d| d.id != PatternId::ChangQuJiaMing));
+}
+
+#[test]
+fn yearly_chang_qu_jia_ming_matches_natal_stars_visible_in_selected_frame() {
+    // The selected yearly Life palace is Zi; clamp(Zi) = {Hai, Chou}. Natal 文昌
+    // and natal 文曲 remain exact identities and stay visible under the selected
+    // yearly frame, so exact 昌曲夹命 still forms. This is the legitimate
+    // selected-state behaviour: natal stars projected into a temporal frame.
+    let natal = build_chart(
+        EarthlyBranch::Zi,
+        &[
+            soft(EarthlyBranch::Hai, StarName::WenChang),
+            soft(EarthlyBranch::Chou, StarName::WenQu),
+        ],
+    );
+    let horoscope = horoscope_with_layer(natal, Scope::Yearly, EarthlyBranch::Zi, vec![], vec![]);
+
+    let detections = iztro::detect_patterns(
+        &PatternContext::horoscope_with_frame(
+            &horoscope,
+            Scope::Yearly,
+            vec![Scope::Natal, Scope::Yearly],
+        ),
+        &request_for_scope(Scope::Yearly),
+    );
     let detection = detection(&detections, PatternId::ChangQuJiaMing);
 
     assert_eq!(detection.scope, PatternScope::Yearly);
     assert_eq!(
         star_set(&detection.involved_stars),
-        star_set(&[StarName::LiuChang, StarName::LiuQu])
+        star_set(&[StarName::WenChang, StarName::WenQu])
     );
-    assert!(evidence_has_star_in_palace(
-        detection,
-        StarName::LiuChang,
-        EarthlyBranch::Hai
-    ));
-    assert!(evidence_has_star_in_palace(
-        detection,
-        StarName::LiuQu,
-        EarthlyBranch::Chou
-    ));
 }
 
 #[test]
-fn yearly_chang_qu_jia_ming_effective_match_can_mix_natal_and_active_overlay_stars() {
-    // The selected yearly Life palace is Zi. Natal WenChang clamps it from Hai,
-    // while the active yearly flow WenQu clamps it from Chou. This is selected
-    // chart-state matching, not same-source matching.
+fn yearly_chang_qu_jia_ming_does_not_treat_liu_qu_as_wen_qu() {
+    // Selected yearly Life palace is Zi; clamp(Zi) = {Hai, Chou}. Natal 文昌
+    // clamps from Hai, but the other clamp holds yearly 流曲, not 文曲. 流曲 is a
+    // distinct identity, so the exact 昌曲夹命 does not form from this mix.
     let natal = build_chart(
         EarthlyBranch::Zi,
         &[soft(EarthlyBranch::Hai, StarName::WenChang)],
@@ -1071,23 +1088,7 @@ fn yearly_chang_qu_jia_ming_effective_match_can_mix_natal_and_active_overlay_sta
         ),
         &request_for_scope(Scope::Yearly),
     );
-    let detection = detection(&detections, PatternId::ChangQuJiaMing);
-
-    assert_eq!(detection.scope, PatternScope::Yearly);
-    assert_eq!(
-        star_set(&detection.involved_stars),
-        star_set(&[StarName::WenChang, StarName::LiuQu])
-    );
-    assert!(evidence_has_star_in_palace(
-        detection,
-        StarName::WenChang,
-        EarthlyBranch::Hai
-    ));
-    assert!(evidence_has_star_in_palace(
-        detection,
-        StarName::LiuQu,
-        EarthlyBranch::Chou
-    ));
+    assert!(detections.iter().all(|d| d.id != PatternId::ChangQuJiaMing));
 }
 
 #[test]
@@ -1124,7 +1125,12 @@ fn effective_helpers_require_the_selected_palace_frame_scope() {
 }
 
 #[test]
-fn monthly_chang_qu_jia_ming_does_not_leak_into_yearly_result() {
+fn monthly_flow_chang_qu_does_not_form_exact_pattern_in_any_scope() {
+    // The monthly layer contributes 月昌/月曲 in the clamp palaces of Zi. Two
+    // invariants hold together: an inactive scope never sees those facts (the
+    // yearly request excludes the monthly layer), and — even when the monthly
+    // frame is selected — 月昌/月曲 are distinct identities from 文昌/文曲 and so
+    // do not form the exact classical 昌曲夹命.
     let natal = build_chart(EarthlyBranch::Zi, &[]);
     let monthly = TemporalLayer::try_new_with_palace_layout(
         Scope::Monthly,
@@ -1166,12 +1172,252 @@ fn monthly_chang_qu_jia_ming_does_not_leak_into_yearly_result() {
         ),
         &request_for_scope(Scope::Monthly),
     );
-    let detection = detection(&monthly, PatternId::ChangQuJiaMing);
-    assert_eq!(detection.scope, PatternScope::Monthly);
+    assert!(monthly.iter().all(|d| d.id != PatternId::ChangQuJiaMing));
+}
+
+// ---- exact flow-star identity regressions --------------------------------
+
+/// Builds a natal-Zi horoscope whose yearly layer (frame Life = Zi) carries the
+/// given yearly flow placements.
+fn yearly_flow_horoscope(placements: Vec<ScopedStarPlacement>) -> HoroscopeChart {
+    let natal = build_chart(EarthlyBranch::Zi, &[]);
+    horoscope_with_layer(natal, Scope::Yearly, EarthlyBranch::Zi, placements, vec![])
+}
+
+#[test]
+fn exact_wen_qu_query_does_not_match_liu_qu() {
+    // Yearly 流曲@Wu is visible in the selected yearly frame, but no 文曲 exists.
+    // An exact 文曲 query finds nothing; an exact 流曲 query finds the yearly
+    // occurrence and preserves its Yearly provenance.
+    let horoscope = yearly_flow_horoscope(vec![scoped(
+        EarthlyBranch::Wu,
+        StarName::LiuQu,
+        StarKind::Soft,
+        Scope::Yearly,
+    )]);
+    let ctx = PatternContext::horoscope_with_frame(
+        &horoscope,
+        Scope::Yearly,
+        vec![Scope::Natal, Scope::Yearly],
+    );
+
+    assert!(
+        effective_star_in_palace(&ctx, Scope::Yearly, EarthlyBranch::Wu, StarName::WenQu).is_none()
+    );
+    let liu = effective_star_in_palace(&ctx, Scope::Yearly, EarthlyBranch::Wu, StarName::LiuQu)
+        .expect("exact 流曲 query returns the yearly occurrence");
+    assert_eq!(liu.placement().name(), StarName::LiuQu);
+    assert_eq!(liu.source_scope(), Scope::Yearly);
+}
+
+#[test]
+fn exact_tian_ma_query_does_not_match_liu_ma() {
+    let horoscope = yearly_flow_horoscope(vec![scoped(
+        EarthlyBranch::Wu,
+        StarName::LiuMa,
+        StarKind::Soft,
+        Scope::Yearly,
+    )]);
+    let ctx = PatternContext::horoscope_with_frame(
+        &horoscope,
+        Scope::Yearly,
+        vec![Scope::Natal, Scope::Yearly],
+    );
+
+    assert!(
+        effective_star_in_palace(&ctx, Scope::Yearly, EarthlyBranch::Wu, StarName::TianMa)
+            .is_none()
+    );
+    assert!(
+        effective_star_in_palace(&ctx, Scope::Yearly, EarthlyBranch::Wu, StarName::LiuMa).is_some()
+    );
+}
+
+#[test]
+fn selected_san_fang_si_zheng_wen_qu_query_ignores_liu_qu_under_yearly_frame() {
+    // Direct guard against the original root cause: a 文曲 search over the
+    // selected yearly 三方四正 must not return 流曲. SFSZ(Zi) includes Wu.
+    let horoscope = yearly_flow_horoscope(vec![scoped(
+        EarthlyBranch::Wu,
+        StarName::LiuQu,
+        StarKind::Soft,
+        Scope::Yearly,
+    )]);
+    let ctx = PatternContext::horoscope_with_frame(
+        &horoscope,
+        Scope::Yearly,
+        vec![Scope::Natal, Scope::Yearly],
+    );
+
+    assert!(
+        selected_stars_in_san_fang_si_zheng(&ctx, EarthlyBranch::Zi, &[StarName::WenQu]).is_empty()
+    );
+    let found = selected_stars_in_san_fang_si_zheng(&ctx, EarthlyBranch::Zi, &[StarName::LiuQu]);
+    assert_eq!(found, vec![(StarName::LiuQu, EarthlyBranch::Wu)]);
+}
+
+#[test]
+fn wen_xing_gong_ming_ignores_liu_qu_without_wen_qu() {
+    // Selected yearly Life = Zi; SFSZ = {Zi, Wu, Chen, Shen}. Natal 文昌@Zi is
+    // exact and visible; yearly 流曲@Wu is visible but is not 文曲. Without an
+    // exact 文曲 the pattern must not fire.
+    let natal = build_chart(
+        EarthlyBranch::Zi,
+        &[soft(EarthlyBranch::Zi, StarName::WenChang)],
+    );
+    let horoscope = horoscope_with_layer(
+        natal,
+        Scope::Yearly,
+        EarthlyBranch::Zi,
+        vec![scoped(
+            EarthlyBranch::Wu,
+            StarName::LiuQu,
+            StarKind::Soft,
+            Scope::Yearly,
+        )],
+        vec![],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::horoscope_with_frame(
+            &horoscope,
+            Scope::Yearly,
+            vec![Scope::Natal, Scope::Yearly],
+        ),
+        &request_for_scope(Scope::Yearly),
+    );
+    assert!(
+        detections
+            .iter()
+            .all(|d| d.id != PatternId::WenXingGongMing)
+    );
+
+    // Positive control: with an exact 文曲 present the pattern fires.
+    let natal = build_chart(
+        EarthlyBranch::Zi,
+        &[
+            soft(EarthlyBranch::Zi, StarName::WenChang),
+            soft(EarthlyBranch::Wu, StarName::WenQu),
+        ],
+    );
+    let horoscope = horoscope_with_layer(natal, Scope::Yearly, EarthlyBranch::Zi, vec![], vec![]);
+    let detections = iztro::detect_patterns(
+        &PatternContext::horoscope_with_frame(
+            &horoscope,
+            Scope::Yearly,
+            vec![Scope::Natal, Scope::Yearly],
+        ),
+        &request_for_scope(Scope::Yearly),
+    );
+    assert!(
+        detections
+            .iter()
+            .any(|d| d.id == PatternId::WenXingGongMing)
+    );
+}
+
+#[test]
+fn ma_tou_dai_jian_does_not_fire_from_liu_ma() {
+    // Yearly 流马 shares a palace with yearly 流羊, but 天马 is absent. The exact
+    // 天马 detector must not fire from 流马.
+    let horoscope = yearly_flow_horoscope(vec![
+        scoped(
+            EarthlyBranch::Wu,
+            StarName::LiuMa,
+            StarKind::Soft,
+            Scope::Yearly,
+        ),
+        scoped(
+            EarthlyBranch::Wu,
+            StarName::LiuYang,
+            StarKind::Tough,
+            Scope::Yearly,
+        ),
+    ]);
+    let detections = iztro::detect_patterns(
+        &PatternContext::horoscope(&horoscope, vec![Scope::Natal, Scope::Yearly]),
+        &request_for_scope(Scope::Yearly),
+    );
+    assert!(detections.iter().all(|d| d.id != PatternId::MaTouDaiJian));
+}
+
+#[test]
+fn ma_luo_kong_wang_does_not_fire_from_liu_ma() {
+    // Yearly 流马 shares a palace with a 空亡-family star, but 天马 is absent.
+    let horoscope = yearly_flow_horoscope(vec![
+        scoped(
+            EarthlyBranch::Hai,
+            StarName::LiuMa,
+            StarKind::Soft,
+            Scope::Yearly,
+        ),
+        scoped(
+            EarthlyBranch::Hai,
+            StarName::XunKong,
+            StarKind::Adjective,
+            Scope::Yearly,
+        ),
+    ]);
+    let detections = iztro::detect_patterns(
+        &PatternContext::horoscope(&horoscope, vec![Scope::Natal, Scope::Yearly]),
+        &request_for_scope(Scope::Yearly),
+    );
+    assert!(detections.iter().all(|d| d.id != PatternId::MaLuoKongWang));
+}
+
+#[test]
+fn yearly_yang_tuo_jia_ji_uses_exact_liu_yang_liu_tuo() {
+    // A yearly 化忌 activation lands on TaiYang@Zi. 流羊/流陀 clamp Zi from Hai and
+    // Chou. The detector resolves the exact yearly blades explicitly and records
+    // 流羊/流陀 in the evidence — never base 擎羊/陀罗.
+    let natal = build_chart(
+        EarthlyBranch::Zi,
+        &[major(EarthlyBranch::Zi, StarName::TaiYang)],
+    );
+    let horoscope = horoscope_with_layer(
+        natal,
+        Scope::Yearly,
+        EarthlyBranch::Zi,
+        vec![
+            scoped(
+                EarthlyBranch::Hai,
+                StarName::LiuYang,
+                StarKind::Tough,
+                Scope::Yearly,
+            ),
+            scoped(
+                EarthlyBranch::Chou,
+                StarName::LiuTuo,
+                StarKind::Tough,
+                Scope::Yearly,
+            ),
+        ],
+        vec![MutagenActivation::new(
+            Scope::Yearly,
+            StarName::TaiYang,
+            EarthlyBranch::Zi,
+            Mutagen::Ji,
+        )],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::horoscope(&horoscope, vec![Scope::Natal, Scope::Yearly]),
+        &request_for_scope(Scope::Yearly),
+    );
+    let detection = detection(&detections, PatternId::YangTuoJiaJi);
+    assert_eq!(detection.scope, PatternScope::Yearly);
     assert_eq!(
         star_set(&detection.involved_stars),
-        star_set(&[StarName::YueChang, StarName::YueQu])
+        star_set(&[StarName::LiuYang, StarName::LiuTuo, StarName::TaiYang])
     );
+    assert!(evidence_has_star_in_palace(
+        detection,
+        StarName::LiuYang,
+        EarthlyBranch::Hai
+    ));
+    assert!(evidence_has_star_in_palace(
+        detection,
+        StarName::LiuTuo,
+        EarthlyBranch::Chou
+    ));
 }
 
 // ---- 日月并明 -------------------------------------------------------------

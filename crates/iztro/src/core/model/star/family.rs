@@ -256,10 +256,7 @@ mod tests {
             StarName::YueTuo
         );
         // 岁 (age) carries no flow layer, so it resolves to the natal base.
-        assert_eq!(
-            StarFamily::Ma.member_in_scope(Scope::Age),
-            StarName::TianMa
-        );
+        assert_eq!(StarFamily::Ma.member_in_scope(Scope::Age), StarName::TianMa);
     }
 
     #[test]
