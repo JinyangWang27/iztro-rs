@@ -114,6 +114,15 @@ solar input -> by_solar -> ChartStackSnapshot -> render module plain text output
 
 The GUI renderer derives nothing: it performs no star placement, temporal derivation, mutagen calculation, 三方四正 branch arithmetic, 成格 detection, BaZi interpretation, rule evaluation, pattern detection, or narrative generation in UI code. It only displays prepared values. Rule and pattern data shown in the right inspector is not computed in the GUI either — app state *requests* structured, per-layer analysis through the analysis selected-view batch facade (`detect_static_temporal_analysis_layers_from_chart`) and caches the results; pattern detection itself lives in `rules::pattern` as rule-engine code (see the right inspector section below).
 
+### Birth-time input modes
+
+The startup form supports two birth-time input modes, both collecting a solar (Gregorian) date and gender:
+
+- **Clock time** — a wall-clock hour/minute plus a birth-place UTC offset chosen from a fixed-offset dropdown (every whole hour from `UTC-12:00` to `UTC+14:00`, plus common fractional offsets such as `UTC+05:30`, `UTC+05:45`, `UTC+08:45`). An optional apparent-solar-time correction toggle reveals a birth-place longitude field (east-positive decimal degrees). This mode normalizes into core `SolarBirthInput` / `ClockBirthTime` / `UtcOffset` / `Longitude` values and generates through `by_solar_with_options_report`, so the resolved local date, 时辰, and four pillars come from core calculation policy.
+- **Known time branch** — a known 时辰 (double-hour / `timeIndex`) chosen from the existing picker, generating through the classic `by_solar` path.
+
+The correction currently applies the longitude adjustment only (UTC offset + longitude); the equation-of-time approximation is intentionally **not** exposed in the GUI because `EquationOfTimePolicy::Approximate` is not implemented in core. The GUI never derives apparent solar time, the time branch, or four pillars itself: it passes the offset and longitude to core and reads back the resolved facts. Longitude is stored in the GUI/persistence layer as integer micro-degrees so the birth input stays hashable for the chart cache key, and is converted to degrees only at the core boundary. Saved charts persist only normalized user input (the tagged birth input plus a display name); pre-mode records migrate to the known-time-branch variant without inventing clock time, UTC offset, or longitude.
+
 ### Right analysis inspector
 
 The GUI adds a collapsible right-side inspector rendered *beside* the fixed-size scrollable chart canvas (never inside it, so palace cells never shrink). It has three tabs — 全书规则 (QuanShu rules), 格局 (patterns), and 设置 (settings) — and is renderer-side only: it reads cached, structured analysis values and performs no rule evaluation, pattern detection, or overlay derivation.
