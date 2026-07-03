@@ -22,6 +22,18 @@ field-day = 日
 field-time = 时
 field-gender = 性别
 
+# 出生时间输入方式
+field-input-mode = 输入方式
+input-mode-clock = 出生钟表时间
+input-mode-known-time-branch = 已知时辰
+field-clock-hour = 时
+field-clock-minute = 分
+field-utc-offset = 出生地 UTC 偏移
+field-apparent-solar-time = 视太阳时（常称真太阳时）校正
+field-longitude = 出生地经度（东经为正，西经为负）
+field-longitude-hint = 东经为正，西经为负
+apparent-solar-time-short = 视太阳时
+
 # 按钮
 button-generate = 生成命盘
 button-update = 更新命盘
@@ -46,6 +58,11 @@ error-year = 年份必须是整数
 error-month = 月份必须是整数
 error-day = 日期必须是整数
 error-invalid-calendar-date = 该日期在日历中不存在
+error-invalid-clock-time = 请输入 0–23 的小时与 0–59 的分钟
+error-invalid-utc-offset = 出生地 UTC 偏移超出范围
+error-invalid-longitude = 经度须为 -180 到 180 之间的数字
+error-longitude-required = 启用校正需填写出生地经度
+error-unsupported-equation-of-time = 暂不支持该真太阳时校正方式
 error-invalid-birth-time = 所选出生时辰无效
 error-invalid-temporal-selection = 所选运限超出范围
 error-chart-generation-failed = 无法根据该输入生成命盘

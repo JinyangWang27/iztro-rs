@@ -14,6 +14,7 @@
 //! itself stays in `analysis`, `rules::pattern`, and `rules::classical`.
 
 use std::collections::{BTreeSet, HashMap};
+use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
@@ -29,13 +30,15 @@ use iztro::analysis::{
     detect_static_temporal_analysis_layers_from_chart,
 };
 use iztro::core::{
-    BirthTime, Chart, ChartAlgorithmKind, ChartError, EarthlyBranch, Gender, MethodProfile,
-    SolarChartRequest, SolarDay, SolarMonth, by_solar,
+    ApparentSolarTimeConfig, BirthTime, Chart, ChartAlgorithmKind, ChartCalculationConfig,
+    ChartError, ChartPlane, ClockBirthTime, EarthlyBranch, EquationOfTimePolicy, Gender, Longitude,
+    MethodProfile, NatalChartOptions, SolarBirthInput, SolarChartRequest, SolarDate, SolarDay,
+    SolarMonth, SolarTimePolicy, UtcOffset, by_solar, by_solar_with_options_report,
 };
 use iztro::{
     StaticChartCenterProjection, StaticChartProjection, StaticPalaceProjection,
-    StaticTemporalNavigationSelection, static_temporal_chart_view,
-    temporal_selection_for_solar_moment,
+    StaticTemporalNavigationSelection, static_temporal_chart_view_from_chart,
+    temporal_selection_for_local_moment,
 };
 use iztro_i18n::{I18n, Locale};
 
@@ -49,13 +52,14 @@ pub const CENTER_CELLS: [(u8, u8); 4] = [(1, 1), (1, 2), (2, 1), (2, 2)];
 ///
 /// Pre-filling the form does *not* generate a chart: the app starts on the
 /// startup screen with no chart until the user explicitly generates one.
-pub const SAMPLE_INPUT: BirthInput = BirthInput {
-    year: 1990,
-    month: 5,
-    day: 17,
-    time_index: 4, // 辰时
-    gender: Gender::Female,
-};
+pub const SAMPLE_INPUT: BirthInput =
+    BirthInput::SolarKnownTimeBranch(SolarKnownTimeBranchBirthInput {
+        year: 1990,
+        month: 5,
+        day: 17,
+        time_index: 4, // 辰时
+        gender: Gender::Female,
+    });
 
 /// Which top-level screen the app is showing.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
@@ -243,10 +247,92 @@ fn carry_month_tuple(
     }
 }
 
-/// Normalized, hashable birth input. Doubles as the chart cache key and the
-/// persisted record for a saved chart.
+/// How the GUI interprets the birth clock time when apparent solar time is on.
+///
+/// Longitude is stored as whole micro-degrees (east-positive) rather than `f64`
+/// so [`BirthInput`] stays `Hash + Eq` and can key the chart cache. It is only
+/// converted back to a `f64` degree value at the core boundary
+/// ([`SolarClockBirthInput::to_core_input`]).
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
-pub struct BirthInput {
+#[serde(tag = "policy", rename_all = "snake_case")]
+pub enum GuiSolarTimePolicy {
+    /// Derive the 时辰 directly from the supplied clock time (no correction).
+    ClockTime,
+    /// Adjust the clock time to apparent solar time using the birth-place UTC
+    /// offset and longitude before deriving the 时辰. The equation of time is
+    /// always disabled: core only supports the exact longitude correction.
+    ApparentSolarTime {
+        /// Birth-place longitude in micro-degrees, east-positive.
+        longitude_micro_degrees: i32,
+    },
+}
+
+/// Clock-time birth input (mode 1): a civil solar date plus a wall-clock time,
+/// a birth-place UTC offset, and an optional apparent-solar-time correction.
+///
+/// The GUI never derives the resolved solar date, 时辰, or four pillars from
+/// these fields — that is core's job. It only normalizes the fields into core
+/// input types ([`SolarClockBirthInput::to_core_input`]).
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct SolarClockBirthInput {
+    /// Solar (Gregorian) year.
+    pub year: i32,
+    /// Solar month (`1..=12`, validated downstream by the facade).
+    pub month: u8,
+    /// Solar day (`1..=31`, validated downstream by the facade).
+    pub day: u8,
+    /// Wall-clock hour (`0..=23`).
+    pub clock_hour: u8,
+    /// Wall-clock minute (`0..=59`).
+    pub clock_minute: u8,
+    /// Birth-place UTC offset in whole minutes east of UTC.
+    pub utc_offset_minutes: i32,
+    /// How the clock time becomes a 时辰 (plain clock time or corrected).
+    pub solar_time_policy: GuiSolarTimePolicy,
+    /// Gender marker.
+    pub gender: Gender,
+}
+
+impl SolarClockBirthInput {
+    /// Normalizes the raw GUI fields into the core clock-time birth input and its
+    /// paired chart options, so all birth-time policy runs in core.
+    ///
+    /// Longitude micro-degrees are converted to `f64` degrees only here, at the
+    /// core boundary. Field validity (date, clock time, UTC offset, longitude) is
+    /// delegated to the core constructors, which return typed [`ChartError`]s.
+    pub fn to_core_input(&self) -> Result<(SolarBirthInput, NatalChartOptions), ChartError> {
+        let date = SolarDate::new(self.year, self.month, self.day)?;
+        let offset = UtcOffset::from_minutes(self.utc_offset_minutes)?;
+        let clock = ClockBirthTime::new(self.clock_hour, self.clock_minute, offset)?;
+        let solar_time = match self.solar_time_policy {
+            GuiSolarTimePolicy::ClockTime => SolarTimePolicy::ClockTime,
+            GuiSolarTimePolicy::ApparentSolarTime {
+                longitude_micro_degrees,
+            } => {
+                let degrees = f64::from(longitude_micro_degrees) / 1_000_000.0;
+                let longitude = Longitude::new(degrees)?;
+                SolarTimePolicy::ApparentSolarTime(ApparentSolarTimeConfig::new(
+                    longitude,
+                    EquationOfTimePolicy::Disabled,
+                ))
+            }
+        };
+        let options = NatalChartOptions::new(
+            gui_method_profile(),
+            ChartPlane::default(),
+            ChartCalculationConfig::new(solar_time),
+        );
+        Ok((SolarBirthInput::new(date, clock, self.gender), options))
+    }
+}
+
+/// Known-time-branch birth input (mode 2): a civil solar date plus a known 时辰
+/// (double-hour / `timeIndex`) supplied directly by the user.
+///
+/// This is a real user input mode, not a legacy fallback: some users know their
+/// 时辰 but not their exact clock time.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct SolarKnownTimeBranchBirthInput {
     /// Solar (Gregorian) year.
     pub year: i32,
     /// Solar month (`1..=12`, validated downstream by the facade).
@@ -257,6 +343,54 @@ pub struct BirthInput {
     pub time_index: u8,
     /// Gender marker.
     pub gender: Gender,
+}
+
+/// Normalized, hashable birth input. Doubles as the chart cache key and the
+/// persisted record for a saved chart.
+///
+/// The two variants correspond to the two GUI birth-time input modes. Both carry
+/// only normalized user input; no chart facts are stored here.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+#[serde(tag = "mode", rename_all = "snake_case")]
+pub enum BirthInput {
+    /// Clock-time input with an optional apparent-solar-time correction.
+    SolarClock(SolarClockBirthInput),
+    /// Known-时辰 input using the double-hour picker.
+    SolarKnownTimeBranch(SolarKnownTimeBranchBirthInput),
+}
+
+impl BirthInput {
+    /// The solar (Gregorian) year, common to both input modes.
+    pub fn year(&self) -> i32 {
+        match self {
+            Self::SolarClock(input) => input.year,
+            Self::SolarKnownTimeBranch(input) => input.year,
+        }
+    }
+
+    /// The solar month (`1..=12`), common to both input modes.
+    pub fn month(&self) -> u8 {
+        match self {
+            Self::SolarClock(input) => input.month,
+            Self::SolarKnownTimeBranch(input) => input.month,
+        }
+    }
+
+    /// The solar day (`1..=31`), common to both input modes.
+    pub fn day(&self) -> u8 {
+        match self {
+            Self::SolarClock(input) => input.day,
+            Self::SolarKnownTimeBranch(input) => input.day,
+        }
+    }
+
+    /// The gender marker, common to both input modes.
+    pub fn gender(&self) -> Gender {
+        match self {
+            Self::SolarClock(input) => input.gender,
+            Self::SolarKnownTimeBranch(input) => input.gender,
+        }
+    }
 }
 
 /// A saved chart record: a user-provided display name plus the normalized birth
@@ -279,27 +413,202 @@ pub fn default_chart_name(input: &BirthInput, locale: Locale) -> String {
     let i18n = I18n::new(locale);
     format!(
         "{}-{:02}-{:02} {} {}",
-        input.year,
-        input.month,
-        input.day,
-        i18n.gender(input.gender),
-        i18n.hour_branch(input.time_index),
+        input.year(),
+        input.month(),
+        input.day(),
+        i18n.gender(input.gender()),
+        birth_time_summary(input, &i18n),
     )
 }
 
+/// A short birth-time summary for a saved-chart label.
+///
+/// Known-时辰 input shows the localized 时辰 name from its `timeIndex`. Clock
+/// input shows only user-entered, non-derived facts — never a resolved 时辰,
+/// which is core's responsibility:
+///
+/// - plain clock mode: `HH:MM` plus the birth-place UTC offset;
+/// - apparent-solar-time mode: additionally the longitude, so two records that
+///   differ only in UTC offset or in correction/longitude get distinct summaries
+///   (and therefore distinct default names, which the saved list de-dupes by).
+pub fn birth_time_summary(input: &BirthInput, i18n: &I18n) -> String {
+    match input {
+        BirthInput::SolarKnownTimeBranch(known) => i18n.hour_branch(known.time_index),
+        BirthInput::SolarClock(clock) => {
+            let offset = UtcOffsetChoice::from_minutes(clock.utc_offset_minutes).label();
+            let clock_time = format!("{:02}:{:02}", clock.clock_hour, clock.clock_minute);
+            match clock.solar_time_policy {
+                GuiSolarTimePolicy::ClockTime => format!("{clock_time} {offset}"),
+                GuiSolarTimePolicy::ApparentSolarTime {
+                    longitude_micro_degrees,
+                } => {
+                    format!(
+                        "{clock_time} {offset} · {} {}",
+                        i18n.text("apparent-solar-time-short"),
+                        format_longitude_display(longitude_micro_degrees),
+                    )
+                }
+            }
+        }
+    }
+}
+
+/// The shared method profile used for every GUI-generated chart, so both input
+/// modes use the same algorithm family and metadata.
+fn gui_method_profile() -> MethodProfile {
+    MethodProfile::new(
+        "iztro_gui",
+        ChartAlgorithmKind::QuanShu,
+        "iztro-gui static chart prototype",
+    )
+}
+
+/// Which birth-time input mode the startup form is collecting.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum InputMode {
+    /// Clock time with an optional apparent-solar-time correction.
+    Clock,
+    /// A known 时辰 (double-hour) selected from the picker.
+    KnownTimeBranch,
+}
+
+impl InputMode {
+    /// The stable Fluent key for this mode's dropdown label.
+    pub fn fluent_key(self) -> &'static str {
+        match self {
+            InputMode::Clock => "input-mode-clock",
+            InputMode::KnownTimeBranch => "input-mode-known-time-branch",
+        }
+    }
+}
+
+/// Default birth-place UTC offset for the clock-time form (`UTC+08:00`).
+pub const DEFAULT_UTC_OFFSET_MINUTES: i32 = 8 * 60;
+/// Default clock hour text for the clock-time form.
+const DEFAULT_CLOCK_HOUR: &str = "12";
+/// Default clock minute text for the clock-time form.
+const DEFAULT_CLOCK_MINUTE: &str = "00";
+/// Default birth-place longitude text (east-positive decimal degrees).
+const DEFAULT_LONGITUDE: &str = "120.0";
+
+/// A typed birth-place UTC-offset choice for the dropdown.
+///
+/// The offset is a fixed civil offset in whole minutes east of UTC, not an IANA
+/// time zone: the current core models a fixed offset only, with no history/DST.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub struct UtcOffsetChoice {
+    minutes: i32,
+}
+
+impl UtcOffsetChoice {
+    /// Wraps a whole-minute offset east of UTC.
+    pub const fn from_minutes(minutes: i32) -> Self {
+        Self { minutes }
+    }
+
+    /// The offset in whole minutes east of UTC.
+    pub const fn minutes(self) -> i32 {
+        self.minutes
+    }
+
+    /// The display label, such as `UTC+08:00`, `UTC-04:00`, or `UTC+05:30`.
+    pub fn label(self) -> String {
+        let sign = if self.minutes < 0 { '-' } else { '+' };
+        let abs = self.minutes.abs();
+        format!("UTC{sign}{:02}:{:02}", abs / 60, abs % 60)
+    }
+}
+
+impl Default for UtcOffsetChoice {
+    fn default() -> Self {
+        Self::from_minutes(DEFAULT_UTC_OFFSET_MINUTES)
+    }
+}
+
+impl fmt::Display for UtcOffsetChoice {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&self.label())
+    }
+}
+
+/// The deterministic, minute-sorted list of birth-place UTC-offset choices.
+///
+/// Covers every whole-hour offset from `UTC-12:00` to `UTC+14:00` plus the
+/// common fractional offsets the core minute-based model supports (for example
+/// `UTC+05:30`, `UTC+05:45`, `UTC+08:45`). The list is sorted ascending by
+/// minutes and de-duplicated.
+pub fn utc_offset_choices() -> Vec<UtcOffsetChoice> {
+    // Common fractional (half/quarter-hour) civil offsets, in minutes east.
+    const FRACTIONAL_OFFSET_MINUTES: [i32; 13] = [
+        -570, // UTC-09:30
+        -270, // UTC-04:30
+        -210, // UTC-03:30
+        210,  // UTC+03:30
+        270,  // UTC+04:30
+        330,  // UTC+05:30
+        345,  // UTC+05:45
+        390,  // UTC+06:30
+        525,  // UTC+08:45
+        570,  // UTC+09:30
+        630,  // UTC+10:30
+        765,  // UTC+12:45
+        825,  // UTC+13:45
+    ];
+    let mut minutes: Vec<i32> = (-12..=14).map(|hour| hour * 60).collect();
+    minutes.extend(FRACTIONAL_OFFSET_MINUTES);
+    minutes.sort_unstable();
+    minutes.dedup();
+    minutes
+        .into_iter()
+        .map(UtcOffsetChoice::from_minutes)
+        .collect()
+}
+
+/// Formats a longitude in micro-degrees back into an editable decimal string.
+fn format_longitude(micro_degrees: i32) -> String {
+    format!("{}", f64::from(micro_degrees) / 1_000_000.0)
+}
+
+/// Formats a longitude in micro-degrees into a compact, stable display string
+/// such as `105.000°`.
+///
+/// Fixed 3-decimal formatting avoids floating-point artifacts (for example
+/// `105.0999999`) in saved-chart labels while keeping sub-degree precision.
+fn format_longitude_display(micro_degrees: i32) -> String {
+    format!("{:.3}°", f64::from(micro_degrees) / 1_000_000.0)
+}
+
 /// Editable, renderer-facing birth-input form (raw text plus typed choices).
+///
+/// The form holds fields for *both* input modes at once; [`BirthForm::mode`]
+/// selects which the renderer shows and which [`BirthForm::parse`] normalizes.
+/// Fields for the inactive mode keep their defaults so switching modes is
+/// lossless within a session.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct BirthForm {
     /// User-provided chart name.
     pub name: String,
+    /// The selected birth-time input mode.
+    pub mode: InputMode,
     /// Raw year text field.
     pub year: String,
     /// Raw month text field.
     pub month: String,
     /// Raw day text field.
     pub day: String,
-    /// Selected birth-time index (`0..=12`).
+    /// Selected 时辰 index (`0..=12`), used in known-time-branch mode.
     pub time_index: u8,
+    /// Raw clock-hour text field, used in clock mode.
+    pub clock_hour: String,
+    /// Raw clock-minute text field, used in clock mode.
+    pub clock_minute: String,
+    /// Selected birth-place UTC offset, used in clock mode.
+    pub utc_offset: UtcOffsetChoice,
+    /// Whether apparent-solar-time correction is enabled, used in clock mode.
+    pub apparent_solar_time: bool,
+    /// Raw birth-place longitude text (east-positive decimal degrees), used in
+    /// clock mode when correction is enabled.
+    pub longitude: String,
     /// Selected gender.
     pub gender: Gender,
 }
@@ -308,13 +617,44 @@ impl BirthForm {
     /// Builds a form pre-filled from a normalized input, defaulting the name to
     /// [`default_chart_name`] in `locale`.
     pub fn from_input(input: &BirthInput, locale: Locale) -> Self {
-        Self {
-            name: default_chart_name(input, locale),
-            year: input.year.to_string(),
-            month: input.month.to_string(),
-            day: input.day.to_string(),
-            time_index: input.time_index,
-            gender: input.gender,
+        let name = default_chart_name(input, locale);
+        match input {
+            BirthInput::SolarKnownTimeBranch(known) => Self {
+                name,
+                mode: InputMode::KnownTimeBranch,
+                year: known.year.to_string(),
+                month: known.month.to_string(),
+                day: known.day.to_string(),
+                time_index: known.time_index,
+                clock_hour: DEFAULT_CLOCK_HOUR.to_owned(),
+                clock_minute: DEFAULT_CLOCK_MINUTE.to_owned(),
+                utc_offset: UtcOffsetChoice::default(),
+                apparent_solar_time: false,
+                longitude: DEFAULT_LONGITUDE.to_owned(),
+                gender: known.gender,
+            },
+            BirthInput::SolarClock(clock) => {
+                let (apparent_solar_time, longitude) = match clock.solar_time_policy {
+                    GuiSolarTimePolicy::ClockTime => (false, DEFAULT_LONGITUDE.to_owned()),
+                    GuiSolarTimePolicy::ApparentSolarTime {
+                        longitude_micro_degrees,
+                    } => (true, format_longitude(longitude_micro_degrees)),
+                };
+                Self {
+                    name,
+                    mode: InputMode::Clock,
+                    year: clock.year.to_string(),
+                    month: clock.month.to_string(),
+                    day: clock.day.to_string(),
+                    time_index: 0,
+                    clock_hour: clock.clock_hour.to_string(),
+                    clock_minute: format!("{:02}", clock.clock_minute),
+                    utc_offset: UtcOffsetChoice::from_minutes(clock.utc_offset_minutes),
+                    apparent_solar_time,
+                    longitude,
+                    gender: clock.gender,
+                }
+            }
         }
     }
 
@@ -329,11 +669,12 @@ impl BirthForm {
         }
     }
 
-    /// Parses and normalizes the form into a [`BirthInput`].
+    /// Parses and normalizes the form into a [`BirthInput`] for its active mode.
     ///
-    /// Returns a typed [`FormError`] on a malformed numeric field so the renderer
-    /// localizes it. Deep calendar validity (e.g. 31 February) is deferred to the
-    /// facade at build time.
+    /// Returns a typed [`FormError`] on a malformed field so the renderer
+    /// localizes it. Deep validity (calendar date, clock-time range, UTC-offset
+    /// range, longitude range, apparent-solar-time resolution) is deferred to
+    /// core at build time and mapped back through [`form_error_from_chart_error`].
     pub fn parse(&self) -> Result<BirthInput, FormError> {
         let year: i32 = self
             .year
@@ -347,12 +688,65 @@ impl BirthForm {
             .map_err(|_| FormError::MonthInvalid)?;
         let day: u8 = self.day.trim().parse().map_err(|_| FormError::DayInvalid)?;
 
-        Ok(BirthInput {
-            year,
-            month,
-            day,
-            time_index: self.time_index,
-            gender: self.gender,
+        match self.mode {
+            InputMode::KnownTimeBranch => Ok(BirthInput::SolarKnownTimeBranch(
+                SolarKnownTimeBranchBirthInput {
+                    year,
+                    month,
+                    day,
+                    time_index: self.time_index,
+                    gender: self.gender,
+                },
+            )),
+            InputMode::Clock => {
+                let clock_hour: u8 = self
+                    .clock_hour
+                    .trim()
+                    .parse()
+                    .map_err(|_| FormError::ClockTimeInvalid)?;
+                let clock_minute: u8 = self
+                    .clock_minute
+                    .trim()
+                    .parse()
+                    .map_err(|_| FormError::ClockTimeInvalid)?;
+                let solar_time_policy = self.parse_solar_time_policy()?;
+                Ok(BirthInput::SolarClock(SolarClockBirthInput {
+                    year,
+                    month,
+                    day,
+                    clock_hour,
+                    clock_minute,
+                    utc_offset_minutes: self.utc_offset.minutes(),
+                    solar_time_policy,
+                    gender: self.gender,
+                }))
+            }
+        }
+    }
+
+    /// Parses the apparent-solar-time toggle and longitude into the GUI policy.
+    ///
+    /// A blank longitude while correction is enabled is [`FormError::LongitudeRequired`];
+    /// a non-numeric, non-finite, or out-of-range longitude is
+    /// [`FormError::LongitudeInvalid`]. The range is validated *before* rounding
+    /// to micro-degrees so a value like `180.000001` cannot round into range.
+    /// Core's [`Longitude::new`] still validates at the boundary; this is GUI
+    /// input validation, not a replacement for it.
+    fn parse_solar_time_policy(&self) -> Result<GuiSolarTimePolicy, FormError> {
+        if !self.apparent_solar_time {
+            return Ok(GuiSolarTimePolicy::ClockTime);
+        }
+        let text = self.longitude.trim();
+        if text.is_empty() {
+            return Err(FormError::LongitudeRequired);
+        }
+        let degrees: f64 = text.parse().map_err(|_| FormError::LongitudeInvalid)?;
+        if !degrees.is_finite() || !(-180.0..=180.0).contains(&degrees) {
+            return Err(FormError::LongitudeInvalid);
+        }
+        let longitude_micro_degrees = (degrees * 1_000_000.0).round() as i32;
+        Ok(GuiSolarTimePolicy::ApparentSolarTime {
+            longitude_micro_degrees,
         })
     }
 }
@@ -377,6 +771,16 @@ pub enum FormError {
     DayInvalid,
     /// The date does not exist on the calendar (e.g. 31 February).
     InvalidCalendarDate,
+    /// The clock hour/minute is malformed or out of range (clock mode).
+    ClockTimeInvalid,
+    /// The birth-place UTC offset is out of the supported range (clock mode).
+    UtcOffsetInvalid,
+    /// The birth-place longitude is malformed or out of range (clock mode).
+    LongitudeInvalid,
+    /// Apparent solar time is enabled but no longitude was entered (clock mode).
+    LongitudeRequired,
+    /// The equation-of-time policy requested is not implemented in core.
+    UnsupportedEquationOfTime,
     /// The selected birth time is out of the supported range.
     InvalidBirthTime,
     /// The selected temporal period/navigation is out of range.
@@ -398,6 +802,11 @@ impl FormError {
             FormError::MonthInvalid => "error-month",
             FormError::DayInvalid => "error-day",
             FormError::InvalidCalendarDate => "error-invalid-calendar-date",
+            FormError::ClockTimeInvalid => "error-invalid-clock-time",
+            FormError::UtcOffsetInvalid => "error-invalid-utc-offset",
+            FormError::LongitudeInvalid => "error-invalid-longitude",
+            FormError::LongitudeRequired => "error-longitude-required",
+            FormError::UnsupportedEquationOfTime => "error-unsupported-equation-of-time",
             FormError::InvalidBirthTime => "error-invalid-birth-time",
             FormError::InvalidTemporalSelection => "error-invalid-temporal-selection",
             FormError::ChartGenerationFailed => "error-chart-generation-failed",
@@ -417,6 +826,10 @@ fn form_error_from_chart_error(error: ChartError) -> FormError {
             FormError::DayInvalid
         }
         ChartError::InvalidBirthTimeIndex { .. } => FormError::InvalidBirthTime,
+        ChartError::InvalidClockTime { .. } => FormError::ClockTimeInvalid,
+        ChartError::InvalidUtcOffset { .. } => FormError::UtcOffsetInvalid,
+        ChartError::InvalidLongitude { .. } => FormError::LongitudeInvalid,
+        ChartError::UnsupportedEquationOfTimePolicy => FormError::UnsupportedEquationOfTime,
         ChartError::InvalidSolarDate { .. }
         | ChartError::UnsupportedCalendarDate { .. }
         | ChartError::CalendarConversionFailed { .. }
@@ -520,8 +933,20 @@ pub enum Message {
     MonthChanged(String),
     /// Day text field changed.
     DayChanged(String),
-    /// Birth-time index selected.
+    /// Birth-time input mode selected (clock vs known time branch).
+    InputModeSelected(InputMode),
+    /// Birth-time index selected (known-time-branch mode).
     TimeSelected(u8),
+    /// Clock-hour text field changed (clock mode).
+    ClockHourChanged(String),
+    /// Clock-minute text field changed (clock mode).
+    ClockMinuteChanged(String),
+    /// Birth-place UTC offset selected (clock mode).
+    UtcOffsetSelected(UtcOffsetChoice),
+    /// Apparent-solar-time correction toggled (clock mode).
+    ApparentSolarTimeToggled(bool),
+    /// Birth-place longitude text field changed (clock mode).
+    LongitudeChanged(String),
     /// Gender selected.
     GenderSelected(Gender),
     /// Chart-name text field changed.
@@ -993,7 +1418,7 @@ impl StaticChartApp {
                     self.analysis_cache.clear();
                     self.expanded_rule_hits.clear();
                     self.expanded_pattern_hits.clear();
-                    self.natal_chart = build_request(&input).and_then(by_solar).ok();
+                    self.natal_chart = build_input_chart(&input).ok();
                 }
                 // generate() always resets selected_temporal_selection to
                 // PreDecadal, so any active selection on a deeper layer would
@@ -1313,7 +1738,13 @@ impl StaticChartApp {
             Message::YearChanged(value) => self.form.year = value,
             Message::MonthChanged(value) => self.form.month = value,
             Message::DayChanged(value) => self.form.day = value,
+            Message::InputModeSelected(mode) => self.form.mode = mode,
             Message::TimeSelected(index) => self.form.time_index = index,
+            Message::ClockHourChanged(value) => self.form.clock_hour = value,
+            Message::ClockMinuteChanged(value) => self.form.clock_minute = value,
+            Message::UtcOffsetSelected(choice) => self.form.utc_offset = choice,
+            Message::ApparentSolarTimeToggled(enabled) => self.form.apparent_solar_time = enabled,
+            Message::LongitudeChanged(value) => self.form.longitude = value,
             Message::GenderSelected(gender) => self.form.gender = gender,
             Message::NameChanged(value) => self.form.name = value,
             Message::Generate => {
@@ -1483,41 +1914,64 @@ impl Default for StaticChartApp {
     }
 }
 
-/// Builds a [`StaticChartProjection`] for `input` and `selection` through the
-/// `static_temporal_chart_view` facade, so all temporal-overlay derivation stays
-/// in core. Returns the facade error for invalid calendar input or selection.
+/// Builds a [`StaticChartProjection`] for `input` and `selection`.
+///
+/// The natal [`Chart`] is generated by core first (through the mode-specific
+/// core API), then handed to the `static_temporal_chart_view_from_chart` facade
+/// so all temporal-overlay derivation stays in core. This is the single chart
+/// path both input modes share, so clock-time and known-time-branch charts never
+/// diverge. Returns the core error for invalid input or selection.
 fn build_snapshot(
     input: &BirthInput,
     selection: StaticTemporalNavigationSelection,
 ) -> Result<StaticChartProjection, ChartError> {
-    static_temporal_chart_view(build_request(input)?, selection)
+    static_temporal_chart_view_from_chart(build_input_chart(input)?, selection)
 }
 
-/// Builds the typed solar chart request for an input. Shared by snapshot
-/// building and the `今` selection resolver.
-fn build_request(input: &BirthInput) -> Result<SolarChartRequest, ChartError> {
+/// Generates the natal [`Chart`] for an input through the mode-specific core API.
+///
+/// Known-time-branch input uses the classic [`by_solar`] path with the supplied
+/// 时辰. Clock-time input uses [`by_solar_with_options_report`], which resolves
+/// the 时辰 (and any apparent-solar-time correction) inside core — the GUI never
+/// derives it. Both modes share [`gui_method_profile`] and the default chart
+/// plane, matching prior GUI behavior.
+fn build_input_chart(input: &BirthInput) -> Result<Chart, ChartError> {
+    match input {
+        BirthInput::SolarKnownTimeBranch(known) => by_solar(build_known_branch_request(known)?),
+        BirthInput::SolarClock(clock) => {
+            let (core_input, options) = clock.to_core_input()?;
+            Ok(by_solar_with_options_report(core_input, options)?.chart)
+        }
+    }
+}
+
+/// Builds the typed solar chart request for a known-time-branch input.
+fn build_known_branch_request(
+    input: &SolarKnownTimeBranchBirthInput,
+) -> Result<SolarChartRequest, ChartError> {
     SolarChartRequest::builder()
         .solar_year(input.year)
         .solar_month(SolarMonth::new(input.month)?)
         .solar_day(SolarDay::new(input.day)?)
         .birth_time_variant(BirthTime::from_iztro_time_index(input.time_index)?)
         .gender(input.gender)
-        .method_profile(MethodProfile::new(
-            "iztro_gui",
-            ChartAlgorithmKind::QuanShu,
-            "iztro-gui static chart prototype",
-        ))
+        .method_profile(gui_method_profile())
         .build()
 }
 
 /// Resolves the temporal selection pointing at `moment` ("today") for `input`,
 /// delegating all calendar/age mapping to the core facade.
+///
+/// The natal chart is built once through the shared [`build_input_chart`] path so
+/// the `今` resolver uses the same chart facts as the displayed snapshot,
+/// regardless of input mode.
 fn resolve_today_selection(
     input: &BirthInput,
     moment: LocalSolarMoment,
 ) -> Result<StaticTemporalNavigationSelection, ChartError> {
-    temporal_selection_for_solar_moment(
-        build_request(input)?,
+    let chart = build_input_chart(input)?;
+    temporal_selection_for_local_moment(
+        &chart,
         moment.year,
         moment.month,
         moment.day,
@@ -1570,6 +2024,27 @@ mod tests {
         }
     }
 
+    /// A known-time-branch input, the default form mode.
+    fn known_input(year: i32, month: u8, day: u8, time_index: u8, gender: Gender) -> BirthInput {
+        BirthInput::SolarKnownTimeBranch(SolarKnownTimeBranchBirthInput {
+            year,
+            month,
+            day,
+            time_index,
+            gender,
+        })
+    }
+
+    /// [`SAMPLE_INPUT`] with a replaced year, keeping the known-time-branch mode.
+    fn sample_with_year(year: i32) -> BirthInput {
+        match SAMPLE_INPUT {
+            BirthInput::SolarKnownTimeBranch(known) => {
+                BirthInput::SolarKnownTimeBranch(SolarKnownTimeBranchBirthInput { year, ..known })
+            }
+            other => other,
+        }
+    }
+
     #[test]
     fn app_starts_on_startup_without_generating_a_chart() {
         let app = StaticChartApp::new();
@@ -1602,16 +2077,7 @@ mod tests {
         assert_eq!(app.screen(), Screen::Chart);
         assert!(app.snapshot().is_some());
         assert!(app.error().is_none());
-        assert_eq!(
-            app.input(),
-            Some(BirthInput {
-                year: 1985,
-                month: 3,
-                day: 8,
-                time_index: 6,
-                gender: Gender::Male,
-            })
-        );
+        assert_eq!(app.input(), Some(known_input(1985, 3, 8, 6, Gender::Male)));
         assert_eq!(app.palaces().len(), 12);
         // The generated chart is added to the saved list.
         assert_eq!(app.saved().len(), 1);
@@ -1671,10 +2137,7 @@ mod tests {
         app.update(Message::NameChanged("第二张命盘".to_string()));
         app.generate();
 
-        let other = BirthInput {
-            year: 2000,
-            ..SAMPLE_INPUT
-        };
+        let other = sample_with_year(2000);
         assert!(app.cache().contains(&SAMPLE_INPUT));
         assert!(app.cache().contains(&other));
         assert_eq!(app.cache().len(), 2);
@@ -1698,7 +2161,7 @@ mod tests {
         assert_eq!(reloaded.saved().len(), 1);
         reloaded.update(Message::SelectSaved(0));
         assert_eq!(reloaded.screen(), Screen::Chart);
-        assert_eq!(reloaded.input().map(|i| i.year), Some(1985));
+        assert_eq!(reloaded.input().map(|i| i.year()), Some(1985));
     }
 
     #[test]
@@ -1804,10 +2267,7 @@ mod tests {
         let mut app = StaticChartApp::new();
         let record = SavedChart {
             name: "命名命盘".to_string(),
-            input: BirthInput {
-                year: 1985,
-                ..SAMPLE_INPUT
-            },
+            input: sample_with_year(1985),
         };
         app.set_saved(vec![record.clone()]);
 
@@ -1826,10 +2286,7 @@ mod tests {
         let mut app = StaticChartApp::new();
         app.set_saved(vec![
             saved_default(SAMPLE_INPUT),
-            saved_default(BirthInput {
-                year: 2001,
-                ..SAMPLE_INPUT
-            }),
+            saved_default(sample_with_year(2001)),
         ]);
 
         // Editing the second row loads it into the form in update mode.
@@ -1846,7 +2303,7 @@ mod tests {
 
         assert_eq!(app.saved().len(), 2);
         assert_eq!(app.saved()[1].name, "改名命盘");
-        assert_eq!(app.saved()[1].input.year, 2002);
+        assert_eq!(app.saved()[1].input.year(), 2002);
         assert_eq!(app.editing_saved_index(), None);
         assert_eq!(app.screen(), Screen::Chart);
     }
@@ -1858,10 +2315,7 @@ mod tests {
 
         let mut app = StaticChartApp::with_store(store.clone());
         let keep = saved_default(SAMPLE_INPUT);
-        let drop = saved_default(BirthInput {
-            year: 2001,
-            ..SAMPLE_INPUT
-        });
+        let drop = saved_default(sample_with_year(2001));
         app.set_saved(vec![keep.clone(), drop]);
         app.persist_saved();
 
@@ -1875,10 +2329,7 @@ mod tests {
     #[test]
     fn cancelling_edit_clears_edit_mode_and_resets_the_form() {
         let mut app = StaticChartApp::new();
-        app.set_saved(vec![saved_default(BirthInput {
-            year: 1985,
-            ..SAMPLE_INPUT
-        })]);
+        app.set_saved(vec![saved_default(sample_with_year(1985))]);
         app.update(Message::EditSaved(0));
         assert_eq!(app.editing_saved_index(), Some(0));
 
@@ -2747,7 +3198,7 @@ mod tests {
 
     #[test]
     fn gui_source_does_not_derive_astrology_facts() {
-        const FORBIDDEN: [&str; 27] = [
+        const FORBIDDEN: [&str; 31] = [
             "Placer",
             "palace_grid_position",
             "zi_wei_branch",
@@ -2779,6 +3230,13 @@ mod tests {
             "TemporalLayer",
             "DecadalHoroscopeInput",
             "build_decadal_frame",
+            // Apparent solar time / 时辰 derivation is core policy: the GUI passes
+            // the UTC offset + longitude to core and reads the resolved facts. It
+            // must never resolve the clock time or derive the time branch itself.
+            "resolve_birth_datetime",
+            "meridian_degrees",
+            "time_index_for_hour",
+            "normalize_longitude_delta",
         ];
 
         let src_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("src");
@@ -2822,6 +3280,14 @@ mod tests {
         assert!(
             app_production.contains("detect_static_temporal_analysis_layers_from_chart"),
             "analysis must request layers through the selected-view batch facade"
+        );
+
+        // Clock-time charts must be generated through the core clock-time facade,
+        // which applies the calculation policy (apparent solar time, 时辰
+        // derivation) inside core rather than in the GUI.
+        assert!(
+            app_production.contains("by_solar_with_options_report"),
+            "clock-time charts must be built through by_solar_with_options_report"
         );
     }
 

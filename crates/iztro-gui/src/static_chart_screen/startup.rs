@@ -1,10 +1,15 @@
-use iced::widget::{button, column, container, pick_list, row, text, text_input};
+use iced::widget::{button, checkbox, column, container, pick_list, row, text, text_input};
 use iced::{Alignment, Element, Length};
 use iztro_i18n::I18n;
 
-use crate::app::{BirthForm, FormError, Message, SavedChart, StaticChartApp};
+use crate::app::{
+    BirthForm, FormError, InputMode, Message, SavedChart, StaticChartApp, birth_time_summary,
+    utc_offset_choices,
+};
 
-use super::labels::{GenderChoice, TimeChoice, gender_choices, time_choices};
+use super::labels::{
+    GenderChoice, InputModeChoice, TimeChoice, gender_choices, input_mode_choices, time_choices,
+};
 use super::style::{error_text_style, input_panel_style, section_title_style, subtle_text_style};
 use super::theme::{GuiPalette, SPACING, TYPE};
 
@@ -100,11 +105,11 @@ fn saved_chart_row<'a>(
     let input = &saved.input;
     let meta = format!(
         "{}-{:02}-{:02} · {} · {}",
-        input.year,
-        input.month,
-        input.day,
-        i18n.gender(input.gender),
-        i18n.hour_branch(input.time_index),
+        input.year(),
+        input.month(),
+        input.day(),
+        i18n.gender(input.gender()),
+        birth_time_summary(input, i18n),
     );
     let info = column![
         text(saved.name.clone()).size(TYPE.heading),
@@ -142,13 +147,33 @@ pub(super) fn input_bar<'a>(
     i18n: &I18n,
 ) -> Element<'a, Message> {
     let locale = i18n.locale();
-    let mut fields = row![
+
+    // Identity + input-mode selector, then the shared solar date, then the
+    // mode-specific birth-time controls, then gender + actions.
+    let header = row![
         labeled(
             i18n.text("field-name"),
             text_input(&i18n.text("chart-name-placeholder"), &form.name)
                 .on_input(Message::NameChanged)
                 .width(150)
         ),
+        labeled(
+            i18n.text("field-input-mode"),
+            pick_list(
+                input_mode_choices(locale),
+                Some(InputModeChoice {
+                    mode: form.mode,
+                    locale
+                }),
+                |choice| Message::InputModeSelected(choice.mode)
+            )
+            .width(180),
+        ),
+    ]
+    .spacing(SPACING.xl)
+    .align_y(Alignment::End);
+
+    let date = row![
         labeled(
             i18n.text("field-year"),
             text_input("1990", &form.year)
@@ -167,18 +192,16 @@ pub(super) fn input_bar<'a>(
                 .on_input(Message::DayChanged)
                 .width(58)
         ),
-        labeled(
-            i18n.text("field-time"),
-            pick_list(
-                time_choices(locale),
-                Some(TimeChoice {
-                    index: form.time_index,
-                    locale
-                }),
-                |choice| Message::TimeSelected(choice.index)
-            )
-            .width(150),
-        ),
+    ]
+    .spacing(SPACING.xl)
+    .align_y(Alignment::End);
+
+    let birth_time_row: Element<'a, Message> = match form.mode {
+        InputMode::KnownTimeBranch => known_time_branch_fields(form, locale, i18n),
+        InputMode::Clock => clock_time_fields(form, palette, i18n),
+    };
+
+    let mut actions = row![
         labeled(
             i18n.text("field-gender"),
             pick_list(
@@ -208,7 +231,7 @@ pub(super) fn input_bar<'a>(
     .align_y(Alignment::End);
 
     if editing {
-        fields = fields.push(
+        actions = actions.push(
             button(text(i18n.text("button-cancel")).size(TYPE.heading))
                 .on_press(Message::CancelEditSaved)
                 .style(button::secondary)
@@ -216,7 +239,7 @@ pub(super) fn input_bar<'a>(
         );
     }
 
-    let mut bar = column![fields].spacing(SPACING.md);
+    let mut bar = column![header, date, birth_time_row, actions].spacing(SPACING.md);
     if let Some(error) = error {
         let message = format_error(error, i18n);
         let mut args = fluent_args();
@@ -232,6 +255,84 @@ pub(super) fn input_bar<'a>(
         .padding(SPACING.lg)
         .width(Length::Fill)
         .into()
+}
+
+/// The birth-time controls for known-time-branch mode: the existing 时辰 picker.
+fn known_time_branch_fields<'a>(
+    form: &'a BirthForm,
+    locale: iztro_i18n::Locale,
+    i18n: &I18n,
+) -> Element<'a, Message> {
+    row![labeled(
+        i18n.text("field-time"),
+        pick_list(
+            time_choices(locale),
+            Some(TimeChoice {
+                index: form.time_index,
+                locale
+            }),
+            |choice| Message::TimeSelected(choice.index)
+        )
+        .width(150),
+    )]
+    .spacing(SPACING.xl)
+    .align_y(Alignment::End)
+    .into()
+}
+
+/// The birth-time controls for clock mode: hour/minute, birth-place UTC offset,
+/// the apparent-solar-time toggle, and — only when it is enabled — a longitude
+/// field. The GUI collects these and hands them to core; it never derives the
+/// corrected time, time branch, or resolved date itself.
+fn clock_time_fields<'a>(
+    form: &'a BirthForm,
+    palette: GuiPalette,
+    i18n: &I18n,
+) -> Element<'a, Message> {
+    let mut fields = row![
+        labeled(
+            i18n.text("field-clock-hour"),
+            text_input("12", &form.clock_hour)
+                .on_input(Message::ClockHourChanged)
+                .width(58)
+        ),
+        labeled(
+            i18n.text("field-clock-minute"),
+            text_input("00", &form.clock_minute)
+                .on_input(Message::ClockMinuteChanged)
+                .width(58)
+        ),
+        labeled(
+            i18n.text("field-utc-offset"),
+            pick_list(utc_offset_choices(), Some(form.utc_offset), |choice| {
+                Message::UtcOffsetSelected(choice)
+            })
+            .width(120),
+        ),
+        labeled(
+            i18n.text("field-apparent-solar-time"),
+            checkbox("", form.apparent_solar_time).on_toggle(Message::ApparentSolarTimeToggled),
+        ),
+    ]
+    .spacing(SPACING.xl)
+    .align_y(Alignment::End);
+
+    if form.apparent_solar_time {
+        fields = fields.push(labeled(
+            i18n.text("field-longitude"),
+            column![
+                text_input("120.0", &form.longitude)
+                    .on_input(Message::LongitudeChanged)
+                    .width(110),
+                text(i18n.text("field-longitude-hint"))
+                    .size(TYPE.label)
+                    .style(subtle_text_style(palette)),
+            ]
+            .spacing(SPACING.xs),
+        ));
+    }
+
+    fields.into()
 }
 
 /// Localizes a [`FormError`] into its display message. Every variant — including
