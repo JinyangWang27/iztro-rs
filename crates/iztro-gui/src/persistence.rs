@@ -7,15 +7,56 @@
 //! boundary is an explicit, path-injectable [`ChartStore`] so tests never touch
 //! a real home directory.
 //!
-//! Loads are backward compatible: the legacy format was a plain array of
-//! [`BirthInput`]; such files are migrated in memory to named records using
-//! [`default_chart_name`].
+//! Loads are backward compatible. The current on-disk schema is a tagged
+//! [`BirthInput`] (one per input mode); older files are migrated in memory:
+//! a bare flat array of pre-mode birth inputs becomes named records via
+//! [`default_chart_name`], and named records with a flat `input` keep their
+//! name. Both migrate the input to [`BirthInput::SolarKnownTimeBranch`].
 
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use crate::app::{BirthInput, SavedChart, default_chart_name};
+use serde::Deserialize;
+
+use crate::app::{BirthInput, SavedChart, SolarKnownTimeBranchBirthInput, default_chart_name};
+use iztro::core::Gender;
 use iztro_i18n::Locale;
+
+/// The pre-mode legacy on-disk birth input: a flat solar date plus a known
+/// 时辰. Kept only to migrate old saved files; new records use the tagged
+/// [`BirthInput`] schema.
+#[derive(Clone, Copy, Debug, Deserialize)]
+struct LegacyBirthInput {
+    year: i32,
+    month: u8,
+    day: u8,
+    time_index: u8,
+    gender: Gender,
+}
+
+impl LegacyBirthInput {
+    /// Migrates a legacy flat record to the tagged known-time-branch variant.
+    ///
+    /// Old records carried only a date + 时辰 + gender, so they map cleanly onto
+    /// [`BirthInput::SolarKnownTimeBranch`]. Clock time, UTC offset, and longitude
+    /// are deliberately *not* invented for a record that never had them.
+    fn migrate(self) -> BirthInput {
+        BirthInput::SolarKnownTimeBranch(SolarKnownTimeBranchBirthInput {
+            year: self.year,
+            month: self.month,
+            day: self.day,
+            time_index: self.time_index,
+            gender: self.gender,
+        })
+    }
+}
+
+/// A legacy named saved record whose `input` is the pre-mode flat schema.
+#[derive(Clone, Debug, Deserialize)]
+struct LegacySavedChart {
+    name: String,
+    input: LegacyBirthInput,
+}
 
 /// Default on-disk file name for saved charts under the data directory.
 const STORE_DIR: &str = "iztro-gui";
@@ -57,9 +98,16 @@ impl ChartStore {
     /// Loads the saved charts, returning an empty list if the file is missing or
     /// cannot be parsed. Never panics.
     ///
-    /// The new named format ([`Vec<SavedChart>`]) is tried first; on failure the
-    /// legacy [`Vec<BirthInput>`] format is parsed and migrated in memory to
-    /// named records via [`default_chart_name`]; if both fail the list is empty.
+    /// The new tagged named format ([`Vec<SavedChart>`]) is tried first. On
+    /// failure the pre-mode legacy formats are migrated in memory:
+    ///
+    /// 1. named records with a flat `input` ([`Vec<LegacySavedChart>`]) keep their
+    ///    name and migrate the input to [`BirthInput::SolarKnownTimeBranch`];
+    /// 2. a bare flat array ([`Vec<LegacyBirthInput>`]) migrates each record and
+    ///    generates a default name via [`default_chart_name`].
+    ///
+    /// If nothing parses the list is empty. Migration never invents clock time,
+    /// UTC offset, or longitude for a record that never carried them.
     pub fn load(&self) -> Vec<SavedChart> {
         let Ok(text) = fs::read_to_string(&self.path) else {
             return Vec::new();
@@ -67,12 +115,24 @@ impl ChartStore {
         if let Ok(charts) = serde_json::from_str::<Vec<SavedChart>>(&text) {
             return charts;
         }
-        match serde_json::from_str::<Vec<BirthInput>>(&text) {
+        if let Ok(legacy) = serde_json::from_str::<Vec<LegacySavedChart>>(&text) {
+            return legacy
+                .into_iter()
+                .map(|record| SavedChart {
+                    name: record.name,
+                    input: record.input.migrate(),
+                })
+                .collect();
+        }
+        match serde_json::from_str::<Vec<LegacyBirthInput>>(&text) {
             Ok(legacy) => legacy
                 .into_iter()
-                .map(|input| SavedChart {
-                    name: default_chart_name(&input, Locale::EnUs),
-                    input,
+                .map(|legacy| {
+                    let input = legacy.migrate();
+                    SavedChart {
+                        name: default_chart_name(&input, Locale::EnUs),
+                        input,
+                    }
                 })
                 .collect(),
             Err(_) => Vec::new(),
@@ -95,16 +155,34 @@ impl ChartStore {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::app::{GuiSolarTimePolicy, SolarClockBirthInput};
     use iztro::core::Gender;
 
+    /// A known-time-branch sample input (the default input mode).
     fn sample(year: i32) -> BirthInput {
-        BirthInput {
+        BirthInput::SolarKnownTimeBranch(SolarKnownTimeBranchBirthInput {
             year,
             month: 5,
             day: 17,
             time_index: 4,
             gender: Gender::Female,
-        }
+        })
+    }
+
+    /// A clock-time sample input with apparent-solar-time correction enabled.
+    fn clock_sample(year: i32) -> BirthInput {
+        BirthInput::SolarClock(SolarClockBirthInput {
+            year,
+            month: 1,
+            day: 1,
+            clock_hour: 1,
+            clock_minute: 5,
+            utc_offset_minutes: 8 * 60,
+            solar_time_policy: GuiSolarTimePolicy::ApparentSolarTime {
+                longitude_micro_degrees: 105_000_000,
+            },
+            gender: Gender::Male,
+        })
     }
 
     fn named(year: i32, name: &str) -> SavedChart {
@@ -112,6 +190,22 @@ mod tests {
             name: name.to_owned(),
             input: sample(year),
         }
+    }
+
+    /// The pre-mode legacy on-disk record JSON: a bare flat birth input object.
+    fn legacy_flat_json(year: i32) -> String {
+        format!(r#"{{"year":{year},"month":5,"day":17,"time_index":4,"gender":"female"}}"#)
+    }
+
+    /// The migration target for [`legacy_flat_json`]: a known-time-branch record.
+    fn migrated(year: i32) -> BirthInput {
+        BirthInput::SolarKnownTimeBranch(SolarKnownTimeBranchBirthInput {
+            year,
+            month: 5,
+            day: 17,
+            time_index: 4,
+            gender: Gender::Female,
+        })
     }
 
     #[test]
@@ -125,26 +219,69 @@ mod tests {
     }
 
     #[test]
-    fn loading_the_legacy_birth_input_array_migrates_to_named_records() {
-        // The legacy format was a plain array of `BirthInput`. Such a file must
-        // load as named records using the generated default name.
+    fn new_tagged_format_roundtrips_both_input_modes() {
+        let dir = tempfile::tempdir().expect("temp dir");
+        let store = ChartStore::new(dir.path().join("charts.json"));
+        let charts = vec![
+            SavedChart {
+                name: "钟表".to_owned(),
+                input: clock_sample(2000),
+            },
+            named(1990, "时辰"),
+        ];
+
+        store.save(&charts).expect("save should succeed");
+        assert_eq!(store.load(), charts);
+    }
+
+    #[test]
+    fn loading_a_bare_legacy_flat_array_migrates_to_named_known_time_branch() {
+        // The oldest format was a bare array of flat birth inputs. Such a file
+        // must load as named records whose input is the known-time-branch variant.
         let dir = tempfile::tempdir().expect("temp dir");
         let path = dir.path().join("charts.json");
-        let legacy = vec![sample(1990), sample(2000)];
-        fs::write(&path, serde_json::to_string_pretty(&legacy).unwrap())
-            .expect("write legacy file");
+        let json = format!("[{},{}]", legacy_flat_json(1990), legacy_flat_json(2000));
+        fs::write(&path, json).expect("write legacy file");
+        let store = ChartStore::new(path);
+
+        let loaded = store.load();
+        let expected: Vec<SavedChart> = [1990, 2000]
+            .into_iter()
+            .map(|year| {
+                let input = migrated(year);
+                SavedChart {
+                    name: default_chart_name(&input, Locale::EnUs),
+                    input,
+                }
+            })
+            .collect();
+        assert_eq!(loaded, expected);
+        assert!(matches!(
+            loaded[0].input,
+            BirthInput::SolarKnownTimeBranch(_)
+        ));
+    }
+
+    #[test]
+    fn loading_a_legacy_named_flat_record_migrates_to_known_time_branch() {
+        // A named record whose `input` is the pre-mode flat schema keeps its name
+        // and migrates the input to the known-time-branch variant.
+        let dir = tempfile::tempdir().expect("temp dir");
+        let path = dir.path().join("charts.json");
+        let json = format!(
+            r#"[{{"name":"旧命盘","input":{}}}]"#,
+            legacy_flat_json(1985)
+        );
+        fs::write(&path, json).expect("write legacy named file");
         let store = ChartStore::new(path);
 
         let loaded = store.load();
         assert_eq!(
             loaded,
-            legacy
-                .into_iter()
-                .map(|input| SavedChart {
-                    name: default_chart_name(&input, Locale::EnUs),
-                    input,
-                })
-                .collect::<Vec<_>>()
+            vec![SavedChart {
+                name: "旧命盘".to_owned(),
+                input: migrated(1985),
+            }]
         );
     }
 

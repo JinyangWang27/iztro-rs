@@ -22,6 +22,17 @@ field-day = Day
 field-time = Time
 field-gender = Gender
 
+# Birth-time input modes
+field-input-mode = Input mode
+input-mode-clock = Clock time
+input-mode-known-time-branch = Known time branch
+field-clock-hour = Hour
+field-clock-minute = Minute
+field-utc-offset = Birth-place UTC offset
+field-apparent-solar-time = Apparent solar time correction
+field-longitude = Birth-place longitude
+field-longitude-hint = East positive, west negative
+
 # Buttons
 button-generate = Generate Chart
 button-update = Update Chart
@@ -46,6 +57,11 @@ error-year = Year must be a whole number
 error-month = Month must be a whole number
 error-day = Day must be a whole number
 error-invalid-calendar-date = That date does not exist on the calendar
+error-invalid-clock-time = Enter an hour 0–23 and a minute 0–59
+error-invalid-utc-offset = The birth-place UTC offset is out of range
+error-invalid-longitude = Longitude must be a number between -180 and 180
+error-longitude-required = Enter a birth-place longitude to apply the correction
+error-unsupported-equation-of-time = This solar-time correction is not supported yet
 error-invalid-birth-time = The selected birth time is not valid
 error-invalid-temporal-selection = The selected period is out of range
 error-chart-generation-failed = Could not generate the chart from this input

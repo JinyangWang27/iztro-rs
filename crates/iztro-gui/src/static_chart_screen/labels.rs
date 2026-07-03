@@ -6,7 +6,7 @@ use iztro::StaticChartCenterProjection;
 use iztro::core::Gender;
 use iztro_i18n::{I18n, Locale};
 
-use crate::app::Message;
+use crate::app::{InputMode, Message};
 
 use super::style::section_title_style;
 use super::theme::GuiPalette;
@@ -79,6 +79,27 @@ impl fmt::Display for TimeChoice {
     fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
         let label = I18n::new(self.locale).hour_branch(self.index);
         write!(f, "{label} ({})", self.index)
+    }
+}
+
+/// A locale-aware birth-time input-mode pick-list option.
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub(super) struct InputModeChoice {
+    pub(super) mode: InputMode,
+    pub(super) locale: Locale,
+}
+
+/// Builds the two input-mode options for `locale`.
+pub(super) fn input_mode_choices(locale: Locale) -> Vec<InputModeChoice> {
+    [InputMode::Clock, InputMode::KnownTimeBranch]
+        .into_iter()
+        .map(|mode| InputModeChoice { mode, locale })
+        .collect()
+}
+
+impl fmt::Display for InputModeChoice {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        f.write_str(&I18n::new(self.locale).text(self.mode.fluent_key()))
     }
 }
 
