@@ -13,7 +13,7 @@ use iztro::core::{
     palace_stems_from_year_stem, stem_mutagen_targets,
 };
 use iztro::features::{
-    PalaceStemMutagenFlow, PalaceStemRole, birth_year_stem_origin_palaces,
+    PalaceStemFeatures, PalaceStemMutagenFlow, PalaceStemRole, birth_year_stem_origin_palaces,
     mutagen_flows_from_palace, mutagen_flows_landing_in_palace, palace_stem_mutagen_flows,
     palace_stem_role_assignments, self_transforming_flows,
 };
@@ -68,7 +68,7 @@ fn bare_chart_for_year(year_stem: HeavenlyStem, birth_year: StemBranch) -> Chart
 #[test]
 fn birth_year_stem_origin_is_unique_and_matches_year_stem() {
     let chart = fixture_chart();
-    let origins = birth_year_stem_origin_palaces(&chart).expect("origins should derive");
+    let origins = birth_year_stem_origin_palaces(&chart);
 
     // 庚 is one of the stems that yields a single 来因宫.
     assert_eq!(origins.len(), 1);
@@ -94,8 +94,8 @@ fn role_assignments_equal_birth_year_stem_origin_palaces() {
     // The only role modeled today is BirthYearStemOrigin, so the two surfaces
     // return the same assignments.
     assert_eq!(
-        palace_stem_role_assignments(&chart).expect("assignments"),
-        birth_year_stem_origin_palaces(&chart).expect("origins"),
+        palace_stem_role_assignments(&chart),
+        birth_year_stem_origin_palaces(&chart),
     );
 }
 
@@ -121,7 +121,7 @@ fn birth_year_stem_origin_count_matches_palace_stem_cycle_for_all_stems() {
         let birth_year = StemBranch::try_new(stem, branch)
             .expect("test case should use a valid stem-branch pair");
         let chart = bare_chart_for_year(stem, birth_year);
-        let origins = birth_year_stem_origin_palaces(&chart).expect("origins should derive");
+        let origins = birth_year_stem_origin_palaces(&chart);
 
         assert_eq!(
             origins.len(),
@@ -283,4 +283,60 @@ fn flows_round_trip_through_json() {
     let round_tripped: Vec<PalaceStemMutagenFlow> =
         serde_json::from_str(&serialized).expect("flows should deserialize");
     assert_eq!(round_tripped, flows);
+}
+
+#[test]
+fn aggregate_derives_the_same_facts_as_the_standalone_queries() {
+    let chart = fixture_chart();
+    let features = PalaceStemFeatures::derive(&chart).expect("features should derive");
+
+    // Each cached view matches its standalone-query counterpart, so callers can
+    // derive the aggregate once and filter it without re-deriving.
+    assert_eq!(
+        features.role_assignments(),
+        palace_stem_role_assignments(&chart).as_slice(),
+    );
+    assert_eq!(
+        features
+            .birth_year_stem_origins()
+            .copied()
+            .collect::<Vec<_>>(),
+        birth_year_stem_origin_palaces(&chart),
+    );
+    assert_eq!(
+        features.mutagen_flows(),
+        palace_stem_mutagen_flows(&chart).expect("flows").as_slice(),
+    );
+    assert_eq!(
+        features
+            .flows_from_palace(PalaceName::Life)
+            .copied()
+            .collect::<Vec<_>>(),
+        mutagen_flows_from_palace(&chart, PalaceName::Life).expect("flows"),
+    );
+    assert_eq!(
+        features
+            .flows_landing_in_palace(PalaceName::Life)
+            .copied()
+            .collect::<Vec<_>>(),
+        mutagen_flows_landing_in_palace(&chart, PalaceName::Life).expect("flows"),
+    );
+    assert_eq!(
+        features
+            .self_transforming_flows()
+            .copied()
+            .collect::<Vec<_>>(),
+        self_transforming_flows(&chart).expect("flows"),
+    );
+}
+
+#[test]
+fn aggregate_round_trips_through_json() {
+    let chart = fixture_chart();
+    let features = PalaceStemFeatures::derive(&chart).expect("features should derive");
+
+    let serialized = serde_json::to_string(&features).expect("features should serialize");
+    let round_tripped: PalaceStemFeatures =
+        serde_json::from_str(&serialized).expect("features should deserialize");
+    assert_eq!(round_tripped, features);
 }

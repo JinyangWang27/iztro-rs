@@ -166,7 +166,9 @@ follow directly from those stems (see `features::palace_stem`):
   birth-year stem; this is the 来因宫 of 飞星 practice, exposed here by its
   structural invariant rather than by school-specific terminology. Most birth-year
   stems produce one such palace, but 辛 and 壬 produce two, so the query
-  (`birth_year_stem_origin_palaces`) returns a set.
+  (`birth_year_stem_origin_palaces`) returns a set. Role queries are infallible
+  (they are a pure comparison of existing palace stems) and so return a `Vec`
+  directly rather than a `Result`.
 - **Palace-stem mutagen flows** — for each palace, its stem transforms four natal
   stars via the shared 十干四化 table, and each flow records the source palace/stem
   and the natal star/palace the mutagen lands on (`palace_stem_mutagen_flows`).
@@ -174,6 +176,13 @@ follow directly from those stems (see `features::palace_stem`):
   and the flows are recomputed from existing facts on demand. `自化`
   (self-transform) is exposed as a derived property of a flow, defined
   conservatively as a mutagen landing back in its own source palace branch.
+
+`PalaceStemMutagenFlow` is deliberately distinct from `MutagenFlow`: the latter is
+a star's own natal mutagen in its palace, whereas the former is a palace stem
+flying a mutagen outward onto a natal star. When several views of one chart are
+needed, `PalaceStemFeatures::derive` computes the role assignments and flows once
+and exposes cached filters (source palace, landing palace, self-transform), rather
+than re-deriving and re-scanning natal placements on every standalone query.
 
 This layer is deliberately school-neutral: it is the foundation that future
 飞星派 / 钦天四化 profiles can consume, not an implementation of either school.

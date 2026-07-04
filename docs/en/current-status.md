@@ -94,8 +94,10 @@ The following boundaries are deliberate:
 
 Feature extraction is still an early slice. `BasicFeatureExtractor` records placement-level facts (palace domains, star features, natal mutagen flows, palace relations), and `features::palace_stem` derives two school-independent palace-stem fact families from existing chart facts:
 
-- **Palace-stem roles** — `PalaceStemRole::BirthYearStemOrigin` marks each palace whose stem equals the birth-year stem (the 来因宫 of 飞星 practice), exposed by its structural invariant rather than school terminology. The query is plural because 辛 and 壬 birth years yield two such palaces; most birth-year stems yield one.
+- **Palace-stem roles** — `PalaceStemRole::BirthYearStemOrigin` marks each palace whose stem equals the birth-year stem (the 来因宫 of 飞星 practice), exposed by its structural invariant rather than school terminology. The query is plural because 辛 and 壬 birth years yield two such palaces; most birth-year stems yield one. Role queries are a pure stem comparison, so they are infallible and return a `Vec` directly.
 - **Palace-stem mutagen flows** — for each palace, its stem transforms four natal stars via the shared 十干四化 table (`stem_mutagen_targets`), and each flow records `source palace stem -> mutagen -> target star/palace`. These are derived relations recomputed on demand, **not** placed stars added to `Chart`. `自化` (self-transform) is exposed conservatively as a flow that lands back in its own source palace branch.
+
+`PalaceStemMutagenFlow` is a different concept from the older `MutagenFlow` (a star's own natal mutagen in its palace); the former is a palace stem flying a mutagen outward. `PalaceStemFeatures::derive` computes the role assignments and flows once and exposes cached source/landing/self-transform filters, so callers wanting several views avoid re-deriving.
 
 This is deliberately the school-neutral foundation for future 飞星派 / 钦天四化 profiles, not an implementation of either school. Directional/combat refinements (向心 / 离心 / 禄忌交战 / 双忌) are out of scope.
 

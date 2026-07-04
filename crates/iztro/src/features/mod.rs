@@ -15,10 +15,10 @@ pub use extractor::{ChartFeatures, FeatureExtractionError, FeatureExtractor};
 pub use mutagen_flows::MutagenFlow;
 pub use palace_features::PalaceFeature;
 pub use palace_stem::{
-    MutagenFlowTarget, PalaceStemMutagenFlow, PalaceStemRole, PalaceStemRoleAssignment,
-    PalaceStemSource, birth_year_stem_origin_palaces, mutagen_flows_from_palace,
-    mutagen_flows_landing_in_palace, palace_stem_mutagen_flows, palace_stem_role_assignments,
-    self_transforming_flows,
+    MutagenFlowTarget, PalaceStemFeatures, PalaceStemMutagenFlow, PalaceStemRole,
+    PalaceStemRoleAssignment, PalaceStemSource, birth_year_stem_origin_palaces,
+    mutagen_flows_from_palace, mutagen_flows_landing_in_palace, palace_stem_mutagen_flows,
+    palace_stem_role_assignments, self_transforming_flows,
 };
 pub use relations::{
     PalaceNameRelation, PalaceNameRelationKind, PalaceNameRelations, all_palace_relations,

@@ -20,6 +20,20 @@
 //! constructs (向心 / 离心 / 禄忌交战 / 双忌 are intentionally out of scope). The only
 //! derived relation it exposes today is 自化 (self-transform), defined conservatively
 //! as a flow whose mutagen lands back in its own source palace branch.
+//!
+//! ## Naming: this is not [`MutagenFlow`](crate::features::MutagenFlow)
+//!
+//! [`MutagenFlow`](crate::features::MutagenFlow) records a *star's own* natal
+//! mutagen sitting in its palace (birth-year 四化). A [`PalaceStemMutagenFlow`]
+//! is the opposite direction: a *palace stem* flying its 四化 out onto a natal
+//! star. They are distinct concepts that happen to share the word "flow".
+//!
+//! ## Deriving the facts
+//!
+//! For a single query, call the standalone functions ([`palace_stem_mutagen_flows`],
+//! [`birth_year_stem_origin_palaces`], …). When several views of the same chart are
+//! needed, derive [`PalaceStemFeatures`] once and filter its cached facts, rather
+//! than re-deriving (and re-scanning natal placements) on every call.
 
 use crate::core::{
     Chart, ChartError, EarthlyBranch, HeavenlyStem, Mutagen, Palace, PalaceName, StarName,
@@ -85,6 +99,10 @@ pub struct MutagenFlowTarget {
 
 /// A single palace-stem mutagen flow: `source palace stem -> mutagen -> target
 /// star/palace`.
+///
+/// Distinct from [`MutagenFlow`](crate::features::MutagenFlow): that fact is a
+/// star's own natal mutagen in its palace, whereas this is a palace stem flying a
+/// mutagen outward onto a natal star.
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash, Serialize, Deserialize)]
 pub struct PalaceStemMutagenFlow {
     /// The palace whose stem produces the flow.
@@ -117,12 +135,15 @@ fn palace_stem_source(palace: &Palace) -> PalaceStemSource {
 ///
 /// Palaces are visited in chart order, so the output is deterministic. Only the
 /// [`PalaceStemRole::BirthYearStemOrigin`] role is emitted today.
-pub fn palace_stem_role_assignments(
-    chart: &Chart,
-) -> Result<Vec<PalaceStemRoleAssignment>, ChartError> {
+///
+/// Infallible: a role assignment is a pure comparison of existing palace stems
+/// against the birth-year stem, so this reads chart facts without any operation
+/// that can fail (unlike the mutagen-flow queries, which can hit a missing target
+/// star).
+pub fn palace_stem_role_assignments(chart: &Chart) -> Vec<PalaceStemRoleAssignment> {
     let reference_stem = chart.birth_year().stem();
 
-    let assignments = chart
+    chart
         .palaces()
         .iter()
         .filter(|palace| palace.stem() == reference_stem)
@@ -133,22 +154,18 @@ pub fn palace_stem_role_assignments(
             palace_stem: palace.stem(),
             reference_stem,
         })
-        .collect();
-
-    Ok(assignments)
+        .collect()
 }
 
 /// Returns the palaces whose stem equals the birth-year stem (来因宫).
 ///
 /// Plural because 辛 and 壬 birth years yield two such palaces; most birth-year
 /// stems yield one.
-pub fn birth_year_stem_origin_palaces(
-    chart: &Chart,
-) -> Result<Vec<PalaceStemRoleAssignment>, ChartError> {
-    Ok(palace_stem_role_assignments(chart)?
+pub fn birth_year_stem_origin_palaces(chart: &Chart) -> Vec<PalaceStemRoleAssignment> {
+    palace_stem_role_assignments(chart)
         .into_iter()
         .filter(|assignment| assignment.role == PalaceStemRole::BirthYearStemOrigin)
-        .collect())
+        .collect()
 }
 
 /// Returns every palace-stem mutagen flow for the chart.
@@ -187,32 +204,113 @@ pub fn palace_stem_mutagen_flows(chart: &Chart) -> Result<Vec<PalaceStemMutagenF
     Ok(flows)
 }
 
+/// All palace-stem facts of a chart, derived once.
+///
+/// Every filter view (source palace, landing palace, self-transform, birth-year
+/// stem origin) reads these cached vectors, so deriving this aggregate once and
+/// filtering it is cheaper than calling the standalone query functions repeatedly:
+/// each standalone flow query re-derives all flows and re-scans natal placements.
+///
+/// The derivation is deterministic: role assignments follow chart-palace order,
+/// and flows follow source-palace order then canonical 禄 / 权 / 科 / 忌 order.
+#[derive(Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub struct PalaceStemFeatures {
+    role_assignments: Vec<PalaceStemRoleAssignment>,
+    mutagen_flows: Vec<PalaceStemMutagenFlow>,
+}
+
+impl PalaceStemFeatures {
+    /// Derives all palace-stem role assignments and mutagen flows once.
+    ///
+    /// Returns [`ChartError::RequiredStarMissing`] if a stem's mutagen target star
+    /// is not placed in the chart, matching [`palace_stem_mutagen_flows`].
+    pub fn derive(chart: &Chart) -> Result<Self, ChartError> {
+        Ok(Self {
+            role_assignments: palace_stem_role_assignments(chart),
+            mutagen_flows: palace_stem_mutagen_flows(chart)?,
+        })
+    }
+
+    /// Returns every palace-stem role assignment.
+    pub fn role_assignments(&self) -> &[PalaceStemRoleAssignment] {
+        &self.role_assignments
+    }
+
+    /// Returns the birth-year stem origin (来因宫) assignments.
+    pub fn birth_year_stem_origins(&self) -> impl Iterator<Item = &PalaceStemRoleAssignment> {
+        self.role_assignments
+            .iter()
+            .filter(|assignment| assignment.role == PalaceStemRole::BirthYearStemOrigin)
+    }
+
+    /// Returns every palace-stem mutagen flow.
+    pub fn mutagen_flows(&self) -> &[PalaceStemMutagenFlow] {
+        &self.mutagen_flows
+    }
+
+    /// Returns the flows whose source is the named palace.
+    pub fn flows_from_palace(
+        &self,
+        palace: PalaceName,
+    ) -> impl Iterator<Item = &PalaceStemMutagenFlow> {
+        self.mutagen_flows
+            .iter()
+            .filter(move |flow| flow.source.palace_name == palace)
+    }
+
+    /// Returns the flows that land in the named palace.
+    pub fn flows_landing_in_palace(
+        &self,
+        palace: PalaceName,
+    ) -> impl Iterator<Item = &PalaceStemMutagenFlow> {
+        self.mutagen_flows
+            .iter()
+            .filter(move |flow| flow.target.palace_name == palace)
+    }
+
+    /// Returns the flows that self-transform (自化).
+    pub fn self_transforming_flows(&self) -> impl Iterator<Item = &PalaceStemMutagenFlow> {
+        self.mutagen_flows
+            .iter()
+            .filter(|flow| flow.is_self_transform())
+    }
+}
+
 /// Returns the palace-stem mutagen flows whose source is the named palace.
+///
+/// Convenience for a single query; use [`PalaceStemFeatures`] to filter several
+/// views without re-deriving.
 pub fn mutagen_flows_from_palace(
     chart: &Chart,
     palace: PalaceName,
 ) -> Result<Vec<PalaceStemMutagenFlow>, ChartError> {
-    Ok(palace_stem_mutagen_flows(chart)?
-        .into_iter()
-        .filter(|flow| flow.source.palace_name == palace)
+    Ok(PalaceStemFeatures::derive(chart)?
+        .flows_from_palace(palace)
+        .copied()
         .collect())
 }
 
 /// Returns the palace-stem mutagen flows that land in the named palace.
+///
+/// Convenience for a single query; use [`PalaceStemFeatures`] to filter several
+/// views without re-deriving.
 pub fn mutagen_flows_landing_in_palace(
     chart: &Chart,
     palace: PalaceName,
 ) -> Result<Vec<PalaceStemMutagenFlow>, ChartError> {
-    Ok(palace_stem_mutagen_flows(chart)?
-        .into_iter()
-        .filter(|flow| flow.target.palace_name == palace)
+    Ok(PalaceStemFeatures::derive(chart)?
+        .flows_landing_in_palace(palace)
+        .copied()
         .collect())
 }
 
 /// Returns the palace-stem mutagen flows that self-transform (自化).
+///
+/// Convenience for a single query; use [`PalaceStemFeatures`] to filter several
+/// views without re-deriving.
 pub fn self_transforming_flows(chart: &Chart) -> Result<Vec<PalaceStemMutagenFlow>, ChartError> {
-    Ok(palace_stem_mutagen_flows(chart)?
-        .into_iter()
-        .filter(PalaceStemMutagenFlow::is_self_transform)
+    Ok(PalaceStemFeatures::derive(chart)?
+        .self_transforming_flows()
+        .copied()
         .collect())
 }
