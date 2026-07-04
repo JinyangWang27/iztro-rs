@@ -51,83 +51,92 @@ pub enum Scope {
     Hourly,
 }
 
+/// Returns the four stars a Heavenly Stem transforms, paired with the mutagen
+/// each receives, in canonical 禄 / 权 / 科 / 忌 (Lu, Quan, Ke, Ji) order.
+///
+/// This is the forward 十干四化 table: given a stem it lists exactly which four
+/// stars are transformed and how. It mirrors iztro 2.5.8 and is the single
+/// source of truth from which [`birth_year_star_mutagen`] is derived. Callers
+/// that need the four targets of a stem (for example palace-stem mutagen-flow
+/// derivation) should read this directly rather than probing every star with
+/// [`birth_year_star_mutagen`], because it enumerates the targets deterministically
+/// and independently of which stars a chart happens to place.
+pub const fn stem_mutagen_targets(stem: HeavenlyStem) -> [(Mutagen, StarName); 4] {
+    use Mutagen::{Ji, Ke, Lu, Quan};
+
+    match stem {
+        HeavenlyStem::Jia => [
+            (Lu, StarName::LianZhen),
+            (Quan, StarName::PoJun),
+            (Ke, StarName::WuQu),
+            (Ji, StarName::TaiYang),
+        ],
+        HeavenlyStem::Yi => [
+            (Lu, StarName::TianJi),
+            (Quan, StarName::TianLiang),
+            (Ke, StarName::ZiWei),
+            (Ji, StarName::TaiYin),
+        ],
+        HeavenlyStem::Bing => [
+            (Lu, StarName::TianTong),
+            (Quan, StarName::TianJi),
+            (Ke, StarName::WenChang),
+            (Ji, StarName::LianZhen),
+        ],
+        HeavenlyStem::Ding => [
+            (Lu, StarName::TaiYin),
+            (Quan, StarName::TianTong),
+            (Ke, StarName::TianJi),
+            (Ji, StarName::JuMen),
+        ],
+        HeavenlyStem::Wu => [
+            (Lu, StarName::TanLang),
+            (Quan, StarName::TaiYin),
+            (Ke, StarName::YouBi),
+            (Ji, StarName::TianJi),
+        ],
+        HeavenlyStem::Ji => [
+            (Lu, StarName::WuQu),
+            (Quan, StarName::TanLang),
+            (Ke, StarName::TianLiang),
+            (Ji, StarName::WenQu),
+        ],
+        HeavenlyStem::Geng => [
+            (Lu, StarName::TaiYang),
+            (Quan, StarName::WuQu),
+            (Ke, StarName::TaiYin),
+            (Ji, StarName::TianTong),
+        ],
+        HeavenlyStem::Xin => [
+            (Lu, StarName::JuMen),
+            (Quan, StarName::TaiYang),
+            (Ke, StarName::WenQu),
+            (Ji, StarName::WenChang),
+        ],
+        HeavenlyStem::Ren => [
+            (Lu, StarName::TianLiang),
+            (Quan, StarName::ZiWei),
+            (Ke, StarName::ZuoFu),
+            (Ji, StarName::WuQu),
+        ],
+        HeavenlyStem::Gui => [
+            (Lu, StarName::PoJun),
+            (Quan, StarName::JuMen),
+            (Ke, StarName::TaiYin),
+            (Ji, StarName::TanLang),
+        ],
+    }
+}
+
 /// Returns the birth-year mutagen for any represented star, if supported.
 ///
 /// The table mirrors iztro 2.5.8 Heavenly Stem mutagens in Lu, Quan, Ke, Ji
-/// order for represented major stars and represented minor targets.
+/// order for represented major stars and represented minor targets. It is a
+/// reverse lookup over [`stem_mutagen_targets`], so the two never drift.
 pub fn birth_year_star_mutagen(year_stem: HeavenlyStem, star: StarName) -> Option<Mutagen> {
-    match year_stem {
-        HeavenlyStem::Jia => match star {
-            StarName::LianZhen => Some(Mutagen::Lu),
-            StarName::PoJun => Some(Mutagen::Quan),
-            StarName::WuQu => Some(Mutagen::Ke),
-            StarName::TaiYang => Some(Mutagen::Ji),
-            _ => None,
-        },
-        HeavenlyStem::Yi => match star {
-            StarName::TianJi => Some(Mutagen::Lu),
-            StarName::TianLiang => Some(Mutagen::Quan),
-            StarName::ZiWei => Some(Mutagen::Ke),
-            StarName::TaiYin => Some(Mutagen::Ji),
-            _ => None,
-        },
-        HeavenlyStem::Bing => match star {
-            StarName::TianTong => Some(Mutagen::Lu),
-            StarName::TianJi => Some(Mutagen::Quan),
-            StarName::WenChang => Some(Mutagen::Ke),
-            StarName::LianZhen => Some(Mutagen::Ji),
-            _ => None,
-        },
-        HeavenlyStem::Ding => match star {
-            StarName::TaiYin => Some(Mutagen::Lu),
-            StarName::TianTong => Some(Mutagen::Quan),
-            StarName::TianJi => Some(Mutagen::Ke),
-            StarName::JuMen => Some(Mutagen::Ji),
-            _ => None,
-        },
-        HeavenlyStem::Wu => match star {
-            StarName::TanLang => Some(Mutagen::Lu),
-            StarName::TaiYin => Some(Mutagen::Quan),
-            StarName::YouBi => Some(Mutagen::Ke),
-            StarName::TianJi => Some(Mutagen::Ji),
-            _ => None,
-        },
-        HeavenlyStem::Ji => match star {
-            StarName::WuQu => Some(Mutagen::Lu),
-            StarName::TanLang => Some(Mutagen::Quan),
-            StarName::TianLiang => Some(Mutagen::Ke),
-            StarName::WenQu => Some(Mutagen::Ji),
-            _ => None,
-        },
-        HeavenlyStem::Geng => match star {
-            StarName::TaiYang => Some(Mutagen::Lu),
-            StarName::WuQu => Some(Mutagen::Quan),
-            StarName::TaiYin => Some(Mutagen::Ke),
-            StarName::TianTong => Some(Mutagen::Ji),
-            _ => None,
-        },
-        HeavenlyStem::Xin => match star {
-            StarName::JuMen => Some(Mutagen::Lu),
-            StarName::TaiYang => Some(Mutagen::Quan),
-            StarName::WenQu => Some(Mutagen::Ke),
-            StarName::WenChang => Some(Mutagen::Ji),
-            _ => None,
-        },
-        HeavenlyStem::Ren => match star {
-            StarName::TianLiang => Some(Mutagen::Lu),
-            StarName::ZiWei => Some(Mutagen::Quan),
-            StarName::ZuoFu => Some(Mutagen::Ke),
-            StarName::WuQu => Some(Mutagen::Ji),
-            _ => None,
-        },
-        HeavenlyStem::Gui => match star {
-            StarName::PoJun => Some(Mutagen::Lu),
-            StarName::JuMen => Some(Mutagen::Quan),
-            StarName::TaiYin => Some(Mutagen::Ke),
-            StarName::TanLang => Some(Mutagen::Ji),
-            _ => None,
-        },
-    }
+    stem_mutagen_targets(year_stem)
+        .into_iter()
+        .find_map(|(mutagen, target)| (target == star).then_some(mutagen))
 }
 
 /// Returns the birth-year mutagen for a represented major star, if supported.
@@ -137,4 +146,38 @@ pub fn birth_year_major_star_mutagen(year_stem: HeavenlyStem, star: StarName) ->
     }
 
     birth_year_star_mutagen(year_stem, star)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use lunar_lite::HEAVENLY_STEMS;
+
+    #[test]
+    fn each_stem_transforms_four_stars_in_lu_quan_ke_ji_order() {
+        for &stem in &HEAVENLY_STEMS {
+            let mutagens: Vec<Mutagen> = stem_mutagen_targets(stem)
+                .into_iter()
+                .map(|(mutagen, _)| mutagen)
+                .collect();
+            assert_eq!(
+                mutagens,
+                vec![Mutagen::Lu, Mutagen::Quan, Mutagen::Ke, Mutagen::Ji],
+                "{stem:?} should transform four stars in 禄/权/科/忌 order",
+            );
+        }
+    }
+
+    #[test]
+    fn birth_year_lookup_agrees_with_forward_table() {
+        for &stem in &HEAVENLY_STEMS {
+            for (mutagen, star) in stem_mutagen_targets(stem) {
+                assert_eq!(
+                    birth_year_star_mutagen(stem, star),
+                    Some(mutagen),
+                    "reverse lookup must agree with the forward table for {stem:?} -> {star:?}",
+                );
+            }
+        }
+    }
 }

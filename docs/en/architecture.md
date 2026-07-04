@@ -149,11 +149,44 @@ Important feature dimensions include:
 - twelve-palace features;
 - star placement and star semantics;
 - mutagen flows;
+- palace-stem roles and palace-stem mutagen flows;
 - palace relations such as opposite palace and triads;
 - temporal activation from decadal/yearly/monthly/daily/hourly scopes;
 - strength scores and counter-evidence.
 
 The goal is not to write prose, but to expose features that a rule engine can evaluate.
+
+### Palace-stem roles and mutagen flows
+
+Because each palace carries a Heavenly Stem, two school-independent fact families
+follow directly from those stems (see `features::palace_stem`):
+
+- **Palace-stem roles** — structural roles a palace plays because of its stem.
+  `PalaceStemRole::BirthYearStemOrigin` marks a palace whose stem equals the
+  birth-year stem; this is the 来因宫 of 飞星 practice, exposed here by its
+  structural invariant rather than by school-specific terminology. Most birth-year
+  stems produce one such palace, but 辛 and 壬 produce two, so the query
+  (`birth_year_stem_origin_palaces`) returns a set. Role queries are infallible
+  (they are a pure comparison of existing palace stems) and so return a `Vec`
+  directly rather than a `Result`.
+- **Palace-stem mutagen flows** — for each palace, its stem transforms four natal
+  stars via the shared 十干四化 table, and each flow records the source palace/stem
+  and the natal star/palace the mutagen lands on (`palace_stem_mutagen_flows`).
+  These are **derived relations**, not placed stars: nothing is added to the chart
+  and the flows are recomputed from existing facts on demand. `自化`
+  (self-transform) is exposed as a derived property of a flow, defined
+  conservatively as a mutagen landing back in its own source palace branch.
+
+`PalaceStemMutagenFlow` is deliberately distinct from `MutagenFlow`: the latter is
+a star's own natal mutagen in its palace, whereas the former is a palace stem
+flying a mutagen outward onto a natal star. When several views of one chart are
+needed, `PalaceStemFeatures::derive` computes the role assignments and flows once
+and exposes cached filters (source palace, landing palace, self-transform), rather
+than re-deriving and re-scanning natal placements on every standalone query.
+
+This layer is deliberately school-neutral: it is the foundation that future
+飞星派 / 钦天四化 profiles can consume, not an implementation of either school.
+Directional and combat refinements (向心 / 离心 / 禄忌交战 / 双忌) are out of scope here.
 
 Pattern (格局) recognition is rule-engine code rather than core chart state. The executable pattern engine lives under `rules::pattern`, where it can read core facts without making `core` depend on rules. See [`patterns.md`](patterns.md) for the rule catalog and guarantees.
 
