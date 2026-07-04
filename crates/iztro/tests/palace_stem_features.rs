@@ -70,7 +70,7 @@ fn birth_year_stem_origin_is_unique_and_matches_year_stem() {
     let chart = fixture_chart();
     let origins = birth_year_stem_origin_palaces(&chart).expect("origins should derive");
 
-    // A 庚 year yields exactly one 来因宫.
+    // 庚 is one of the stems that yields a single 来因宫.
     assert_eq!(origins.len(), 1);
 
     let origin = origins[0];
@@ -100,19 +100,48 @@ fn role_assignments_equal_birth_year_stem_origin_palaces() {
 }
 
 #[test]
-fn xin_year_yields_two_birth_year_stem_origins() {
-    // 辛 (and 壬) birth years make the birth-year stem one of the two repeated
-    // palace stems, so the invariant yields two 来因宫. This is why the query is
-    // plural rather than returning a single palace.
-    let birth_year =
-        StemBranch::try_new(HeavenlyStem::Xin, EarthlyBranch::You).expect("辛酉 is valid");
-    let chart = bare_chart_for_year(HeavenlyStem::Xin, birth_year);
+fn birth_year_stem_origin_count_matches_palace_stem_cycle_for_all_stems() {
+    // The palace-stem cycle repeats two stems per chart. 辛 and 壬 birth years
+    // make the birth-year stem one of those repeated stems, so they yield two
+    // 来因宫; every other stem yields one. This is why the query is plural.
+    let cases = [
+        (HeavenlyStem::Jia, EarthlyBranch::Zi, 1),
+        (HeavenlyStem::Yi, EarthlyBranch::Chou, 1),
+        (HeavenlyStem::Bing, EarthlyBranch::Yin, 1),
+        (HeavenlyStem::Ding, EarthlyBranch::Mao, 1),
+        (HeavenlyStem::Wu, EarthlyBranch::Chen, 1),
+        (HeavenlyStem::Ji, EarthlyBranch::Si, 1),
+        (HeavenlyStem::Geng, EarthlyBranch::Wu, 1),
+        (HeavenlyStem::Xin, EarthlyBranch::Wei, 2),
+        (HeavenlyStem::Ren, EarthlyBranch::Shen, 2),
+        (HeavenlyStem::Gui, EarthlyBranch::You, 1),
+    ];
 
-    let origins = birth_year_stem_origin_palaces(&chart).expect("origins should derive");
-    assert_eq!(origins.len(), 2);
-    for origin in origins {
-        assert_eq!(origin.palace_stem, HeavenlyStem::Xin);
-        assert_eq!(origin.reference_stem, HeavenlyStem::Xin);
+    for (stem, branch, expected_count) in cases {
+        let birth_year = StemBranch::try_new(stem, branch)
+            .expect("test case should use a valid stem-branch pair");
+        let chart = bare_chart_for_year(stem, birth_year);
+        let origins = birth_year_stem_origin_palaces(&chart).expect("origins should derive");
+
+        assert_eq!(
+            origins.len(),
+            expected_count,
+            "{stem:?} should produce {expected_count} birth-year-stem origin palace(s)",
+        );
+        assert!(
+            origins
+                .iter()
+                .all(|origin| origin.role == PalaceStemRole::BirthYearStemOrigin),
+            "{stem:?} origins should all carry BirthYearStemOrigin role",
+        );
+        assert!(
+            origins.iter().all(|origin| origin.palace_stem == stem),
+            "{stem:?} origins should all have matching palace stem",
+        );
+        assert!(
+            origins.iter().all(|origin| origin.reference_stem == stem),
+            "{stem:?} origins should all reference the birth-year stem",
+        );
     }
 }
 

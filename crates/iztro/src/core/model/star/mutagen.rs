@@ -61,10 +61,10 @@ pub enum Scope {
 /// derivation) should read this directly rather than probing every star with
 /// [`birth_year_star_mutagen`], because it enumerates the targets deterministically
 /// and independently of which stars a chart happens to place.
-pub const fn stem_mutagen_targets(year_stem: HeavenlyStem) -> [(Mutagen, StarName); 4] {
+pub const fn stem_mutagen_targets(stem: HeavenlyStem) -> [(Mutagen, StarName); 4] {
     use Mutagen::{Ji, Ke, Lu, Quan};
 
-    match year_stem {
+    match stem {
         HeavenlyStem::Jia => [
             (Lu, StarName::LianZhen),
             (Quan, StarName::PoJun),

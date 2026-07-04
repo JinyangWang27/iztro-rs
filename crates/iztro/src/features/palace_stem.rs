@@ -38,9 +38,9 @@ pub enum PalaceStemRole {
     /// The palace whose stem equals the birth-year stem (来因宫).
     ///
     /// Named for the structural invariant (`palace.stem == birth_year.stem`)
-    /// rather than the school-specific 来因宫 gloss. A normal chart has exactly
-    /// one such palace, but 辛 and 壬 birth years produce two, so callers must
-    /// treat this as a set rather than assume a single palace.
+    /// rather than the school-specific 来因宫 gloss. Most birth-year stems yield
+    /// one such palace, but 辛 and 壬 yield two, so callers must treat this as a
+    /// set rather than assume a single palace.
     BirthYearStemOrigin,
 }
 
@@ -140,8 +140,8 @@ pub fn palace_stem_role_assignments(
 
 /// Returns the palaces whose stem equals the birth-year stem (来因宫).
 ///
-/// Plural because 辛 and 壬 birth years yield two such palaces; a normal chart
-/// yields exactly one.
+/// Plural because 辛 and 壬 birth years yield two such palaces; most birth-year
+/// stems yield one.
 pub fn birth_year_stem_origin_palaces(
     chart: &Chart,
 ) -> Result<Vec<PalaceStemRoleAssignment>, ChartError> {

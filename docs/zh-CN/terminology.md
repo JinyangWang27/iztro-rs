@@ -33,7 +33,7 @@
 | `mutagen_ji` | Ji | 化忌 | 执着、阻滞、债务、压力点。 |
 | `palace_stem` | Palace Stem | 宫干 | 每个宫位所配的天干，由生年天干起五行寅例推定。 |
 | `palace_stem_role` | Palace Stem Role | 宫干角色 | 因宫干形成的结构性角色，不含任何流派解读。 |
-| `birth_year_stem_origin` | Birth-Year Stem Origin | 来因宫 | 宫干等于生年天干的宫位。以结构不变量命名，对应飞星派「来因宫」。辛、壬年会出现两个，一般命盘只有一个。 |
+| `birth_year_stem_origin` | Birth-Year Stem Origin | 来因宫 | 宫干等于生年天干的宫位。以结构不变量命名，对应飞星派「来因宫」。多数生年天干对应一个来因宫；辛、壬年对应两个。 |
 | `palace_stem_mutagen_flow` | Palace Stem Mutagen Flow | 宫干四化飞化 | 由某宫宫干经十干四化落到本命某星／宫的派生关系：源宫干 → 四化 → 目标星／宫。属派生事实，非虚拟星曜。 |
 | `self_transform` | Self-transform | 自化 | 宫干四化落回本宫（源宫地支＝目标宫地支）的派生属性。保守首版不含向心／离心区分。 |
 | `triad` | Triad | 三方 | 三合结构中的相关宫位。 |

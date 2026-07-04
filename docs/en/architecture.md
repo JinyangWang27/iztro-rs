@@ -164,8 +164,8 @@ follow directly from those stems (see `features::palace_stem`):
 - **Palace-stem roles** — structural roles a palace plays because of its stem.
   `PalaceStemRole::BirthYearStemOrigin` marks a palace whose stem equals the
   birth-year stem; this is the 来因宫 of 飞星 practice, exposed here by its
-  structural invariant rather than by school-specific terminology. A normal chart
-  has exactly one such palace, but 辛 and 壬 birth years produce two, so the query
+  structural invariant rather than by school-specific terminology. Most birth-year
+  stems produce one such palace, but 辛 and 壬 produce two, so the query
   (`birth_year_stem_origin_palaces`) returns a set.
 - **Palace-stem mutagen flows** — for each palace, its stem transforms four natal
   stars via the shared 十干四化 table, and each flow records the source palace/stem

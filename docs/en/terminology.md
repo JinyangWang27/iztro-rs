@@ -33,7 +33,7 @@ This glossary keeps engineering terms and Zi Wei Dou Shu terms aligned across la
 | `mutagen_ji` | Ji | 化忌 | Attachment, obstruction, debt, pressure point. |
 | `palace_stem` | Palace Stem | 宫干 | The Heavenly Stem assigned to each palace, derived from the birth-year stem via 起五行寅例. |
 | `palace_stem_role` | Palace Stem Role | 宫干角色 | A structural role a palace plays because of its stem, with no school-specific interpretation. |
-| `birth_year_stem_origin` | Birth-Year Stem Origin | 来因宫 | A palace whose stem equals the birth-year stem. Named for the structural invariant; corresponds to 飞星 practice's 来因宫. 辛/壬 years yield two; a normal chart yields one. |
+| `birth_year_stem_origin` | Birth-Year Stem Origin | 来因宫 | A palace whose stem equals the birth-year stem. Named for the structural invariant; corresponds to 飞星 practice's 来因宫. Most birth-year stems yield one; 辛 and 壬 yield two. |
 | `palace_stem_mutagen_flow` | Palace Stem Mutagen Flow | 宫干四化飞化 | A derived relation from a palace stem through the 十干四化 table to a natal star/palace: source palace stem -> mutagen -> target star/palace. A derived fact, not a placed star. |
 | `self_transform` | Self-transform | 自化 | A derived property of a palace-stem mutagen flow that lands back in its own source palace branch. Conservative first version; no 向心/离心 distinction. |
 | `triad` | Triad | 三方 | Related palaces in the triadic structure. |
