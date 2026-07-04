@@ -78,8 +78,8 @@ pub use core::{
     major_star_metadata_table, minor_star_brightness, minor_star_metadata,
     minor_star_metadata_table, nayin_element, palace_grid_position, palace_stem_for_branch,
     palace_stems_from_year_stem, represented_star_metadata_table, soul_master, star_metadata,
-    tian_fu_branch, try_adjective_star_metadata, try_flow_star_parts, try_known_star_metadata,
-    try_major_star_metadata, try_minor_star_metadata, try_star_metadata,
+    stem_mutagen_targets, tian_fu_branch, try_adjective_star_metadata, try_flow_star_parts,
+    try_known_star_metadata, try_major_star_metadata, try_minor_star_metadata, try_star_metadata,
     validate_chart_algorithm_plane, western_zodiac, zi_wei_branch,
 };
 // Shared selected-state context still lives in `core` for now. Pattern rules

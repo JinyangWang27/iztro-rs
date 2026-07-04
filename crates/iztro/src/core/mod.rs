@@ -80,7 +80,7 @@ pub use model::profile::{
     ChartAlgorithmKind, ChartPlane, ChartProfile, MethodProfile, is_valid_chart_algorithm_plane,
 };
 pub use model::star::mutagen::{
-    Mutagen, Scope, birth_year_major_star_mutagen, birth_year_star_mutagen,
+    Mutagen, Scope, birth_year_major_star_mutagen, birth_year_star_mutagen, stem_mutagen_targets,
 };
 pub use model::star::{
     Brightness, FlowStarBase, FlowStarScope, KnownStarFamily, KnownStarMetadata, StarCategory,
