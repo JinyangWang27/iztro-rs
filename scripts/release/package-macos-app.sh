@@ -86,20 +86,37 @@ echo "APPL????" > "$app_dir/Contents/PkgInfo"
 plutil -lint "$app_dir/Contents/Info.plist"
 
 if [[ "${APPLE_CODESIGN:-}" == "1" ]]; then
-  : "${APPLE_DEVELOPER_ID_SIGNING_IDENTITY:?missing signing identity}"
+  identities="$(security find-identity -v -p codesigning || true)"
+  detected_identity="$(printf '%s\n' "$identities" | sed -n 's/.*"\(Developer ID Application:.*\)".*/\1/p' | head -n 1)"
+  requested_identity="${APPLE_DEVELOPER_ID_SIGNING_IDENTITY:-}"
+
+  if [[ -n "$requested_identity" ]] && printf '%s\n' "$identities" | grep -Fq "\"${requested_identity}\""; then
+    signing_identity="$requested_identity"
+  elif [[ -n "$detected_identity" ]]; then
+    if [[ -n "$requested_identity" ]]; then
+      echo "warning: requested signing identity was not found; using detected Developer ID Application identity" >&2
+    fi
+    signing_identity="$detected_identity"
+  else
+    echo "error: no Developer ID Application signing identity found" >&2
+    printf '%s\n' "$identities" >&2
+    exit 1
+  fi
+
+  echo "Using signing identity: $signing_identity"
 
   codesign \
     --force \
     --options runtime \
     --timestamp \
-    --sign "$APPLE_DEVELOPER_ID_SIGNING_IDENTITY" \
+    --sign "$signing_identity" \
     "$app_dir/Contents/MacOS/${binary_name}"
 
   codesign \
     --force \
     --options runtime \
     --timestamp \
-    --sign "$APPLE_DEVELOPER_ID_SIGNING_IDENTITY" \
+    --sign "$signing_identity" \
     "$app_dir"
 
   codesign --verify --strict --verbose=4 "$app_dir"
