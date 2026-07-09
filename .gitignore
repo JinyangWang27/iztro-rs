@@ -1,4 +1,6 @@
 
+dist/
+
 # Editor / IDE
 .vscode/*
 !.vscode/extensions.json
