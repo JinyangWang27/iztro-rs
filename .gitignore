@@ -1,6 +1,3 @@
-
-dist/
-
 # Editor / IDE
 .vscode/*
 !.vscode/extensions.json
@@ -10,6 +7,9 @@ dist/
 # will have compiled files and executables
 debug
 target
+
+# Release artifacts
+dist/
 
 # Coverage output (cargo-llvm-cov); HTML report lives under target/
 lcov.info
