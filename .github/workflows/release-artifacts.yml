@@ -113,7 +113,12 @@ jobs:
             -s \
             -k "${keychain_password}" \
             "${keychain_path}"
-          security find-identity -v -p codesigning "${keychain_path}"
+
+          identities="$(security find-identity -v -p codesigning "${keychain_path}")"
+          printf '%s\n' "${identities}"
+          signing_identity="$(printf '%s\n' "${identities}" | sed -n 's/.*"\(Developer ID Application:.*\)".*/\1/p' | head -n 1)"
+          : "${signing_identity:?no Developer ID Application identity found in imported certificate}"
+          echo "APPLE_DEVELOPER_ID_SIGNING_IDENTITY=${signing_identity}" >> "${GITHUB_ENV}"
 
       - name: Package Unix tarball artifact
         if: ${{ matrix.package_macos_app != 'true' }}
@@ -140,7 +145,6 @@ jobs:
         if: ${{ matrix.package_macos_app == 'true' }}
         env:
           APPLE_CODESIGN: ${{ startsWith(github.ref, 'refs/tags/') && '1' || '0' }}
-          APPLE_DEVELOPER_ID_SIGNING_IDENTITY: ${{ secrets.APPLE_DEVELOPER_ID_SIGNING_IDENTITY }}
           APPLE_ID: ${{ secrets.APPLE_ID }}
           APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
           APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
