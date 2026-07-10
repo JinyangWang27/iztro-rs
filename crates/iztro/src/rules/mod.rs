@@ -18,4 +18,4 @@ pub use classical::{
     evaluate_classical, evaluate_classical_claims, pattern_rules, quan_shu_rules, rule_by_id,
 };
 pub use relation::PalaceRelation;
-pub use source::{ClassicalWork, SourceRef};
+pub use source::{ClassicalWork, SourceRef, SourceSection, source_section};

@@ -139,3 +139,12 @@ pattern-polarity-auspicious = Auspicious
 pattern-polarity-inauspicious = Inauspicious
 pattern-polarity-neutral = Neutral
 patterns-detail-polarity = Polarity
+
+# Classical source citation labels (section headings stay in Chinese: they are
+# canonical Zi Wei Dou Shu terminology, not translatable UI copy)
+source-work-zi-wei-dou-shu-quan-shu = Zi Wei Dou Shu Quan Shu
+source-work-iztro-pattern-catalog = iztro Pattern Catalog
+source-detail-work = Source
+source-detail-location = Location
+source-detail-text = Original text
+source-location = Volume { $volume } · { $section }

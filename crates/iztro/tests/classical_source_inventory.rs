@@ -2,7 +2,9 @@
 //!
 //! The source inventory under `rule-corpus/quan-shu/source/` is
 //! **corpus-management data**, not runtime chart-evaluation data: nothing in
-//! `src/` parses it, and `evaluate_classical` never depends on it. These tests
+//! `src/` parses it, and `evaluate_classical` never depends on it. (The only
+//! runtime section data is the separate table `rule-corpus/quan-shu/sections.toml`,
+//! validated against this inventory by `tests/source_sections.rs`.) These tests
 //! exist only to keep the inventory internally consistent and correctly linked
 //! to the executable rule corpus (`rule-corpus/quan-shu/rules.toml`).
 //!

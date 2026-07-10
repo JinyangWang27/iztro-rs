@@ -54,6 +54,13 @@ This is intentionally **not** a generic rule DSL yet:
    build a `ClassicalSourceHit`; they build a `Claim` only when `rule.claim`
    exists.
 
+Note a deliberate divergence from the layered architecture's long-term shape:
+rule predicates currently read `Chart` facts directly rather than consuming the
+feature-extraction layer's `ChartFeatures`. Predicates need chart-level detail
+(clamp geometry, brightness, void policy) that `ChartFeatures` does not carry
+yet. Chaining features → rules is future work once feature structures
+stabilize; until then the two layers are parallel by design.
+
 ## Conservative emission and typed diagnostics
 
 A source hit is emitted **only when an executable rule condition matches on
@@ -268,6 +275,23 @@ auditable, status-tagged record of each cited source unit. Each non-executable
 rule must carry a `normalized_note_zh_hans`, enforced by
 `crates/iztro/tests/classical_source_inventory.rs`.
 
+### Promoting a normalized rule to executable
+
+Executable coverage grows one rule at a time, never in bulk (1–2 rules per PR):
+
+1. pick one `status = "normalized"` rule whose condition is expressible over
+   modeled chart facts;
+2. author its `[rule.claim]` block (domain, themes, polarity, base strength,
+   `claim_key`) and the matching claim text in the i18n `claims.ftl` resources;
+3. implement the predicate arm in `evaluator.rs`, reusing `rules::query`
+   helpers — or return a typed `RuleOutcome::Unsupported` (like
+   `LU_MA_JIAO_CHI`) when a needed chart fact is not modeled yet;
+4. add positive and negative rule tests (`tests/classical_rules.rs`);
+5. flip `status` to `executable` (`tested` once fixture coverage justifies it).
+
+The evaluator's test guard forces every `executable`/`tested` corpus rule to
+have a predicate arm, so a forgotten step fails loudly.
+
 ## PatternDetection vs Claim
 
 `iztro` already has `rules::pattern` **pattern detection** (格局). The two are
@@ -383,3 +407,23 @@ volumes are never parsed at runtime. Its consistency (unique stable ids,
 continuous `source_order`, item ↔ rule links, verbatim source text) is enforced
 only by `crates/iztro/tests/classical_source_inventory.rs`. Pending units may use
 `section = "待校"` and `anchor = "TODO"` until located.
+
+### Runtime section table (`sections.toml`)
+
+The one piece of section metadata available at runtime is the small table
+`rule-corpus/quan-shu/sections.toml`: one entry per inventory `source_group`
+carrying only `source_id_prefix`, `work`, `volume`, and `section`. It is
+embedded via `include_str!` and exposed as
+`rules::source::source_section(source_id) -> Option<&SourceSection>`, which
+truncates the id after its final `.` and performs an exact prefix lookup
+(inventory item keys never contain dots). Display layers use it to cite 卷/节
+for both classical rule hits and source-backed pattern detections
+(`PatternSourceMetadata` deliberately stores no section of its own).
+
+The table intentionally stores neither `anchor` (always equal to `section`)
+nor `doc_path` (always derivable as
+`docs/zh-CN/sources/quan_shu/volume-{volume:02}.md`).
+`crates/iztro/tests/source_sections.rs` keeps the table in sync with the
+inventory in both directions and enforces those two derivability invariants.
+All item-level data and governance fields (`status`, `category`,
+`linked_rule_ids`, `source_order`) remain test-only; see ADR 0010.
