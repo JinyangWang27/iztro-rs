@@ -28,6 +28,7 @@ use iztro::core::{
     StarName, StemBranch, WesternZodiac,
 };
 use iztro::rules::classical::{Claim, ClaimDomain, ClaimPolarity, ClaimTheme};
+use iztro::rules::source::ClassicalWork;
 use iztro::{LunarDateProjection, PatternPolarity, PatternStatus};
 
 pub use fluent_bundle::FluentArgs;
@@ -114,6 +115,24 @@ impl I18n {
             PatternPolarity::Inauspicious => "pattern-polarity-inauspicious",
             PatternPolarity::Neutral => "pattern-polarity-neutral",
         })
+    }
+
+    /// Localized classical-work title (典籍).
+    pub fn classical_work_label(&self, work: ClassicalWork) -> String {
+        self.text(match work {
+            ClassicalWork::ZiWeiDouShuQuanShu => "source-work-zi-wei-dou-shu-quan-shu",
+            ClassicalWork::IztroPatternCatalog => "source-work-iztro-pattern-catalog",
+        })
+    }
+
+    /// Localized source location (卷/节), e.g. `卷一 · 太微赋` / `Volume 1 · 太微赋`.
+    /// The section heading stays in Chinese in every locale: it is canonical
+    /// Zi Wei Dou Shu terminology, not translatable UI copy.
+    pub fn source_location_label(&self, volume: u8, section: &str) -> String {
+        let mut args = FluentArgs::new();
+        args.set("volume", volume);
+        args.set("section", section);
+        self.text_args("source-location", &args)
     }
 
     /// Localized star brightness (亮度). [`Brightness::Unknown`] renders as the

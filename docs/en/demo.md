@@ -89,7 +89,11 @@ selections, and disabled cells stay inert.
 A collapsible right-side inspector **displays** structured analysis — 全书规则
 (QuanShu classical rules) and 格局 (patterns) — that it requests from the
 per-layer `analysis` facade and caches; the GUI itself computes no rule
-evaluation or pattern detection. Pattern detection lives in `rules::pattern` as
+evaluation or pattern detection. Expanding a rule hit or a source-backed
+pattern shows its classical citation (work, 卷/节, and for patterns the
+verbatim source text), resolved at render time through
+`rules::source::source_section` and pattern provenance metadata (ADR 0010) —
+no citation data is stored in GUI state. Pattern detection lives in `rules::pattern` as
 rule-engine code (see [`current-status.md`](current-status.md) for the
 inspector's caching model). Beyond surfacing those structured hits and their
 evidence, this GUI remains a prototype chart-fact viewer: it does not generate

@@ -15,6 +15,8 @@ use iced::{Alignment, Element, Length};
 use iztro::PatternStrength;
 use iztro::analysis::AnalysisLayerKey;
 use iztro::rules::classical::classical_rule_metadata;
+use iztro::rules::pattern::metadata::pattern_source_metadata;
+use iztro::rules::source::source_section;
 use iztro_i18n::I18n;
 
 use crate::analysis::{PatternHitExpansionKey, RuleHitExpansionKey};
@@ -175,6 +177,9 @@ fn rule_hit_line<'a>(
     .spacing(SPACING.xs);
 
     if expanded {
+        if let Some(rows) = metadata.and_then(|m| citation_rows(m.source_id, palette, i18n)) {
+            block = block.push(rows);
+        }
         let claim = hit
             .claim_key
             .as_deref()
@@ -189,6 +194,34 @@ fn rule_hit_line<'a>(
     }
 
     inspector_card(palette, block)
+}
+
+/// Structured citation rows (典籍 / 卷节) for a resolvable source id, shared by
+/// rule-hit and pattern expansions. `None` when the id has no classical section
+/// (e.g. project pattern-catalog provenance), so unsourced entries render
+/// exactly as before.
+fn citation_rows<'a>(
+    source_id: &str,
+    palette: GuiPalette,
+    i18n: &I18n,
+) -> Option<Element<'a, Message>> {
+    let section = source_section(source_id)?;
+    Some(
+        column![
+            detail_row(
+                palette,
+                &i18n.text("source-detail-work"),
+                &i18n.classical_work_label(section.work),
+            ),
+            detail_row(
+                palette,
+                &i18n.text("source-detail-location"),
+                &i18n.source_location_label(section.volume, &section.section),
+            ),
+        ]
+        .spacing(2)
+        .into(),
+    )
 }
 
 /// Wraps inspector row content in a compact card surface.
@@ -333,6 +366,16 @@ fn pattern_details<'a>(
             palette,
             &i18n.text("patterns-detail-mutagens"),
             &mutagens,
+        ));
+    }
+    if let Some(metadata) = pattern_source_metadata(detection.id) {
+        if let Some(citation) = citation_rows(metadata.source_id, palette, i18n) {
+            rows = rows.push(citation);
+        }
+        rows = rows.push(detail_row(
+            palette,
+            &i18n.text("source-detail-text"),
+            metadata.source_text_zh_hans,
         ));
     }
 
@@ -517,6 +560,65 @@ mod tests {
             app.update(Message::SetTheme(theme));
             app.update(Message::SetRightPanelTab(RightPanelTab::Settings));
             assert!(right_inspector(&app, test_palette(), &i18n).is_some());
+        }
+    }
+
+    #[test]
+    fn citation_rows_resolve_only_for_quan_shu_sources() {
+        let i18n = I18n::new(Locale::ZhHans);
+        assert!(
+            citation_rows(
+                "quan_shu.v01.tai_wei_fu.ma_yu_kong_wang",
+                test_palette(),
+                &i18n
+            )
+            .is_some()
+        );
+        // Project pattern-catalog provenance has no classical 卷/节 to cite.
+        assert!(citation_rows("pattern.unsourced.entry", test_palette(), &i18n).is_none());
+    }
+
+    #[test]
+    fn expanded_hits_render_with_citations_in_both_locales() {
+        for locale in [Locale::EnUs, Locale::ZhHans] {
+            let i18n = I18n::new(locale);
+            let mut app = StaticChartApp::new();
+            app.generate();
+            app.update(Message::SetRightPanelMode(RightPanelMode::Expanded));
+
+            let mut rule_keys = Vec::new();
+            let mut pattern_keys = Vec::new();
+            for key in app.required_analysis_layers() {
+                let Some(result) = app.analysis_cache().get(&key) else {
+                    continue;
+                };
+                for hit in &result.rule_hits {
+                    rule_keys.push(crate::analysis::RuleHitExpansionKey {
+                        layer: key.clone(),
+                        rule_id: hit.rule_id.clone(),
+                    });
+                }
+                for detection in &result.pattern_hits {
+                    pattern_keys.push(crate::analysis::PatternHitExpansionKey {
+                        layer: key.clone(),
+                        pattern_id: detection.id,
+                    });
+                }
+            }
+            for key in rule_keys {
+                app.update(Message::ToggleRuleHit(key));
+            }
+            for key in pattern_keys {
+                app.update(Message::TogglePatternHit(key));
+            }
+
+            for tab in [RightPanelTab::QuanShuRules, RightPanelTab::Patterns] {
+                app.update(Message::SetRightPanelTab(tab));
+                assert!(
+                    right_inspector(&app, test_palette(), &i18n).is_some(),
+                    "{locale:?}/{tab:?} should render with all hits expanded"
+                );
+            }
         }
     }
 

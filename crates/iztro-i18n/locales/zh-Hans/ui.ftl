@@ -135,3 +135,17 @@ pattern-polarity-auspicious = 吉
 pattern-polarity-inauspicious = 凶
 pattern-polarity-neutral = 平
 patterns-detail-polarity = 吉凶
+
+# 典籍出处标签
+source-work-zi-wei-dou-shu-quan-shu = 《紫微斗数全书》
+source-work-iztro-pattern-catalog = iztro 格局目录
+source-detail-work = 出处
+source-detail-location = 卷节
+source-detail-text = 原文
+source-location = { $volume ->
+    [1] 卷一
+    [2] 卷二
+    [3] 卷三
+    [4] 卷四
+   *[other] 卷{ $volume }
+} · { $section }
