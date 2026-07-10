@@ -51,7 +51,7 @@ pub struct SourceRef {
 /// derivable as `docs/zh-CN/sources/quan_shu/volume-{volume:02}.md`; both
 /// invariants are enforced against the source inventory by
 /// `tests/source_sections.rs`, so this type intentionally stores neither.
-#[derive(Clone, Debug, Eq, PartialEq, Hash, Serialize)]
+#[derive(Clone, Debug, Eq, PartialEq, Serialize)]
 pub struct SourceSection {
     /// The work the section belongs to.
     pub work: ClassicalWork,

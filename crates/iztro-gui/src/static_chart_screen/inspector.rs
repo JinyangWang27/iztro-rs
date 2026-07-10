@@ -196,32 +196,37 @@ fn rule_hit_line<'a>(
     inspector_card(palette, block)
 }
 
-/// Structured citation rows (典籍 / 卷节) for a resolvable source id, shared by
-/// rule-hit and pattern expansions. `None` when the id has no classical section
-/// (e.g. project pattern-catalog provenance), so unsourced entries render
-/// exactly as before.
+/// Localized `label / value` pairs for a resolvable source id's citation
+/// (典籍 / 卷节). `None` when the id has no classical section (e.g. project
+/// pattern-catalog provenance), so unsourced entries render exactly as before.
+/// Kept widget-free so citation content is directly testable.
+fn citation_details(source_id: &str, i18n: &I18n) -> Option<[(String, String); 2]> {
+    let section = source_section(source_id)?;
+    Some([
+        (
+            i18n.text("source-detail-work"),
+            i18n.classical_work_label(section.work),
+        ),
+        (
+            i18n.text("source-detail-location"),
+            i18n.source_location_label(section.volume, &section.section),
+        ),
+    ])
+}
+
+/// [`citation_details`] rendered as structured detail rows, shared by rule-hit
+/// and pattern expansions.
 fn citation_rows<'a>(
     source_id: &str,
     palette: GuiPalette,
     i18n: &I18n,
 ) -> Option<Element<'a, Message>> {
-    let section = source_section(source_id)?;
-    Some(
-        column![
-            detail_row(
-                palette,
-                &i18n.text("source-detail-work"),
-                &i18n.classical_work_label(section.work),
-            ),
-            detail_row(
-                palette,
-                &i18n.text("source-detail-location"),
-                &i18n.source_location_label(section.volume, &section.section),
-            ),
-        ]
-        .spacing(2)
-        .into(),
-    )
+    let details = citation_details(source_id, i18n)?;
+    let mut rows = column![].spacing(2);
+    for (label, value) in &details {
+        rows = rows.push(detail_row(palette, label, value));
+    }
+    Some(rows.into())
 }
 
 /// Wraps inspector row content in a compact card surface.
@@ -564,22 +569,50 @@ mod tests {
     }
 
     #[test]
-    fn citation_rows_resolve_only_for_quan_shu_sources() {
-        let i18n = I18n::new(Locale::ZhHans);
-        assert!(
-            citation_rows(
-                "quan_shu.v01.tai_wei_fu.ma_yu_kong_wang",
-                test_palette(),
-                &i18n
-            )
-            .is_some()
-        );
+    fn rule_citation_details_localize_work_and_location() {
+        // The source id behind the 马遇空亡 rule hit rendered by rule_hit_line.
+        let source_id = "quan_shu.v01.tai_wei_fu.ma_yu_kong_wang";
+
+        let zh = I18n::new(Locale::ZhHans);
+        let [(work_label, work), (location_label, location)] =
+            citation_details(source_id, &zh).expect("QuanShu source id must yield a citation");
+        assert_eq!(work_label, "出处");
+        assert_eq!(work, "《紫微斗数全书》");
+        assert_eq!(location_label, "卷节");
+        assert_eq!(location, "卷一 · 太微赋");
+
+        let en = I18n::new(Locale::EnUs);
+        let [(work_label, work), (location_label, location)] =
+            citation_details(source_id, &en).expect("QuanShu source id must yield a citation");
+        assert_eq!(work_label, "Source");
+        assert_eq!(work, "Zi Wei Dou Shu Quan Shu");
+        assert_eq!(location_label, "Location");
+        assert_eq!(location, "Volume 1 · 太微赋");
+
         // Project pattern-catalog provenance has no classical 卷/节 to cite.
-        assert!(citation_rows("pattern.unsourced.entry", test_palette(), &i18n).is_none());
+        assert!(citation_details("pattern.unsourced.entry", &zh).is_none());
     }
 
     #[test]
-    fn expanded_hits_render_with_citations_in_both_locales() {
+    fn pattern_citation_details_resolve_from_provenance_metadata() {
+        // pattern_details feeds pattern_source_metadata().source_id into
+        // citation_details; assert that path produces real content for a
+        // source-backed pattern (日出扶桑, cited in the 定贵局 catalogue).
+        let metadata =
+            iztro::rules::pattern::metadata::pattern_source_metadata(iztro::PatternId::RiChuFuSang)
+                .expect("日出扶桑 carries source provenance");
+        let zh = I18n::new(Locale::ZhHans);
+        let [(_, work), (_, location)] = citation_details(metadata.source_id, &zh)
+            .expect("source-backed pattern must yield a citation");
+        assert_eq!(work, "《紫微斗数全书》");
+        assert_eq!(location, "卷一 · 定贵局");
+    }
+
+    /// Render smoke test only: `iced::Element` exposes no text content, so this
+    /// verifies the widget tree builds with every hit expanded. Citation
+    /// *content* is asserted directly on `citation_details` above.
+    #[test]
+    fn all_hits_expanded_smoke_renders_in_both_locales() {
         for locale in [Locale::EnUs, Locale::ZhHans] {
             let i18n = I18n::new(locale);
             let mut app = StaticChartApp::new();
