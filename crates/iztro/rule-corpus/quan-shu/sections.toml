@@ -1,0 +1,55 @@
+# Runtime section-metadata table (卷/节) for QuanShu source-id prefixes.
+#
+# This is the ONLY source-inventory data loaded at runtime (embedded via
+# `include_str!` in `src/rules/source.rs`). The full inventory under
+# `source/volume-*.toml` — items, governance status, categories, rule links —
+# remains test-only corpus-management data.
+#
+# One entry per `[[source_group]]` in the inventory. A source id resolves to
+# its entry by truncating after the final `.` (item keys never contain dots).
+# Kept in sync with the inventory by `tests/source_sections.rs`, which also
+# enforces the two invariants that keep this table lean: the inventory
+# `anchor` always equals `section`, and `doc_path` is always derivable as
+# `docs/zh-CN/sources/quan_shu/volume-{volume:02}.md`.
+
+[[section]]
+source_id_prefix = "quan_shu.v01.tai_wei_fu."
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "太微赋"
+
+[[section]]
+source_id_prefix = "quan_shu.v01.ding_fu_ju."
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "定富局"
+
+[[section]]
+source_id_prefix = "quan_shu.v01.ding_gui_ju."
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "定贵局"
+
+[[section]]
+source_id_prefix = "quan_shu.v01.ding_pin_jian_ju."
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "定贫贱局"
+
+[[section]]
+source_id_prefix = "quan_shu.v01.ding_za_ju."
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "定杂局"
+
+[[section]]
+source_id_prefix = "quan_shu.v01.dou_shu_gu_sui_fu."
+work = "zi_wei_dou_shu_quan_shu"
+volume = 1
+section = "斗数骨髓赋"
+
+[[section]]
+source_id_prefix = "quan_shu.v03.zhu_xing_tong_yuan."
+work = "zi_wei_dou_shu_quan_shu"
+volume = 3
+section = "论诸星同垣各司所宜分别富贵贫贱夭寿"

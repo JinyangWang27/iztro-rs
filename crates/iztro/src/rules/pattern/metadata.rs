@@ -8,7 +8,9 @@
 //!
 //! The QuanShu source inventory TOML remains governance/test data. Runtime code
 //! only carries provenance for patterns that have executable detections, so a
-//! GUI or docs layer can display a pattern's ancient source citation.
+//! GUI or docs layer can display a pattern's ancient source citation. Section
+//! metadata (卷/节) is not duplicated here: resolve `source_id` through
+//! [`crate::rules::source::source_section`].
 
 use serde::{Deserialize, Serialize};
 
@@ -53,8 +55,6 @@ pub struct PatternSourceMetadata {
     pub source_id: &'static str,
     /// Verbatim Simplified Chinese source text, without final `。`.
     pub source_text_zh_hans: &'static str,
-    /// Source section heading.
-    pub section: &'static str,
     /// Source catalogue group.
     pub group: PatternSourceGroup,
 }
