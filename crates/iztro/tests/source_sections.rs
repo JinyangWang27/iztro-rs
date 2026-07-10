@@ -60,17 +60,24 @@ fn every_inventory_item_resolves_to_its_group_section() {
     let inventory = source_inventory();
     assert!(!inventory.source_item.is_empty());
     for item in &inventory.source_item {
-        let section = source_section(&item.source_id).unwrap_or_else(|| {
-            panic!("inventory id {} must resolve to a section", item.source_id)
-        });
+        let section = source_section(&item.source_id)
+            .unwrap_or_else(|| panic!("inventory id {} must resolve to a section", item.source_id));
         assert_eq!(
             serde_json::to_value(section.work).unwrap(),
             item.work,
             "work mismatch for {}",
             item.source_id
         );
-        assert_eq!(section.volume, item.volume, "volume mismatch for {}", item.source_id);
-        assert_eq!(section.section, item.section, "section mismatch for {}", item.source_id);
+        assert_eq!(
+            section.volume, item.volume,
+            "volume mismatch for {}",
+            item.source_id
+        );
+        assert_eq!(
+            section.section, item.section,
+            "section mismatch for {}",
+            item.source_id
+        );
     }
 }
 
@@ -115,9 +122,8 @@ fn runtime_table_has_no_stale_or_duplicate_prefixes() {
         work: String,
     }
 
-    let raw: RawSections =
-        toml::from_str(include_str!("../rule-corpus/quan-shu/sections.toml"))
-            .expect("sections.toml must deserialize");
+    let raw: RawSections = toml::from_str(include_str!("../rule-corpus/quan-shu/sections.toml"))
+        .expect("sections.toml must deserialize");
     assert!(!raw.section.is_empty());
 
     let inventory_prefixes: HashSet<String> = source_inventory()
