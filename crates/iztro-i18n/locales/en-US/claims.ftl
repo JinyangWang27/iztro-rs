@@ -71,6 +71,8 @@ claim-life-chang-qu-clamp-life-literary-reputation = Wen Chang and Wen Qu clamp 
 claim-life-ri-yue-fan-bei-hardship-pressure = The Sun and Moon are both in weak brightness states, indicating toil, pressure, or reduced clarity.
 claim-relationship-tan-ju-hai-zi-water-romance = Tan Lang is placed in Hai or Zi, indicating a water-romance peach-blossom pattern.
 claim-relationship-xing-yu-tan-lang-romance-with-penalty = Tan Lang meets a punishment star, indicating romance entangled with conflict or penalty.
+claim-career-tai-yang-ju-wu-authority-status = The Sun is placed at Wu — "the sun blazing at mid-heaven" — indicating commanding authority and great wealth.
+claim-career-tai-yin-ju-zi-clean-office-admonition = The Moon is placed at Zi — "clear water and osmanthus" — indicating a distinguished, upright post and the talent of a loyal counselor.
 
 # -- Evidence templates (illustrative; rendered by a future narrative layer) -
 claim-evidence-star-clamps-palace = { $star } clamps the palace at { $target } from { $clamp }

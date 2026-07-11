@@ -28,7 +28,8 @@
 # 以下每个 source_group.item 为「例曰」一句断语/规则候选，依 volume-01.md 语义顺序
 # 排列，物理换行不决定 source item 边界。全部太微赋 source item 现已链接到运行时规则
 # 元数据（status = rule_linked）：
-#   - 可执行 pilot（马遇空亡、日月反背）保持 executable；
+#   - 可执行规则（马遇空亡、日月反背、贪居亥子、刑遇贪狼、善福居空位、太阳居午、
+#     太阴居子）为 executable；
 #   - 禄马交驰保持 normalized；
 #   - 其余 source item 已链接到 normalized / ambiguous 规则，或对收束语链接到
 #     rejected 规则（学至此诚玄微矣）。
@@ -728,6 +729,10 @@ source_text_zh_hans = "枯木逢春 谓命衰限好是也"
 #
 # Each item below is one atomic source unit from the Volume 1 `斗数骨髓赋`
 # section. Keep source text verbatim. Do not store interpretation here.
+#
+# 规则链接分批推进：夹宫六句（source_order 16–21）已链接到 normalized 规则
+# （见 rules.toml 斗数骨髓赋规范化补全第一批）；其余 item 保持 segmented/
+# unlinked，group status 在全部链接完成前保持 segmented。
 
 [[source_group]]
 source_id_prefix = "quan_shu.v01.dou_shu_gu_sui_fu."
@@ -818,31 +823,37 @@ source_text_zh_hans = "命衰身衰限衰终身乞丐"
 key = "jia_gui_jia_lu"
 source_order = 16
 source_text_zh_hans = "夹贵夹禄少人知"
+linked_rule_ids = ["status.jia_gui_jia_lu.rare_blessing"]
 
 [[source_group.item]]
 key = "jia_quan_jia_ke"
 source_order = 17
 source_text_zh_hans = "夹权夹科世所宜"
+linked_rule_ids = ["status.jia_quan_jia_ke.esteemed_favor"]
 
 [[source_group.item]]
 key = "jia_ri_jia_yue"
 source_order = 18
 source_text_zh_hans = "夹日夹月谁能遇"
+linked_rule_ids = ["status.jia_ri_jia_yue.rare_nobility"]
 
 [[source_group.item]]
 key = "jia_chang_jia_qu"
 source_order = 19
 source_text_zh_hans = "夹昌夹曲主贵兮"
+linked_rule_ids = ["status.jia_chang_jia_qu.literary_nobility"]
 
 [[source_group.item]]
 key = "jia_kong_jia_jie"
 source_order = 20
 source_text_zh_hans = "夹空夹劫主贫贱"
+linked_rule_ids = ["wealth.jia_kong_jia_jie.poverty"]
 
 [[source_group.item]]
 key = "jia_yang_jia_tuo"
 source_order = 21
 source_text_zh_hans = "夹羊夹陀为乞丐"
+linked_rule_ids = ["wealth.jia_yang_jia_tuo.destitution"]
 
 [[source_group.item]]
 key = "lian_zhen_qi_sha"

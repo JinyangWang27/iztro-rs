@@ -70,6 +70,8 @@ claim-life-chang-qu-clamp-life-literary-reputation = 昌曲夹命，主文才、
 claim-life-ri-yue-fan-bei-hardship-pressure = 日月反背，主劳碌辛苦、光明不足之象。
 claim-relationship-tan-ju-hai-zi-water-romance = 贪狼居亥子，名为犯水桃花。
 claim-relationship-xing-yu-tan-lang-romance-with-penalty = 贪狼遇刑曜，主风流而带刑伤冲突之象。
+claim-career-tai-yang-ju-wu-authority-status = 太阳居午，日丽中天，主专权之贵、敌国之富。
+claim-career-tai-yin-ju-zi-clean-office-admonition = 太阴居子，水澄桂萼，主清要之职、忠谏之材。
 
 # -- 证据模板（示意，供后续叙事层渲染） -----------------------------------
 claim-evidence-star-clamps-palace = { $star } 自 { $clamp } 夹 { $target } 宫

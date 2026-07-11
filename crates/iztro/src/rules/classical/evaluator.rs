@@ -27,7 +27,8 @@ use crate::rules::classical::predicates::{
 use crate::rules::classical::rule::{ClaimSpec, ClassicalRule};
 use crate::rules::classical::scope_registry::{
     CHANG_QU_CLAMP_LIFE, HANDLED_RULE_IDS, LU_MA_JIAO_CHI, RI_YUE_FAN_BEI, SHAN_FU_JU_KONG,
-    TAN_LANG_HAI_ZI, TIAN_MA_VOID, XING_YU_TAN_LANG, YANG_TUO_CLAMP_LIFE, is_overlay_aware_rule,
+    TAI_YANG_JU_WU, TAI_YIN_JU_ZI, TAN_LANG_HAI_ZI, TIAN_MA_VOID, XING_YU_TAN_LANG,
+    YANG_TUO_CLAMP_LIFE, is_overlay_aware_rule,
 };
 use crate::rules::classical::source_hit::ClassicalSourceHit;
 use crate::rules::classical::void::VoidPolicy;
@@ -51,9 +52,23 @@ pub fn evaluate(rule: &ClassicalRule, chart: &Chart) -> RuleOutcome {
             Some(PatternId::ChangQuJiaMing),
         ),
         RI_YUE_FAN_BEI => evaluate_ri_yue_fan_bei(rule, chart),
-        TAN_LANG_HAI_ZI => evaluate_tan_lang_hai_zi(rule, chart),
+        // 贪居亥子，名为犯水桃花: conservatively 贪狼 sits in the 亥 or 子 branch.
+        TAN_LANG_HAI_ZI => evaluate_star_in_branches(
+            rule,
+            chart,
+            StarName::TanLang,
+            &[EarthlyBranch::Hai, EarthlyBranch::Zi],
+        ),
         XING_YU_TAN_LANG => evaluate_xing_yu_tan_lang(rule, chart),
         SHAN_FU_JU_KONG => evaluate_shan_fu_ju_kong(rule, chart),
+        // 太阳居午，谓之日丽中天: conservatively 太阳 sits in the 午 branch.
+        TAI_YANG_JU_WU => {
+            evaluate_star_in_branches(rule, chart, StarName::TaiYang, &[EarthlyBranch::Wu])
+        }
+        // 太阴居子，号曰水澄桂萼: conservatively 太阴 sits in the 子 branch.
+        TAI_YIN_JU_ZI => {
+            evaluate_star_in_branches(rule, chart, StarName::TaiYin, &[EarthlyBranch::Zi])
+        }
         // 禄马最喜交驰: the Lu/Tian Ma "交驰" relation is school-dependent and not
         // yet modeled as a deterministic chart fact, so the rule does not fire.
         LU_MA_JIAO_CHI => RuleOutcome::Unsupported(UnsupportedReason::LuMaRelationNotModeled),
@@ -254,13 +269,15 @@ fn evaluate_ri_yue_fan_bei(rule: &ClassicalRule, chart: &Chart) -> RuleOutcome {
     }
 }
 
-/// 贪居亥子，名为犯水桃花. Conservatively: 贪狼 sits in the 亥 or 子 branch.
-fn evaluate_tan_lang_hai_zi(rule: &ClassicalRule, chart: &Chart) -> RuleOutcome {
-    let Some(fact) = star_in_branches(
-        chart,
-        StarName::TanLang,
-        &[EarthlyBranch::Hai, EarthlyBranch::Zi],
-    ) else {
+/// Shared arm for placement rules of the shape "star X sits in one of these
+/// branches" (贪居亥子, 太阳居午, 太阴居子, …).
+fn evaluate_star_in_branches(
+    rule: &ClassicalRule,
+    chart: &Chart,
+    star: StarName,
+    allowed: &[EarthlyBranch],
+) -> RuleOutcome {
+    let Some(fact) = star_in_branches(chart, star, allowed) else {
         return RuleOutcome::NotApplicable;
     };
 

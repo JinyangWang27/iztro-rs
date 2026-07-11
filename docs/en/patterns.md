@@ -131,6 +131,7 @@ GUI/pattern panel can choose to show damaged-but-formed patterns.
 | 贞杀同宫 | `LianZhenQiShaTongGong` | `MajorStarCombination` | Neutral | Selected Life palace branch is Chou or Wei and 廉贞 and 七杀 both occupy it. Alias `廉贞七杀同宫`. Recognises the 廉贞七杀同守丑未命宫 structure only; the source distinguishes 庙旺 from 陷地化忌 cases, but this detector does not infer later modern claims. Source: `廉贞七杀居庙旺反为积富之人 杀居午奇格，若陷地化忌，贫贱残疾` (卷三·论诸星同垣). |
 | 天乙拱命 | `TianYiGongMing` | `AuxiliaryStarCombination` | Auspicious | 天魁 in the selected Life palace with 天钺 in its opposite (迁移) palace, or the reverse — the Life/opposite axis only. Runtime display name 天乙拱命; source-facing name / alias 坐贵向贵. Source: `坐贵向贵 谓魁钺在命迭相坐拱是也` (定贵局). |
 | 擎羊入庙 | `QingYangRuMiao` | `ShaJi` | Auspicious | Selected Life palace branch is Chen/Xu/Chou/Wei, 擎羊 sits in Life, and the Life 三方四正 carries explicit 禄存／左右／曲昌／魁钺 or 禄/权/科 support. The support is constitutive (`辰戍丑未守命遇吉是也` / `加吉万论`): no support means no detection. Runtime display name 擎羊入庙; source-facing name / alias 羊刃入庙. Source: `羊刃入庙 辰戍丑未守命遇吉是也` (定贵局). |
+| 日月照璧 | `RiYueZhaoBi` | `MajorStarCombination` | Auspicious | 太阳 and 太阴 both sit in the Property palace. The source's enhancer 喜居墓库 (Chen/Xu/Chou/Wei preferred) is not modeled. Source: `日月照璧 日月临田宅宫是也，喜居墓库` (定富局). |
 
 ### Reserved ids without detectors
 

@@ -9,9 +9,11 @@ pub(crate) const RI_YUE_FAN_BEI: &str = "life.ri_yue_fan_bei.hardship_pressure";
 pub(crate) const TAN_LANG_HAI_ZI: &str = "relationship.tan_ju_hai_zi.water_romance";
 pub(crate) const XING_YU_TAN_LANG: &str = "relationship.xing_yu_tan_lang.romance_with_penalty";
 pub(crate) const SHAN_FU_JU_KONG: &str = "fortune.shan_fu_ju_kong.monastic_life";
+pub(crate) const TAI_YANG_JU_WU: &str = "career.tai_yang_ju_wu.authority_status";
+pub(crate) const TAI_YIN_JU_ZI: &str = "career.tai_yin_ju_zi.clean_office_admonition";
 
 /// Every rule id the evaluator dispatch has a predicate arm for.
-pub(crate) const HANDLED_RULE_IDS: [&str; 8] = [
+pub(crate) const HANDLED_RULE_IDS: [&str; 10] = [
     TIAN_MA_VOID,
     YANG_TUO_CLAMP_LIFE,
     CHANG_QU_CLAMP_LIFE,
@@ -20,6 +22,8 @@ pub(crate) const HANDLED_RULE_IDS: [&str; 8] = [
     TAN_LANG_HAI_ZI,
     XING_YU_TAN_LANG,
     SHAN_FU_JU_KONG,
+    TAI_YANG_JU_WU,
+    TAI_YIN_JU_ZI,
 ];
 
 pub(crate) const NATAL_ONLY_SCOPES: &[ClaimScope] = &[ClaimScope::Natal];

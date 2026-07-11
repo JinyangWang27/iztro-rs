@@ -280,14 +280,26 @@ horoscope 上下文，校验请求键是否精确属于当前可见的 `Analysis
 
 语料编写格式详见 [`quan-shu-corpus.md`](./quan-shu-corpus.md)。
 
+## 入位规则（星居特定地支的事实）
+
+部分全书断语可归约为单纯的入位事实——某星坐于特定地支。评估器用一条共享分支
+（`evaluate_star_in_branches`，复用 `star_in_branches` 谓词）处理这类规则：
+
+- **贪居亥子，名为犯水桃花**（`relationship.tan_ju_hai_zi.water_romance`）：保守取贪狼
+  居亥或子二支。
+- **太阳居午，谓之日丽中天**（`career.tai_yang_ju_wu.authority_status`）：太阳居午宫。
+  与格局『金灿光辉』刻意区分：后者另要求命宫在午且太阳单守。
+- **太阴居子，号曰水澄桂萼**（`career.tai_yin_ju_zi.clean_office_admonition`）：太阴
+  居子宫。
+
+每条命中均产出 `ClassicalSourceHit` 与携带 `EvidenceKind::StarInPalace` 的 Claim。
+
 ## 星曜标签（重叠的解读型分类）
 
 `StarTag` 是核心星曜模型中挂在 `StarName` 上的**可重叠**分类，叠加在互斥的粗分类
 `StarCategory`（`Major` / `Minor` / `Adjective`）之上。一颗星可同时携带多个标签，如
-地空既属空劫（`KongJie`）又属空曜（`VoidSymbol`）。基于该层现已新增两条可执行全书规则：
+地空既属空劫（`KongJie`）又属空曜（`VoidSymbol`）。基于该层现有一条可执行全书规则：
 
-- **贪居亥子，名为犯水桃花**（`relationship.tan_ju_hai_zi.water_romance`）：保守取贪狼
-  居亥或子二支。
 - **刑遇贪狼，号曰风流彩杖**（`relationship.xing_yu_tan_lang.romance_with_penalty`）：
   保守取贪狼与刑曜（`StarTag::Punishment` = 擎羊、天刑）同宫。
 

@@ -33,6 +33,7 @@ pub mod qing_yang_ru_miao;
 pub mod ri_chu_fu_sang;
 pub mod ri_yue_bing_ming;
 pub mod ri_yue_fan_bei;
+pub mod ri_yue_zhao_bi;
 pub mod shi_zhong_yin_yu;
 pub mod tan_huo_xiang_feng;
 pub mod tian_ji_si_hai;
@@ -181,6 +182,10 @@ pub(crate) const DETECTORS: &[PatternDetectorRegistration] = &[
         id: PatternId::QingYangRuMiao,
         detect: qing_yang_ru_miao::detect,
     },
+    PatternDetectorRegistration {
+        id: PatternId::RiYueZhaoBi,
+        detect: ri_yue_zhao_bi::detect,
+    },
 ];
 
 pub(crate) const DETECTORLESS_PATTERN_IDS: &[PatternId] = &[PatternId::LingChangTuoWu];
@@ -226,7 +231,7 @@ mod tests {
     /// Each must resolve to source metadata, or emission would misrepresent an
     /// unbacked pattern as source-backed. (Inventory-reference correctness is
     /// checked separately in `tests/classical_source_inventory.rs`.)
-    const SOURCE_BACKED_PATTERN_IDS: [PatternId; 13] = [
+    const SOURCE_BACKED_PATTERN_IDS: [PatternId; 14] = [
         PatternId::JinCanGuangHui,
         PatternId::YueLuoHaiGong,
         PatternId::YueShengCangHai,
@@ -240,6 +245,7 @@ mod tests {
         PatternId::LianZhenQiShaTongGong,
         PatternId::TianYiGongMing,
         PatternId::QingYangRuMiao,
+        PatternId::RiYueZhaoBi,
     ];
 
     #[test]
@@ -314,6 +320,7 @@ mod tests {
                 PatternId::LianZhenQiShaTongGong,
                 PatternId::TianYiGongMing,
                 PatternId::QingYangRuMiao,
+                PatternId::RiYueZhaoBi,
             ],
         );
     }

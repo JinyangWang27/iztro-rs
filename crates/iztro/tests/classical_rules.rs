@@ -218,6 +218,8 @@ const RI_YUE: &str = "life.ri_yue_fan_bei.hardship_pressure";
 const TAN_LANG_HAI_ZI: &str = "relationship.tan_ju_hai_zi.water_romance";
 const XING_YU_TAN_LANG: &str = "relationship.xing_yu_tan_lang.romance_with_penalty";
 const SHAN_FU_JU_KONG: &str = "fortune.shan_fu_ju_kong.monastic_life";
+const TAI_YANG_JU_WU: &str = "career.tai_yang_ju_wu.authority_status";
+const TAI_YIN_JU_ZI: &str = "career.tai_yin_ju_zi.clean_office_admonition";
 
 // ---- corpus deserialization ----------------------------------------------
 
@@ -233,8 +235,14 @@ fn corpus_deserializes_all_pilot_rules() {
         let rule = rule_by_id(id).unwrap_or_else(|| panic!("missing rule {id}"));
         assert!(rule.claim.is_some(), "rule {id} should have claim metadata");
     }
-    // The two Tan Lang QuanShu rules are now executable and claim-bearing.
-    for id in [TAN_LANG_HAI_ZI, XING_YU_TAN_LANG] {
+    // The two Tan Lang QuanShu rules and the two placement rules (太阳居午 /
+    // 太阴居子) are executable and claim-bearing.
+    for id in [
+        TAN_LANG_HAI_ZI,
+        XING_YU_TAN_LANG,
+        TAI_YANG_JU_WU,
+        TAI_YIN_JU_ZI,
+    ] {
         let rule = rule_by_id(id).unwrap_or_else(|| panic!("missing rule {id}"));
         assert!(rule.claim.is_some(), "rule {id} should have claim metadata");
         assert_eq!(rule.status, RuleStatus::Executable);
@@ -316,6 +324,8 @@ fn tai_wei_fu_normalized_rules_are_inert_at_runtime() {
                     | TAN_LANG_HAI_ZI
                     | XING_YU_TAN_LANG
                     | SHAN_FU_JU_KONG
+                    | TAI_YANG_JU_WU
+                    | TAI_YIN_JU_ZI
             )
         })
         .collect();
@@ -1282,6 +1292,89 @@ fn xing_yu_tan_lang_negative_with_void_symbol_star() {
             "{void_star:?} should not trigger 刑遇贪狼"
         );
     }
+}
+
+// ---- 太阳居午 / 太阴居子 (executable; placement facts) ----------------------
+
+fn assert_placement_rule(
+    chart: &Chart,
+    rule_id: &str,
+    star: StarName,
+    branch: EarthlyBranch,
+    source_text_zh_hans: &str,
+) {
+    let evaluation = evaluate_classical(chart, &ClaimEvaluationRequest::default());
+    let claim = evaluation
+        .claims
+        .iter()
+        .find(|c| c.rule_id.as_str() == rule_id)
+        .unwrap_or_else(|| panic!("expected claim for {rule_id}"));
+    assert_eq!(claim.domain, ClaimDomain::Career);
+    assert_eq!(claim.polarity, ClaimPolarity::Positive);
+    assert_eq!(claim.scope, ClaimScope::Natal);
+    assert!(claim.evidence.iter().any(|e| matches!(
+        e.kind(),
+        EvidenceKind::StarInPalace { star: s, branch: b } if *s == star && *b == branch
+    )));
+
+    let source_hit = evaluation
+        .source_hits
+        .iter()
+        .find(|hit| hit.rule_id.as_str() == rule_id)
+        .unwrap_or_else(|| panic!("expected source hit for {rule_id}"));
+    assert_eq!(source_hit.work, ClassicalWork::ZiWeiDouShuQuanShu);
+    assert_eq!(source_hit.source_text_zh_hans, source_text_zh_hans);
+    assert_eq!(source_hit.status, RuleStatus::Executable);
+}
+
+#[test]
+fn tai_yang_ju_wu_positive_when_sun_in_wu() {
+    let chart = build_chart(
+        EarthlyBranch::Zi,
+        &[major(EarthlyBranch::Wu, StarName::TaiYang)],
+    );
+    assert_placement_rule(
+        &chart,
+        TAI_YANG_JU_WU,
+        StarName::TaiYang,
+        EarthlyBranch::Wu,
+        "太阳居午，谓之日丽中天，有专权之贵，敌国之富",
+    );
+}
+
+#[test]
+fn tai_yang_ju_wu_negative_when_sun_elsewhere() {
+    let chart = build_chart(
+        EarthlyBranch::Zi,
+        &[major(EarthlyBranch::Si, StarName::TaiYang)],
+    );
+    let claims = evaluate_classical_claims(&chart, &ClaimEvaluationRequest::default());
+    assert!(!has_rule(&claims, TAI_YANG_JU_WU));
+}
+
+#[test]
+fn tai_yin_ju_zi_positive_when_moon_in_zi() {
+    let chart = build_chart(
+        EarthlyBranch::Yin,
+        &[major(EarthlyBranch::Zi, StarName::TaiYin)],
+    );
+    assert_placement_rule(
+        &chart,
+        TAI_YIN_JU_ZI,
+        StarName::TaiYin,
+        EarthlyBranch::Zi,
+        "太阴居子，号曰水澄桂萼，得清要之职，忠谏之材",
+    );
+}
+
+#[test]
+fn tai_yin_ju_zi_negative_when_moon_elsewhere() {
+    let chart = build_chart(
+        EarthlyBranch::Yin,
+        &[major(EarthlyBranch::Hai, StarName::TaiYin)],
+    );
+    let claims = evaluate_classical_claims(&chart, &ClaimEvaluationRequest::default());
+    assert!(!has_rule(&claims, TAI_YIN_JU_ZI));
 }
 
 // ---- 禄马交驰 (metadata-only / unsupported, typed + visible) ---------------

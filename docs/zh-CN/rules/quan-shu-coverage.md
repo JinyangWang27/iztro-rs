@@ -13,11 +13,11 @@ source inventory 以原子 source item 记录每条受引出处单元；`source_
 | Source items | 270 |
 | Located source items | 270 |
 | Pending source items | 0 |
-| Linked source items | 64 |
-| Unlinked source items | 206 |
-| Linked rules | 64 |
-| Executable linked rules | 5 |
-| Normalized linked rules | 41 |
+| Linked source items | 70 |
+| Unlinked source items | 200 |
+| Linked rules | 70 |
+| Executable linked rules | 7 |
+| Normalized linked rules | 45 |
 | Ambiguous linked rules | 17 |
 | Rejected linked rules | 1 |
 
@@ -81,8 +81,8 @@ Category: `aphorism_rule`
 | Metric | Count |
 | --- | ---: |
 | Source items | 154 |
-| Linked classical rule source items | 0 |
-| Segmented aphorism source items | 154 |
+| Linked classical rule source items | 6 |
+| Segmented aphorism source items | 148 |
 | Pending source items | 0 |
 
 ## Unlinked source items
@@ -153,12 +153,6 @@ Category: `aphorism_rule`
 | quan_shu.v01.dou_shu_gu_sui_fu.gen_yuan_jian_gu | 13 | 既得根源坚固，须知合局相生，坚固则富贵延寿，相生则财官昭著 |
 | quan_shu.v01.dou_shu_gu_sui_fu.ming_hao_shen_hao | 14 | 命好身好限好到老荣昌 |
 | quan_shu.v01.dou_shu_gu_sui_fu.ming_shuai_shen_shuai | 15 | 命衰身衰限衰终身乞丐 |
-| quan_shu.v01.dou_shu_gu_sui_fu.jia_gui_jia_lu | 16 | 夹贵夹禄少人知 |
-| quan_shu.v01.dou_shu_gu_sui_fu.jia_quan_jia_ke | 17 | 夹权夹科世所宜 |
-| quan_shu.v01.dou_shu_gu_sui_fu.jia_ri_jia_yue | 18 | 夹日夹月谁能遇 |
-| quan_shu.v01.dou_shu_gu_sui_fu.jia_chang_jia_qu | 19 | 夹昌夹曲主贵兮 |
-| quan_shu.v01.dou_shu_gu_sui_fu.jia_kong_jia_jie | 20 | 夹空夹劫主贫贱 |
-| quan_shu.v01.dou_shu_gu_sui_fu.jia_yang_jia_tuo | 21 | 夹羊夹陀为乞丐 |
 | quan_shu.v01.dou_shu_gu_sui_fu.lian_zhen_qi_sha | 22 | 廉贞七杀反为积富之人 |
 | quan_shu.v01.dou_shu_gu_sui_fu.tian_liang_tai_yin | 23 | 天梁太阴却作飘蓬之客 |
 | quan_shu.v01.dou_shu_gu_sui_fu.lian_zhen_xia_jian | 24 | 廉贞主下贱孤寒 |
