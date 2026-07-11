@@ -357,16 +357,31 @@ theme / polarity / source semantics a pattern detection does not.
 See [`quan-shu-corpus.md`](../../zh-CN/rules/quan-shu-corpus.md) (Chinese) for the
 corpus authoring format.
 
+## Placement rules (star-in-branch facts)
+
+Some QuanShu aphorisms reduce to a pure placement fact — a named star sitting in
+a specific branch. The evaluator handles these through one shared arm
+(`evaluate_star_in_branches`, reusing the `star_in_branches` predicate):
+
+- **贪居亥子，名为犯水桃花** (`relationship.tan_ju_hai_zi.water_romance`):
+  conservatively 贪狼 in the 亥 or 子 branch.
+- **太阳居午，谓之日丽中天** (`career.tai_yang_ju_wu.authority_status`): 太阳 in the
+  午 branch. Deliberately distinct from the 金灿光辉 pattern, which additionally
+  requires the Life palace at 午 and 太阳 as the sole major star there.
+- **太阴居子，号曰水澄桂萼** (`career.tai_yin_ju_zi.clean_office_admonition`): 太阴
+  in the 子 branch.
+
+Each emits a `ClassicalSourceHit` plus a claim carrying
+`EvidenceKind::StarInPalace`.
+
 ## Star tags (overlapping interpretive taxonomy)
 
 `StarTag` is a reusable, **overlapping** taxonomy on `StarName` in the core star
 model, layered above the mutually exclusive coarse grouping `StarCategory`
 (`Major` / `Minor` / `Adjective`). A star may carry several tags; for example 地空
-is both 空劫 (`KongJie`) and 空曜 (`VoidSymbol`). Two Tan Lang QuanShu rules are now
-executable on this layer:
+is both 空劫 (`KongJie`) and 空曜 (`VoidSymbol`). One QuanShu rule is executable on
+this layer:
 
-- **贪居亥子，名为犯水桃花** (`relationship.tan_ju_hai_zi.water_romance`):
-  conservatively 贪狼 placed in the 亥 or 子 branch.
 - **刑遇贪狼，号曰风流彩杖** (`relationship.xing_yu_tan_lang.romance_with_penalty`):
   conservatively 贪狼 sharing a palace with a 刑曜 (`StarTag::Punishment` = 擎羊、
   天刑).

@@ -1782,6 +1782,13 @@ fn quan_shu_source_backed_pattern_metadata_is_available_for_executable_subset() 
             "羊刃入庙 辰戍丑未守命遇吉是也",
             PatternSourceGroup::Noble,
         ),
+        (
+            PatternId::RiYueZhaoBi,
+            "日月照璧",
+            "quan_shu.v01.ding_fu_ju.ri_yue_zhao_bi",
+            "日月照璧 日月临田宅宫是也，喜居墓库",
+            PatternSourceGroup::Wealth,
+        ),
     ];
 
     for (id, name, source_id, source_text, group) in cases {
@@ -2102,6 +2109,60 @@ fn yue_sheng_cang_hai_requires_tai_yin_in_zi_property() {
             .iter()
             .all(|d| d.id != PatternId::YueShengCangHai)
     );
+}
+
+#[test]
+fn ri_yue_zhao_bi_requires_sun_and_moon_in_property() {
+    // Property sits nine palaces after Life, so anchor Property at Chou.
+    let life_branch = EarthlyBranch::Chou.offset(-9);
+    let positive = build_chart(
+        life_branch,
+        &[
+            major(EarthlyBranch::Chou, StarName::TaiYang),
+            major(EarthlyBranch::Chou, StarName::TaiYin),
+        ],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&positive),
+        &PatternDetectionRequest::default(),
+    );
+    assert_detection_shape(
+        detection(&detections, PatternId::RiYueZhaoBi),
+        PatternId::RiYueZhaoBi,
+        PatternFamily::MajorStarCombination,
+        PatternPolarity::Auspicious,
+        PatternAnchor::Palace(EarthlyBranch::Chou),
+        &[StarName::TaiYang, StarName::TaiYin],
+        &[EarthlyBranch::Chou],
+    );
+
+    // Only one of the pair in the Property palace: no detection.
+    let one_star = build_chart(
+        life_branch,
+        &[
+            major(EarthlyBranch::Chou, StarName::TaiYang),
+            major(EarthlyBranch::Wei, StarName::TaiYin),
+        ],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&one_star),
+        &PatternDetectionRequest::default(),
+    );
+    assert!(detections.iter().all(|d| d.id != PatternId::RiYueZhaoBi));
+
+    // Both together but not in the Property palace: no detection.
+    let not_property = build_chart(
+        EarthlyBranch::Chou,
+        &[
+            major(EarthlyBranch::Chou, StarName::TaiYang),
+            major(EarthlyBranch::Chou, StarName::TaiYin),
+        ],
+    );
+    let detections = iztro::detect_patterns(
+        &PatternContext::natal(&not_property),
+        &PatternDetectionRequest::default(),
+    );
+    assert!(detections.iter().all(|d| d.id != PatternId::RiYueZhaoBi));
 }
 
 #[test]

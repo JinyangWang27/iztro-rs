@@ -83,7 +83,7 @@ macro_rules! spec {
 }
 
 /// Canonical pattern metadata for every [`PatternId`].
-static PATTERN_SPECS_INNER: [PatternSpec; 31] = [
+static PATTERN_SPECS_INNER: [PatternSpec; 32] = [
     spec!(
         PatternId::ZiFuChaoYuan,
         "紫府朝垣",
@@ -509,6 +509,25 @@ static PATTERN_SPECS_INNER: [PatternSpec; 31] = [
             "quan_shu.v01.ding_gui_ju.yang_ren_ru_miao",
             "羊刃入庙 辰戍丑未守命遇吉是也",
             PatternSourceGroup::Noble,
+        )),
+    ),
+    spec!(
+        PatternId::RiYueZhaoBi,
+        "日月照璧",
+        EMPTY_ALIASES,
+        PatternFamily::MajorStarCombination,
+        PatternPolarity::Auspicious,
+        "太阳与太阴同临田宅宫。",
+        None,
+        Some(
+            "出处言『喜居墓库』（辰戌丑未尤佳），该增益条件尚未建模；本检测器仅识别日月同临田宅宫的基础结构。"
+        ),
+        Some(source(
+            PatternId::RiYueZhaoBi,
+            "日月照璧",
+            "quan_shu.v01.ding_fu_ju.ri_yue_zhao_bi",
+            "日月照璧 日月临田宅宫是也，喜居墓库",
+            PatternSourceGroup::Wealth,
         )),
     ),
 ];

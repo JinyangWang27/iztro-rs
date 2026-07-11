@@ -81,6 +81,8 @@ pub enum PatternId {
     TianYiGongMing,
     /// 擎羊入庙 (羊刃入庙).
     QingYangRuMiao,
+    /// 日月照璧.
+    RiYueZhaoBi,
 }
 
 impl PatternId {
@@ -89,7 +91,7 @@ impl PatternId {
     /// Kept complete by `pattern_id_all_is_exhaustive` (adding a variant without
     /// updating this list is a compile error there), so tests can iterate the
     /// whole closed set instead of maintaining ad-hoc lists.
-    pub const ALL: [PatternId; 31] = [
+    pub const ALL: [PatternId; 32] = [
         PatternId::ZiFuChaoYuan,
         PatternId::JiYueTongLiang,
         PatternId::YangTuoJiaJi,
@@ -121,6 +123,7 @@ impl PatternId {
         PatternId::LianZhenQiShaTongGong,
         PatternId::TianYiGongMing,
         PatternId::QingYangRuMiao,
+        PatternId::RiYueZhaoBi,
     ];
 }
 
@@ -407,10 +410,11 @@ mod tests {
                 | PatternId::ZiFuJiaMing
                 | PatternId::LianZhenQiShaTongGong
                 | PatternId::TianYiGongMing
-                | PatternId::QingYangRuMiao => {}
+                | PatternId::QingYangRuMiao
+                | PatternId::RiYueZhaoBi => {}
             }
         }
-        assert_eq!(PatternId::ALL.len(), 31);
+        assert_eq!(PatternId::ALL.len(), 32);
     }
 
     #[test]

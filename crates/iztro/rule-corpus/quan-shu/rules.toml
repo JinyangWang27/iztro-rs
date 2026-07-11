@@ -236,16 +236,30 @@ id = "career.tai_yang_ju_wu.authority_status"
 source_id = "quan_shu.v01.tai_wei_fu.tai_yang_ju_wu"
 work = "zi_wei_dou_shu_quan_shu"
 source_text_zh_hans = "太阳居午，谓之日丽中天，有专权之贵，敌国之富"
-normalized_note_zh_hans = "句意结构：太阳居午宫，谓之『日丽中天』，主专权之贵、敌国之富。太阳在午为单纯入位事实（午为太阳庙地），是后续可执行的有力候选；本批次保守起见暂不接线。"
-status = "normalized"
+normalized_note_zh_hans = "本实现取太阳居午宫为命中条件（午为太阳旺地，即『日丽中天』）；不额外要求守命或单守，与格局『金灿光辉』（命宫在午且太阳单守）口径不同。"
+status = "executable"
+
+[rule.claim]
+domain = "career"
+themes = ["authority", "wealth_accumulation"]
+polarity = "positive"
+base_strength = 0.60
+claim_key = "claim.career.tai-yang-ju-wu.authority-status"
 
 [[rule]]
 id = "career.tai_yin_ju_zi.clean_office_admonition"
 source_id = "quan_shu.v01.tai_wei_fu.tai_yin_ju_zi"
 work = "zi_wei_dou_shu_quan_shu"
 source_text_zh_hans = "太阴居子，号曰水澄桂萼，得清要之职，忠谏之材"
-normalized_note_zh_hans = "句意结构：太阴居子宫，号曰『水澄桂萼』，主清要之职、忠谏之材。太阴在子为单纯入位事实，是后续可执行的有力候选；本批次保守起见暂不接线。"
-status = "normalized"
+normalized_note_zh_hans = "本实现取太阴居子宫为命中条件（子为太阴庙地，即『水澄桂萼』）；不额外要求守命，保守起见不判定职位高低，仅产出清要之职、忠谏之材的正面判断。"
+status = "executable"
+
+[rule.claim]
+domain = "career"
+themes = ["career_achievement", "responsibility"]
+polarity = "positive"
+base_strength = 0.55
+claim_key = "claim.career.tai-yin-ju-zi.clean-office-admonition"
 
 [[rule]]
 id = "status.zi_wei_fu_bi_tong_gong.commanding_leader"
@@ -548,6 +562,60 @@ work = "zi_wei_dou_shu_quan_shu"
 source_text_zh_hans = "处世孤贫数中逢乎驳杂"
 normalized_note_zh_hans = "处世孤贫，源于命数逢驳杂（吉凶混杂）。『驳杂』缺乏明确量化口径，随解读而异，故标为歧义。"
 status = "ambiguous"
+
+# --- 斗数骨髓赋规范化补全（第一批：夹宫六句） ---
+# 以下规则把 volume-01.toml 斗数骨髓赋中的夹宫六句原子出处单元链接到运行时规则
+# 元数据。均为 normalized（夹宫结构可复用既有 clamp 助手，但各句的星曜集合或
+# 去重口径尚未确定），不带 [rule.claim]：未实现前不臆测领域/主题/吉凶。
+# 其余骨髓赋 source item 仍为 segmented，后续分批链接。
+
+[[rule]]
+id = "status.jia_gui_jia_lu.little_known_blessing"
+source_id = "quan_shu.v01.dou_shu_gu_sui_fu.jia_gui_jia_lu"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "夹贵夹禄少人知"
+normalized_note_zh_hans = "句意结构：命宫两邻宫分别见贵曜与禄曜相夹（与本组其余五句同为一边一曜的平行句式）。『贵』可能指天魁、天钺，『禄』可能指禄存、化禄；具体星曜集合及组合口径尚待确定，故暂不可执行。夹宫结构可复用 clamp 助手。"
+status = "normalized"
+
+[[rule]]
+id = "status.jia_quan_jia_ke.esteemed_favor"
+source_id = "quan_shu.v01.dou_shu_gu_sui_fu.jia_quan_jia_ke"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "夹权夹科世所宜"
+normalized_note_zh_hans = "句意结构：化权、化科分居命宫两邻宫相夹，为世所称许之格。四化已建模，但针对四化落点的夹宫判定尚未接线，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "status.jia_ri_jia_yue.rare_nobility"
+source_id = "quan_shu.v01.dou_shu_gu_sui_fu.jia_ri_jia_yue"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "夹日夹月谁能遇"
+normalized_note_zh_hans = "句意结构：太阳、太阴分居命宫两邻宫相夹，为难得之贵格。与定贵局『日月夹命』（另要求不坐空亡、本宫有吉星）同形而条件更简，两处口径的合并方式未定，尚未接线，故暂不可执行。"
+status = "normalized"
+
+[[rule]]
+id = "status.jia_chang_jia_qu.literary_nobility"
+source_id = "quan_shu.v01.dou_shu_gu_sui_fu.jia_chang_jia_qu"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "夹昌夹曲主贵兮"
+normalized_note_zh_hans = "句意结构：文昌、文曲夹命主贵。同形结构已由项目 pattern 目录规则（life.chang_qu_clamp_life.literary_reputation，格局 ChangQuJiaMing）建模并可执行；本 QuanShu 出处单元保持 normalized，待确定全书出处与项目规则的去重/合并口径后再接线，避免同一结构产生重复运行时规则。"
+status = "normalized"
+
+[[rule]]
+id = "wealth.jia_kong_jia_jie.poverty"
+source_id = "quan_shu.v01.dou_shu_gu_sui_fu.jia_kong_jia_jie"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "夹空夹劫主贫贱"
+normalized_note_zh_hans = "句意结构：地空、地劫分居命宫两邻宫相夹，主贫贱。夹宫结构可复用 clamp 助手，二星均已建模，为后续可执行的有力候选；本批次保守起见暂不接线。"
+status = "normalized"
+
+[[rule]]
+id = "wealth.jia_yang_jia_tuo.destitution"
+source_id = "quan_shu.v01.dou_shu_gu_sui_fu.jia_yang_jia_tuo"
+work = "zi_wei_dou_shu_quan_shu"
+source_text_zh_hans = "夹羊夹陀为乞丐"
+normalized_note_zh_hans = "句意结构：擎羊、陀罗夹命，主困顿贫乞。同形结构已由项目 pattern 目录规则（life.yang_tuo_clamp_life.constraint_damage）建模并可执行；本 QuanShu 出处单元保持 normalized，待确定全书出处与项目规则的去重/合并口径后再接线，避免同一结构产生重复运行时规则。"
+status = "normalized"
 
 [[rule]]
 id = "meta.xue_zhi_ci_xuan_wei.closing_remark"
