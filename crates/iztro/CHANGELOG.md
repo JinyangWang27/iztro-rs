@@ -7,6 +7,64 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.0](https://github.com/JinyangWang27/iztro-rs/compare/v0.9.0...v0.10.0) - 2026-07-11
+
+### Added
+
+- *(star)* add StarFamily taxonomy and StarSelector ([#167](https://github.com/JinyangWang27/iztro-rs/pull/167))
+- *(pattern)* add five new pattern detectors ([#164](https://github.com/JinyangWang27/iztro-rs/pull/164))
+- *(classical)* evaluate chang-qu clamp in overlay ([#149](https://github.com/JinyangWang27/iztro-rs/pull/149))
+- *(rules)* add classical rule engine foundation (schema + corpus + engine) ([#113](https://github.com/JinyangWang27/iztro-rs/pull/113))
+
+### Fixed
+
+- *(analysis)* canonicalize temporal anchors ([#159](https://github.com/JinyangWang27/iztro-rs/pull/159))
+- *(pattern)* align normalized detectors with maintained conditions ([#143](https://github.com/JinyangWang27/iztro-rs/pull/143))
+- font/LFS bug, rule-engine guardrails, and doc realignment ([#138](https://github.com/JinyangWang27/iztro-rs/pull/138))
+
+### Other
+
+- Extend corpus, classical rules, and pattern detectors ([#171](https://github.com/JinyangWang27/iztro-rs/pull/171))
+- Add runtime source section table for classical rules ([#170](https://github.com/JinyangWang27/iztro-rs/pull/170))
+- Add palace-stem roles and mutagen-flow derivation ([#168](https://github.com/JinyangWang27/iztro-rs/pull/168))
+- Update lunar-lite to 1.3.0 and adapt error handling ([#165](https://github.com/JinyangWang27/iztro-rs/pull/165))
+- add fallible rule-context constructors ([#163](https://github.com/JinyangWang27/iztro-rs/pull/163))
+- Refactor source vocabulary and feature relation types ([#162](https://github.com/JinyangWang27/iztro-rs/pull/162))
+- Refactor rules relation module ([#160](https://github.com/JinyangWang27/iztro-rs/pull/160))
+- Guard overlay rule scopes and enhance pattern detector registry ([#158](https://github.com/JinyangWang27/iztro-rs/pull/158))
+- *(pattern)* move detectors to named-pattern layout ([#155](https://github.com/JinyangWang27/iztro-rs/pull/155))
+- Centralize pattern metadata and document registry ([#154](https://github.com/JinyangWang27/iztro-rs/pull/154))
+- add source inventory for upcoming pattern expansion ([#153](https://github.com/JinyangWang27/iztro-rs/pull/153))
+- *(release)* add Windows iztro-gui installer ([#152](https://github.com/JinyangWang27/iztro-rs/pull/152))
+- *(release)* build iztro-gui artifacts and installers ([#151](https://github.com/JinyangWang27/iztro-rs/pull/151))
+- *(architecture)* record domain model first principles ([#150](https://github.com/JinyangWang27/iztro-rs/pull/150))
+- *(rules)* move pattern engine under rules namespace ([#148](https://github.com/JinyangWang27/iztro-rs/pull/148))
+- introduce shared RuleEvaluationContext ([#147](https://github.com/JinyangWang27/iztro-rs/pull/147))
+- Refactor pattern context and clarify query helpers ([#146](https://github.com/JinyangWang27/iztro-rs/pull/146))
+- Add effective temporal state enhancements ([#145](https://github.com/JinyangWang27/iztro-rs/pull/145))
+- introduce frame-relative static chart projections ([#144](https://github.com/JinyangWang27/iztro-rs/pull/144))
+- Enhance theme support and improve PatternPolarity semantics ([#141](https://github.com/JinyangWang27/iztro-rs/pull/141))
+- Enhance pattern queries and document overlay pattern analysis ([#139](https://github.com/JinyangWang27/iztro-rs/pull/139))
+- Add segmented pattern-rule source groups and metadata for Volume 1 ([#136](https://github.com/JinyangWang27/iztro-rs/pull/136))
+- Refactor calendar boundary adapter for improved robustness ([#135](https://github.com/JinyangWang27/iztro-rs/pull/135))
+- migrate back to lunar-lite with datetime-level LiChun ([#134](https://github.com/JinyangWang27/iztro-rs/pull/134))
+- Expand QuanShu rules and update documentation ([#133](https://github.com/JinyangWang27/iztro-rs/pull/133))
+- Add classical rule guardrail tests and authoring guide ([#132](https://github.com/JinyangWang27/iztro-rs/pull/132))
+- add selected-view batch facade and per-key scope helper ([#130](https://github.com/JinyangWang27/iztro-rs/pull/130))
+- add layer-level rule and pattern detection APIs ([#128](https://github.com/JinyangWang27/iztro-rs/pull/128))
+- add classical rule panel view model ([#127](https://github.com/JinyangWang27/iztro-rs/pull/127))
+- execute Tan Lang water-romance rules ([#126](https://github.com/JinyangWang27/iztro-rs/pull/126))
+- Update terminology for classical rule provenance ([#125](https://github.com/JinyangWang27/iztro-rs/pull/125))
+- Refactor QuanShu source inventory to grouped TOML format ([#124](https://github.com/JinyangWang27/iztro-rs/pull/124))
+- complete Tai Wei Fu rule normalization map ([#122](https://github.com/JinyangWang27/iztro-rs/pull/122))
+- remove placeholder scaffold modules ([#121](https://github.com/JinyangWang27/iztro-rs/pull/121))
+- Enhance classical rules with source hits and claim metadata ([#120](https://github.com/JinyangWang27/iztro-rs/pull/120))
+- Complete Tai Wei Fu source segmentation and update coverage report ([#119](https://github.com/JinyangWang27/iztro-rs/pull/119))
+- Segment Tai Wei Fu example clauses and add coverage report ([#118](https://github.com/JinyangWang27/iztro-rs/pull/118))
+- *(rules)* introduce clause-level QuanShu source inventory ([#117](https://github.com/JinyangWang27/iztro-rs/pull/117))
+- Align Tian Ma Void Source ID and Validate Source Inventory ([#116](https://github.com/JinyangWang27/iztro-rs/pull/116))
+- *(rules)* add QuanShu source volumes ([#115](https://github.com/JinyangWang27/iztro-rs/pull/115))
+
 ### Changed
 
 - Migrate the calendar engine back to `lunar-lite` (1.2.1) and remove the
