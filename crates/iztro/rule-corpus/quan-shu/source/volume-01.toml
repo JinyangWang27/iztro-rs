@@ -823,7 +823,7 @@ source_text_zh_hans = "命衰身衰限衰终身乞丐"
 key = "jia_gui_jia_lu"
 source_order = 16
 source_text_zh_hans = "夹贵夹禄少人知"
-linked_rule_ids = ["status.jia_gui_jia_lu.rare_blessing"]
+linked_rule_ids = ["status.jia_gui_jia_lu.little_known_blessing"]
 
 [[source_group.item]]
 key = "jia_quan_jia_ke"

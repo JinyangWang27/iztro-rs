@@ -236,7 +236,7 @@ id = "career.tai_yang_ju_wu.authority_status"
 source_id = "quan_shu.v01.tai_wei_fu.tai_yang_ju_wu"
 work = "zi_wei_dou_shu_quan_shu"
 source_text_zh_hans = "太阳居午，谓之日丽中天，有专权之贵，敌国之富"
-normalized_note_zh_hans = "本实现取太阳居午宫为命中条件（午为太阳庙地，即『日丽中天』）；不额外要求守命或单守，与格局『金灿光辉』（命宫在午且太阳单守）口径不同。"
+normalized_note_zh_hans = "本实现取太阳居午宫为命中条件（午为太阳旺地，即『日丽中天』）；不额外要求守命或单守，与格局『金灿光辉』（命宫在午且太阳单守）口径不同。"
 status = "executable"
 
 [rule.claim]
@@ -251,12 +251,12 @@ id = "career.tai_yin_ju_zi.clean_office_admonition"
 source_id = "quan_shu.v01.tai_wei_fu.tai_yin_ju_zi"
 work = "zi_wei_dou_shu_quan_shu"
 source_text_zh_hans = "太阴居子，号曰水澄桂萼，得清要之职，忠谏之材"
-normalized_note_zh_hans = "本实现取太阴居子宫为命中条件（『水澄桂萼』，子为太阴入位之地）；不额外要求守命，保守起见不判定职位高低，仅产出清要之职、忠谏之材的正面判断。"
+normalized_note_zh_hans = "本实现取太阴居子宫为命中条件（子为太阴庙地，即『水澄桂萼』）；不额外要求守命，保守起见不判定职位高低，仅产出清要之职、忠谏之材的正面判断。"
 status = "executable"
 
 [rule.claim]
 domain = "career"
-themes = ["career_achievement", "reputation"]
+themes = ["career_achievement", "responsibility"]
 polarity = "positive"
 base_strength = 0.55
 claim_key = "claim.career.tai-yin-ju-zi.clean-office-admonition"
@@ -570,11 +570,11 @@ status = "ambiguous"
 # 其余骨髓赋 source item 仍为 segmented，后续分批链接。
 
 [[rule]]
-id = "status.jia_gui_jia_lu.rare_blessing"
+id = "status.jia_gui_jia_lu.little_known_blessing"
 source_id = "quan_shu.v01.dou_shu_gu_sui_fu.jia_gui_jia_lu"
 work = "zi_wei_dou_shu_quan_shu"
 source_text_zh_hans = "夹贵夹禄少人知"
-normalized_note_zh_hans = "句意结构：天魁天钺（贵）夹命，或禄存、化禄（禄）夹命，为少人识得的贵格。夹宫结构可复用 clamp 助手，但『贵』『禄』两组星曜的取舍口径需先确定，尚未接线，故暂不可执行。"
+normalized_note_zh_hans = "句意结构：命宫两邻宫分别见贵曜与禄曜相夹（与本组其余五句同为一边一曜的平行句式）。『贵』可能指天魁、天钺，『禄』可能指禄存、化禄；具体星曜集合及组合口径尚待确定，故暂不可执行。夹宫结构可复用 clamp 助手。"
 status = "normalized"
 
 [[rule]]
